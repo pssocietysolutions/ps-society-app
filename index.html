@@ -267,54 +267,188 @@
       #enrollButtonContainer { top: 10px; right: 10px; }
       #aboutButtonContainer { top: 10px; left: 10px; }
     }
+/* ===== Option 1: Top Navbar & Hero Cards ===== */
+.landing-navbar {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 20px;
+}
+.brand-logo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff;
+}
+.logo-accent { color: #f59e0b; }
+.nav-actions { display: flex; gap: 8px; }
+.nav-btn {
+  border-radius: 30px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-about {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.btn-enroll {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  color: #fff;
+}
+.hero-tagline { font-size: 0.85rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.hero-heading { font-size: 1.8rem; font-weight: 800; color: #fff; }
+.hero-subtext { font-size: 0.9rem; color: #cbd5e1; }
+
+.hero-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 24px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+.hero-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 35px rgba(0,0,0,0.25);
+}
+.card-icon-wrapper {
+  width: 55px;
+  height: 55px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 12px;
+}
+.visitor-icon { background: #eff6ff; color: #2563eb; }
+.resident-icon { background: #fef3c7; color: #d97706; }
+.hero-card h4 { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+.hero-card p { font-size: 0.8rem; color: #64748b; margin-bottom: 14px; }
+.card-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.feature-pill {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  color: #e2e8f0;
+  font-weight: 600;
+}
+.landing-footer {
+  margin-top: auto;
+  padding-top: 15px;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+}
+.footer-link {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.footer-sep { margin: 0 6px; color: rgba(255,255,255,0.3); }
+
   </style>
 </head>
 <body>
 
-<!-- ========== ENROLL BUTTON - FLOATING (RIGHT) ========== -->
-<div id="enrollButtonContainer">
-  <button id="enrollButton" onclick="openEnrollModal()">
-    <i class="fa-solid fa-building-circle-check me-2"></i> Enroll New Society
-  </button>
-</div>
-
-<!-- ========== ABOUT BUTTON - FLOATING (LEFT) ========== -->
-<div id="aboutButtonContainer">
-  <button id="aboutButton" onclick="openAboutPS()">
-    <i class="fa-regular fa-circle-info me-2"></i> About PS Society Solution
-  </button>
-</div>
-
-<!-- ========== LANDING ========== -->
+<!-- ========== LANDING (Option 1: Modern App Hero) ========== -->
 <div id="landing-section" class="landing-wrapper">
-  <div class="landing-brand mb-3">
-    <h1><span style="color: #f59e0b;">PS</span><span style="color: #ffffff;">Society Solutions</span></h1>
-    <p class="mb-0">Smart Society Management Engine</p>
-  </div>
-  <div class="container my-auto">
-    <div class="row landing-cards justify-content-center g-3">
-      <div class="col-md-4 col-8">
-        <div class="card" onclick="showVisitorPage()">
-          <i class="fa-solid fa-user-plus"></i>
-          <h4 class="fw-bold">🚪 Visitor</h4>
-          <p class="mb-0">Manage In/Out Visitors</p>
+  
+  <!-- 🧭 Top Navigation Bar -->
+  <header class="landing-navbar">
+    <div class="brand-logo">
+      <span class="logo-accent">PS</span> Society Solutions
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn btn-about" onclick="openAboutPS()">
+        <i class="fa-regular fa-circle-info me-1"></i> About
+      </button>
+      <button class="nav-btn btn-enroll" onclick="openEnrollModal()">
+        <i class="fa-solid fa-building-circle-check me-1"></i> Enroll
+      </button>
+    </div>
+  </header>
+
+  <!-- 🏢 Hero Content & Cards -->
+  <div class="container my-auto py-3">
+    <div class="hero-text text-center mb-4">
+      <p class="hero-tagline mb-1">Smart Society Management Engine</p>
+      <h2 class="hero-heading">Welcome to <span style="color: #f59e0b;">PS Society</span></h2>
+      <p class="hero-subtext">Choose your gateway to proceed</p>
+    </div>
+
+    <div class="row justify-content-center g-3 landing-cards">
+      <!-- Visitor Card -->
+      <div class="col-12 col-md-5 col-lg-4">
+        <div class="hero-card" onclick="showVisitorPage()">
+          <div class="card-icon-wrapper visitor-icon">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <h4>🚪 Visitor Desk</h4>
+          <p>Quick Self Check-in & Entry Pass</p>
+          <div class="card-action-btn">
+            <span>Check-in</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </div>
         </div>
       </div>
-      <div class="col-md-4 col-8">
-        <div class="card" onclick="showLoginPage()">
-          <i class="fa-solid fa-building"></i>
-          <h4 class="fw-bold">🏠 Choose Your Society</h4>
-          <p class="mb-0">Login to your Society Portal</p>
+
+      <!-- Resident / Admin Card -->
+      <div class="col-12 col-md-5 col-lg-4">
+        <div class="hero-card" onclick="showLoginPage()">
+          <div class="card-icon-wrapper resident-icon">
+            <i class="fa-solid fa-building-user"></i>
+          </div>
+          <h4>🏠 Resident & Admin</h4>
+          <p>Login to Society Management Portal</p>
+          <div class="card-action-btn">
+            <span>Sign In</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 🌟 Feature Badges -->
+    <div class="feature-badges d-flex justify-content-center flex-wrap gap-2 mt-4">
+      <span class="feature-pill"><i class="fa-solid fa-calculator me-1"></i> Digital Ledger</span>
+      <span class="feature-pill"><i class="fa-solid fa-receipt me-1"></i> Instant Receipts</span>
+      <span class="feature-pill"><i class="fa-solid fa-shield-halved me-1"></i> DPDP Ready</span>
+    </div>
   </div>
-  
-  <div class="footer-copyright">
-    <button onclick="openPrivacyPolicy()" style="background: transparent; border: none; color: rgba(255,255,255,0.6); text-decoration: underline; font-size: 0.85rem; cursor: pointer;">Privacy Policy</button>
-    <span style="color: rgba(255,255,255,0.3); margin: 0 8px;">|</span>
-    <span style="color: rgba(255,255,255,0.4); font-size: 0.85rem;">All rights received by PS Society Solutions.</span>
-  </div>
+
+  <!-- 📜 Footer -->
+  <footer class="landing-footer">
+    <button onclick="openPrivacyPolicy()" class="footer-link">Privacy Policy</button>
+    <span class="footer-sep">|</span>
+    <span class="footer-copy">All rights reserved by PS Society Solutions</span>
+  </footer>
+
 </div>
 
 <!-- ========== VISITOR SECTION ========== -->
@@ -513,7 +647,7 @@
         </div>
 
         <!-- TAB 5: AMC TRACKER -->
-        <div id="tab-amc-tracker" class="tab-content d-none role-restricted admin-only chairman-only">
+        <div id="tab-amc-tracker" class="tab-content d-none">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold"><i class="fa-solid fa-screwdriver-wrench text-warning me-2"></i> AMC Service Contracts Tracker</h3>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#amcModal"><i class="fa-solid fa-plus me-1"></i> Add Contract</button>

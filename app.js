@@ -1132,13 +1132,11 @@ function switchTab(tabId, element) {
     markCommunityRead();
     renderCommunity();
   }
-
-  // Polls Tab
-  if (tabId === 'polls') {
-    if (pollsData.length > 0) {
-      localStorage.setItem('ps_last_seen_polls', Math.max(...pollsData.map(p => p.id || 0)).toString());
-    }
+if (tabId === 'polls') {
+    const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
+    localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
     updateBadge('polls-badge', 0);
+    updateBadge('notification-badge', 0);
     renderPolls();
   }
 
@@ -2523,8 +2521,12 @@ function markCommunityRead() {
   let maxId = 0;
   if (eventsData.length > 0) maxId = Math.max(maxId, ...eventsData.map(e => e.id || 0));
   if (noticesData.length > 0) maxId = Math.max(maxId, ...noticesData.map(n => n.id || 0));
+  
   localStorage.setItem('ps_last_community_read', maxId.toString());
+  localStorage.setItem('ps_last_seen_notice', maxId.toString());
+  
   updateBadge('community-badge', 0);
+  updateBadge('notification-badge', 0);
 }
 
 // ===================== VISITOR PASSWORD (DATABASE MATCH) =====================
