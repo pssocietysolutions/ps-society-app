@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PS Society Solutions - Management Portal</title>
+
+  <!-- PWA META -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#2563eb">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css?v=1">
+
+  <!-- PDF Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+
+    /* ========== LANDING PAGE ========== */
+    .landing-wrapper {
+      min-height: 100vh;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.85)), 
+                  url('bg.jpeg') center/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 30px 20px;
+      text-align: center;
+      color: #fff;
+      position: relative;
+    }
+    .landing-brand h1 { 
+      font-size: 2.2rem;
+      font-weight: 700; 
+      letter-spacing: 2px; 
+    }
+    .landing-brand p { 
+      font-size: 0.95rem; 
+      opacity: 0.8; 
+      margin-bottom: 0.5rem;
+    }
+    .landing-cards .card {
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border: none;
+      border-radius: 20px;
+      padding: 18px 15px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      min-height: 120px;
+      max-width: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #1e293b;
+      margin: 0 auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    .landing-cards .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    .landing-cards .card i { 
+      font-size: 2.2rem;
+      color: #f59e0b; 
+      margin-bottom: 8px; 
+    }
+    .landing-cards .card h4 { 
+      font-size: 1rem; 
+      font-weight: 700;
+    }
+    .landing-cards .card p { 
+      font-size: 0.8rem; 
+      margin-bottom: 0;
+      opacity: 0.8;
+    }
+
+    /* ===== Top-Right Enroll Button ===== */
+    #enrollButtonContainer {
+      position: fixed;
+      top: 15px;
+      right: 20px;
+      z-index: 9999;
+      display: block;
+    }
+    #enrollButton {
+      border-radius: 50px;
+      padding: 8px 20px;
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+      transition: 0.2s;
+    }
+    #enrollButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(245, 158, 11, 0.45);
+    }
+
+    /* ===== Top-Left About Button ===== */
+    #aboutButtonContainer {
+      position: fixed;
+      top: 15px;
+      left: 20px;
+      z-index: 9999;
+      display: block;
+    }
+    #aboutButton {
+      border-radius: 50px;
+      padding: 8px 20px;
+      background: linear-gradient(90deg, #f59e0b, #d97706);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+      transition: 0.2s;
+    }
+    #aboutButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(245, 158, 11, 0.45);
+    }
+
+    /* ===== Footer Text ===== */
+    .footer-copyright {
+      margin-top: auto;
+      padding-top: 20px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.85rem;
+      letter-spacing: 0.3px;
+    }
+
+    .login-wrapper {
+      min-height: 100vh;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.88)), 
+                  url('bg.jpeg') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .glass-login-card {
+      background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(14px);
+      border-radius: 20px; width: 100%; max-width: 440px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    .sidebar { 
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); 
+    }
+    @media (max-width: 767.98px) { .sidebar { min-height: auto; height: auto; position: static; } }
+    .nav-link { cursor: pointer; color: #94a3b8; font-weight: 500; border-radius: 10px; margin-bottom: 6px; padding: 10px 14px; transition: all 0.2s ease; }
+    .nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #2563eb, #3b82f6) !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    .card-stat { border-radius: 16px; border: none; }
+    
+    .poll-bar { height: 8px; border-radius: 10px; background: #e9ecef; overflow: hidden; margin-top: 4px; }
+    .poll-bar-fill { height: 100%; background: #0d6efd; border-radius: 10px; transition: width 0.4s; }
+
+    .visitor-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: 0.2s;
+    }
+    .visitor-card.out { background: #f1f5f9; opacity: 0.7; }
+    .visitor-card .info { flex: 1; }
+    .visitor-card .info h6 { margin: 0; font-weight: 600; }
+    .visitor-card .info small { color: #64748b; }
+
+    .qr-modal-img {
+      max-width: 100%;
+      max-height: 70vh;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    }
+
+    .btn-whatsapp {
+      background: #25d366;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-whatsapp:hover {
+      background: #1da851;
+      color: #fff;
+      transform: scale(1.03);
+    }
+
+    .upi-modal-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #00c853, #009624);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #fff;
+      margin: 0 auto 15px;
+      box-shadow: 0 8px 30px rgba(0, 200, 83, 0.3);
+    }
+    .upi-option-card {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 10px 16px;
+      border: 1px solid #e2e8f0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    @media print {
+      .sidebar, .navbar, .btn, .no-print { display: none !important; }
+      main { width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    }
+
+    @media (max-width: 768px) {
+      #sidebarMenu { display: none !important; }
+      .container-fluid .row { display: block !important; }
+      .tab-content { display: none !important; }
+      #visitor-section { padding: 15px !important; }
+      .grid-card-item {
+        padding: 25px 10px !important;
+        min-height: 100px;
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+      .grid-card-item i { font-size: 42px !important; margin-bottom: 12px !important; }
+      .grid-card-item span { font-size: 14px !important; font-weight: 500; }
+
+      #enrollButton, #aboutButton {
+        font-size: 11px !important;
+        padding: 5px 12px !important;
+      }
+      #enrollButtonContainer { top: 10px; right: 10px; }
+      #aboutButtonContainer { top: 10px; left: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== ENROLL BUTTON - FLOATING (RIGHT) ========== -->
+<div id="enrollButtonContainer">
+  <button id="enrollButton" onclick="openEnrollModal()">
+    <i class="fa-solid fa-building-circle-check me-2"></i> Enroll New Society
+  </button>
+</div>
+
+<!-- ========== ABOUT BUTTON - FLOATING (LEFT) ========== -->
+<div id="aboutButtonContainer">
+  <button id="aboutButton" onclick="openAboutPS()">
+    <i class="fa-regular fa-circle-info me-2"></i> About PS Society Solution
+  </button>
+</div>
+
+<!-- ========== LANDING ========== -->
+<div id="landing-section" class="landing-wrapper">
+  <div class="landing-brand mb-3">
+    <h1><span style="color: #f59e0b;">PS</span><span style="color: #ffffff;">Society Solutions</span></h1>
+    <p class="mb-0">Smart Society Management Engine</p>
+  </div>
+  <div class="container my-auto">
+    <div class="row landing-cards justify-content-center g-3">
+      <div class="col-md-4 col-8">
+        <div class="card" onclick="showVisitorPage()">
+          <i class="fa-solid fa-user-plus"></i>
+          <h4 class="fw-bold">🚪 Visitor</h4>
+          <p class="mb-0">Manage In/Out Visitors</p>
+        </div>
+      </div>
+      <div class="col-md-4 col-8">
+        <div class="card" onclick="showLoginPage()">
+          <i class="fa-solid fa-building"></i>
+          <h4 class="fw-bold">🏠 Choose Your Society</h4>
+          <p class="mb-0">Login to your Society Portal</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer-copyright">
+    <button onclick="openPrivacyPolicy()" style="background: transparent; border: none; color: rgba(255,255,255,0.6); text-decoration: underline; font-size: 0.85rem; cursor: pointer;">Privacy Policy</button>
+    <span style="color: rgba(255,255,255,0.3); margin: 0 8px;">|</span>
+    <span style="color: rgba(255,255,255,0.4); font-size: 0.85rem;">All rights received by PS Society Solutions.</span>
+  </div>
+</div>
+
+<!-- ========== VISITOR SECTION ========== -->
+<div id="visitor-section" class="container py-4" style="display:none; min-height:100vh; background: #f8fafc;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <button id="visitorBackBtn" class="btn btn-outline-secondary" onclick="goBackFromVisitor()"><i class="fa-solid fa-arrow-left me-2"></i> Back</button>
+    <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-plus text-primary me-2"></i> Visitor Management</h3>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitorModal" onclick="loadFlatsDropdown()"><i class="fa-solid fa-plus me-2"></i> Add Visitor</button>
+  </div>
+  <div id="visitorListContainer" class="mt-3"><div class="alert alert-info">Loading visitors...</div></div>
+</div>
+
+<!-- ========== LOGIN ========== -->
+<div id="login-section" class="login-wrapper" style="display:none;">
+  <div class="card p-4 p-md-5 glass-login-card">
+    <div class="text-center mb-4">
+      <button class="btn btn-sm btn-outline-secondary float-start" onclick="showLandingPage()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <div class="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill fw-semibold">
+        <i class="fa-solid fa-building-user me-1"></i> Smart Society Engine
+      </div>
+      <h3 class="fw-bold mb-1">
+        <span style="color: #f59e0b;">PS</span>
+        <span style="color: #1e293b;">Society Solutions</span>
+      </h3>
+      <p class="text-muted small">Select your Society to continue</p>
+    </div>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Select Society</label><select id="login-society" class="form-select bg-light border" required><option value="">-- Select --</option></select></div>
+      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Flat ID / Login ID</label><div class="input-group"><span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-house text-muted"></i></span><input type="text" id="login-email" class="form-control bg-light border-start-0" placeholder="e.g. A-101 or Admin" required></div></div>
+      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Password</label><div class="input-group"><span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span><input type="password" id="login-password" class="form-control bg-light border-start-0 border-end-0" placeholder="••••••••" required><button class="btn btn-light border border-start-0 text-muted" type="button" onclick="togglePasswordVisibility()"><i class="fa-solid fa-eye" id="togglePasswordIcon"></i></button></div></div>
+      <div class="mb-4"><label class="form-label fw-semibold text-secondary small">Role Access</label><select id="login-role" class="form-select bg-light border">
+        <option value="Admin">Admin</option>
+        <option value="Chairman">Chairman</option>
+        <option value="SocietyAdmin">SocietyAdmin</option>
+        <option value="Member">Member</option>
+      </select></div>
+      <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-3 shadow-sm">Sign In to Portal</button>
+    </form>
+  </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div id="app-section" class="d-none">
+  <nav class="navbar navbar-dark bg-dark d-md-none px-3 sticky-top">
+    <a class="navbar-brand fw-bold text-warning" href="#">PS Society</a>
+    <button class="navbar-toggler d-md-none" type="button" onclick="toggleMobileMenu()" style="border: none; color: #fff; font-size: 24px; background: none;"><i class="fa-solid fa-bars"></i></button>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- SIDEBAR -->
+      <nav id="sidebarMenu" class="col-md-3 col-lg-2 bg-dark navbar-dark collapse d-md-block sidebar p-3">
+        <!-- 🟢 PASTE YOUR NEW BLOCK HERE: -->
+<div class="text-white mb-3 d-none d-md-block text-center border-bottom border-secondary pb-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <span id="user-role-badge" class="badge bg-primary px-2 py-1">Admin</span>
+    <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="handleLogout()" title="Logout" style="font-size: 12px; border-radius: 20px;">
+      <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+    </button>
+  </div>
+  <h5 id="sidebar-society-name" class="fw-bold text-warning mb-0">Demo Society</h5>
+  <div id="user-name-display" class="small text-muted">A-101</div>
+  <div id="society-switcher" class="mt-2 d-none">
+    <select id="switch-society-dropdown" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="switchSociety(this.value)">
+      <option value="">-- Switch Society --</option>
+    </select>
+  </div>
+</div>
+        <ul class="nav nav-pills flex-column mb-auto">
+          <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('members', this)"><i class="fa-solid fa-users me-2"></i> Members Directory</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('maintenance', this)"><i class="fa-solid fa-indian-rupee-sign me-2"></i> Maintenance Log <span id="maintenance-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('expenses', this)"><i class="fa-solid fa-receipt me-2"></i> Expense Ledger</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)"><i class="fa-solid fa-screwdriver-wrench me-2"></i> AMC Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)"><i class="fa-solid fa-building-columns me-2"></i> Tally Bank Book</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('ca-audit', this)"><i class="fa-solid fa-calculator me-2"></i> CA Audit Report</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('chairman-report', this)"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Chairman Report</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('visitor', this)"><i class="fa-solid fa-user-plus me-2"></i> Visitor <span id="visitor-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('complaints', this)"><i class="fa-solid fa-headset me-2"></i> Complaints <span id="complaints-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('polls', this)"><i class="fa-solid fa-check-to-slot me-2"></i> Polls & Voting <span id="polls-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item" id="community-nav-item">
+            <a class="nav-link" onclick="switchTab('community', this)">
+              <i class="fa-solid fa-people-group me-2"></i> Community Hub
+              <span id="community-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span>
+            </a>
+          </li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('bank-details', this)"><i class="fa-solid fa-qrcode me-2"></i> Society Bank / QR</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('sos-contacts', this)"><i class="fa-solid fa-truck-medical me-2 text-danger"></i> Emergency SOS</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('assets', this)"><i class="fa-solid fa-boxes-stacked me-2"></i> Asset Register</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('fds', this)"><i class="fa-solid fa-piggy-bank me-2"></i> FDs & Reserve</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('proofs', this)"><i class="fa-solid fa-file-invoice me-2"></i> Payment Details <span id="proofs-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('settings', this)"><i class="fa-solid fa-gear me-2"></i> Settings</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="openAboutPS()"><i class="fa-solid fa-circle-info me-2"></i> About PS</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="openPrivacyPolicy()"><i class="fa-solid fa-file-shield me-2"></i> Privacy Policy</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('deletion-requests', this)"><i class="fa-solid fa-trash-can me-2"></i> Deletion Requests</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('team', this)"><i class="fa-solid fa-people-group me-2"></i> Committee / Team</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('manage-societies', this)"><i class="fa-solid fa-building me-2"></i> Manage Societies</a></li>
+        </ul>
+        <hr class="text-secondary">
+        <button class="btn btn-outline-warning w-100 mb-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fa-solid fa-key me-2"></i> Change Password</button>
+        </nav>
+
+      <!-- MAIN CONTENT -->
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+        <!-- MOBILE GRID OVERLAY -->
+        <div id="mobileMenuOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10000; display: none; flex-direction: column; padding: 20px; overflow-y: auto;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <h5 style="font-weight: 700; margin: 0;">
+              <span style="color: #f59e0b;">PS</span>
+              <span style="color: #ffffff;">Society Solutions</span>
+              <span id="notification-badge" style="display: none; background: #ef4444; color: white; font-size: 12px; border-radius: 50%; padding: 2px 8px; margin-left: 8px; vertical-align: middle;">0</span>
+            </h5>
+            <button onclick="handleLogout()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+          </div>
+          <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; flex: 1;"></div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content">
+          <h3 class="fw-bold mb-3">Dashboard Overview</h3>
+          <div id="admin-dashboard-stats" class="row g-3 mb-4">
+            <div class="col-12 col-md-4"><div class="card card-stat bg-primary text-white p-3 shadow-sm"><h6 class="text-white-50">Total Society Pending Dues</h6><h2 id="dash-pending">₹0</h2></div></div>
+            <div class="col-12 col-md-4"><div class="card card-stat bg-success text-white p-3 shadow-sm"><h6 class="text-white-50">Total Maintenance Collected</h6><h2 id="dash-collected">₹0</h2></div></div>
+            <div class="col-12 col-md-4"><div class="card card-stat bg-danger text-white p-3 shadow-sm"><h6 class="text-white-50">Total Society Expenses Paid</h6><h2 id="dash-expenses">₹0</h2></div></div>
+            
+            <div class="col-12 mt-3 role-restricted admin-only chairman-only">
+              <button class="btn btn-success fw-bold shadow-sm" onclick="sendBulkWhatsAppReminder()" style="border-radius: 50px; padding: 10px 30px; background: linear-gradient(90deg, #25d366, #1da851); border: none;">
+                <i class="fa-brands fa-whatsapp me-2"></i> Send Reminder to All Pending Members
+              </button>
+            </div>
+          </div>
+          <div id="member-dashboard-stats" class="d-none">
+            <div class="row g-3 mb-4">
+              <div class="col-12 col-md-6"><div class="card card-stat bg-danger text-white p-4 shadow-sm"><h6>My Flat Pending Outstanding</h6><h2 id="my-flat-pending">₹0</h2></div></div>
+              <div class="col-12 col-md-6"><div class="card card-stat bg-success text-white p-4 shadow-sm"><h6>Total Paid Dues Till Date</h6><h2 id="my-flat-paid">₹0</h2></div></div>
+            </div>
+            
+            <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mb-4">
+              <div class="row align-items-center">
+                <div class="col-md-4 text-center">
+                  <img id="member-dashboard-qr" src="qr-payment.png" alt="Payment QR" style="width: 100%; max-width: 150px; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" onclick="openQRModal()" title="Click to enlarge QR">
+                  <p class="text-muted small mt-2 mb-0">Scan to Pay</p>
+                </div>
+                <div class="col-md-8 text-center text-md-start">
+                  <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-credit-card me-2"></i>Pay Maintenance</h6>
+                  <p class="text-muted small mb-3">Pay directly using your preferred UPI app. Enter amount manually.</p>
+                  <button onclick="openUPIPayment()" class="btn btn-success fw-bold shadow-sm" style="border-radius: 50px; padding: 12px 35px; background: linear-gradient(135deg, #00c853, #009624); border: none; font-size: 16px; transition: 0.3s;">
+                    <i class="fa-brands fa-google-pay me-2"></i> Pay Now with UPI
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mb-4"><h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-credit-card me-2"></i> Submit Payment Receipt Details</h5><button class="btn btn-success fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal"><i class="fa-solid fa-upload me-2"></i> Pay & Upload Receipt Details</button></div>
+            <div class="card p-4 bg-white shadow-sm rounded-4 border-0"><h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-history me-2"></i> My Payment History</h5><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Receipt No</th><th>Date</th><th>Amount Paid</th><th>Mode</th></tr></thead><tbody id="my-payment-history-list"></tbody></table></div></div>
+            
+            <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mt-3 role-restricted member-only" id="deletionRequestCard">
+              <h5 class="fw-bold text-danger mb-2"><i class="fa-solid fa-trash-can me-2"></i>Request Data Deletion</h5>
+              <p class="text-muted small">If you want to delete all your personal data from our system, click the button below. Admin will review and process your request.</p>
+              <button class="btn btn-danger fw-bold" onclick="requestDataDeletion()">
+                <i class="fa-solid fa-trash me-2"></i> Request Data Deletion
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: MEMBERS -->
+        <div id="tab-members" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Member Directory</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('members-table-data', 'Member_Directory')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#memberModal">+ Add Member</button></div></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="members-table-data"><thead class="table-light">
+            <tr>
+              <th>Flat No</th>
+              <th>Owner Name</th>
+              <th>Phone Number</th>
+              <th>Status</th>
+              <th class="role-restricted admin-only chairman-only">Monthly Rate (₹)</th>
+              <th class="role-restricted admin-only chairman-only">Opening Due (₹)</th>
+              <th class="role-restricted admin-only chairman-only">FY Total Paid (₹)</th>
+              <th class="role-restricted admin-only chairman-only">FY Pending Due (₹)</th>
+              <th class="no-print admin-only">Actions</th>
+            </tr>
+          </thead><tbody id="members-list"></tbody></table></div>
+        </div>
+
+        <!-- TAB 3: MAINTENANCE -->
+        <div id="tab-maintenance" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Maintenance Recovery Ledger</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('maintenance-table-data', 'Maintenance_Tracker')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-success role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#maintenanceModal">+ Record Payment</button></div></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="maintenance-table-data"><thead class="table-light"><tr><th>Receipt No</th><th>Flat No</th><th>Payment Date</th><th>Period</th><th>Amount (₹)</th><th>Mode</th><th class="no-print">Action</th></tr></thead><tbody id="maintenance-list"></tbody></table></div>
+        </div>
+
+        <!-- TAB 4: EXPENSES -->
+        <div id="tab-expenses" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Expense Ledger</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('expenses-table-data', 'Expense_Ledger')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-primary role-restricted admin-only" onclick="openExpenseModal()"><i class="fa-solid fa-plus me-2"></i> Add Voucher</button></div></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="expenses-table-data"><thead class="table-light"><tr><th>Voucher No</th><th>Date</th><th>Category</th><th>Paid To</th><th>Payment Mode</th><th>Amount (₹)</th><th class="no-print">Action</th></tr></thead><tbody id="expense-list"></tbody></table></div>
+        </div>
+
+        <!-- TAB 5: AMC TRACKER -->
+        <div id="tab-amc-tracker" class="tab-content d-none role-restricted admin-only chairman-only">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold"><i class="fa-solid fa-screwdriver-wrench text-warning me-2"></i> AMC Service Contracts Tracker</h3>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#amcModal"><i class="fa-solid fa-plus me-1"></i> Add Contract</button>
+          </div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Service Type</th>
+                  <th>Vendor Name</th>
+                  <th>Contact Person & Phone</th>
+                  <th>Contract Period</th>
+                  <th>Annual Cost (₹)</th>
+                  <th>Status / Expiry</th>
+                  <th class="no-print">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="amc-list"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 6: TALLY BANK -->
+        <div id="tab-tally-bank" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-building-columns text-primary me-2"></i> Tally Bank Passbook Register</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('tally-bank-table', 'Tally_Bank_Book')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#bankModal">+ Add Bank Entry</button></div></div>
+          <div class="row g-3 mb-4"><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Opening Bank Balance</h6><h4 class="text-dark" id="tally-opening-balance">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Total Money In (Debit)</h6><h4 class="text-success" id="tally-tot-in">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Total Money Out (Credit)</h6><h4 class="text-danger" id="tally-tot-out">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Closing Passbook Balance</h6><h4 class="text-primary" id="tally-calc-balance">₹0.00</h4></div></div></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="tally-bank-table"><thead class="table-dark"><tr><th>Date</th><th>Ref No</th><th>Account Head</th><th>Type</th><th>Deposit</th><th>Withdrawal</th><th>Balance</th><th class="no-print admin-only">Actions</th></tr></thead><tbody id="tally-bank-entries"></tbody></table></div>
+        </div>
+
+        <!-- TAB 7: CA AUDIT -->
+        <div id="tab-ca-audit" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-calculator text-success me-2"></i> CA Verification & Tax Compliance Engine</h3><button class="btn btn-outline-secondary no-print" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Print Trial Balance</button></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-bordered align-middle"><thead class="table-dark"><tr><th>Account Group Head</th><th>Ledger Class</th><th>Debit Balance</th><th>Credit Balance</th></tr></thead><tbody id="ca-trial-balance-rows"></tbody></table></div>
+        </div>
+
+        <!-- TAB 8: CHAIRMAN REPORT -->
+        <div id="tab-chairman-report" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-file-invoice-dollar text-warning me-2"></i> Chairman Monthly Executive Summary</h3><button class="btn btn-outline-secondary no-print" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Print Summary</button></div>
+          <div class="row g-3 mb-4"><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Paid / Partial Paid Flats</h6><h3 class="text-success" id="report-paid-flats">0 / 33</h3></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Unpaid / Pending Flats</h6><h3 class="text-danger" id="report-unpaid-flats">33 / 33</h3></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Total Society Pending Dues</h6><h3 class="text-warning" id="report-total-pending">₹0</h3></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Active Complaints</h6><h3 class="text-info" id="report-complaint-count">0</h3></div></div></div>
+        </div>
+
+        <!-- TAB 9: VISITOR CONTAINER -->
+        <div id="tab-visitor" class="tab-content d-none"><div id="visitor-app-container"></div></div>
+
+        <!-- TAB 10: COMPLAINTS -->
+        <div id="tab-complaints" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Complaints & Tickets</h3><button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#complaintModal"><i class="fa-solid fa-plus me-1"></i> Raise Complaint</button></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Ticket ID</th><th>Flat</th><th>Mobile</th><th>Category</th><th>Details</th><th>Status</th><th>Image</th><th class="no-print admin-only chairman-only">Actions</th></tr></thead><tbody id="complaint-list"></tbody></table></div>
+        </div>
+
+        <!-- TAB 11: POLLS -->
+        <div id="tab-polls" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Polls & Voting</h3><button class="btn btn-primary role-restricted admin-only chairman-only" data-bs-toggle="modal" data-bs-target="#pollModal">+ Create Poll</button></div>
+          <div id="polls-container" class="row g-3"></div>
+        </div>
+
+        <!-- TAB 12: COMMUNITY HUB -->
+        <div id="tab-community" class="tab-content d-none">
+          <h3 class="fw-bold"><i class="fa-solid fa-people-group text-primary me-2"></i> Community Hub</h3>
+          <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="fw-bold mb-0"><i class="fa-solid fa-calendar-days text-primary me-2"></i> Upcoming Events</h5>
+              <button class="btn btn-sm btn-primary role-restricted admin-only chairman-only" data-bs-toggle="modal" data-bs-target="#eventModal"><i class="fa-solid fa-plus me-1"></i> Add Event</button>
+            </div>
+            <div id="events-community-container" class="row g-3 mt-2"></div>
+          </div>
+          <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="fw-bold mb-0"><i class="fa-solid fa-bullhorn text-warning me-2"></i> Notices & Circulars</h5>
+              <button class="btn btn-sm btn-primary role-restricted admin-only chairman-only" data-bs-toggle="modal" data-bs-target="#noticeModal"><i class="fa-solid fa-plus me-1"></i> Add Notice</button>
+            </div>
+            <div id="notices-community-container" class="row g-3 mt-2"></div>
+          </div>
+          <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="fw-bold mb-0"><i class="fa-solid fa-calendar-check text-success me-2"></i> Book a Facility</h5>
+              <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#bookingModal" onclick="resetBookingForm()"><i class="fa-solid fa-plus me-1"></i> New Booking</button>
+            </div>
+            <div id="facilities-community-container" class="row g-3 mt-2"></div>
+            <hr>
+            <h6 class="fw-bold mt-2">My Bookings</h6>
+            <div id="my-bookings-community-container" class="mt-2"></div>
+          </div>
+          <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 role-restricted admin-only chairman-only">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="fw-bold mb-0"><i class="fa-solid fa-people-arrows text-primary me-2"></i> Manage Facilities & Bookings</h5>
+              <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addFacilityModal">+ Add Facility</button>
+            </div>
+            <div id="manage-facilities-container" class="row g-3 mt-2"></div>
+            <h6 class="fw-bold mt-3">Pending Requests</h6>
+            <div id="pending-bookings-container" class="mt-2"></div>
+            <h6 class="fw-bold mt-3">All Bookings</h6>
+            <div id="all-bookings-container" class="mt-2"></div>
+          </div>
+        </div>
+
+        <!-- TAB 13: BANK & QR -->
+        <div id="tab-bank-details" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold"><i class="fa-solid fa-building-columns text-primary me-2"></i> Society Bank & Payment QR</h3>
+            <button class="btn btn-warning role-restricted admin-only chairman-only" data-bs-toggle="modal" data-bs-target="#editBankDetailsModal"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Bank & QR</button>
+          </div>
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="card p-4 bg-white shadow-sm rounded-4 border-0 h-100">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-money-check me-2 text-primary"></i> Bank Account Information</h5>
+                <p class="mb-2"><strong>Account Name:</strong> <span id="bank-acc-name">M/S. Aakruti Heights CHS</span></p>
+                <p class="mb-2"><strong>Bank Name:</strong> <span id="bank-name-display">ICICI Bank</span></p>
+                <p class="mb-2"><strong>Account Number:</strong> <span id="bank-acc-no">000000000000</span></p>
+                <p class="mb-2"><strong>IFSC Code:</strong> <span id="bank-ifsc">ICIC0000000</span></p>
+                <p class="mb-2"><strong>UPI ID:</strong> <span id="bank-upi-id">8866376056@icici</span></p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card p-4 bg-white shadow-sm rounded-4 border-0 text-center h-100">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="fa-solid fa-qrcode me-2 text-success"></i> Official Society QR Code</h5>
+                <img id="society-dynamic-qr" src="qr-payment.png" alt="Society QR" style="max-width: 220px; border-radius: 12px; margin: 0 auto; border: 1px solid #e2e8f0;" class="shadow-sm">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 14: SOS CONTACTS -->
+        <div id="tab-sos-contacts" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold text-danger"><i class="fa-solid fa-truck-medical me-2"></i> Emergency Contacts (SOS)</h3>
+          </div>
+          <div class="row g-3" id="sos-contacts-list"></div>
+        </div>
+
+        <!-- TAB 15: ASSETS -->
+        <div id="tab-assets" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Asset Register</h3><button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#assetModal">+ Add Asset</button></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Code</th><th>Name</th><th>Location</th><th>Qty</th><th>Cost</th><th>Condition</th><th>Details</th><th class="no-print admin-only">Actions</th></tr></thead><tbody id="assets-list"></tbody></table></div>
+        </div>
+
+        <!-- TAB 16: FDs -->
+        <div id="tab-fds" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">FD Reserve Register</h3><button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#fdModal">+ Add FD Record</button></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Bank</th><th>Acc No</th><th>Principal</th><th>Rate</th><th>Maturity</th><th>Status</th><th class="no-print admin-only">Actions</th></tr></thead><tbody id="fds-list"></tbody></table></div>
+        </div>
+
+        <!-- TAB 17: PAYMENT DETAILS (STRUCTURED TABLE) -->
+        <div id="tab-proofs" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold"><i class="fa-solid fa-file-invoice text-primary me-2"></i> Payment Details</h3>
+            <span class="badge bg-warning text-dark" id="pending-proof-count">0 Pending</span>
+          </div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Flat No</th>
+                  <th>Amount (₹)</th>
+                  <th>Payment Date</th>
+                  <th>Status</th>
+                  <th>Receipt Image</th>
+                  <th class="no-print">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="proofs-container"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- TAB 18: SETTINGS -->
+        <div id="tab-settings" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-gear text-primary me-2"></i> Society Settings</h3></div>
+          <div class="card p-4 bg-white shadow-sm rounded-4 border-0"><form onsubmit="updateSocietySettings(event)"><div class="row g-3"><div class="col-md-6"><label class="form-label fw-semibold">Society Name</label><input type="text" id="settings-name" class="form-control" required></div><div class="col-md-6"><label class="form-label fw-semibold">Phone Number</label><input type="text" id="settings-phone" class="form-control"></div><div class="col-12"><label class="form-label fw-semibold">Address</label><textarea id="settings-address" class="form-control" rows="2"></textarea></div><div class="col-md-6"><label class="form-label fw-semibold">Email</label><input type="email" id="settings-email" class="form-control"></div><div class="col-md-6"><label class="form-label fw-semibold">PAN / GST</label><input type="text" id="settings-pan" class="form-control"></div></div><button type="submit" class="btn btn-primary w-100 fw-bold mt-4 py-2">Update Society Details</button></form></div>
+        </div>
+
+        <!-- TAB 19: DELETION REQUESTS -->
+        <div id="tab-deletion-requests" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-trash-can text-danger me-2"></i>Deletion Requests</h3></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Flat No</th><th>Requested At</th><th>Status</th><th class="no-print">Actions</th></tr></thead><tbody id="deletion-requests-list"><tr><td colspan="4" class="text-center text-muted">Loading...</td></tr></tbody></table></div>
+        </div>
+
+        <!-- TAB 20: TEAM -->
+        <div id="tab-team" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-people-group text-primary me-2"></i> Committee & Staff</h3><div><button class="btn btn-outline-success me-2 no-print" onclick="exportTableToExcel('team-table-data', 'Society_Team')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#teamModal"><i class="fa-solid fa-plus me-1"></i> Add Member</button></div></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="team-table-data"><thead class="table-light"><tr><th>Name</th><th>Mobile</th><th>Role</th><th>Type</th><th class="no-print admin-only">Actions</th></tr></thead><tbody id="team-list"></tbody></table></div>
+        </div>
+
+        <!-- TAB 21: MANAGE SOCIETIES -->
+        <div id="tab-manage-societies" class="tab-content d-none">
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-building text-primary me-2"></i> Manage Societies</h3><button class="btn btn-primary role-restricted admin-only" onclick="openAddSocietyModal()"><i class="fa-solid fa-plus me-1"></i> Add Society</button></div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Name</th><th>Address</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead><tbody id="societies-list"><tr><td colspan="5" class="text-center text-muted">Loading societies...</td></tr></tbody></table></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+<!-- AMC Modal -->
+<div class="modal fade" id="amcModal" tabindex="-1">
+  <div class="modal-dialog border-0 shadow-lg">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-screwdriver-wrench me-2"></i> Add AMC Service Contract</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form onsubmit="submitAMCContract(event)" id="amcForm">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-semibold">Service Type</label><input type="text" id="amc-service" class="form-control" placeholder="e.g. Lift AMC, CCTV, Solar" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Vendor / Company</label><input type="text" id="amc-vendor" class="form-control" placeholder="e.g. Otis Elevators" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Contact Person</label><input type="text" id="amc-person" class="form-control" placeholder="Manager Name"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Phone Number</label><input type="tel" id="amc-phone" class="form-control" placeholder="9876543210" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Start Date</label><input type="date" id="amc-start" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Expiry Date</label><input type="date" id="amc-expiry" class="form-control" required></div>
+            <div class="col-md-12"><label class="form-label fw-semibold">Annual Cost (₹)</label><input type="number" id="amc-cost" class="form-control" placeholder="Annual Cost"></div>
+          </div>
+          <button type="submit" class="btn btn-warning w-100 fw-bold py-2.5 mt-4">Save AMC Contract</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bank Details & QR Edit Modal -->
+<div class="modal fade" id="editBankDetailsModal" tabindex="-1">
+  <div class="modal-dialog border-0 shadow-lg">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-qrcode me-2"></i> Update Bank Details & QR Code</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form onsubmit="saveBankDetailsAndQR(event)">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-semibold">Account Name</label><input type="text" id="edit-bank-acc-name" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Bank Name</label><input type="text" id="edit-bank-name" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Account Number</label><input type="text" id="edit-bank-acc-no" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">IFSC Code</label><input type="text" id="edit-bank-ifsc" class="form-control" required></div>
+            <div class="col-md-12"><label class="form-label fw-semibold">UPI ID</label><input type="text" id="edit-bank-upi" class="form-control" required></div>
+            <div class="col-md-12">
+              <label class="form-label fw-semibold">Upload New Payment QR Code (Image)</label>
+              <input type="file" id="edit-bank-qr-file" class="form-control" accept="image/*">
+            </div>
+          </div>
+          <button type="submit" id="btn-save-bank-qr" class="btn btn-primary w-100 fw-bold py-2.5 mt-4">Save & Upload</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+  <div class="modal-dialog border-0 shadow-lg"><div class="modal-content border-0"><div class="modal-header bg-warning text-dark"><h5 class="modal-title fw-bold"><i class="fa-solid fa-key me-2"></i> Set New Password</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitChangePassword(event)"><div class="mb-3"><label class="form-label fw-semibold">Old Password</label><input type="password" id="pass-old" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">New Password</label><input type="password" id="pass-new" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Confirm New Password</label><input type="password" id="pass-confirm" class="form-control" required></div><button type="submit" class="btn btn-warning w-100 fw-bold py-2">Update</button></form></div></div></div>
+</div>
+
+<!-- Payment Details Modal -->
+<div class="modal fade" id="paymentDetailsModal" tabindex="-1">
+  <div class="modal-dialog border-0 shadow-lg"><div class="modal-content border-0"><div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold"><i class="fa-solid fa-upload me-2"></i> Submit Payment Receipt</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitPaymentDetails(event)" id="paymentProofForm"><div class="row g-3"><div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="pay-form-date" class="form-control" required></div><div class="col-md-6"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="pay-form-amount" class="form-control" value="600" required></div><div class="col-md-6"><label class="form-label fw-semibold">Mode</label><select id="pay-form-mode" class="form-select"><option value="UPI / GPay">UPI / GPay</option><option value="Cash">Cash</option></select></div><div class="col-md-6"><label class="form-label fw-semibold">Bank</label><select id="pay-form-bank" class="form-select"><option value="ICICI Bank">ICICI Bank</option><option value="HDFC Bank">HDFC Bank</option></select></div><div class="col-md-6"><label class="form-label fw-semibold">UTR/Ref No</label><input type="text" id="pay-form-utr" class="form-control" required></div><div class="col-md-6"><label class="form-label fw-semibold">App</label><input type="text" id="pay-form-app" class="form-control"></div><div class="col-12"><label class="form-label fw-semibold">Notes</label><input type="text" id="pay-form-notes" class="form-control"></div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">Upload Payment Screenshot (Optional)</label>
+                <input type="file" id="pay-form-image" class="form-control" accept="image/*">
+              </div>
+            </div><button type="submit" class="btn btn-success w-100 fw-bold py-2.5 mt-4">Submit</button></form></div></div></div>
+</div>
+
+<!-- Maintenance Modal -->
+<div class="modal fade" id="maintenanceModal" tabindex="-1">
+  <div class="modal-dialog border-0 shadow-lg"><div class="modal-content border-0"><div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold">Record Payment</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitMaintenance(event)"><div class="row g-3"><div class="col-md-6"><label class="form-label fw-semibold">Receipt No</label><input type="text" id="maint-form-ref" class="form-control" placeholder="DEMO011"></div><div class="col-md-6"><label class="form-label fw-semibold">Flat No</label><input type="text" id="maint-form-flat" class="form-control" placeholder="A-101" required></div><div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="maint-form-date" class="form-control" required></div><div class="col-md-6"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="maint-form-amount" class="form-control" value="600" required></div><div class="col-md-6"><label class="form-label fw-semibold">Mode</label><select id="maint-form-mode" class="form-select"><option value="UPI">UPI</option><option value="Cash">Cash</option></select></div><div class="col-md-6"><label class="form-label fw-semibold">Month</label><input type="text" id="maint-form-month" class="form-control" placeholder="July'26"></div><div class="col-12"><label class="form-label fw-semibold">Remarks</label><input type="text" id="maint-form-remarks" class="form-control"></div></div><button type="submit" class="btn btn-success w-100 fw-bold py-2.5 mt-4">Save</button></form></div></div></div>
+</div>
+
+<!-- Expense Modal -->
+<div class="modal fade" id="expenseModal" tabindex="-1">
+  <div class="modal-dialog border-0 shadow-lg">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-receipt me-2"></i> Add Voucher</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="expenseForm" onsubmit="submitExpense(event)">
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label fw-semibold">Voucher No</label><input type="text" id="exp-form-no" class="form-control" placeholder="V-DEMO-011"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="exp-form-date" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Category</label><input type="text" id="exp-form-category" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Paid To</label><input type="text" id="exp-form-paidto" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="exp-form-amount" class="form-control" required></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Mode</label><select id="exp-form-mode" class="form-select"><option value="Bank Transfer">Bank Transfer</option><option value="Cash">Cash</option><option value="UPI">UPI</option><option value="Cheque">Cheque</option></select></div>
+            <div class="col-12"><label class="form-label fw-semibold">Remarks</label><input type="text" id="exp-form-remarks" class="form-control" placeholder="Optional remarks"></div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2.5 mt-4">Save Voucher</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bank Modal -->
+<div class="modal fade" id="bankModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Record Bank Entry</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitBankEntry(event)"><div class="mb-3"><label class="form-label fw-semibold">Date</label><input type="date" id="bank-form-date" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Head</label><input type="text" id="bank-form-head" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Ref No</label><input type="text" id="bank-form-ref" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Type</label><select id="bank-form-type" class="form-select"><option value="withdraw">Withdrawal</option><option value="deposit">Deposit</option></select></div><div class="mb-3"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="bank-form-amount" class="form-control" required></div><button type="submit" class="btn btn-primary w-100 fw-bold">Save</button></form></div></div></div></div>
+
+<!-- Member Modal -->
+<div class="modal fade" id="memberModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Add Member</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitMember(event)"><div class="mb-3"><label class="form-label fw-semibold">Flat No</label><input type="text" id="mem-flat" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Owner Name</label><input type="text" id="mem-name" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="mem-phone" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div><div class="mb-3"><label class="form-label fw-semibold">Monthly Rate (₹)</label><input type="number" id="mem-rate" class="form-control" value="600" required></div><div class="mb-3"><label class="form-label fw-semibold">Opening Due (₹)</label><input type="number" id="mem-opening-due" class="form-control" value="0"></div><button type="submit" class="btn btn-primary w-100 fw-bold">Add</button></form></div></div></div></div>
+
+<!-- Poll Modal -->
+<div class="modal fade" id="pollModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Create Poll</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4">
+    <form onsubmit="submitPoll(event)">
+      <div class="mb-3"><label class="form-label fw-semibold">Question</label><input type="text" id="poll-question" class="form-control" required></div>
+      <div class="mb-2"><label class="form-label fw-semibold">Options (min 2)</label></div>
+      <div class="row g-2">
+        <div class="col-md-6"><input type="text" id="poll-opt1" class="form-control" placeholder="Option 1" required></div>
+        <div class="col-md-6"><input type="text" id="poll-opt2" class="form-control" placeholder="Option 2" required></div>
+        <div class="col-md-6"><input type="text" id="poll-opt3" class="form-control" placeholder="Option 3"></div>
+        <div class="col-md-6"><input type="text" id="poll-opt4" class="form-control" placeholder="Option 4"></div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 fw-bold mt-3">Publish</button>
+    </form>
+  </div></div></div></div>
+
+<!-- Notice Modal -->
+<div class="modal fade" id="noticeModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Add Notice</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4">
+    <form onsubmit="submitNotice(event)" id="noticeForm">
+      <div class="mb-3"><label class="form-label fw-semibold">Title</label><input type="text" id="notice-title" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Date</label><input type="date" id="notice-date" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Author</label><input type="text" id="notice-author" class="form-control" placeholder="Posted by" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Priority</label><select id="notice-priority" class="form-select"><option value="High">High</option><option value="Medium" selected>Medium</option><option value="Low">Low</option></select></div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Send To</label>
+        <select id="notice-send-to" class="form-select" onchange="toggleMemberSelect(this.value)">
+          <option value="all">All Members</option>
+          <option value="selected">Select Members</option>
+        </select>
+      </div>
+      <div id="notice-member-select" class="mb-3" style="display:none;">
+        <label class="form-label fw-semibold">Select Members</label>
+        <select id="notice-target-members" class="form-select" multiple size="4"></select>
+      </div>
+      <div class="mb-3"><label class="form-label fw-semibold">Details</label><textarea id="notice-content" class="form-control" rows="3" required></textarea></div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Upload Attachment (PDF / Image)</label>
+        <input type="file" id="notice-attachment" class="form-control" accept="image/*,.pdf">
+      </div>
+      <button type="submit" id="btn-submit-notice" class="btn btn-primary w-100 fw-bold">Publish Notice</button>
+    </form>
+  </div></div></div></div>
+
+<!-- Event Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold"><i class="fa-regular fa-calendar-plus me-2"></i> Add Event</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4">
+    <form onsubmit="submitEvent(event)">
+      <div class="mb-3"><label class="form-label fw-semibold">Title</label><input type="text" id="event-title" class="form-control" required></div>
+      <div class="row g-2">
+        <div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="event-date" class="form-control" required></div>
+        <div class="col-md-6"><label class="form-label fw-semibold">Time</label><input type="time" id="event-time" class="form-control" required></div>
+      </div>
+      <div class="mb-3"><label class="form-label fw-semibold">Location</label><input type="text" id="event-location" class="form-control" placeholder="e.g. Clubhouse"></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Description</label><textarea id="event-desc" class="form-control" rows="3"></textarea></div>
+      <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Add Event</button>
+    </form>
+  </div></div></div></div>
+
+<!-- Asset Modal -->
+<div class="modal fade" id="assetModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Add Asset</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4">
+    <form onsubmit="submitAsset(event)">
+      <div class="mb-3"><label class="form-label fw-semibold">Name</label><input type="text" id="asset-name" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Location</label><input type="text" id="asset-loc" class="form-control" value="Terrace" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Quantity</label><input type="number" id="asset-qty" class="form-control" value="1" min="1"></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Cost (₹)</label><input type="number" id="asset-cost" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Condition</label><select id="asset-condition" class="form-select"><option value="Good">Good</option><option value="Needs Repair">Needs Repair</option><option value="Replaced">Replaced</option></select></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Details</label><textarea id="asset-details" class="form-control" rows="2"></textarea></div>
+      <button type="submit" class="btn btn-primary w-100 fw-bold">Save</button>
+    </form>
+  </div></div></div></div>
+
+<!-- FD Modal -->
+<div class="modal fade" id="fdModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Add FD Record</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitFD(event)">
+    <div class="row g-3">
+      <div class="col-md-6"><label class="form-label fw-semibold">Fund Type</label><select id="fd-fund-type" class="form-select"><option value="Sinking Fund">Sinking Fund</option><option value="Reserve Fund">Reserve Fund</option><option value="Other">Other</option></select></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Bank Name</label><input type="text" id="fd-bank" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Account Number</label><input type="text" id="fd-acc" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Principal (₹)</label><input type="number" id="fd-amount" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Rate (%)</label><input type="number" step="0.1" id="fd-rate" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Deposit Date</label><input type="date" id="fd-dep-date" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Maturity Date</label><input type="date" id="fd-mat-date" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Maturity Amount (₹)</label><input type="number" id="fd-maturity" class="form-control" required></div>
+      <div class="col-md-6"><label class="form-label fw-semibold">Status</label><select id="fd-status" class="form-select"><option value="Active">Active</option><option value="Matured">Matured</option><option value="Closed">Closed</option></select></div>
+    </div>
+    <button type="submit" class="btn btn-primary w-100 fw-bold mt-4">Save</button>
+  </form></div></div></div></div>
+
+<!-- Complaint Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-danger text-white"><h5 class="modal-title fw-bold">New Complaint</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4">
+    <form onsubmit="submitComplaint(event)">
+      <div class="mb-3"><label class="form-label fw-semibold">Flat No</label><select id="cmp-flat" class="form-select" required></select></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Mobile</label><input type="tel" id="cmp-phone" class="form-control" required></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Category</label><select id="cmp-category" class="form-select" required>
+        <option value="Plumbing">Plumbing</option><option value="Electrical">Electrical</option><option value="Cleaning">Cleaning</option>
+        <option value="Lift">Lift</option><option value="Parking">Parking</option><option value="Security">Security</option>
+        <option value="Water Supply">Water Supply</option><option value="CCTV">CCTV</option><option value="Common Area">Common Area</option><option value="Other">Other</option>
+      </select></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Description</label><textarea id="cmp-desc" class="form-control" rows="3" required></textarea></div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Upload Photo (Optional)</label>
+        <input type="file" id="cmp-image" class="form-control" accept="image/*">
+      </div>
+      <button type="submit" class="btn btn-danger w-100 fw-bold">Submit</button>
+    </form>
+  </div></div></div></div>
+
+<!-- Enroll Modal -->
+<div class="modal fade" id="enrollModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
+      <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0;"><h5 class="modal-title fw-bold"><i class="fa-regular fa-building me-2"></i> Enroll New Society</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-4">
+        <form id="enrollForm" onsubmit="submitEnroll(event)">
+          <div class="mb-3"><label class="form-label fw-semibold">Full Name</label><input type="text" id="enroll-name" class="form-control" placeholder="e.g. Rajesh Patel" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Society Name</label><input type="text" id="enroll-society" class="form-control" placeholder="e.g. Green Valley Society" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">City</label><input type="text" id="enroll-city" class="form-control" placeholder="e.g. Ahmedabad" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Mobile Number</label><input type="tel" id="enroll-mobile" class="form-control" placeholder="9876543210" required></div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2">Submit Enrollment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Visitor Modal -->
+<div class="modal fade" id="visitorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
+      <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0;"><h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i> Add Visitor</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body p-4">
+        <form id="visitorForm" onsubmit="submitVisitor(event)">
+          <div class="mb-3"><label class="form-label fw-semibold">Society</label><select id="visitor-society" class="form-select" required><option value="">-- Select --</option></select></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Visitor Name</label><input type="text" id="visitor-name" class="form-control" placeholder="Full Name" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Mobile Number</label><input type="tel" id="visitor-mobile" class="form-control" placeholder="9876543210" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Flat No</label><select id="visitor-flat" class="form-select" required><option value="">-- Select Flat --</option></select></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Category</label><select id="visitor-category" class="form-select" required><option value="Delivery">Delivery</option><option value="Service Person">Service Person</option><option value="Guest">Guest</option><option value="Others">Others</option></select></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Purpose</label><input type="text" id="visitor-purpose" class="form-control" placeholder="Purpose of visit"></div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Submit Entry</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Team Modal -->
+<div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
+      <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0;">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i> Add Team Member / Contact</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="teamForm" onsubmit="submitTeamMember(event)">
+          <div class="mb-3"><label class="form-label fw-semibold">Name</label><input type="text" id="team-name" class="form-control" placeholder="Full Name" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Mobile</label><input type="tel" id="team-mobile" class="form-control" placeholder="9876543210" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Role / Service</label><input type="text" id="team-role" class="form-control" placeholder="e.g. Chairman, Electrician, Doctor" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Type</label><select id="team-type" class="form-select" required>
+            <option value="Committee">Committee</option>
+            <option value="Staff">Staff</option>
+            <option value="Emergency">Emergency Contact (SOS)</option>
+          </select></div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Add Member</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== OVERLAYS ==================== -->
+<!-- Visitor Password Overlay -->
+<div id="visitorPasswordOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10001; display: none; justify-content: center; align-items: center; padding: 20px;">
+  <div style="background: #fff; border-radius: 20px; padding: 30px; max-width: 400px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+    <h5 style="font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-lock text-primary me-2"></i> Visitor Access</h5>
+    <form id="visitorPasswordForm" onsubmit="verifyVisitorPassword(event)">
+      <div class="mb-3"><label class="form-label fw-semibold">Select Society</label><select id="visitor-password-society" class="form-select" required><option value="">-- Select --</option></select></div>
+      <div class="mb-3"><label class="form-label fw-semibold">Society Password</label><input type="password" id="visitor-password-input" class="form-control" placeholder="Enter society password" required></div>
+      <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Submit</button>
+      <button type="button" class="btn btn-outline-secondary w-100 mt-2" onclick="closeVisitorPassword()">Cancel</button>
+    </form>
+  </div>
+</div>
+
+<!-- About PS Overlay -->
+<div id="aboutPSOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10002; display: none; justify-content: center; align-items: center; padding: 20px;">
+  <div id="aboutPSContent" style="background: #fff; border-radius: 20px; padding: 24px; max-width: 550px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3); position: relative;">
+    <button onclick="closeAboutPS()" style="position: sticky; top: 0; float: right; background: none; border: none; font-size: 24px; color: #94a3b8; cursor: pointer; z-index: 10;">✕</button>
+    <div id="aboutPSBody"></div>
+  </div>
+</div>
+
+<!-- Privacy Policy Overlay -->
+<div id="privacyPolicyOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10003; display: none; justify-content: center; align-items: center; padding: 20px;">
+  <div id="privacyPolicyContent" style="background: #fff; border-radius: 20px; padding: 30px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.3); position: relative;">
+    <button onclick="closePrivacyPolicy()" style="position: sticky; top: 0; float: right; background: none; border: none; font-size: 28px; color: #94a3b8; cursor: pointer; z-index: 10;">✕</button>
+    <div id="privacyPolicyBody"></div>
+  </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; background: transparent;">
+      <div class="modal-body p-0 text-center">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="z-index: 10;"></button>
+        <img id="modal-qr-img" src="qr-payment.png" alt="Payment QR Code" class="qr-modal-img" style="max-width: 100%; border-radius: 20px;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Facility Booking Modal -->
+<div class="modal fade" id="bookingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+        <div class="modal-header bg-primary text-white" style="border-radius:20px 20px 0 0;"><h5 class="modal-title fw-bold"><i class="fa-regular fa-calendar-plus me-2"></i> New Booking</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body p-4">
+            <form id="bookingForm" onsubmit="submitBooking(event)">
+                <div class="mb-3"><label class="form-label fw-semibold">Facility</label><select id="book-facility" class="form-select" required></select></div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="book-date" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Purpose</label><input type="text" id="book-purpose" class="form-control" placeholder="e.g. Birthday Party"></div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label fw-semibold">Start Time</label><input type="time" id="book-start" class="form-control" required></div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">End Time</label><input type="time" id="book-end" class="form-control" required></div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-3">Submit Request</button>
+            </form>
+        </div>
+    </div></div>
+</div>
+
+<!-- Add Facility Modal -->
+<div class="modal fade" id="addFacilityModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+        <div class="modal-header bg-success text-white" style="border-radius:20px 20px 0 0;"><h5 class="modal-title fw-bold"><i class="fa-regular fa-building me-2"></i> Add Facility</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body p-4">
+            <form id="addFacilityForm" onsubmit="addFacility(event)">
+                <div class="mb-3"><label class="form-label fw-semibold">Name</label><input type="text" id="fac-name" class="form-control" placeholder="Clubhouse, Guest Room, etc." required></div>
+                <div class="mb-3"><label class="form-label fw-semibold">Description</label><textarea id="fac-desc" class="form-control" rows="2"></textarea></div>
+                <div class="row g-2">
+                    <div class="col-md-6"><label class="form-label fw-semibold">Capacity</label><input type="number" id="fac-capacity" class="form-control" value="10"></div>
+                    <div class="col-md-6"><label class="form-label fw-semibold">Fee (₹)</label><input type="number" id="fac-fee" class="form-control" value="0"></div>
+                </div>
+                <button type="submit" class="btn btn-success w-100 fw-bold py-2 mt-3">Add Facility</button>
+            </form>
+        </div>
+    </div></div>
+</div>
+
+<!-- Add Society Modal -->
+<div class="modal fade" id="addSocietyModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
+      <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0;">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-building me-2"></i> Add New Society</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form id="addSocietyForm" onsubmit="addNewSociety(event)">
+          <div class="mb-3"><label class="form-label fw-semibold">Society Name</label><input type="text" id="society-name" class="form-control" required placeholder="e.g. Aakruti Heights"></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Address</label><input type="text" id="society-address" class="form-control" placeholder="Address"></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="text" id="society-phone" class="form-control" placeholder="Phone"></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Email</label><input type="email" id="society-email" class="form-control" placeholder="Email"></div>
+          <div class="mb-3"><label class="form-label fw-semibold">FY Start Month</label><input type="text" id="society-fy-start" class="form-control" value="April 2026"></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Opening Bank Balance (₹)</label><input type="number" id="society-opening-balance" class="form-control" value="0"></div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Visitor Password</label>
+            <input type="text" id="society-visitor-password" class="form-control" placeholder="e.g. green123" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Add Society</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UPI Payment Modal -->
+<div class="modal fade" id="upiPaymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #00c853, #009624); border: none; padding: 20px 24px;">
+        <h5 class="modal-title fw-bold text-white"><i class="fa-solid fa-circle-check me-2"></i> Pay with UPI</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4" style="background: #f8fafc;">
+        <div class="text-center mb-3">
+          <div class="upi-modal-icon"><i class="fa-solid fa-credit-card"></i></div>
+          <h6 class="fw-bold text-dark" id="upi-merchant-display">M/S. AAKRUTI HEIGHTS CHS</h6>
+          <p class="text-muted small">Secure payment via UPI</p>
+        </div>
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-3" style="background: #fff;">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold text-secondary small">💰 Amount (₹)</label>
+              <input type="number" id="upi-amount" class="form-control" placeholder="Enter amount" value="1000" min="1">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold text-secondary small">📝 Description</label>
+              <input type="text" id="upi-note" class="form-control" value="Maintenance Payment">
+            </div>
+          </div>
+        </div>
+        <button onclick="processUPIPayment()" class="btn btn-success w-100 fw-bold py-3 rounded-4 shadow-sm">
+          <i class="fa-solid fa-arrow-right me-2"></i> Pay Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SCRIPTS ========== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
