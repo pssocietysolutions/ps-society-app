@@ -389,6 +389,8 @@ function loadMainApp(role) {
   
   clearAllData();
   fetchSupabaseData();
+// 🟢 Yahan notification permission trigger kar dein
+  setTimeout(requestNotificationPermission, 2000);
 }
 
 async function loadSocietySwitcher() {
@@ -858,6 +860,61 @@ function renderSOSContacts() {
       </div>
     </div>
   `).join('');
+}
+
+// ==================== FIREBASE PUSH NOTIFICATION SETUP ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
+  authDomain: "ps-society-solutions.firebaseapp.com",
+  projectId: "ps-society-solutions",
+  storageBucket: "ps-society-solutions.firebasestorage.app",
+  messagingSenderId: "345202451409",
+  appId: "1:345202451409:web:d72246d863c4131e7036f0",
+  measurementId: "G-8CZMXHWK5M"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const messaging = firebase.messaging();
+
+async function requestNotificationPermission() {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      console.log('Notification permission granted.');
+      
+      // Service worker register karke FCM Token lein
+      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+      const token = await messaging.getToken({ 
+        vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
+        serviceWorkerRegistration: registration 
+      });
+
+      if (token) {
+        console.log('FCM Device Token:', token);
+        // Supabase database me token save karein
+        await saveFCMTokenToSupabase(token);
+      }
+    } else {
+      console.log('Notification permission denied.');
+    }
+  } catch (err) {
+    console.error('Error getting notification permission or token: ', err);
+  }
+}
+
+async function saveFCMTokenToSupabase(token) {
+  if (!currentUser || !currentSociety) return;
+  try {
+    await _supabase.from('fcm_tokens').upsert([
+      { society_name: currentSociety, flat_no: currentUser, token: token }
+    ], { onConflict: 'token' });
+    console.log('✅ FCM Token saved to Supabase successfully');
+  } catch (err) {
+    console.error('Error saving FCM token to Supabase:', err);
+  }
 }
 
 function sendWhatsAppReminder(phone, message) {
