@@ -4,6 +4,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let activityLogs = [];
 let currentRole = 'Admin';
 let currentUser = 'A-101';
 let currentSociety = 'Demo Society';
@@ -239,16 +240,18 @@ function applyUserSession(role, email) {
 }
 
 // ===================== CONSENT CHECK =====================
+// ===================== CONSENT CHECK (FIXED) =====================
 async function checkUserConsent(flatNo, callback) {
   try {
+    const cleanFlat = (flatNo || '').trim();
     const { data, error } = await _supabase
       .from('user_master')
       .select('consent_given')
-      .eq('flat_no', flatNo)
-      .single();
+      .ilike('flat_no', cleanFlat)
+      .maybeSingle();
 
     if (error || !data || data.consent_given !== true) {
-      showConsentPopup(flatNo, callback);
+      showConsentPopup(cleanFlat, callback);
     } else {
       callback();
     }
@@ -259,22 +262,29 @@ async function checkUserConsent(flatNo, callback) {
 }
 
 function showConsentPopup(flatNo, callback) {
+  // पहले से मौजूद पुराना ओवरले हटाएं अगर कोई हो
+  const existingOverlay = document.getElementById('consentOverlay');
+  if (existingOverlay) existingOverlay.remove();
+
   document.getElementById('app-section').classList.add('d-none');
   document.getElementById('landing-section').style.display = 'none';
   document.getElementById('login-section').style.display = 'none';
   document.getElementById('visitor-section').style.display = 'none';
   updateFloatingButtonsVisibility(false);
 
+  const cleanFlat = (flatNo || '').trim();
+
   const overlay = document.createElement('div');
   overlay.id = 'consentOverlay';
   overlay.style.cssText = `
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(15, 23, 42, 0.92); z-index: 99999;
     display: flex; justify-content: center; align-items: center;
     padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif;
+    pointer-events: auto;
   `;
   overlay.innerHTML = `
-    <div style="background: #fff; border-radius: 24px; padding: 30px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0,0,0,0.4);">
+    <div style="background: #fff; border-radius: 24px; padding: 30px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0,0,0,0.4); position: relative; z-index: 100000; pointer-events: auto;">
       <h3 style="font-weight: 800; color: #0f172a; text-align: center; margin-bottom: 10px;">
         <span style="color: #f59e0b;">PS</span> Society Solutions
       </h3>
@@ -289,12 +299,12 @@ function showConsentPopup(flatNo, callback) {
         <p><strong>How we use it:</strong><br> For society management, payment verification, and statutory compliance.</p>
         <p><strong>Your Rights:</strong><br> You can view, modify, or request deletion of your data anytime.</p>
       </div>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <button onclick="acceptConsent('${flatNo}')" 
-                style="flex: 1; background: linear-gradient(90deg, #2563eb, #3b82f6); color: #fff; border: none; border-radius: 50px; padding: 14px; font-weight: 700; font-size: 16px; cursor: pointer;">
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; position: relative; z-index: 100001;">
+        <button type="button" id="btnAcceptConsent"
+                style="flex: 1; min-width: 140px; background: linear-gradient(90deg, #2563eb, #3b82f6); color: #fff; border: none; border-radius: 50px; padding: 14px; font-weight: 700; font-size: 16px; cursor: pointer;">
           ✅ I Agree
         </button>
-        <button onclick="openPrivacyPolicy(); document.getElementById('consentOverlay').style.display='none';" 
+        <button type="button" onclick="openPrivacyPolicy(); document.getElementById('consentOverlay').style.display='none';" 
                 style="flex: 0 0 auto; background: transparent; color: #64748b; border: 1px solid #e2e8f0; border-radius: 50px; padding: 14px 24px; font-weight: 600; font-size: 14px; cursor: pointer;">
           View Policy
         </button>
@@ -302,6 +312,13 @@ function showConsentPopup(flatNo, callback) {
     </div>
   `;
   document.body.appendChild(overlay);
+
+  // डायरेक्ट इवेंट लिसनर ताकि डेस्कटॉप पर क्लिक पक्के से ट्रिगर हो
+  document.getElementById('btnAcceptConsent').onclick = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    acceptConsent(cleanFlat);
+  };
 }
 
 async function acceptConsent(flatNo) {
@@ -464,7 +481,9 @@ function resetIdleTimer() {
 // ===================== FETCH SUPABASE DATA =====================
 async function fetchSupabaseData() {
   try {
-    let { data: members } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
+    // 3 दिन पुराने logs अपने-आप साफ़ करें
+await _supabase.rpc('clean_old_activity_logs');
+let { data: members } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
     membersData = members || [];
 
     let { data: maint } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
@@ -514,6 +533,7 @@ async function fetchSupabaseData() {
 
     await fetchFacilityData();
     await fetchEvents();
+    await fetchMarketplaceData(); // 👈 Ye line yahan bhi add kar sakte hain
 
     if (currentRole === 'Admin') await loadDeletionRequests();
 
@@ -528,6 +548,7 @@ async function fetchSupabaseData() {
     renderSOSContacts();
     updateCommunityBadge();
     updateAllBadges();
+    updateMobileHeaderInfo();
     setTimeout(checkForNewNotifications, 500);
 
   } catch (err) {
@@ -951,12 +972,30 @@ async function verifyProof(id, status) {
         remarks: `Auto-verified from UTR: ${proof.utr || 'N/A'}`,
         society_name: proof.society_name || currentSociety
       };
+      
+      // 1. Maintenance Ledger में एंट्री पक्की करें
       await _supabase.from('maintenance_payments').insert([newReceipt]);
+
+      // 2. Supabase Storage से इमेज डिलीट करें (Storage Free)
+      if (proof.image_url) {
+        const filePath = proof.image_url.split('/payment_proofs/')[1];
+        if (filePath) {
+          await _supabase.storage.from('payment_proofs').remove([decodeURIComponent(filePath)]);
+        }
+      }
+
+      // 3. Payment Proofs टेबल से रिकॉर्ड डिलीट करें (Database Free)
+      await _supabase.from('payment_proofs').delete().eq('id', id);
+      alert('✅ Payment verify हो गया और Storage साफ़ कर दी गई!');
+    } else {
+      await _supabase.from('payment_proofs').update({ status: status }).eq('id', id);
+      alert('❌ Proof Rejected!');
     }
-    await _supabase.from('payment_proofs').update({ status: status }).eq('id', id);
-    alert(`✅ Proof marked as ${status}!`);
+    
     fetchSupabaseData();
-  } catch (err) { alert('❌ Error: ' + err.message); }
+  } catch (err) { 
+    alert('❌ Error: ' + err.message); 
+  }
 }
 
 async function submitPaymentDetails(event) {
@@ -1079,6 +1118,8 @@ function switchTab(tabId, element) {
       visitorSection.style.minHeight = '100vh';
       visitorSection.style.background = '#f8fafc';
     }
+
+
     const appSection = document.getElementById('app-section');
     if (appSection) appSection.classList.add('d-none');
 
@@ -1092,12 +1133,22 @@ function switchTab(tabId, element) {
     updateBadge('visitor-badge', 0);
   }
 
+// Activity Logs Tab
+  if (tabId === 'activity-logs') {
+    fetchActivityLogs();
+  }
+
   // Maintenance Tab
   if (tabId === 'maintenance') {
     if (maintenanceData.length > 0) {
       localStorage.setItem('ps_last_seen_maintenance', Math.max(...maintenanceData.map(r => r.id || 0)).toString());
     }
     updateBadge('maintenance-badge', 0);
+  }
+
+// Chairman Report Tab
+  if (tabId === 'chairman-report') {
+    generateMonthlySummary();
   }
 
   // Proofs Tab
@@ -1132,6 +1183,11 @@ function switchTab(tabId, element) {
     markCommunityRead();
     renderCommunity();
   }
+// 🛍️ Marketplace Tab (Ye yahan add karna hai)
+  if (tabId === 'marketplace') {
+    fetchMarketplaceData().then(renderMarketplace);
+  }
+
 if (tabId === 'polls') {
     const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
     localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
@@ -1152,6 +1208,7 @@ function renderAllTables() {
   renderTallyBankBook();
   renderCAAuditReport();
   renderChairmanReport();
+  generateMonthlySummary();
   renderComplaints();
   renderPolls();
   renderAssets();
@@ -1166,6 +1223,33 @@ function renderAllTables() {
   if (document.getElementById('tab-community') && !document.getElementById('tab-community').classList.contains('d-none')) {
     renderCommunity();
   }
+}
+
+// 1. Monthly Summary Excel Export
+function exportMonthlySummaryExcel() {
+  const month = document.getElementById('summary-month-picker')?.value || 'Monthly_Report';
+  exportTableToExcel('monthly-summary-table', `Financial_Summary_${month}`);
+}
+
+// 2. Monthly Summary PDF Export
+function exportMonthlySummaryPDF() {
+  if (typeof window.jspdf === 'undefined') return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const month = document.getElementById('summary-month-picker')?.value || '';
+  const societyName = societySettings.society_name || currentSociety;
+  
+  doc.setFontSize(16);
+  doc.text(societyName, 105, 15, { align: 'center' });
+  doc.setFontSize(12);
+  doc.text(`Monthly Financial Statement - ${month}`, 105, 23, { align: 'center' });
+  
+  doc.autoTable({ 
+    html: '#monthly-summary-table', 
+    startY: 30,
+    theme: 'grid'
+  });
+  doc.save(`Monthly_Summary_${month}.pdf`);
 }
 
 // ==================== COMMUNITY HUB ====================
@@ -1306,6 +1390,59 @@ async function deleteNotice(noticeId) {
   fetchSupabaseData();
 }
 
+// ===================== AUDIT LOGGING HELPER =====================
+async function logActivity(actionType, details) {
+  try {
+    const newLog = {
+      society_name: currentSociety,
+      user_flat: currentUser || 'SYSTEM',
+      user_role: currentRole || 'Admin',
+      action_type: actionType,
+      details: details,
+      created_at: new Date().toISOString()
+    };
+    await _supabase.from('activity_logs').insert([newLog]);
+  } catch (err) {
+    console.error('Failed to write activity log:', err);
+  }
+}
+
+async function fetchActivityLogs() {
+  if (currentRole !== 'Admin') return;
+  const { data, error } = await _supabase
+    .from('activity_logs')
+    .select('*')
+    .eq('society_name', currentSociety)
+    .order('created_at', { ascending: false })
+    .limit(100);
+    
+  if (!error) {
+    activityLogs = data || [];
+    renderActivityLogs();
+  }
+}
+
+function renderActivityLogs() {
+  const tbody = document.getElementById('activity-logs-list');
+  if (!tbody || currentRole !== 'Admin') return;
+  if (activityLogs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No activity logs recorded yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = activityLogs.map(log => {
+    const formattedDate = new Date(log.created_at).toLocaleString('en-IN');
+    return `
+      <tr>
+        <td><small class="text-muted">${formattedDate}</small></td>
+        <td><b>${log.user_flat}</b></td>
+        <td><span class="badge bg-secondary">${log.user_role}</span></td>
+        <td><span class="badge bg-info text-dark">${log.action_type}</span></td>
+        <td>${log.details}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
 // ==================== FACILITIES & BOOKINGS ====================
 function renderFacilitiesCommunity() {
   const container = document.getElementById('facilities-community-container');
@@ -1403,7 +1540,29 @@ async function openBookingModal(facilityId) {
   new bootstrap.Modal(document.getElementById('bookingModal')).show();
 }
 
-function resetBookingForm() {}
+function resetBookingForm() {
+  const form = document.getElementById('bookingForm');
+  if (form) form.reset();
+}
+
+async function loadSocietiesList() {
+  const tbody = document.getElementById('societies-list');
+  if (!tbody) return;
+  const societies = await loadSocieties();
+  if (!societies || societies.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No societies found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = societies.map(s => `
+    <tr>
+      <td><strong>${s.name || '-'}</strong></td>
+      <td>${s.address || '-'}</td>
+      <td>${s.phone || '-'}</td>
+      <td><span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
+      <td><button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${s.name}')">Switch</button></td>
+    </tr>
+  `).join('');
+}
 
 async function submitBooking(event) {
   event.preventDefault();
@@ -1585,10 +1744,14 @@ function renderMembers() {
         <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">
           <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">₹${pendingDue}</span>
         </td>
-        <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id || index})"><i class="fa-solid fa-trash"></i></button>
-          ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. Please pay at the earliest. - PS Society')"><i class="fa-brands fa-whatsapp"></i></button>` : ''}
-        </td>
+        <td class="no-print ${currentRole === 'Member' ? 'd-none' : ''}">
+  ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+    <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id || index})"><i class="fa-solid fa-trash"></i></button>
+  ` : ''}
+  ${showWhatsApp ? `
+    <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. Please pay at the earliest. - PS Society')"><i class="fa-brands fa-whatsapp"></i></button>
+  ` : ''}
+</td>
       </tr>
     `;
   }).join('');
@@ -1688,23 +1851,7 @@ function renderCAAuditReport() {
 }
 
 function renderChairmanReport() {
-  const paidCount = membersData.filter(m => {
-    const flatNo = m.flat_no || '';
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '') === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-    return flatPaid > 0 || (m.opening_due || 0) > 0;
-  }).length;
-  let grandTotalPending = 0;
-  membersData.forEach(m => {
-    const flatNo = m.flat_no || '';
-    const rate = Number(m.monthly_rate || 600);
-    const openingDue = Number(m.opening_due || 0);
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '') === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-    grandTotalPending += Math.max(0, openingDue + (MONTHS_IN_FY_SO_FAR * rate) - flatPaid);
-  });
-  if (document.getElementById('report-paid-flats')) document.getElementById('report-paid-flats').innerText = `${paidCount} / ${membersData.length}`;
-  if (document.getElementById('report-unpaid-flats')) document.getElementById('report-unpaid-flats').innerText = `${membersData.length - paidCount} / ${membersData.length}`;
-  if (document.getElementById('report-total-pending')) document.getElementById('report-total-pending').innerText = `₹${grandTotalPending}`;
-  if (document.getElementById('report-complaint-count')) document.getElementById('report-complaint-count').innerText = complaintData.filter(c => c.status === 'Pending').length;
+  generateMonthlySummary();
 }
 
 function renderAssets() {
@@ -2030,6 +2177,101 @@ async function updateSocietySettings(event) {
   fetchSupabaseData();
 }
 
+// ===================== MONTHLY EXECUTIVE SUMMARY =====================
+function generateMonthlySummary() {
+  const monthInput = document.getElementById('summary-month-picker');
+  let selectedMonth = monthInput ? monthInput.value : '';
+
+  // अगर कोई महीना सिलेक्ट नहीं है, तो चालू महीना (Current Month) लें
+  if (!selectedMonth) {
+    const now = new Date();
+    selectedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    if (monthInput) monthInput.value = selectedMonth;
+  }
+
+  // 1. चुने हुए महीने का Maintenance Collection फ़िल्टर करें
+  const monthCollections = maintenanceData.filter(r => (r.payment_date || '').startsWith(selectedMonth));
+  const totalCollected = monthCollections.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+
+  // 2. चुने हुए महीने के Expenses फ़िल्टर करें
+  const monthExpenses = expenseData.filter(e => (e.expense_date || '').startsWith(selectedMonth));
+  const totalExpenses = monthExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+  // 3. Net Cashflow (कलेक्शन - खर्च)
+  const netCashflow = totalCollected - totalExpenses;
+
+  // 4. कुल बकायेदार (Defaulters count)
+  let defaulterCount = 0;
+  membersData.forEach(m => {
+    const flatNo = (m.flat_no || '').trim().toUpperCase();
+    const rate = Number(m.monthly_rate || 600);
+    const openingDue = Number(m.opening_due || 0);
+    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo)
+                                    .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+    const totalDue = openingDue + (MONTHS_IN_FY_SO_FAR * rate);
+    if (totalDue - flatPaid > 0) defaulterCount++;
+  });
+
+  // KPI कार्ड्स अपडेट करें
+  if (document.getElementById('summary-month-collected')) 
+    document.getElementById('summary-month-collected').innerText = `₹${totalCollected}`;
+  if (document.getElementById('summary-month-expenses')) 
+    document.getElementById('summary-month-expenses').innerText = `₹${totalExpenses}`;
+  if (document.getElementById('summary-month-net')) 
+    document.getElementById('summary-month-net').innerText = `₹${netCashflow}`;
+  if (document.getElementById('summary-month-defaulters')) 
+    document.getElementById('summary-month-defaulters').innerText = `${defaulterCount} Flats`;
+
+  // स्टेटमेंट टेबल रेंडर करें
+  renderMonthlySummaryTable(monthCollections, monthExpenses, totalCollected, totalExpenses, netCashflow);
+}
+
+function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, net) {
+  const tbody = document.getElementById('monthly-summary-rows');
+  if (!tbody) return;
+
+  // Expense Categories का ग्रुप बनाएं
+  const expCategories = {};
+  expenses.forEach(e => {
+    const cat = e.category || 'General';
+    expCategories[cat] = (expCategories[cat] || 0) + Number(e.amount || 0);
+  });
+
+  let html = `
+    <tr class="table-success fw-bold">
+      <td>Maintenance Collections (Total Receipts)</td>
+      <td><span class="badge bg-success">Income</span></td>
+      <td>${collections.length} Receipts</td>
+      <td>₹${totalColl.toFixed(2)}</td>
+    </tr>
+  `;
+
+  // हर खर्च की कैटेगरी दिखाएं
+  for (const [cat, amt] of Object.entries(expCategories)) {
+    html += `
+      <tr>
+        <td>Expense: ${cat}</td>
+        <td><span class="badge bg-danger">Expense</span></td>
+        <td>-</td>
+        <td class="text-danger fw-bold">₹${amt.toFixed(2)}</td>
+      </tr>
+    `;
+  }
+
+  html += `
+    <tr class="table-secondary fw-bold">
+      <td colspan="3">Total Expenses Paid</td>
+      <td class="text-danger">₹${totalExp.toFixed(2)}</td>
+    </tr>
+    <tr class="table-primary fw-bold">
+      <td colspan="3">Net Monthly Surplus / (Deficit)</td>
+      <td class="${net >= 0 ? 'text-success' : 'text-danger'}">₹${net.toFixed(2)}</td>
+    </tr>
+  `;
+
+  tbody.innerHTML = html;
+}
+
 async function submitMember(event) {
   event.preventDefault();
   const newMember = {
@@ -2041,7 +2283,10 @@ async function submitMember(event) {
     opening_due: Number(document.getElementById('mem-opening-due')?.value || 0),
     society_name: currentSociety
   };
+  
   await _supabase.from('members').insert([newMember]);
+  await logActivity('ADD_MEMBER', `Added member Flat: ${newMember.flat_no} (${newMember.name})`);
+  
   bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
   fetchSupabaseData();
 }
@@ -2094,7 +2339,10 @@ async function submitMaintenance(event) {
     remarks: document.getElementById('maint-form-remarks').value || "-",
     society_name: currentSociety
   };
+
   await _supabase.from('maintenance_payments').insert([newReceipt]);
+  await logActivity('RECORD_PAYMENT', `Recorded payment receipt ${newReceipt.receipt_no} of ₹${newReceipt.amount_paid} for ${newReceipt.flat_no}`);
+  
   bootstrap.Modal.getInstance(document.getElementById('maintenanceModal')).hide();
   fetchSupabaseData();
 }
@@ -2115,8 +2363,11 @@ async function submitExpense(event) {
     mode: document.getElementById('exp-form-mode').value,
     remarks: document.getElementById('exp-form-remarks').value.trim() || "-",
     society_name: currentSociety
-  };
+  }; // 👈 Yahan closing bracket zaroori hai
+
   await _supabase.from('expenses').insert([newExpense]);
+  await logActivity('ADD_EXPENSE', `Added voucher ${newExpense.voucher_no} of ₹${newExpense.amount} for ${newExpense.paid_to}`);
+  
   bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
   fetchSupabaseData();
 }
@@ -2155,9 +2406,21 @@ async function submitEnroll(event) {
   bootstrap.Modal.getInstance(document.getElementById('enrollModal')).hide();
 }
 
-async function deleteMember(id) { if (confirm('Delete member?')) { await _supabase.from('members').delete().eq('id', id); fetchSupabaseData(); } }
+async function deleteMember(id) { 
+  if (confirm('Delete member?')) { 
+    await _supabase.from('members').delete().eq('id', id); 
+    logActivity('DELETE_MEMBER', `Deleted member ID: ${id}`);
+    fetchSupabaseData(); 
+  } 
+}
 async function deleteMaintenance(id) { if (confirm('Delete receipt?')) { await _supabase.from('maintenance_payments').delete().eq('id', id); fetchSupabaseData(); } }
-async function deleteExpense(id) { if (confirm('Delete voucher?')) { await _supabase.from('expenses').delete().eq('id', id); fetchSupabaseData(); } }
+async function deleteExpense(id) { 
+  if (confirm('Delete voucher?')) { 
+    await _supabase.from('expenses').delete().eq('id', id); 
+    logActivity('DELETE_EXPENSE', `Deleted voucher ID: ${id}`);
+    fetchSupabaseData(); 
+  } 
+}
 async function deleteAsset(id) { if (confirm('Delete asset?')) { await _supabase.from('assets').delete().eq('id', id); fetchSupabaseData(); } }
 async function deleteFD(id) { if (confirm('Delete FD?')) { await _supabase.from('sinking_fund_fd').delete().eq('id', id); fetchSupabaseData(); } }
 
@@ -2205,12 +2468,37 @@ function closeMobileMenu() {
   document.body.style.overflow = '';
 }
 
+// ===================== UPDATE MOBILE HEADER INFO =====================
+function updateMobileHeaderInfo() {
+  const socElem = document.getElementById('mobile-society-name');
+  const userElem = document.getElementById('mobile-user-details');
+  
+  if (socElem) {
+    socElem.innerText = societySettings.society_name || currentSociety || 'PS Society';
+  }
+
+  if (userElem) {
+    if (currentRole === 'Admin' || currentRole === 'SocietyAdmin') {
+      userElem.innerText = `👑 ${currentRole} (${currentUser})`;
+    } else if (currentRole === 'Chairman') {
+      userElem.innerText = `🎖️ Chairman (${currentUser})`;
+    } else {
+      // Member के लिए नाम खोजें
+      const member = membersData.find(m => (m.flat_no || '').toUpperCase() === currentUser.toUpperCase());
+      const memberName = member && member.name ? member.name : '';
+      userElem.innerText = memberName ? `🏠 ${currentUser} - ${memberName}` : `🏠 ${currentUser}`;
+    }
+  }
+}
+
 function renderGridCards() {
+updateMobileHeaderInfo(); // 👈 यहाँ जोड़ें
   const container = document.querySelector('#mobileMenuOverlay .grid-container');
   if (!container) return;
   const role = currentRole || 'Member';
   let allCards = [
     { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', color: '#2563eb' },
+{ id: 'activity-logs', icon: 'fa-list-check', label: 'Activity Logs', color: '#0ea5e9' },
     { id: 'members', icon: 'fa-users', label: 'Members', color: '#22c55e' },
     { id: 'maintenance', icon: 'fa-indian-rupee-sign', label: 'Maintenance', color: '#f59e0b' },
     { id: 'expenses', icon: 'fa-receipt', label: 'Expenses', color: '#ef4444' },
@@ -2253,6 +2541,9 @@ async function openTabOverlay(tabId) {
   closeMobileMenu();
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'visitor') { showVisitorPage(); return; }
+
+  // 🟢 Activity Logs ke liye fetch trigger karein
+  if (tabId === 'activity-logs') await fetchActivityLogs();
 
   const target = document.getElementById(`tab-${tabId}`);
   if (!target) return;
@@ -2368,6 +2659,32 @@ function closeAboutPS() {
   const overlay = document.getElementById('aboutPSOverlay');
   if (overlay) overlay.style.display = 'none';
   document.body.style.overflow = '';
+
+  // 📱 यदि मोबाइल पर यूजर लॉगिन है, तो सीधा ग्रिड वापस खोलें
+  if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
+    const gridOverlay = document.getElementById('mobileMenuOverlay');
+    if (gridOverlay) {
+      gridOverlay.style.display = 'flex';
+      renderGridCards();
+      document.body.style.overflow = 'hidden';
+    }
+  }
+}
+
+function closePrivacyPolicy() {
+  const overlay = document.getElementById('privacyPolicyOverlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+
+  // 📱 यदि मोबाइल पर यूजर लॉगिन है, तो सीधा ग्रिड वापस खोलें
+  if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
+    const gridOverlay = document.getElementById('mobileMenuOverlay');
+    if (gridOverlay) {
+      gridOverlay.style.display = 'flex';
+      renderGridCards();
+      document.body.style.overflow = 'hidden';
+    }
+  }
 }
 
 // ===================== PRIVACY POLICY (RESTORED) =====================
@@ -2400,12 +2717,6 @@ function openPrivacyPolicy() {
   `;
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
-}
-
-function closePrivacyPolicy() {
-  const overlay = document.getElementById('privacyPolicyOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
 }
 
 function openQRModal() {
@@ -2470,7 +2781,6 @@ async function addNewSociety(event) {
   await _supabase.from('society_settings').upsert({ key: 'visitor_password', value: visitorPassword, society_name: name }, { onConflict: 'key,society_name' });
   alert(`✅ Society "${name}" added!`);
   bootstrap.Modal.getInstance(document.getElementById('addSocietyModal')).hide();
-  loadSocietiesList();
   loadSocietySwitcher();
 }
 
@@ -2639,6 +2949,123 @@ async function processDeletionRequest(id, status) {
   await _supabase.from('deletion_requests').update({ status }).eq('id', id);
   await loadDeletionRequests();
   renderDeletionRequests();
+}
+
+// ==================== 3 NEW FEATURES COMBINED =====================
+
+// 1. SOS Realtime & Trigger
+async function triggerSOS(alertType) {
+  if (!confirm(`🚨 क्या आप सच में ${alertType.toUpperCase()} इमरजेंसी अलर्ट ट्रिगर करना चाहते हैं?`)) return;
+  try {
+    const newAlert = {
+      society_name: currentSociety,
+      flat_no: currentUser || 'Unknown',
+      user_role: currentRole || 'Member',
+      alert_type: alertType,
+      status: 'active',
+      created_at: new Date().toISOString()
+    };
+    const { error } = await _supabase.from('sos_alerts').insert([newAlert]);
+    if (error) alert('❌ SOS Failed: ' + error.message);
+    else alert(`🚨 ${alertType} SOS Alert Sent!`);
+  } catch (err) { console.error(err); }
+}
+
+function listenForSOSAlerts() {
+  _supabase.channel('sos-realtime-channel').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, (payload) => {
+    if (payload.new && payload.new.status === 'active' && payload.new.society_name === currentSociety) {
+      showSOSBanner(payload.new);
+      sirenAudio.play().catch(e => console.log(e));
+    }
+  }).subscribe();
+}
+
+function showSOSBanner(alertData) {
+  const existing = document.getElementById('sosAlertBanner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id = 'sosAlertBanner';
+  banner.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; z-index: 999999; background-color: #dc2626; color: white; padding: 20px; text-align: center;';
+  banner.innerHTML = `
+    <h2>🚨 EMERGENCY SOS ALERT! 🚨</h2>
+    <p>Type: ${alertData.alert_type} | Flat: <b>${alertData.flat_no}</b></p>
+    <button onclick="resolveSOSAlert('${alertData.id}')" style="padding: 8px 20px; background: white; color: #dc2626; border: none; font-weight: bold; cursor: pointer; border-radius: 20px;">Stop Siren</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function resolveSOSAlert(alertId) {
+  await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
+  sirenAudio.pause();
+  sirenAudio.currentTime = 0;
+  const banner = document.getElementById('sosAlertBanner');
+  if (banner) banner.remove();
+}
+
+// 2. Birthday & Anniversary Wishes Engine
+function renderCelebrations() {
+  const container = document.getElementById('dashboard-celebrations-container');
+  if (!container) return;
+  const today = new Date();
+  const monthDay = `-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const birthdays = membersData.filter(m => m.dob && m.dob.endsWith(monthDay));
+  const anniversaries = membersData.filter(m => m.anniversary_date && m.anniversary_date.endsWith(monthDay));
+
+  if (birthdays.length === 0 && anniversaries.length === 0) { container.innerHTML = ''; return; }
+
+  let html = `<div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-warning-subtle"><h6 class="fw-bold text-dark mb-2">🎉 Today's Celebrations</h6>`;
+  birthdays.forEach(m => {
+    const msg = `Happy Birthday ${m.name}! 🎂 - PS Society`;
+    html += `<div class="d-flex justify-content-between align-items-center bg-white p-2 rounded mb-1"><strong>🎂 ${m.name} (${m.flat_no})</strong> ${m.phone ? `<button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${m.phone}', '${msg}')">Wish</button>` : ''}</div>`;
+  });
+  anniversaries.forEach(m => {
+    const msg = `Happy Anniversary ${m.name}! 💍 - PS Society`;
+    html += `<div class="d-flex justify-content-between align-items-center bg-white p-2 rounded mb-1"><strong>💍 ${m.name} (${m.flat_no})</strong> ${m.phone ? `<button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${m.phone}', '${msg}')">Wish</button>` : ''}</div>`;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// 3. Community Marketplace
+async function fetchMarketplaceData() {
+  const { data } = await _supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false });
+  marketplaceData = data || [];
+}
+
+function renderMarketplace() {
+  const container = document.getElementById('marketplace-container');
+  if (!container) return;
+  if (!marketplaceData.length) { container.innerHTML = `<div class="col-12 text-center text-muted p-4">No marketplace listings yet.</div>`; return; }
+  container.innerHTML = marketplaceData.map(item => `
+    <div class="col-md-4">
+      <div class="card p-3 shadow-sm border-0 rounded-4">
+        <span class="badge bg-primary mb-2" style="width:fit-content;">${item.category}</span>
+        <h6 class="fw-bold">${item.title}</h6>
+        <p class="small text-muted mb-1">₹${item.price} | Flat: ${item.flat_no}</p>
+        <p class="small">${item.description || ''}</p>
+        <button class="btn btn-sm btn-success mt-2" onclick="sendWhatsAppReminder('${item.contact_phone}', 'Hi, regarding your post ${item.title}: ')">Contact</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function submitMarketplacePost(event) {
+  event.preventDefault();
+  const newPost = {
+    society_name: currentSociety,
+    flat_no: currentUser,
+    title: document.getElementById('market-title').value,
+    category: document.getElementById('market-category').value,
+    price: Number(document.getElementById('market-price').value),
+    contact_phone: document.getElementById('market-phone').value,
+    description: document.getElementById('market-desc').value,
+    status: 'Approved',
+    created_at: new Date().toISOString()
+  };
+  await _supabase.from('marketplace_posts').insert([newPost]);
+  alert('✅ Posted successfully!');
+  bootstrap.Modal.getInstance(document.getElementById('marketplaceModal')).hide();
+  fetchMarketplaceData().then(renderMarketplace);
 }
 
 // ===================== INITIALIZE =====================
