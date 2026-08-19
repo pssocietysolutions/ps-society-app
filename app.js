@@ -4,7 +4,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 🟢 Yeh line yahan paste kar dein:
 const sirenAudio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg');
 
 let activityLogs = [];
@@ -34,11 +33,9 @@ let eventsData = [];
 let amcContractsData = [];
 let deletionRequests = [];
 
-// ==================== NOTIFICATION SYSTEM VARIABLES ====================
 let notificationBadgeCount = 0;
 let communityBadgeCount = 0;
 
-// ===================== FLOATING BUTTONS VISIBILITY HELPER =====================
 function updateFloatingButtonsVisibility(isLanding) {
   const enrollBtn = document.getElementById('enrollButtonContainer');
   const aboutBtn = document.getElementById('aboutButtonContainer');
@@ -46,7 +43,6 @@ function updateFloatingButtonsVisibility(isLanding) {
   if (aboutBtn) aboutBtn.style.display = isLanding ? 'block' : 'none';
 }
 
-// ===================== TOGGLE PASSWORD =====================
 function togglePasswordVisibility() {
   const pwdInput = document.getElementById('login-password');
   const icon = document.getElementById('togglePasswordIcon');
@@ -61,7 +57,6 @@ function togglePasswordVisibility() {
   }
 }
 
-// ===================== PAGE NAVIGATION =====================
 function showLandingPage() {
   document.getElementById('landing-section').style.display = 'flex';
   document.getElementById('visitor-section').style.display = 'none';
@@ -141,7 +136,6 @@ function goBackFromVisitor() {
   }
 }
 
-// ===================== LOGIN =====================
 async function handleLogin(event) {
   event.preventDefault();
   const society = document.getElementById('login-society').value;
@@ -206,7 +200,6 @@ async function handleLogin(event) {
   }
 }
 
-// ===================== CHANGE PASSWORD =====================
 async function submitChangePassword(event) {
   event.preventDefault();
   const oldP = document.getElementById('pass-old').value;
@@ -233,7 +226,6 @@ async function submitChangePassword(event) {
   }
 }
 
-// ===================== SESSION APPLY =====================
 function applyUserSession(role, email) {
   currentRole = role;
   currentUser = email.toUpperCase();
@@ -242,8 +234,6 @@ function applyUserSession(role, email) {
   });
 }
 
-// ===================== CONSENT CHECK =====================
-// ===================== CONSENT CHECK (FIXED) =====================
 async function checkUserConsent(flatNo, callback) {
   try {
     const cleanFlat = (flatNo || '').trim();
@@ -265,7 +255,6 @@ async function checkUserConsent(flatNo, callback) {
 }
 
 function showConsentPopup(flatNo, callback) {
-  // पहले से मौजूद पुराना ओवरले हटाएं अगर कोई हो
   const existingOverlay = document.getElementById('consentOverlay');
   if (existingOverlay) existingOverlay.remove();
 
@@ -316,7 +305,6 @@ function showConsentPopup(flatNo, callback) {
   `;
   document.body.appendChild(overlay);
 
-  // डायरेक्ट इवेंट लिसनर ताकि डेस्कटॉप पर क्लिक पक्के से ट्रिगर हो
   document.getElementById('btnAcceptConsent').onclick = function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -339,7 +327,6 @@ async function acceptConsent(flatNo) {
   loadMainApp(currentRole);
 }
 
-// ===================== LOAD MAIN APP =====================
 function loadMainApp(role) {
   document.getElementById('landing-section').style.display = 'none';
   document.getElementById('visitor-section').style.display = 'none';
@@ -404,7 +391,6 @@ function loadMainApp(role) {
   fetchSupabaseData();
 }
 
-// ===================== SOCIETY SWITCHER =====================
 async function loadSocietySwitcher() {
   const dropdown = document.getElementById('switch-society-dropdown');
   if (!dropdown) return;
@@ -432,7 +418,6 @@ function switchSociety(societyName) {
   if (dropdown) dropdown.value = societyName;
 }
 
-// ===================== LOGOUT =====================
 function markAllAsRead() {
   if (maintenanceData.length > 0) localStorage.setItem('ps_last_seen_maintenance', Math.max(...maintenanceData.map(r => r.id || 0)).toString());
   if (paymentProofs.length > 0) localStorage.setItem('ps_last_seen_proofs', Math.max(...paymentProofs.map(p => p.id || 0)).toString());
@@ -468,7 +453,6 @@ function handleLogout() {
   resetIdleTimer();
 }
 
-// ===================== IDLE TIMEOUT =====================
 let idleTimer;
 function resetIdleTimer() {
   if (idleTimer) clearTimeout(idleTimer);
@@ -481,12 +465,10 @@ function resetIdleTimer() {
 }
 ['click', 'keydown', 'scroll', 'touchstart'].forEach(ev => document.addEventListener(ev, resetIdleTimer));
 
-// ===================== FETCH SUPABASE DATA =====================
 async function fetchSupabaseData() {
   try {
-    // 3 दिन पुराने logs अपने-आप साफ़ करें
-await _supabase.rpc('clean_old_activity_logs');
-let { data: members } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
+    await _supabase.rpc('clean_old_activity_logs');
+    let { data: members } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
     membersData = members || [];
 
     let { data: maint } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
@@ -536,7 +518,7 @@ let { data: members } = await _supabase.from('members').select('*').eq('society_
 
     await fetchFacilityData();
     await fetchEvents();
-    await fetchMarketplaceData(); // 👈 Ye line yahan bhi add kar sakte hain
+    await fetchMarketplaceData();
 
     if (currentRole === 'Admin') await loadDeletionRequests();
 
@@ -552,7 +534,7 @@ let { data: members } = await _supabase.from('members').select('*').eq('society_
     updateCommunityBadge();
     updateAllBadges();
     updateMobileHeaderInfo();
-    listenForSOSAlerts(); // 👈 Yahan add kar dein
+    listenForSOSAlerts();
     setTimeout(checkForNewNotifications, 500);
 
   } catch (err) {
@@ -623,7 +605,6 @@ async function loadSocietiesForDropdown(selectId) {
   });
 }
 
-// ===================== VISITOR FUNCTIONS =====================
 async function loadTodayVisitors() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
@@ -703,7 +684,6 @@ function updateVisitorBadge() {
   updateBadge('visitor-badge', inCount);
 }
 
-// ===================== AMC CONTRACTS TRACKER =====================
 function renderAMCTracker() {
   const tbody = document.getElementById('amc-list');
   if (!tbody) return;
@@ -782,7 +762,6 @@ async function deleteAMCContract(id) {
   else fetchSupabaseData();
 }
 
-// ===================== BANK DETAILS & DYNAMIC QR =====================
 function renderBankDetails() {
   const accName = societySettings.bank_acc_name || 'M/S. Aakruti Heights CHS';
   const bankName = societySettings.bank_name || 'ICICI Bank';
@@ -854,7 +833,6 @@ async function saveBankDetailsAndQR(event) {
   fetchSupabaseData();
 }
 
-// ===================== EMERGENCY CONTACTS (SOS) =====================
 function renderSOSContacts() {
   const container = document.getElementById('sos-contacts-list');
   if (!container) return;
@@ -882,7 +860,6 @@ function renderSOSContacts() {
   `).join('');
 }
 
-// ===================== WHATSAPP REMINDERS =====================
 function sendWhatsAppReminder(phone, message) {
   if (!phone) { alert('❌ No phone number found.'); return; }
   const cleanPhone = phone.replace(/[^0-9]/g, '');
@@ -910,7 +887,6 @@ function sendBulkWhatsAppReminder() {
   });
 }
 
-// ===================== PAYMENT PROOFS (FIXED TABLE & SINGLE ACTION) =====================
 function renderPaymentProofs() {
   const container = document.getElementById('proofs-container');
   if (!container) return;
@@ -977,10 +953,8 @@ async function verifyProof(id, status) {
         society_name: proof.society_name || currentSociety
       };
       
-      // 1. Maintenance Ledger में एंट्री पक्की करें
       await _supabase.from('maintenance_payments').insert([newReceipt]);
 
-      // 2. Supabase Storage से इमेज डिलीट करें (Storage Free)
       if (proof.image_url) {
         const filePath = proof.image_url.split('/payment_proofs/')[1];
         if (filePath) {
@@ -988,7 +962,6 @@ async function verifyProof(id, status) {
         }
       }
 
-      // 3. Payment Proofs टेबल से रिकॉर्ड डिलीट करें (Database Free)
       await _supabase.from('payment_proofs').delete().eq('id', id);
       alert('✅ Payment verify हो गया और Storage साफ़ कर दी गई!');
     } else {
@@ -1045,7 +1018,6 @@ async function submitPaymentDetails(event) {
   fetchSupabaseData();
 }
 
-// ===================== TALLY BANK BOOK =====================
 function renderTallyBankBook() {
   const tbody = document.getElementById('tally-bank-entries');
   if (!tbody) return;
@@ -1101,7 +1073,6 @@ async function deleteBankEntry(index) {
   else if (entry.source === 'custom') { const cIdx = customBankEntries.findIndex(cb => cb.ref === entry.ref); if (cIdx !== -1) { customBankEntries.splice(cIdx, 1); renderAllTables(); } }
 }
 
-// ===================== SWITCH TAB (PERSISTENT BADGES & PROPER SCROLL) =====================
 function switchTab(tabId, element) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
   const target = document.getElementById(`tab-${tabId}`);
@@ -1110,7 +1081,6 @@ function switchTab(tabId, element) {
   document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => link.classList.remove('active'));
   if (element) element.classList.add('active');
 
-  // Visitor Tab
   if (tabId === 'visitor') {
     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
     document.body.classList.remove('modal-open');
@@ -1122,7 +1092,6 @@ function switchTab(tabId, element) {
       visitorSection.style.minHeight = '100vh';
       visitorSection.style.background = '#f8fafc';
     }
-
 
     const appSection = document.getElementById('app-section');
     if (appSection) appSection.classList.add('d-none');
@@ -1137,20 +1106,17 @@ function switchTab(tabId, element) {
     updateBadge('visitor-badge', 0);
   }
 
-// Polls Tab
   if (tabId === 'polls') {
     const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
     localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
-    updateAllBadges(); // Ye ensure karega ki badge turant update hokar hat jaye
+    updateAllBadges();
     renderPolls();
   }
 
-// Activity Logs Tab
   if (tabId === 'activity-logs') {
     fetchActivityLogs();
   }
 
-  // Maintenance Tab
   if (tabId === 'maintenance') {
     if (maintenanceData.length > 0) {
       localStorage.setItem('ps_last_seen_maintenance', Math.max(...maintenanceData.map(r => r.id || 0)).toString());
@@ -1158,12 +1124,10 @@ function switchTab(tabId, element) {
     updateBadge('maintenance-badge', 0);
   }
 
-// Chairman Report Tab
   if (tabId === 'chairman-report') {
     generateMonthlySummary();
   }
 
-  // Proofs Tab
   if (tabId === 'proofs') {
     if (paymentProofs.length > 0) {
       localStorage.setItem('ps_last_seen_proofs', Math.max(...paymentProofs.map(p => p.id || 0)).toString());
@@ -1172,7 +1136,6 @@ function switchTab(tabId, element) {
     renderPaymentProofs();
   }
 
-  // Complaints Tab
   if (tabId === 'complaints') {
     if (complaintData.length > 0) {
       localStorage.setItem('ps_last_seen_complaints', Math.max(...complaintData.map(c => c.id || 0)).toString());
@@ -1180,32 +1143,21 @@ function switchTab(tabId, element) {
     updateBadge('complaints-badge', 0);
   }
 
-  // Manage Societies
   if (tabId === 'manage-societies') {
     loadSocietiesList();
   }
 
-  // Deletion Requests
   if (tabId === 'deletion-requests') {
     renderDeletionRequests();
   }
 
-  // Community Hub
   if (tabId === 'community') {
     markCommunityRead();
     renderCommunity();
   }
-// 🛍️ Marketplace Tab (Ye yahan add karna hai)
+
   if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
-  }
-
-if (tabId === 'polls') {
-    const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
-    localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
-    updateBadge('polls-badge', 0);
-    updateBadge('notification-badge', 0);
-    renderPolls();
   }
 
   if (tabId === 'amc-tracker') renderAMCTracker();
@@ -1237,13 +1189,11 @@ function renderAllTables() {
   }
 }
 
-// 1. Monthly Summary Excel Export
 function exportMonthlySummaryExcel() {
   const month = document.getElementById('summary-month-picker')?.value || 'Monthly_Report';
   exportTableToExcel('monthly-summary-table', `Financial_Summary_${month}`);
 }
 
-// 2. Monthly Summary PDF Export
 function exportMonthlySummaryPDF() {
   if (typeof window.jspdf === 'undefined') return;
   const { jsPDF } = window.jspdf;
@@ -1264,7 +1214,6 @@ function exportMonthlySummaryPDF() {
   doc.save(`Monthly_Summary_${month}.pdf`);
 }
 
-// ==================== COMMUNITY HUB ====================
 function renderCommunity() {
   renderEventsCommunity();
   renderNoticesCommunity();
@@ -1402,7 +1351,6 @@ async function deleteNotice(noticeId) {
   fetchSupabaseData();
 }
 
-// ===================== AUDIT LOGGING HELPER =====================
 async function logActivity(actionType, details) {
   try {
     const newLog = {
@@ -1455,7 +1403,6 @@ function renderActivityLogs() {
   }).join('');
 }
 
-// ==================== FACILITIES & BOOKINGS ====================
 function renderFacilitiesCommunity() {
   const container = document.getElementById('facilities-community-container');
   if (!container) return;
@@ -1555,25 +1502,6 @@ async function openBookingModal(facilityId) {
 function resetBookingForm() {
   const form = document.getElementById('bookingForm');
   if (form) form.reset();
-}
-
-async function loadSocietiesList() {
-  const tbody = document.getElementById('societies-list');
-  if (!tbody) return;
-  const societies = await loadSocieties();
-  if (!societies || societies.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No societies found.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = societies.map(s => `
-    <tr>
-      <td><strong>${s.name || '-'}</strong></td>
-      <td>${s.address || '-'}</td>
-      <td>${s.phone || '-'}</td>
-      <td><span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
-      <td><button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${s.name}')">Switch</button></td>
-    </tr>
-  `).join('');
 }
 
 async function submitBooking(event) {
@@ -1690,7 +1618,6 @@ function renderAllBookings() {
   }).join('');
 }
 
-// ==================== MEMBER PERSONAL VIEW ====================
 function renderMemberPersonalView() {
   if (currentRole !== 'Member') return;
   const userFlat = currentUser.toUpperCase();
@@ -1722,7 +1649,6 @@ function renderMemberPersonalView() {
   }
 }
 
-// ===================== MEMBERS =====================
 function renderMembers() {
   const tbody = document.getElementById('members-list');
   if (!tbody) return;
@@ -1757,20 +1683,19 @@ function renderMembers() {
           <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">₹${pendingDue}</span>
         </td>
         <td class="no-print ${currentRole === 'Member' ? 'd-none' : ''}">
-  ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
-    <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id || index})"><i class="fa-solid fa-trash"></i></button>
-  ` : ''}
-  ${showWhatsApp ? `
-    <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. Please pay at the earliest. - PS Society')"><i class="fa-brands fa-whatsapp"></i></button>
-  ` : ''}
-</td>
+          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id || index})"><i class="fa-solid fa-trash"></i></button>
+          ` : ''}
+          ${showWhatsApp ? `
+            <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. Please pay at the earliest. - PS Society')"><i class="fa-brands fa-whatsapp"></i></button>
+          ` : ''}
+        </td>
       </tr>
     `;
   }).join('');
   document.getElementById('dash-pending').innerText = `₹${grandTotalPending}`;
 }
 
-// ===================== MAINTENANCE =====================
 function renderMaintenance() {
   const tbody = document.getElementById('maintenance-list');
   if (!tbody) return;
@@ -2007,7 +1932,6 @@ async function resolveComplaint(index) {
   fetchSupabaseData();
 }
 
-// ===================== POLLS & VOTING (FIXED) =====================
 function renderPolls() {
   const container = document.getElementById('polls-container');
   if (!container) return;
@@ -2155,7 +2079,6 @@ async function submitPoll(event) {
   fetchSupabaseData();
 }
 
-// ===================== PDF GENERATION =====================
 function generateReceiptPDF(type, id) {
   if (typeof window.jspdf === 'undefined') return;
   let data = type === 'maintenance' ? maintenanceData.find(r => r.id === id) : expenseData.find(r => r.id === id);
@@ -2172,7 +2095,6 @@ function generateReceiptPDF(type, id) {
   doc.save(`${type}-${id}.pdf`);
 }
 
-// ===================== SETTINGS & FORM SUBMITS =====================
 async function updateSocietySettings(event) {
   event.preventDefault();
   const settings = {
@@ -2189,21 +2111,16 @@ async function updateSocietySettings(event) {
   fetchSupabaseData();
 }
 
-// ===================== MONTHLY EXECUTIVE SUMMARY =====================
-// ===================== MONTHLY EXECUTIVE SUMMARY (FIXED) =====================
-// ===================== MONTHLY EXECUTIVE SUMMARY =====================
 function generateMonthlySummary() {
   const monthInput = document.getElementById('summary-month-picker');
   let selectedMonth = monthInput ? monthInput.value : '';
 
-  // अगर कोई महीना सिलेक्ट नहीं है, तो चालू महीना (Current Month) लें
   if (!selectedMonth) {
     const now = new Date();
     selectedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     if (monthInput) monthInput.value = selectedMonth;
   }
 
-  // 1. चुने हुए महीने का Maintenance Collection सुरक्षित तरीके से फ़िल्टर करें
   const monthCollections = maintenanceData.filter(r => {
     if (!r.payment_date) return false;
     const d = new Date(r.payment_date);
@@ -2216,7 +2133,6 @@ function generateMonthlySummary() {
   });
   const totalCollected = monthCollections.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
 
-  // 2. चुने हुए महीने के Expenses सुरक्षित तरीके से फ़िल्टर करें
   const monthExpenses = expenseData.filter(e => {
     if (!e.expense_date) return false;
     const d = new Date(e.expense_date);
@@ -2229,10 +2145,8 @@ function generateMonthlySummary() {
   });
   const totalExpenses = monthExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
-  // 3. Net Cashflow (कलेक्शन - खर्च)
   const netCashflow = totalCollected - totalExpenses;
 
-  // 4. कुल बकायेदार (Defaulters count)
   let defaulterCount = 0;
   membersData.forEach(m => {
     const flatNo = (m.flat_no || '').trim().toUpperCase();
@@ -2244,7 +2158,6 @@ function generateMonthlySummary() {
     if (totalDue - flatPaid > 0) defaulterCount++;
   });
 
-  // KPI कार्ड्स अपडेट करें
   if (document.getElementById('summary-month-collected')) 
     document.getElementById('summary-month-collected').innerText = `₹${totalCollected}`;
   if (document.getElementById('summary-month-expenses')) 
@@ -2254,44 +2167,6 @@ function generateMonthlySummary() {
   if (document.getElementById('summary-month-defaulters')) 
     document.getElementById('summary-month-defaulters').innerText = `${defaulterCount} Flats`;
 
-  // स्टेटमेंट टेबल रेंडर करें
-  renderMonthlySummaryTable(monthCollections, monthExpenses, totalCollected, totalExpenses, netCashflow);
-}
-
-  // 1. चुने हुए महीने का Maintenance Collection फ़िल्टर करें
-  const monthCollections = maintenanceData.filter(r => (r.payment_date || '').startsWith(selectedMonth));
-  const totalCollected = monthCollections.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-
-  // 2. चुने हुए महीने के Expenses फ़िल्टर करें
-  const monthExpenses = expenseData.filter(e => (e.expense_date || '').startsWith(selectedMonth));
-  const totalExpenses = monthExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-
-  // 3. Net Cashflow (कलेक्शन - खर्च)
-  const netCashflow = totalCollected - totalExpenses;
-
-  // 4. कुल बकायेदार (Defaulters count)
-  let defaulterCount = 0;
-  membersData.forEach(m => {
-    const flatNo = (m.flat_no || '').trim().toUpperCase();
-    const rate = Number(m.monthly_rate || 600);
-    const openingDue = Number(m.opening_due || 0);
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo)
-                                    .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-    const totalDue = openingDue + (MONTHS_IN_FY_SO_FAR * rate);
-    if (totalDue - flatPaid > 0) defaulterCount++;
-  });
-
-  // KPI कार्ड्स अपडेट करें
-  if (document.getElementById('summary-month-collected')) 
-    document.getElementById('summary-month-collected').innerText = `₹${totalCollected}`;
-  if (document.getElementById('summary-month-expenses')) 
-    document.getElementById('summary-month-expenses').innerText = `₹${totalExpenses}`;
-  if (document.getElementById('summary-month-net')) 
-    document.getElementById('summary-month-net').innerText = `₹${netCashflow}`;
-  if (document.getElementById('summary-month-defaulters')) 
-    document.getElementById('summary-month-defaulters').innerText = `${defaulterCount} Flats`;
-
-  // स्टेटमेंट टेबल रेंडर करें
   renderMonthlySummaryTable(monthCollections, monthExpenses, totalCollected, totalExpenses, netCashflow);
 }
 
@@ -2299,7 +2174,6 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
   const tbody = document.getElementById('monthly-summary-rows');
   if (!tbody) return;
 
-  // Expense Categories का ग्रुप बनाएं
   const expCategories = {};
   expenses.forEach(e => {
     const cat = e.category || 'General';
@@ -2315,7 +2189,6 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
     </tr>
   `;
 
-  // हर खर्च की कैटेगरी दिखाएं
   for (const [cat, amt] of Object.entries(expCategories)) {
     html += `
       <tr>
@@ -2432,7 +2305,7 @@ async function submitExpense(event) {
     mode: document.getElementById('exp-form-mode').value,
     remarks: document.getElementById('exp-form-remarks').value.trim() || "-",
     society_name: currentSociety
-  }; // 👈 Yahan closing bracket zaroori hai
+  };
 
   await _supabase.from('expenses').insert([newExpense]);
   await logActivity('ADD_EXPENSE', `Added voucher ${newExpense.voucher_no} of ₹${newExpense.amount} for ${newExpense.paid_to}`);
@@ -2482,7 +2355,14 @@ async function deleteMember(id) {
     fetchSupabaseData(); 
   } 
 }
-async function deleteMaintenance(id) { if (confirm('Delete receipt?')) { await _supabase.from('maintenance_payments').delete().eq('id', id); fetchSupabaseData(); } }
+
+async function deleteMaintenance(id) { 
+  if (confirm('Delete receipt?')) { 
+    await _supabase.from('maintenance_payments').delete().eq('id', id); 
+    fetchSupabaseData(); 
+  } 
+}
+
 async function deleteExpense(id) { 
   if (confirm('Delete voucher?')) { 
     await _supabase.from('expenses').delete().eq('id', id); 
@@ -2490,8 +2370,20 @@ async function deleteExpense(id) {
     fetchSupabaseData(); 
   } 
 }
-async function deleteAsset(id) { if (confirm('Delete asset?')) { await _supabase.from('assets').delete().eq('id', id); fetchSupabaseData(); } }
-async function deleteFD(id) { if (confirm('Delete FD?')) { await _supabase.from('sinking_fund_fd').delete().eq('id', id); fetchSupabaseData(); } }
+
+async function deleteAsset(id) { 
+  if (confirm('Delete asset?')) { 
+    await _supabase.from('assets').delete().eq('id', id); 
+    fetchSupabaseData(); 
+  } 
+}
+
+async function deleteFD(id) { 
+  if (confirm('Delete FD?')) { 
+    await _supabase.from('sinking_fund_fd').delete().eq('id', id); 
+    fetchSupabaseData(); 
+  } 
+}
 
 async function submitTeamMember(event) {
   event.preventDefault();
@@ -2519,7 +2411,6 @@ function exportTableToExcel(tableId, filename) {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
-// ===================== MOBILE OVERLAYS & UI =====================
 function toggleMobileMenu() {
   const overlay = document.getElementById('mobileMenuOverlay');
   if (overlay.style.display === 'flex') {
@@ -2537,7 +2428,6 @@ function closeMobileMenu() {
   document.body.style.overflow = '';
 }
 
-// ===================== UPDATE MOBILE HEADER INFO =====================
 function updateMobileHeaderInfo() {
   const socElem = document.getElementById('mobile-society-name');
   const userElem = document.getElementById('mobile-user-details');
@@ -2552,7 +2442,6 @@ function updateMobileHeaderInfo() {
     } else if (currentRole === 'Chairman') {
       userElem.innerText = `🎖️ Chairman (${currentUser})`;
     } else {
-      // Member के लिए नाम खोजें
       const member = membersData.find(m => (m.flat_no || '').toUpperCase() === currentUser.toUpperCase());
       const memberName = member && member.name ? member.name : '';
       userElem.innerText = memberName ? `🏠 ${currentUser} - ${memberName}` : `🏠 ${currentUser}`;
@@ -2561,13 +2450,13 @@ function updateMobileHeaderInfo() {
 }
 
 function renderGridCards() {
-updateMobileHeaderInfo(); // 👈 यहाँ जोड़ें
+  updateMobileHeaderInfo();
   const container = document.querySelector('#mobileMenuOverlay .grid-container');
   if (!container) return;
   const role = currentRole || 'Member';
   let allCards = [
     { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', color: '#2563eb' },
-{ id: 'activity-logs', icon: 'fa-list-check', label: 'Activity Logs', color: '#0ea5e9' },
+    { id: 'activity-logs', icon: 'fa-list-check', label: 'Activity Logs', color: '#0ea5e9' },
     { id: 'members', icon: 'fa-users', label: 'Members', color: '#22c55e' },
     { id: 'maintenance', icon: 'fa-indian-rupee-sign', label: 'Maintenance', color: '#f59e0b' },
     { id: 'expenses', icon: 'fa-receipt', label: 'Expenses', color: '#ef4444' },
@@ -2611,7 +2500,6 @@ async function openTabOverlay(tabId) {
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
-  // 🟢 Activity Logs ke liye fetch trigger karein
   if (tabId === 'activity-logs') await fetchActivityLogs();
 
   const target = document.getElementById(`tab-${tabId}`);
@@ -2661,7 +2549,6 @@ function closeTabOverlay() {
   }
 }
 
-// ===================== ABOUT PS (BROCHURE IMAGE) =====================
 function openAboutPS() {
   const overlay = document.getElementById('aboutPSOverlay');
   const body = document.getElementById('aboutPSBody');
@@ -2674,7 +2561,6 @@ function openAboutPS() {
         <p class="text-primary fw-semibold small mb-0">Smart Society Management Engine • Simple • Transparent • Affordable</p>
       </div>
 
-      <!-- Plans Comparison -->
       <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ Subscription Plans (Per House / Month)</h6>
       <div class="row g-2 mb-3 text-center">
         <div class="col-4">
@@ -2700,7 +2586,6 @@ function openAboutPS() {
         </div>
       </div>
 
-      <!-- Key Deliverables -->
       <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">✨ What Your Society Gets</h6>
       <ul class="small text-muted ps-3 mb-3" style="line-height: 1.6;">
         <li>📊 <strong>Digital Accounting:</strong> Member ledgers, automated collection tracking & vouchers.</li>
@@ -2710,7 +2595,6 @@ function openAboutPS() {
         <li>👥 <strong>Committee & Staff Support:</strong> Vendor AMC tracking, security logs & complaint tickets.</li>
       </ul>
 
-      <!-- Contact Buttons -->
       <div class="p-3 bg-light rounded-3 text-center border">
         <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
         <div class="d-flex justify-content-center gap-2">
@@ -2729,7 +2613,6 @@ function closeAboutPS() {
   if (overlay) overlay.style.display = 'none';
   document.body.style.overflow = '';
 
-  // 📱 यदि मोबाइल पर यूजर लॉगिन है, तो सीधा ग्रिड वापस खोलें
   if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -2745,7 +2628,6 @@ function closePrivacyPolicy() {
   if (overlay) overlay.style.display = 'none';
   document.body.style.overflow = '';
 
-  // 📱 यदि मोबाइल पर यूजर लॉगिन है, तो सीधा ग्रिड वापस खोलें
   if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -2756,7 +2638,6 @@ function closePrivacyPolicy() {
   }
 }
 
-// ===================== PRIVACY POLICY (RESTORED) =====================
 function openPrivacyPolicy() {
   const overlay = document.getElementById('privacyPolicyOverlay');
   const body = document.getElementById('privacyPolicyBody');
@@ -2768,7 +2649,7 @@ function openPrivacyPolicy() {
       <p class="text-muted small">Effective Date: August 2026 • Compliant with Digital Personal Data Protection (DPDP) Act 2023</p>
       
       <h5 class="fw-bold mt-3">1. Information We Collect</h5>
-      <p class="small text-muted">We collect resident details (name, flat number, phone, email), maintenance payment proofs (UTR numbers, receipt screenshots), visitor logs (visitor name, phone, purpose, in/out timestamps), and maintenance ticket data exclusively for society administrative operations[cite: 2].</p>
+      <p class="small text-muted">We collect resident details (name, flat number, phone, email), maintenance payment proofs (UTR numbers, receipt screenshots), visitor logs (visitor name, phone, purpose, in/out timestamps), and maintenance ticket data exclusively for society administrative operations.</p>
 
       <h5 class="fw-bold mt-3">2. How Your Data Is Handled</h5>
       <ul class="small text-muted ps-3">
@@ -2778,10 +2659,10 @@ function openPrivacyPolicy() {
       </ul>
 
       <h5 class="fw-bold mt-3">3. Your Rights & Data Deletion</h5>
-      <p class="small text-muted">Residents reserve the right to review payment histories and request removal of personal data via the in-app <em>Deletion Request</em> workflow under statutory compliance terms[cite: 2, 3].</p>
+      <p class="small text-muted">Residents reserve the right to review payment histories and request removal of personal data via the in-app <em>Deletion Request</em> workflow under statutory compliance terms.</p>
 
       <h5 class="fw-bold mt-3">4. Grievance Redressal</h5>
-      <p class="small text-muted mb-0">For privacy inquiries or data requests, contact our Grievance Officer at <strong>ps.societysolutions@gmail.com</strong> or call <strong>+91 8866376056</strong>[cite: 2].</p>
+      <p class="small text-muted mb-0">For privacy inquiries or data requests, contact our Grievance Officer at <strong>ps.societysolutions@gmail.com</strong> or call <strong>+91 8866376056</strong>.</p>
     </div>
   `;
   overlay.style.display = 'flex';
@@ -2808,7 +2689,6 @@ function renderTeam() {
   `).join('');
 }
 
-// ===================== SOCIETIES =====================
 async function loadSocietiesList() {
   const tbody = document.getElementById('societies-list');
   if (!tbody) return;
@@ -2853,7 +2733,6 @@ async function addNewSociety(event) {
   loadSocietySwitcher();
 }
 
-// ===================== BADGES & NOTIFICATIONS =====================
 function checkForNewNotifications() {
   if (localStorage.getItem('ps_user_logged') !== 'true') return;
   const lastSeenNotice = parseInt(localStorage.getItem('ps_last_seen_notice') || '0');
@@ -2868,7 +2747,6 @@ async function updateAllBadges() {
   if (!currentSociety) return;
 
   try {
-    // 1. Maintenance Badges (Admin/SocietyAdmin ke liye)
     if (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') {
       const lastSeenMaint = parseInt(localStorage.getItem('ps_last_seen_maintenance') || '0');
       const newMaintCount = maintenanceData.filter(r => (r.id || 0) > lastSeenMaint).length;
@@ -2883,7 +2761,6 @@ async function updateAllBadges() {
       updateBadge('complaints-badge', newCompCount);
     }
 
-    // 2. Polls & Notices (Sabhi ke liye)
     const lastSeenPoll = parseInt(localStorage.getItem('ps_last_seen_polls') || '0');
     const newPollsCount = pollsData.filter(p => (p.id || 0) > lastSeenPoll).length;
 
@@ -2896,7 +2773,6 @@ async function updateAllBadges() {
     const totalNotificationCount = newPollsCount + newNoticesCount;
     updateBadge('polls-badge', newPollsCount);
     
-    // Mobile header ya general notification badge ke liye
     const notifBadge = document.getElementById('notification-badge');
     if (notifBadge) {
       notifBadge.textContent = totalNotificationCount;
@@ -2939,7 +2815,6 @@ function markCommunityRead() {
   updateBadge('notification-badge', 0);
 }
 
-// ===================== VISITOR PASSWORD (DATABASE MATCH) =====================
 async function openVisitorPassword() {
   await loadSocietiesForDropdown('visitor-password-society');
   document.getElementById('visitorPasswordOverlay').style.display = 'flex';
@@ -2988,7 +2863,6 @@ async function loadFlatsDropdown() {
   });
 }
 
-// ===================== UPI PAYMENT =====================
 function openUPIPayment() {
   document.getElementById('upi-amount').value = '1000';
   new bootstrap.Modal(document.getElementById('upiPaymentModal')).show();
@@ -3002,7 +2876,6 @@ function processUPIPayment() {
   window.location.href = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
 }
 
-// ===================== DELETION REQUESTS (FIXED STATUS & BUTTONS) =====================
 async function loadDeletionRequests() {
   if (currentRole !== 'Admin') return;
   const { data } = await _supabase.from('deletion_requests').select('*').eq('society_name', currentSociety).order('requested_at', { ascending: false });
@@ -3051,9 +2924,6 @@ async function processDeletionRequest(id, status) {
   renderDeletionRequests();
 }
 
-// ==================== 3 NEW FEATURES COMBINED =====================
-
-// 1. SOS Realtime & Trigger
 async function triggerSOS(alertType) {
   if (!confirm(`🚨 क्या आप सच में ${alertType.toUpperCase()} इमरजेंसी अलर्ट ट्रिगर करना चाहते हैं?`)) return;
   try {
@@ -3110,7 +2980,6 @@ async function resolveSOSAlert(alertId) {
   if (banner) banner.remove();
 }
 
-// 2. Birthday & Anniversary Wishes Engine
 function renderCelebrations() {
   const container = document.getElementById('dashboard-celebrations-container');
   if (!container) return;
@@ -3134,7 +3003,8 @@ function renderCelebrations() {
   container.innerHTML = html;
 }
 
-// 3. Community Marketplace
+let marketplaceData = [];
+
 async function fetchMarketplaceData() {
   const { data } = await _supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false });
   marketplaceData = data || [];
@@ -3176,12 +3046,9 @@ async function submitMarketplacePost(event) {
   fetchMarketplaceData().then(renderMarketplace);
 }
 
-// ===================== INITIALIZE =====================
 function clearStuckOverlays() {
-  // Sabhi Bootstrap backdrops ko hataen
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
   
-  // Sabhi custom overlays ko hide karein
   const overlays = ['tabOverlay', 'consentOverlay', 'mobileMenuOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay'];
   overlays.forEach(id => {
     const el = document.getElementById(id);
@@ -3194,13 +3061,12 @@ function clearStuckOverlays() {
     }
   });
 
-  // Body ka scroll lock kholen
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
 }
 
 window.onload = async () => {
-  clearStuckOverlays(); // 👈 Purane stuck overlays saaf karne ke liye
+  clearStuckOverlays();
 
   const isLogged = localStorage.getItem('ps_user_logged');
   const role = localStorage.getItem('ps_user_role') || 'Admin';
@@ -3218,7 +3084,6 @@ window.onload = async () => {
   }
 };
 
-// Har 30 seconds me background me data sync karega taaki badges live update rahein
 setInterval(async () => {
   if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {
     try {
@@ -3234,4 +3099,4 @@ setInterval(async () => {
       console.log('Background sync silent error', e);
     }
   }
-}, 30000); // 30 seconds
+}, 30000);
