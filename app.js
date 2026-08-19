@@ -4,6 +4,9 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// 🟢 Yeh line yahan paste kar dein:
+const sirenAudio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg');
+
 let activityLogs = [];
 let currentRole = 'Admin';
 let currentUser = 'A-101';
@@ -549,6 +552,7 @@ let { data: members } = await _supabase.from('members').select('*').eq('society_
     updateCommunityBadge();
     updateAllBadges();
     updateMobileHeaderInfo();
+    listenForSOSAlerts(); // 👈 Yahan add kar dein
     setTimeout(checkForNewNotifications, 500);
 
   } catch (err) {
@@ -1131,6 +1135,14 @@ function switchTab(tabId, element) {
       localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString());
     }
     updateBadge('visitor-badge', 0);
+  }
+
+// Polls Tab
+  if (tabId === 'polls') {
+    const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
+    localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
+    updateAllBadges(); // Ye ensure karega ki badge turant update hokar hat jaye
+    renderPolls();
   }
 
 // Activity Logs Tab
@@ -2795,16 +2807,47 @@ function checkForNewNotifications() {
   updateBadge('notification-badge', count);
 }
 
-function updateAllBadges() {
-  if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
-    const lastSeenMaint = parseInt(localStorage.getItem('ps_last_seen_maintenance') || '0');
-    updateBadge('maintenance-badge', maintenanceData.filter(r => (r.id || 0) > lastSeenMaint).length);
-    const lastSeenProof = parseInt(localStorage.getItem('ps_last_seen_proofs') || '0');
-    updateBadge('proofs-badge', paymentProofs.filter(p => (p.id || 0) > lastSeenProof).length);
-    const lastSeenComp = parseInt(localStorage.getItem('ps_last_seen_complaints') || '0');
-    updateBadge('complaints-badge', complaintData.filter(c => (c.id || 0) > lastSeenComp).length);
+async function updateAllBadges() {
+  if (!currentSociety) return;
+
+  try {
+    // 1. Maintenance Badges (Admin/SocietyAdmin ke liye)
+    if (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') {
+      const lastSeenMaint = parseInt(localStorage.getItem('ps_last_seen_maintenance') || '0');
+      const newMaintCount = maintenanceData.filter(r => (r.id || 0) > lastSeenMaint).length;
+      updateBadge('maintenance-badge', newMaintCount);
+
+      const lastSeenProof = parseInt(localStorage.getItem('ps_last_seen_proofs') || '0');
+      const newProofCount = paymentProofs.filter(p => (p.id || 0) > lastSeenProof).length;
+      updateBadge('proofs-badge', newProofCount);
+
+      const lastSeenComp = parseInt(localStorage.getItem('ps_last_seen_complaints') || '0');
+      const newCompCount = complaintData.filter(c => (c.id || 0) > lastSeenComp && c.status === 'Pending').length;
+      updateBadge('complaints-badge', newCompCount);
+    }
+
+    // 2. Polls & Notices (Sabhi ke liye)
     const lastSeenPoll = parseInt(localStorage.getItem('ps_last_seen_polls') || '0');
-    updateBadge('polls-badge', pollsData.filter(p => (p.id || 0) > lastSeenPoll).length);
+    const newPollsCount = pollsData.filter(p => (p.id || 0) > lastSeenPoll).length;
+
+    const lastSeenNotice = parseInt(localStorage.getItem('ps_last_seen_notice') || '0');
+    const newNoticesCount = noticesData.filter(n => {
+      const isTargeted = !n.target_members || n.target_members.length === 0 || n.target_members.includes(currentUser);
+      return (n.id || 0) > lastSeenNotice && isTargeted;
+    }).length;
+
+    const totalNotificationCount = newPollsCount + newNoticesCount;
+    updateBadge('polls-badge', newPollsCount);
+    
+    // Mobile header ya general notification badge ke liye
+    const notifBadge = document.getElementById('notification-badge');
+    if (notifBadge) {
+      notifBadge.textContent = totalNotificationCount;
+      notifBadge.style.display = totalNotificationCount > 0 ? 'inline-block' : 'none';
+    }
+
+  } catch (err) {
+    console.error('Badge update error:', err);
   }
 }
 
@@ -2995,9 +3038,17 @@ function showSOSBanner(alertData) {
 }
 
 async function resolveSOSAlert(alertId) {
-  await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
-  sirenAudio.pause();
-  sirenAudio.currentTime = 0;
+  try {
+    await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
+  } catch (err) {
+    console.error('Error resolving SOS:', err);
+  }
+  
+  if (typeof sirenAudio !== 'undefined' && sirenAudio) {
+    sirenAudio.pause();
+    sirenAudio.currentTime = 0;
+  }
+  
   const banner = document.getElementById('sosAlertBanner');
   if (banner) banner.remove();
 }
@@ -3085,3 +3136,20 @@ window.onload = async () => {
     showLandingPage();
   }
 };
+// Har 30 seconds me background me data sync karega taaki badges live update rahein
+setInterval(async () => {
+  if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {
+    try {
+      let { data: notices } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
+      if (notices) noticesData = notices;
+
+      let { data: polls } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
+      if (polls) pollsData = polls;
+
+      updateAllBadges();
+      updateCommunityBadge();
+    } catch (e) {
+      console.log('Background sync silent error', e);
+    }
+  }
+}, 30000); // 30 seconds

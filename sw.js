@@ -2,7 +2,7 @@
 // SERVICE WORKER FOR PS SOCIETY SOLUTIONS (PWA)
 // ============================================================
 
-const CACHE_VERSION = 'v1';  // v → v1
+const CACHE_VERSION = 'v2';  // v1 → v2
 const CACHE_NAME = `ps-society-${CACHE_VERSION}`;
 
 const urlsToCache = [
