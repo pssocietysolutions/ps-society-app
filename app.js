@@ -866,6 +866,10 @@ if (!firebase.apps.length) {
 }
 
 const messaging = firebase.messaging();
+messaging.onMessage((payload) => {
+  console.log('Message received in foreground: ', payload);
+  alert(`📢 ${payload.notification.title}\n${payload.notification.body}`);
+});
 
 async function requestNotificationPermission() {
   try {
@@ -904,6 +908,16 @@ async function saveFCMTokenToSupabase(token) {
     console.error('Error saving FCM token to Supabase:', err);
   }
 }
+
+import { getMessaging, onMessage } from "firebase/messaging";
+
+const messaging = getMessaging();
+onMessage(messaging, (payload) => {
+  console.log('Message received in foreground: ', payload);
+  
+  // Jab browser tab open hoga, toh yeh popup alert dikhayega
+  alert(`📢 ${payload.notification.title}\n${payload.notification.body}`);
+});
 
 function sendWhatsAppReminder(phone, message) {
   if (!phone) { alert('❌ No phone number found.'); return; }
