@@ -389,7 +389,6 @@ function loadMainApp(role) {
   
   clearAllData();
   fetchSupabaseData();
-// 🟢 Yahan notification permission trigger kar dein
   setTimeout(requestNotificationPermission, 2000);
 }
 
@@ -866,9 +865,10 @@ if (!firebase.apps.length) {
 }
 
 const messaging = firebase.messaging();
+
 messaging.onMessage((payload) => {
   console.log('Message received in foreground: ', payload);
-  alert(`📢 ${payload.notification.title}\n${payload.notification.body}`);
+  alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
 });
 
 async function requestNotificationPermission() {
@@ -876,8 +876,6 @@ async function requestNotificationPermission() {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       console.log('Notification permission granted.');
-      
-      // Service worker register karke FCM Token lein
       const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
       const token = await messaging.getToken({ 
         vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
@@ -886,7 +884,6 @@ async function requestNotificationPermission() {
 
       if (token) {
         console.log('FCM Device Token:', token);
-        // Supabase database me token save karein
         await saveFCMTokenToSupabase(token);
       }
     } else {
@@ -908,14 +905,6 @@ async function saveFCMTokenToSupabase(token) {
     console.error('Error saving FCM token to Supabase:', err);
   }
 }
-
-const messaging = getMessaging();
-onMessage(messaging, (payload) => {
-  console.log('Message received in foreground: ', payload);
-  
-  // Jab browser tab open hoga, toh yeh popup alert dikhayega
-  alert(`📢 ${payload.notification.title}\n${payload.notification.body}`);
-});
 
 function sendWhatsAppReminder(phone, message) {
   if (!phone) { alert('❌ No phone number found.'); return; }
