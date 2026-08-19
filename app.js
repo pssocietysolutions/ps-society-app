@@ -2190,6 +2190,7 @@ async function updateSocietySettings(event) {
 }
 
 // ===================== MONTHLY EXECUTIVE SUMMARY =====================
+// ===================== MONTHLY EXECUTIVE SUMMARY (FIXED) =====================
 function generateMonthlySummary() {
   const monthInput = document.getElementById('summary-month-picker');
   let selectedMonth = monthInput ? monthInput.value : '';
@@ -2200,6 +2201,61 @@ function generateMonthlySummary() {
     selectedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     if (monthInput) monthInput.value = selectedMonth;
   }
+
+  // 1. चुने हुए महीने का Maintenance Collection सुरक्षित तरीके से फ़िल्टर करें
+  const monthCollections = maintenanceData.filter(r => {
+    if (!r.payment_date) return false;
+    const d = new Date(r.payment_date);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${yyyy}-${mm}` === selectedMonth;
+    }
+    return (r.payment_date || '').startsWith(selectedMonth);
+  });
+  const totalCollected = monthCollections.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+
+  // 2. चुने हुए महीने के Expenses सुरक्षित तरीके से फ़िल्टर करें
+  const monthExpenses = expenseData.filter(e => {
+    if (!e.expense_date) return false;
+    const d = new Date(e.expense_date);
+    if (!isNaN(d.getTime())) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      return `${yyyy}-${mm}` === selectedMonth;
+    }
+    return (e.expense_date || '').startsWith(selectedMonth);
+  });
+  const totalExpenses = monthExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+  // 3. Net Cashflow (कलेक्शन - खर्च)
+  const netCashflow = totalCollected - totalExpenses;
+
+  // 4. कुल बकायेदार (Defaulters count)
+  let defaulterCount = 0;
+  membersData.forEach(m => {
+    const flatNo = (m.flat_no || '').trim().toUpperCase();
+    const rate = Number(m.monthly_rate || 600);
+    const openingDue = Number(m.opening_due || 0);
+    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo)
+                                    .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+    const totalDue = openingDue + (MONTHS_IN_FY_SO_FAR * rate);
+    if (totalDue - flatPaid > 0) defaulterCount++;
+  });
+
+  // KPI कार्ड्स अपडेट करें
+  if (document.getElementById('summary-month-collected')) 
+    document.getElementById('summary-month-collected').innerText = `₹${totalCollected}`;
+  if (document.getElementById('summary-month-expenses')) 
+    document.getElementById('summary-month-expenses').innerText = `₹${totalExpenses}`;
+  if (document.getElementById('summary-month-net')) 
+    document.getElementById('summary-month-net').innerText = `₹${netCashflow}`;
+  if (document.getElementById('summary-month-defaulters')) 
+    document.getElementById('summary-month-defaulters').innerText = `${defaulterCount} Flats`;
+
+  // स्टेटमेंट टेबल रेंडर करें
+  renderMonthlySummaryTable(monthCollections, monthExpenses, totalCollected, totalExpenses, netCashflow);
+}
 
   // 1. चुने हुए महीने का Maintenance Collection फ़िल्टर करें
   const monthCollections = maintenanceData.filter(r => (r.payment_date || '').startsWith(selectedMonth));
