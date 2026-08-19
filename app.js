@@ -455,18 +455,6 @@ function handleLogout() {
   resetIdleTimer();
 }
 
-let idleTimer;
-function resetIdleTimer() {
-  if (idleTimer) clearTimeout(idleTimer);
-  if (localStorage.getItem('ps_user_logged') === 'true') {
-    idleTimer = setTimeout(() => {
-      alert('⚠️ You have been inactive for 5 minutes. Logging out automatically.');
-      handleLogout();
-    }, 300000);
-  }
-}
-['click', 'keydown', 'scroll', 'touchstart'].forEach(ev => document.addEventListener(ev, resetIdleTimer));
-
 async function fetchSupabaseData() {
   try {
     await _supabase.rpc('clean_old_activity_logs');
