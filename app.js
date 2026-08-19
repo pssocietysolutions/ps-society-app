@@ -2191,6 +2191,7 @@ async function updateSocietySettings(event) {
 
 // ===================== MONTHLY EXECUTIVE SUMMARY =====================
 // ===================== MONTHLY EXECUTIVE SUMMARY (FIXED) =====================
+// ===================== MONTHLY EXECUTIVE SUMMARY =====================
 function generateMonthlySummary() {
   const monthInput = document.getElementById('summary-month-picker');
   let selectedMonth = monthInput ? monthInput.value : '';
@@ -3176,7 +3177,31 @@ async function submitMarketplacePost(event) {
 }
 
 // ===================== INITIALIZE =====================
+function clearStuckOverlays() {
+  // Sabhi Bootstrap backdrops ko hataen
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  
+  // Sabhi custom overlays ko hide karein
+  const overlays = ['tabOverlay', 'consentOverlay', 'mobileMenuOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay'];
+  overlays.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === 'mobileMenuOverlay' || id === 'visitorPasswordOverlay' || id === 'aboutPSOverlay' || id === 'privacyPolicyOverlay') {
+        el.style.display = 'none';
+      } else {
+        el.remove();
+      }
+    }
+  });
+
+  // Body ka scroll lock kholen
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+}
+
 window.onload = async () => {
+  clearStuckOverlays(); // 👈 Purane stuck overlays saaf karne ke liye
+
   const isLogged = localStorage.getItem('ps_user_logged');
   const role = localStorage.getItem('ps_user_role') || 'Admin';
   const email = localStorage.getItem('ps_user_id') || 'A-101';
@@ -3192,6 +3217,7 @@ window.onload = async () => {
     showLandingPage();
   }
 };
+
 // Har 30 seconds me background me data sync karega taaki badges live update rahein
 setInterval(async () => {
   if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {
