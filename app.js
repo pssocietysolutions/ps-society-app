@@ -2585,6 +2585,7 @@ async function openTabOverlay(tabId) {
   if (tabId === 'sos-contacts') renderSOSContacts();
   if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
+if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
   const overlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(overlay);
@@ -3087,6 +3088,10 @@ function renderMarketplace() {
   const container = document.getElementById('marketplace-container');
   if (!container) return;
   if (!marketplaceData.length) { container.innerHTML = `<div class="col-12 text-center text-muted p-4">No marketplace listings yet.</div>`; return; }
+  
+  // Check if current user can delete (Admin, Chairman, SocietyAdmin)
+  const canDelete = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
+
   container.innerHTML = marketplaceData.map(item => `
     <div class="col-md-4">
       <div class="card p-3 shadow-sm border-0 rounded-4">
@@ -3094,10 +3099,24 @@ function renderMarketplace() {
         <h6 class="fw-bold">${item.title}</h6>
         <p class="small text-muted mb-1">${item.price} | Flat: ${item.flat_no}</p>
         <p class="small">${item.description || ''}</p>
-        <button class="btn btn-sm btn-success mt-2" onclick="sendWhatsAppReminder('${item.contact_phone}', 'Hi, regarding your post ${item.title}: ')">Contact</button>
+        <div class="d-flex gap-2 mt-2">
+          <button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${item.contact_phone}', 'Hi, regarding your post ${item.title}: ')"><i class="fa-brands fa-whatsapp me-1"></i> Contact</button>
+          ${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMarketplacePost(${item.id})"><i class="fa-solid fa-trash"></i> Delete</button>` : ''}
+        </div>
       </div>
     </div>
   `).join('');
+}
+
+async function deleteMarketplacePost(id) {
+  if (!confirm('⚠️ Are you sure you want to delete this marketplace post?')) return;
+  const { error } = await _supabase.from('marketplace_posts').delete().eq('id', id);
+  if (error) {
+    alert('❌ Error: ' + error.message);
+  } else {
+    alert('✅ Post deleted successfully!');
+    fetchMarketplaceData().then(renderMarketplace);
+  }
 }
 
 async function submitMarketplacePost(event) {
