@@ -2531,6 +2531,7 @@ function renderGridCards() {
     { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
     { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
     { id: 'bank-details', icon: 'fa-qrcode', label: 'Bank / QR', color: '#2563eb' },
+{ id: 'marketplace', icon: 'fa-store', label: 'Marketplace', color: '#f59e0b' },
     { id: 'sos-contacts', icon: 'fa-truck-medical', label: 'Emergency SOS', color: '#ef4444' },
     { id: 'assets', icon: 'fa-boxes-stacked', label: 'Assets', color: '#64748b' },
     { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
@@ -2543,7 +2544,7 @@ function renderGridCards() {
   ];
 
   if (role === 'Member') {
-    const memberCards = ['dashboard', 'members', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
+    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman' || role === 'SocietyAdmin') {
     allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
