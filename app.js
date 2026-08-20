@@ -702,7 +702,7 @@ function renderAMCTracker() {
         <td>${c.vendor_name}</td>
         <td>${c.contact_person || '-'} <br><small class="text-muted"><a href="tel:${c.phone}">${c.phone || '-'}</a></small></td>
         <td>${c.start_date} to ${c.expiry_date}</td>
-        <td>₹${c.cost || 0}</td>
+        <td>${c.cost || 0}</td>
         <td>${statusBadge}</td>
         <td class="no-print">
           <button class="btn btn-sm btn-outline-danger" onclick="deleteAMCContract(${c.id})"><i class="fa-solid fa-trash"></i></button>
@@ -960,7 +960,7 @@ function renderPaymentProofs() {
     return `
       <tr>
         <td><b>${p.flat_no}</b></td>
-        <td>₹${p.amount}</td>
+        <td>${p.amount}</td>
         <td>${p.payment_date}</td>
         <td>${statusBadge}</td>
         <td>
@@ -972,7 +972,7 @@ function renderPaymentProofs() {
             <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
           ` : '<span class="text-muted">-</span>'}
           ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone ? `
-            <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ₹${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp"></i></button>
+            <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp"></i></button>
           ` : ''}
         </td>
       </tr>
@@ -1091,19 +1091,19 @@ function renderTallyBankBook() {
         <td><b>${entry.ref}</b></td>
         <td>${entry.head}</td>
         <td><span class="badge ${entry.deposit > 0 ? 'bg-success' : 'bg-danger'}">${entry.type}</span></td>
-        <td class="text-success fw-bold">${entry.deposit > 0 ? '₹' + entry.deposit : '-'}</td>
-        <td class="text-danger fw-bold">${entry.withdraw > 0 ? '₹' + entry.withdraw : '-'}</td>
-        <td class="fw-bold text-primary">₹${runningBalance.toFixed(2)}</td>
+        <td class="text-success fw-bold">${entry.deposit > 0 ? entry.deposit : '-'}</td>
+        <td class="text-danger fw-bold">${entry.withdraw > 0 ? entry.withdraw : '-'}</td>
+        <td class="fw-bold text-primary">${runningBalance.toFixed(2)}</td>
         <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
           ${isDeletable ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteBankEntry(${idx})"><i class="fa-solid fa-trash"></i></button>` : '-'}
         </td>
       </tr>
     `;
   }).join('');
-  document.getElementById('tally-tot-in').innerText = `₹${totalMoneyIn.toFixed(2)}`;
-  document.getElementById('tally-tot-out').innerText = `₹${totalMoneyOut.toFixed(2)}`;
-  document.getElementById('tally-calc-balance').innerText = `₹${runningBalance.toFixed(2)}`;
-  document.getElementById('tally-opening-balance').innerText = '₹' + openingBalance.toFixed(2);
+  document.getElementById('tally-tot-in').innerText = totalMoneyIn.toFixed(2);
+  document.getElementById('tally-tot-out').innerText = totalMoneyOut.toFixed(2);
+  document.getElementById('tally-calc-balance').innerText = runningBalance.toFixed(2);
+  document.getElementById('tally-opening-balance').innerText = openingBalance.toFixed(2);
 }
 
 async function deleteBankEntry(index) {
@@ -1170,8 +1170,10 @@ function switchTab(tabId, element) {
     updateBadge('maintenance-badge', 0);
   }
 
-  if (tabId === 'chairman-report') {
-    generateMonthlySummary();
+  if (tabId === 'chairman-report' || tabId === 'monthly-summary') {
+    if (typeof generateMonthlySummary === 'function') {
+      generateMonthlySummary();
+     }
   }
 
   if (tabId === 'proofs') {
@@ -1255,7 +1257,12 @@ function exportMonthlySummaryPDF() {
   doc.autoTable({ 
     html: '#monthly-summary-table', 
     startY: 30,
-    theme: 'grid'
+    theme: 'grid',
+    didParseCell: function(data) {
+      if (data.section === 'body') {
+        data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim());
+      }
+    }
   });
   doc.save(`Monthly_Summary_${month}.pdf`);
 }
@@ -1466,7 +1473,7 @@ function renderFacilitiesCommunity() {
         <p class="text-muted small mb-1">${f.description || 'No description'}</p>
         <div class="d-flex justify-content-between small text-muted">
           <span><i class="fa-regular fa-user me-1"></i> Capacity: ${f.capacity || 'N/A'}</span>
-          <span><i class="fa-regular fa-indian-rupee-sign me-1"></i> ₹${f.fee || 0}</span>
+          <span>Fee: ${f.fee || 0}</span>
         </div>
         <button class="btn btn-outline-primary btn-sm mt-3" onclick="openBookingModal(${f.id})">Book Now</button>
       </div>
@@ -1578,7 +1585,7 @@ function renderManageFacilities() {
         <h6 class="fw-bold">${f.name}</h6>
         <p class="small text-muted mb-1">${f.description || '--'}</p>
         <div class="d-flex justify-content-between">
-          <span class="badge bg-secondary">₹${f.fee || 0}</span>
+          <span class="badge bg-secondary">${f.fee || 0}</span>
           <button class="btn btn-sm btn-outline-danger" onclick="deleteFacility(${f.id})"><i class="fa-solid fa-trash"></i></button>
         </div>
       </div>
@@ -1675,8 +1682,8 @@ function renderMemberPersonalView() {
   const myTotalPaid = myFlatData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
   const myPending = Math.max(0, openingDue + totalDue - myTotalPaid);
   
-  if (document.getElementById('my-flat-pending')) document.getElementById('my-flat-pending').innerText = `₹${myPending}`;
-  if (document.getElementById('my-flat-paid')) document.getElementById('my-flat-paid').innerText = `₹${myTotalPaid}`;
+  if (document.getElementById('my-flat-pending')) document.getElementById('my-flat-pending').innerText = myPending;
+  if (document.getElementById('my-flat-paid')) document.getElementById('my-flat-paid').innerText = myTotalPaid;
   
   const historyTable = document.getElementById('my-payment-history-list');
   if (historyTable) {
@@ -1688,7 +1695,7 @@ function renderMemberPersonalView() {
       <tr>
         <td><b>${r.receipt_no || '-'}</b></td>
         <td>${r.payment_date || '-'}</td>
-        <td class="text-success fw-bold">₹${r.amount_paid || 0}</td>
+        <td class="text-success fw-bold">${r.amount_paid || 0}</td>
         <td><span class="badge bg-info text-dark">${r.mode_of_payment || '-'}</span></td>
       </tr>
     `).join('');
@@ -1701,7 +1708,7 @@ function renderMembers() {
   let grandTotalPending = 0;
   if (!membersData || membersData.length === 0) {
     tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No Members Found</td></tr>`;
-    document.getElementById('dash-pending').innerText = `₹0`;
+    document.getElementById('dash-pending').innerText = `0`;
     return;
   }
   tbody.innerHTML = membersData.map((m, index) => {
@@ -1720,13 +1727,13 @@ function renderMembers() {
       <tr>
         <td><b>${flatNo}</b></td>
         <td>${ownerName}</td>
-        <td>${phone}</td>
+        <td>${phone !== '-' ? `<a href="tel:${phone}">${phone}</a>` : '-'}</td>
         <td><span class="badge bg-success">${status}</span></td>
-        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">₹${rate}</td>
-        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">₹${openingDue}</td>
-        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">₹${flatPaid}</td>
+        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">${rate}</td>
+        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">${openingDue}</td>
+        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">${flatPaid}</td>
         <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">
-          <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">₹${pendingDue}</span>
+          <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">${pendingDue}</span>
         </td>
         <td class="no-print ${currentRole === 'Member' ? 'd-none' : ''}">
           ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
@@ -1739,7 +1746,7 @@ function renderMembers() {
       </tr>
     `;
   }).join('');
-  document.getElementById('dash-pending').innerText = `₹${grandTotalPending}`;
+  document.getElementById('dash-pending').innerText = grandTotalPending;
 }
 
 function renderMaintenance() {
@@ -1749,7 +1756,7 @@ function renderMaintenance() {
   const filteredData = currentRole === 'Member' ? maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === currentUser.toUpperCase()) : maintenanceData;
   if (!filteredData || filteredData.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No Receipts Found</td></tr>`;
-    document.getElementById('dash-collected').innerText = `₹0`;
+    document.getElementById('dash-collected').innerText = `0`;
     return;
   }
   tbody.innerHTML = filteredData.map((r) => {
@@ -1764,7 +1771,7 @@ function renderMaintenance() {
         <td><b>${r.flat_no || '-'}</b></td>
         <td>${r.payment_date || '-'}</td>
         <td><span class="badge bg-secondary">${r.month_accounted || "-"}</span></td>
-        <td>₹${amt}</td>
+        <td>${amt}</td>
         <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
         <td class="no-print">
           <button class="btn btn-sm btn-outline-primary" onclick="generateReceiptPDF('maintenance', ${r.id})" title="PDF"><i class="fa-solid fa-file-pdf"></i></button>
@@ -1774,7 +1781,7 @@ function renderMaintenance() {
       </tr>
     `;
   }).join('');
-  document.getElementById('dash-collected').innerText = `₹${total}`;
+  document.getElementById('dash-collected').innerText = total;
 }
 
 function renderExpenses() {
@@ -1783,7 +1790,7 @@ function renderExpenses() {
   let total = 0;
   if (!expenseData || expenseData.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No Expenses</td></tr>`;
-    document.getElementById('dash-expenses').innerText = `₹0`;
+    document.getElementById('dash-expenses').innerText = `0`;
     return;
   }
   tbody.innerHTML = expenseData.map((e) => {
@@ -1796,7 +1803,7 @@ function renderExpenses() {
         <td>${e.category || '-'}</td>
         <td>${e.paid_to || '-'}</td>
         <td><span class="badge bg-secondary">${e.mode || 'Bank Transfer'}</span></td>
-        <td>₹${amt}</td>
+        <td>${amt}</td>
         <td class="no-print">
           <button class="btn btn-sm btn-outline-primary" onclick="generateReceiptPDF('expense', ${e.id})" title="PDF"><i class="fa-solid fa-file-pdf"></i></button>
           ${currentRole === 'Admin' || currentRole === 'SocietyAdmin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${e.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
@@ -1804,7 +1811,7 @@ function renderExpenses() {
       </tr>
     `;
   }).join('');
-  document.getElementById('dash-expenses').innerText = `₹${total}`;
+  document.getElementById('dash-expenses').innerText = total;
 }
 
 function renderCAAuditReport() {
@@ -1814,21 +1821,22 @@ function renderCAAuditReport() {
   const totalFDs = fdData.reduce((sum, f) => sum + Number(f.principal_amount || 0), 0);
 
   const totalDebit = openingBalance + totalAssets + totalExp + totalFDs;
-  const totalCredit = totalIncome;
+  const openingCapitalOrSurplus = Math.max(0, totalDebit - totalIncome);
 
   const tbody = document.getElementById('ca-trial-balance-rows');
   if (!tbody) return;
 
   tbody.innerHTML = `
-    <tr><td>Opening Bank Balance</td><td>Asset</td><td class="text-success fw-bold">₹${openingBalance.toFixed(2)}</td><td>-</td></tr>
-    <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">₹${totalIncome.toFixed(2)}</td></tr>
-    <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">₹${totalAssets.toFixed(2)}</td><td>-</td></tr>
-    <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">₹${totalExp.toFixed(2)}</td><td>-</td></tr>
-    <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">₹${totalFDs.toFixed(2)}</td><td>-</td></tr>
+    <tr><td>Opening Bank Balance</td><td>Asset</td><td class="text-success fw-bold">${openingBalance.toFixed(2)}</td><td>-</td></tr>
+    <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${totalIncome.toFixed(2)}</td></tr>
+    <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${totalAssets.toFixed(2)}</td><td>-</td></tr>
+    <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${totalExp.toFixed(2)}</td><td>-</td></tr>
+    <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${totalFDs.toFixed(2)}</td><td>-</td></tr>
+    <tr><td>Opening Capital / Accumulated Surplus</td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${openingCapitalOrSurplus.toFixed(2)}</td></tr>
     <tr class="table-secondary fw-bold">
-      <td colspan="2">GRAND TOTAL (MUST BALANCE)</td>
-      <td class="text-success">₹${totalDebit.toFixed(2)}</td>
-      <td class="text-primary">₹${totalCredit.toFixed(2)}</td>
+      <td colspan="2">GRAND TOTAL (MATCHED)</td>
+      <td class="text-success">${totalDebit.toFixed(2)}</td>
+      <td class="text-primary">${(totalIncome + openingCapitalOrSurplus).toFixed(2)}</td>
     </tr>
   `;
 }
@@ -1850,7 +1858,7 @@ function renderAssets() {
       <td>${a.name || '-'}</td>
       <td>${a.location || 'Terrace'}</td>
       <td>${a.quantity || 1}</td>
-      <td>₹${a.cost || 0}</td>
+      <td>${a.cost || 0}</td>
       <td><span class="badge bg-success">${a.condition_status || 'Good'}</span></td>
       <td>${a.details || '-'}</td>
       <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
@@ -1871,9 +1879,9 @@ function renderFDs() {
     <tr>
       <td><b>${f.bank_name || '-'}</b></td>
       <td>${f.account_number || '-'}</td>
-      <td>₹${f.principal_amount || 0}</td>
+      <td>${f.principal_amount || 0}</td>
       <td>${f.interest_rate || '7.5%'}</td>
-      <td>₹${f.maturity_amount || 0}</td>
+      <td>${f.maturity_amount || 0}</td>
       <td><span class="badge bg-success">${f.status || 'Active'}</span></td>
       <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
         <button class="btn btn-sm btn-outline-danger" onclick="deleteFD(${f.id || index})"><i class="fa-solid fa-trash"></i></button>
@@ -1916,11 +1924,13 @@ function renderComplaints() {
   }
   tbody.innerHTML = visibleComplaints.map((c, index) => {
     const hasImage = c.image_url && c.image_url.trim() !== '';
+    const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === (c.flat_no || '').trim().toUpperCase());
+    const memberPhone = c.phone || member?.phone || '';
     return `
       <tr>
         <td><b>CMP-${c.id || index+1}</b></td>
         <td>${c.flat_no || '-'}</td>
-        <td>${c.phone || '-'}</td>
+        <td>${memberPhone ? `<a href="tel:${memberPhone}">${memberPhone}</a>` : '-'}</td>
         <td>${c.category || '-'}</td>
         <td>${c.description || '-'}</td>
         <td><span class="badge ${c.status === 'Resolved' ? 'bg-success' : 'bg-warning text-dark'}">${c.status || 'Pending'}</span></td>
@@ -2136,7 +2146,7 @@ function generateReceiptPDF(type, id) {
   doc.text(type === 'maintenance' ? 'MAINTENANCE RECEIPT' : 'PAYMENT VOUCHER', 105, 30, { align: 'center' });
   
   let headers = type === 'maintenance' ? ['Receipt No', 'Flat No', 'Date', 'Amount'] : ['Voucher No', 'Date', 'Category', 'Amount'];
-  let rows = type === 'maintenance' ? [[data.receipt_no, data.flat_no, data.payment_date, '₹' + data.amount_paid]] : [[data.voucher_no, data.expense_date, data.category, '₹' + data.amount]];
+  let rows = type === 'maintenance' ? [[data.receipt_no, data.flat_no, data.payment_date, data.amount_paid]] : [[data.voucher_no, data.expense_date, data.category, data.amount]];
   doc.autoTable({ startY: 45, head: [headers], body: rows });
   doc.save(`${type}-${id}.pdf`);
 }
@@ -2205,11 +2215,11 @@ function generateMonthlySummary() {
   });
 
   if (document.getElementById('summary-month-collected')) 
-    document.getElementById('summary-month-collected').innerText = `₹${totalCollected}`;
+    document.getElementById('summary-month-collected').innerText = totalCollected;
   if (document.getElementById('summary-month-expenses')) 
-    document.getElementById('summary-month-expenses').innerText = `₹${totalExpenses}`;
+    document.getElementById('summary-month-expenses').innerText = totalExpenses;
   if (document.getElementById('summary-month-net')) 
-    document.getElementById('summary-month-net').innerText = `₹${netCashflow}`;
+    document.getElementById('summary-month-net').innerText = netCashflow;
   if (document.getElementById('summary-month-defaulters')) 
     document.getElementById('summary-month-defaulters').innerText = `${defaulterCount} Flats`;
 
@@ -2231,7 +2241,7 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
       <td>Maintenance Collections (Total Receipts)</td>
       <td><span class="badge bg-success">Income</span></td>
       <td>${collections.length} Receipts</td>
-      <td>₹${totalColl.toFixed(2)}</td>
+      <td>${totalColl.toFixed(2)}</td>
     </tr>
   `;
 
@@ -2241,7 +2251,7 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
         <td>Expense: ${cat}</td>
         <td><span class="badge bg-danger">Expense</span></td>
         <td>-</td>
-        <td class="text-danger fw-bold">₹${amt.toFixed(2)}</td>
+        <td class="text-danger fw-bold">${amt.toFixed(2)}</td>
       </tr>
     `;
   }
@@ -2249,11 +2259,11 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
   html += `
     <tr class="table-secondary fw-bold">
       <td colspan="3">Total Expenses Paid</td>
-      <td class="text-danger">₹${totalExp.toFixed(2)}</td>
+      <td class="text-danger">${totalExp.toFixed(2)}</td>
     </tr>
     <tr class="table-primary fw-bold">
       <td colspan="3">Net Monthly Surplus / (Deficit)</td>
-      <td class="${net >= 0 ? 'text-success' : 'text-danger'}">₹${net.toFixed(2)}</td>
+      <td class="${net >= 0 ? 'text-success' : 'text-danger'}">${net.toFixed(2)}</td>
     </tr>
   `;
 
@@ -2273,10 +2283,11 @@ async function submitMember(event) {
   };
   
   await _supabase.from('members').insert([newMember]);
-  await logActivity('ADD_MEMBER', `Added member Flat: ${newMember.flat_no} (${newMember.name})`);
-  
+  await logActivity('ADD_MEMBER', `Added: ${newMember.flat_no}`);
   bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
-  fetchSupabaseData();
+  
+  await fetchSupabaseData(); 
+  renderAllTables();
 }
 
 async function submitFD(event) {
@@ -2329,10 +2340,10 @@ async function submitMaintenance(event) {
   };
 
   await _supabase.from('maintenance_payments').insert([newReceipt]);
-  await logActivity('RECORD_PAYMENT', `Recorded payment receipt ${newReceipt.receipt_no} of ₹${newReceipt.amount_paid} for ${newReceipt.flat_no}`);
-  
   bootstrap.Modal.getInstance(document.getElementById('maintenanceModal')).hide();
-  fetchSupabaseData();
+  
+  await fetchSupabaseData();
+  renderAllTables();
 }
 
 function openExpenseModal() {
@@ -2354,7 +2365,7 @@ async function submitExpense(event) {
   };
 
   await _supabase.from('expenses').insert([newExpense]);
-  await logActivity('ADD_EXPENSE', `Added voucher ${newExpense.voucher_no} of ₹${newExpense.amount} for ${newExpense.paid_to}`);
+  await logActivity('ADD_EXPENSE', `Added voucher ${newExpense.voucher_no} of ${newExpense.amount} for ${newExpense.paid_to}`);
   
   bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
   fetchSupabaseData();
@@ -2453,7 +2464,12 @@ async function deleteTeamMember(id) {
 
 function exportTableToExcel(tableId, filename) {
   const table = document.getElementById(tableId);
-  const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+  const tableClone = table.cloneNode(true);
+  tableClone.querySelectorAll('td').forEach(td => {
+    td.innerText = td.innerText.replace(/[₹Rs\.]/g, '').trim();
+  });
+  
+  const wb = XLSX.utils.table_to_book(tableClone, { sheet: "Sheet1", raw: true });
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
@@ -2533,6 +2549,14 @@ function renderGridCards() {
     allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
   }
 
+  allCards.sort((a, b) => {
+    if (a.id === 'dashboard') return -1;
+    if (b.id === 'dashboard') return 1;
+    if (a.id === 'about') return 1;
+    if (b.id === 'about') return -1;
+    return a.label.localeCompare(b.label);
+  });
+
   container.innerHTML = allCards.map(card => `
     <div onclick="openTabOverlay('${card.id}')" class="grid-card-item" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 10px; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);">
       <i class="fa-solid ${card.icon}" style="color: ${card.color};"></i>
@@ -2547,6 +2571,8 @@ async function openTabOverlay(tabId) {
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
   if (tabId === 'activity-logs') await fetchActivityLogs();
+
+  if (tabId === 'chairman-report') generateMonthlySummary();
 
   const target = document.getElementById(`tab-${tabId}`);
   if (!target) return;
@@ -2612,21 +2638,21 @@ function openAboutPS() {
         <div class="col-4">
           <div class="p-2 border rounded-3 bg-light">
             <span class="badge bg-secondary mb-1">SILVER</span>
-            <h5 class="fw-bold mb-0 text-dark">₹49</h5>
+            <h5 class="fw-bold mb-0 text-dark">49</h5>
             <small class="text-muted" style="font-size: 10px;">Digital Accounting</small>
           </div>
         </div>
         <div class="col-4">
           <div class="p-2 border border-warning rounded-3 bg-warning-subtle">
             <span class="badge bg-warning text-dark mb-1">GOLD (Popular)</span>
-            <h5 class="fw-bold mb-0 text-dark">₹79</h5>
+            <h5 class="fw-bold mb-0 text-dark">79</h5>
             <small class="text-muted" style="font-size: 10px;">Accounting + Visits</small>
           </div>
         </div>
         <div class="col-4">
           <div class="p-2 border border-primary rounded-3 bg-primary-subtle">
             <span class="badge bg-primary mb-1">PLATINUM</span>
-            <h5 class="fw-bold mb-0 text-dark">₹149</h5>
+            <h5 class="fw-bold mb-0 text-dark">149</h5>
             <small class="text-muted" style="font-size: 10px;">Complete Operations</small>
           </div>
         </div>
@@ -2725,7 +2751,7 @@ function renderTeam() {
   tbody.innerHTML = teamData.map(member => `
     <tr>
       <td><strong>${member.name || '-'}</strong></td>
-      <td>${member.mobile || '-'}</td>
+      <td>${member.mobile ? `<a href="tel:${member.mobile}">${member.mobile}</a>` : '-'}</td>
       <td>${member.role || '-'}</td>
       <td><span class="badge ${member.type === 'Emergency' ? 'bg-danger' : 'bg-primary'}">${member.type || 'Committee'}</span></td>
       <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
@@ -2748,7 +2774,7 @@ async function loadSocietiesList() {
     <tr>
       <td><strong>${s.name}</strong></td>
       <td>${s.address || '-'}</td>
-      <td>${s.phone || '-'}</td>
+      <td>${s.phone ? `<a href="tel:${s.phone}">${s.phone}</a>` : '-'}</td>
       <td><span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
       <td>
         <button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${s.name}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch</button>
@@ -3065,7 +3091,7 @@ function renderMarketplace() {
       <div class="card p-3 shadow-sm border-0 rounded-4">
         <span class="badge bg-primary mb-2" style="width:fit-content;">${item.category}</span>
         <h6 class="fw-bold">${item.title}</h6>
-        <p class="small text-muted mb-1">₹${item.price} | Flat: ${item.flat_no}</p>
+        <p class="small text-muted mb-1">${item.price} | Flat: ${item.flat_no}</p>
         <p class="small">${item.description || ''}</p>
         <button class="btn btn-sm btn-success mt-2" onclick="sendWhatsAppReminder('${item.contact_phone}', 'Hi, regarding your post ${item.title}: ')">Contact</button>
       </div>
