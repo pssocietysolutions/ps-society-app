@@ -3027,15 +3027,26 @@ function listenForSOSAlerts() {
 function showSOSBanner(alertData) {
   const existing = document.getElementById('sosAlertBanner');
   if (existing) existing.remove();
+
+  // 📳 Phone vibration trigger (Mobile browsers par phone vibrate karega)
+  if ("vibrate" in navigator) {
+    navigator.vibrate([500, 200, 500, 200, 500, 200, 500]); 
+  }
+
   const banner = document.createElement('div');
   banner.id = 'sosAlertBanner';
-  banner.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; z-index: 999999; background-color: #dc2626; color: white; padding: 20px; text-align: center;';
+  banner.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; z-index: 999999; background-color: #dc2626; color: white; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);';
   banner.innerHTML = `
-    <h2>🚨 EMERGENCY SOS ALERT! 🚨</h2>
-    <p>Type: ${alertData.alert_type} | Flat: <b>${alertData.flat_no}</b></p>
-    <button onclick="resolveSOSAlert('${alertData.id}')" style="padding: 8px 20px; background: white; color: #dc2626; border: none; font-weight: bold; cursor: pointer; border-radius: 20px;">Stop Siren</button>
+    <h2 style="font-weight: 900; margin-bottom: 5px;">🚨 EMERGENCY SOS ALERT! 🚨</h2>
+    <p style="font-size: 16px; margin-bottom: 15px;">Type: <b>${alertData.alert_type}</b> | Flat: <b>${alertData.flat_no}</b></p>
+    <button onclick="resolveSOSAlert('${alertData.id}')" style="padding: 10px 25px; background: white; color: #dc2626; border: none; font-weight: bold; cursor: pointer; border-radius: 20px; font-size: 16px;">Stop Alert</button>
   `;
   document.body.appendChild(banner);
+
+  // Audio play karne ki koshish (Agar browser block karega toh error console mein jayega par app nahi rukegi)
+  if (typeof sirenAudio !== 'undefined' && sirenAudio) {
+    sirenAudio.play().catch(e => console.log("Audio autoplay blocked by browser:", e));
+  }
 }
 
 async function resolveSOSAlert(alertId) {
