@@ -776,7 +776,6 @@ function renderBankDetails() {
   if (document.getElementById('edit-bank-ifsc')) document.getElementById('edit-bank-ifsc').value = ifsc;
   if (document.getElementById('edit-bank-upi')) document.getElementById('edit-bank-upi').value = upiId;
   
-  // Opening balance field ko settings modal mein set karna
   if (document.getElementById('edit-opening-balance')) document.getElementById('edit-opening-balance').value = openBalVal;
 }
 
@@ -792,7 +791,6 @@ async function saveBankDetailsAndQR(event) {
   const ifsc = document.getElementById('edit-bank-ifsc').value.trim();
   const upiId = document.getElementById('edit-bank-upi').value.trim();
   
-  // 🟢 Opening Balance ko input field se uthana
   const openingBal = parseFloat(document.getElementById('edit-opening-balance')?.value) || 0;
 
   const fileInput = document.getElementById('edit-bank-qr-file');
@@ -817,7 +815,6 @@ async function saveBankDetailsAndQR(event) {
     { key: 'bank_ifsc', value: ifsc, society_name: currentSociety },
     { key: 'bank_upi_id', value: upiId, society_name: currentSociety },
     { key: 'society_qr_url', value: qrUrl, society_name: currentSociety },
-    // 🟢 Database mein opening balance save karne ke liye add kiya gaya
     { key: 'opening_bank_balance', value: openingBal.toString(), society_name: currentSociety }
   ];
 
@@ -981,7 +978,7 @@ function renderPaymentProofs() {
             <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${p.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
             <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
           ` : '<span class="text-muted">-</span>'}
-          {(currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone ? `
+          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone ? `
             <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp"></i></button>
           ` : ''}
         </td>
@@ -1297,7 +1294,7 @@ function renderEventsCommunity() {
     return;
   }
   container.innerHTML = eventsData.map(ev => `
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-4" data-event-id="${ev.id}">   <!-- ✅ Added data-event-id -->
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex align-items-center mb-2">
           <i class="fa-regular fa-calendar-circle-plus" style="color:#2563eb; font-size:24px;"></i>
@@ -1306,7 +1303,7 @@ function renderEventsCommunity() {
         <p class="small text-muted"><i class="fa-regular fa-clock me-1"></i> ${ev.date} | ${ev.time}</p>
         ${ev.location ? `<p class="small text-muted"><i class="fa-regular fa-location-dot me-1"></i> ${ev.location}</p>` : ''}
         ${ev.description ? `<p class="small">${ev.description}</p>` : ''}
-        {(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? 
+        ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? 
           `<button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteEvent(${ev.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
       </div>
     </div>
@@ -1333,7 +1330,7 @@ function renderNoticesCommunity() {
     const priorityColor = n.priority === 'High' ? 'danger' : (n.priority === 'Medium' ? 'warning' : 'secondary');
     const isTargeted = n.target_members && n.target_members.length > 0;
     return `
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6 col-lg-4" data-notice-id="${n.id}">   <!-- ✅ Added data-notice-id -->
         <div class="card border-0 shadow-sm rounded-4 p-3 h-100 border-start border-4 border-${priorityColor}">
           <div class="d-flex justify-content-between align-items-start">
             <h6 class="fw-bold">${n.title}</h6>
@@ -1351,7 +1348,7 @@ function renderNoticesCommunity() {
             <div class="mb-2">
               <a href="${n.attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-paperclip me-1"></i> View Attachment</a>
             </div>` : ''}
-          {(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? `<button class="btn btn-link text-danger btn-sm p-0" onclick="deleteNotice(${n.id})">Delete</button>` : ''}
+          ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? `<button class="btn btn-link text-danger btn-sm p-0" onclick="deleteNotice(${n.id})">Delete</button>` : ''}
         </div>
       </div>
     `;
@@ -1746,7 +1743,7 @@ function renderMembers() {
           <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">${pendingDue}</span>
         </td>
         <td class="no-print ${currentRole === 'Member' ? 'd-none' : ''}">
-          {(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
             <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id || index})"><i class="fa-solid fa-trash"></i></button>
           ` : ''}
           ${showWhatsApp ? `
@@ -1937,7 +1934,7 @@ function renderComplaints() {
     const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === (c.flat_no || '').trim().toUpperCase());
     const memberPhone = c.phone || member?.phone || '';
     return `
-      <tr>
+      <tr data-complaint-id="${c.id || index+1}">   <!-- ✅ Added data-complaint-id -->
         <td><b>CMP-${c.id || index+1}</b></td>
         <td>${c.flat_no || '-'}</td>
         <td>${memberPhone ? `<a href="tel:${memberPhone}">${memberPhone}</a>` : '-'}</td>
@@ -2011,7 +2008,7 @@ function renderPolls() {
     const totalVotes = votes.reduce((a, b) => a + b, 0);
     const hasVoted = p.voters && p.voters.includes(currentUser);
     return `
-      <div class="col-md-6">
+      <div class="col-md-6" data-poll-id="${p.id}">   <!-- ✅ Added data-poll-id -->
         <div class="card p-3 bg-white shadow-sm border-0 rounded-3">
           <h6 class="fw-bold">${p.question}</h6>
           <div class="mt-2">
@@ -2041,7 +2038,7 @@ function renderPolls() {
             </div>
             <span class="text-muted small">Total: ${totalVotes}</span>
           </div>
-          {(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') 
+          ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') 
             ? `<button class="btn btn-link text-danger btn-sm p-0 mt-2" onclick="deletePoll(${index})">Delete Poll</button>` 
             : ''}
         </div>
@@ -2808,12 +2805,10 @@ async function addNewSociety(event) {
   const openingBalanceVal = document.getElementById('society-opening-balance').value.trim() || '0';
   const visitorPassword = document.getElementById('society-visitor-password').value.trim() || '1234';
 
-  // 1. Societies table mein entry daalo
   const newSoc = { name, address, phone, email, is_active: true };
   const { error } = await _supabase.from('societies').insert([newSoc]);
   if (error) { alert('Error: ' + error.message); return; }
 
-  // 2. Society Settings table mein Visitor Password aur Opening Balance save karo
   const settingsBatch = [
     { key: 'visitor_password', value: visitorPassword, society_name: name },
     { key: 'opening_bank_balance', value: openingBalanceVal, society_name: name }
@@ -3069,6 +3064,50 @@ function showSOSBanner(alertData) {
   }
 }
 
+// ==================== DEEP LINKING HANDLER ====================
+function handleDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  const pollId = params.get('pollId');
+  const noticeId = params.get('noticeId');
+  const complaintId = params.get('complaintId');
+  const eventId = params.get('eventId');
+
+  if (tab) {
+    const link = document.querySelector(`.nav-link[onclick*="${tab}"]`);
+    if (link) {
+      const onclickAttr = link.getAttribute('onclick');
+      if (onclickAttr) {
+        switchTab(tab, link);
+      }
+    }
+  }
+
+  // Highlight/scroll to specific item
+  setTimeout(() => {
+    let targetElement = null;
+    if (pollId) {
+      targetElement = document.querySelector(`[data-poll-id="${pollId}"]`);
+    } else if (noticeId) {
+      targetElement = document.querySelector(`[data-notice-id="${noticeId}"]`);
+    } else if (complaintId) {
+      targetElement = document.querySelector(`[data-complaint-id="${complaintId}"]`);
+    } else if (eventId) {
+      targetElement = document.querySelector(`[data-event-id="${eventId}"]`);
+    }
+
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetElement.style.border = '3px solid #f59e0b';
+      targetElement.style.backgroundColor = '#fef3c7';
+      setTimeout(() => {
+        targetElement.style.border = '';
+        targetElement.style.backgroundColor = '';
+      }, 3000);
+    }
+  }, 800);
+}
+
 async function resolveSOSAlert(alertId) {
   try {
     await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
@@ -3222,3 +3261,6 @@ setInterval(async () => {
     }
   }
 }, 30000);
+
+// ✅ Deep Linking Handle – सबसे नीचे
+handleDeepLink();
