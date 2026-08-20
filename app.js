@@ -758,6 +758,7 @@ function renderBankDetails() {
   const ifsc = societySettings.bank_ifsc || 'ICIC0000000';
   const upiId = societySettings.bank_upi_id || '8866376056@icici';
   const qrUrl = societySettings.society_qr_url || 'qr-payment.png';
+  const openBalVal = societySettings.opening_bank_balance || '0';
 
   if (document.getElementById('bank-acc-name')) document.getElementById('bank-acc-name').innerText = accName;
   if (document.getElementById('bank-name-display')) document.getElementById('bank-name-display').innerText = bankName;
@@ -774,6 +775,9 @@ function renderBankDetails() {
   if (document.getElementById('edit-bank-acc-no')) document.getElementById('edit-bank-acc-no').value = accNo;
   if (document.getElementById('edit-bank-ifsc')) document.getElementById('edit-bank-ifsc').value = ifsc;
   if (document.getElementById('edit-bank-upi')) document.getElementById('edit-bank-upi').value = upiId;
+  
+  // Opening balance field ko settings modal mein set karna
+  if (document.getElementById('edit-opening-balance')) document.getElementById('edit-opening-balance').value = openBalVal;
 }
 
 async function saveBankDetailsAndQR(event) {
@@ -787,6 +791,10 @@ async function saveBankDetailsAndQR(event) {
   const accNo = document.getElementById('edit-bank-acc-no').value.trim();
   const ifsc = document.getElementById('edit-bank-ifsc').value.trim();
   const upiId = document.getElementById('edit-bank-upi').value.trim();
+  
+  // 🟢 Opening Balance ko input field se uthana
+  const openingBal = parseFloat(document.getElementById('edit-opening-balance')?.value) || 0;
+
   const fileInput = document.getElementById('edit-bank-qr-file');
   const file = fileInput?.files?.[0];
 
@@ -808,14 +816,16 @@ async function saveBankDetailsAndQR(event) {
     { key: 'bank_acc_no', value: accNo, society_name: currentSociety },
     { key: 'bank_ifsc', value: ifsc, society_name: currentSociety },
     { key: 'bank_upi_id', value: upiId, society_name: currentSociety },
-    { key: 'society_qr_url', value: qrUrl, society_name: currentSociety }
+    { key: 'society_qr_url', value: qrUrl, society_name: currentSociety },
+    // 🟢 Database mein opening balance save karne ke liye add kiya gaya
+    { key: 'opening_bank_balance', value: openingBal.toString(), society_name: currentSociety }
   ];
 
   for (const item of updates) {
     await _supabase.from('society_settings').upsert(item, { onConflict: 'key,society_name' });
   }
 
-  alert('✅ Bank Details & QR updated successfully!');
+  alert('✅ Bank Details & Opening Balance updated successfully!');
   bootstrap.Modal.getInstance(document.getElementById('editBankDetailsModal')).hide();
   btn.disabled = false;
   btn.innerHTML = 'Save & Upload';
@@ -971,7 +981,7 @@ function renderPaymentProofs() {
             <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${p.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
             <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
           ` : '<span class="text-muted">-</span>'}
-          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone ? `
+          {(currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone ? `
             <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp"></i></button>
           ` : ''}
         </td>
@@ -1296,7 +1306,7 @@ function renderEventsCommunity() {
         <p class="small text-muted"><i class="fa-regular fa-clock me-1"></i> ${ev.date} | ${ev.time}</p>
         ${ev.location ? `<p class="small text-muted"><i class="fa-regular fa-location-dot me-1"></i> ${ev.location}</p>` : ''}
         ${ev.description ? `<p class="small">${ev.description}</p>` : ''}
-        ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? 
+        {(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? 
           `<button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteEvent(${ev.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
       </div>
     </div>
@@ -1341,7 +1351,7 @@ function renderNoticesCommunity() {
             <div class="mb-2">
               <a href="${n.attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-paperclip me-1"></i> View Attachment</a>
             </div>` : ''}
-          ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? `<button class="btn btn-link text-danger btn-sm p-0" onclick="deleteNotice(${n.id})">Delete</button>` : ''}
+          {(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? `<button class="btn btn-link text-danger btn-sm p-0" onclick="deleteNotice(${n.id})">Delete</button>` : ''}
         </div>
       </div>
     `;
@@ -1736,7 +1746,7 @@ function renderMembers() {
           <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">${pendingDue}</span>
         </td>
         <td class="no-print ${currentRole === 'Member' ? 'd-none' : ''}">
-          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+          {(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
             <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id || index})"><i class="fa-solid fa-trash"></i></button>
           ` : ''}
           ${showWhatsApp ? `
@@ -2031,7 +2041,7 @@ function renderPolls() {
             </div>
             <span class="text-muted small">Total: ${totalVotes}</span>
           </div>
-          ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') 
+          {(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') 
             ? `<button class="btn btn-link text-danger btn-sm p-0 mt-2" onclick="deletePoll(${index})">Delete Poll</button>` 
             : ''}
         </div>
@@ -2209,7 +2219,7 @@ function generateMonthlySummary() {
     const rate = Number(m.monthly_rate || 600);
     const openingDue = Number(m.opening_due || 0);
     const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo)
-                                    .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+                                     .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const totalDue = openingDue + (MONTHS_IN_FY_SO_FAR * rate);
     if (totalDue - flatPaid > 0) defaulterCount++;
   });
@@ -2531,7 +2541,7 @@ function renderGridCards() {
     { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
     { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
     { id: 'bank-details', icon: 'fa-qrcode', label: 'Bank / QR', color: '#2563eb' },
-{ id: 'marketplace', icon: 'fa-store', label: 'Marketplace', color: '#f59e0b' },
+    { id: 'marketplace', icon: 'fa-store', label: 'Marketplace', color: '#f59e0b' },
     { id: 'sos-contacts', icon: 'fa-truck-medical', label: 'Emergency SOS', color: '#ef4444' },
     { id: 'assets', icon: 'fa-boxes-stacked', label: 'Assets', color: '#64748b' },
     { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
@@ -2585,7 +2595,7 @@ async function openTabOverlay(tabId) {
   if (tabId === 'sos-contacts') renderSOSContacts();
   if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
-if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
+  if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
   const overlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(overlay);
@@ -2795,15 +2805,27 @@ async function addNewSociety(event) {
   const address = document.getElementById('society-address').value.trim();
   const phone = document.getElementById('society-phone').value.trim();
   const email = document.getElementById('society-email').value.trim();
+  const openingBalanceVal = document.getElementById('society-opening-balance').value.trim() || '0';
   const visitorPassword = document.getElementById('society-visitor-password').value.trim() || '1234';
 
+  // 1. Societies table mein entry daalo
   const newSoc = { name, address, phone, email, is_active: true };
   const { error } = await _supabase.from('societies').insert([newSoc]);
   if (error) { alert('Error: ' + error.message); return; }
 
-  await _supabase.from('society_settings').upsert({ key: 'visitor_password', value: visitorPassword, society_name: name }, { onConflict: 'key,society_name' });
-  alert(`✅ Society "${name}" added!`);
+  // 2. Society Settings table mein Visitor Password aur Opening Balance save karo
+  const settingsBatch = [
+    { key: 'visitor_password', value: visitorPassword, society_name: name },
+    { key: 'opening_bank_balance', value: openingBalanceVal, society_name: name }
+  ];
+
+  for (const setting of settingsBatch) {
+    await _supabase.from('society_settings').upsert(setting, { onConflict: 'key,society_name' });
+  }
+
+  alert(`✅ Society "${name}" added successfully with Opening Balance & Password!`);
   bootstrap.Modal.getInstance(document.getElementById('addSocietyModal')).hide();
+  document.getElementById('addSocietyForm').reset();
   loadSocietySwitcher();
 }
 
@@ -3028,7 +3050,6 @@ function showSOSBanner(alertData) {
   const existing = document.getElementById('sosAlertBanner');
   if (existing) existing.remove();
 
-  // 📳 Phone vibration trigger (Mobile browsers par phone vibrate karega)
   if ("vibrate" in navigator) {
     navigator.vibrate([500, 200, 500, 200, 500, 200, 500]); 
   }
@@ -3043,7 +3064,6 @@ function showSOSBanner(alertData) {
   `;
   document.body.appendChild(banner);
 
-  // Audio play karne ki koshish (Agar browser block karega toh error console mein jayega par app nahi rukegi)
   if (typeof sirenAudio !== 'undefined' && sirenAudio) {
     sirenAudio.play().catch(e => console.log("Audio autoplay blocked by browser:", e));
   }
@@ -3100,7 +3120,6 @@ function renderMarketplace() {
   if (!container) return;
   if (!marketplaceData.length) { container.innerHTML = `<div class="col-12 text-center text-muted p-4">No marketplace listings yet.</div>`; return; }
   
-  // Check if current user can delete (Admin, Chairman, SocietyAdmin)
   const canDelete = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
 
   container.innerHTML = marketplaceData.map(item => `
