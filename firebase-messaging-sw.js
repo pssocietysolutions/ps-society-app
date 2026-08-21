@@ -18,7 +18,7 @@ messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Background message received: ', payload);
   const notificationTitle = payload.notification?.title || 'PS Society';
   
-  // ✅ FIXED: Exact GitHub Pages sub-path URL
+  // Hamesha exact GitHub Pages URL set karein
   const clickAction = payload.data?.click_action || payload.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
 
   const notificationOptions = {
@@ -33,19 +33,20 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
-  // ✅ FIXED: Notification click par yahi URL open hoga
   const targetUrl = event.notification.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
+        // Pehle se khula hua tab mil jaye toh usko focus karke navigate karo
         for (let client of windowClients) {
-          if (client.url.includes('ps-society-app') && 'focus' in client) {
+          if (client.url.includes('pssocietysolutions.github.io/ps-society-app') && 'focus' in client) {
             client.focus();
             client.navigate(targetUrl);
             return;
           }
         }
+        // Agar app band hai toh naya window/tab kholo absolute URL ke sath
         if (clients.openWindow) {
           return clients.openWindow(targetUrl);
         }
