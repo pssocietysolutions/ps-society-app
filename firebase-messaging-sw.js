@@ -14,42 +14,51 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// 🛑 Yeh background notification handler double notification (2 baar aana) ko rokega
+// Background message handler
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Background message received: ', payload);
   const notificationTitle = payload.notification?.title || 'PS Society';
   
-  // Sahi URL ya default app URL set karna
-  const clickAction = payload.data?.click_action || 'https://pssocietysolutions.github.io/ps-society-app/';
+  // ✅ FIX: Use the correct app URL (root path)
+  const clickAction = payload.data?.click_action || self.registration.scope || '/';
 
   const notificationOptions = {
     body: payload.notification?.body || '',
     icon: 'icon-192.png',
-    data: { url: clickAction }
+    data: { 
+      url: clickAction,
+      ...payload.data 
+    }
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// 🔥 Notification Click Handler (Seedha specific page par le jane ke liye)
+// ✅ Notification Click Handler - opens PWA correctly
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
+  const targetUrl = event.notification.data?.url || self.registration.scope || '/';
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
-        for (let client of windowClients) {
-          if (client.url.includes('ps-society-app') && 'focus' in client) {
-            client.focus();
+    clients.matchAll({ 
+      type: 'window', 
+      includeUncontrolled: true 
+    })
+    .then(windowClients => {
+      // Try to focus existing client
+      for (let client of windowClients) {
+        if (client.url === targetUrl || client.url.includes(window.location.hostname)) {
+          client.focus();
+          // Navigate if needed
+          if (client.url !== targetUrl) {
             client.navigate(targetUrl);
-            return;
           }
+          return;
         }
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      })
+      }
+      // Open new window if none exists
+      return clients.openWindow(targetUrl);
+    })
   );
 });
