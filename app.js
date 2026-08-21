@@ -594,7 +594,6 @@ async function loadSocietiesForDropdown(selectId) {
   });
 }
 
-// loadTodayVisitors function me yeh add karo - jab new visitor aaye
 async function loadTodayVisitors() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
@@ -606,26 +605,6 @@ async function loadTodayVisitors() {
   }
   const { data, error } = await query;
   if (error) { container.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`; return; }
-  
-  // ⭐ Check karo agar naya visitor aaya hai toh notification bhejo
-  if (data && data.length > 0) {
-    const lastVisitor = data[0]; // Latest visitor
-    const lastSeen = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
-    if (lastVisitor.id > lastSeen) {
-      // Admin ko notification bhejo
-      if (currentRole === 'Admin' || currentRole === 'SocietyAdmin') {
-        sendPushNotification(
-          'Admin', // Target admin
-          '🆕 New Visitor Arrived',
-          `${lastVisitor.name} (${lastVisitor.flat_no}) just checked in at ${lastVisitor.in_time}`,
-          'visitor', // Tab name
-          'visitor', // Type
-          lastVisitor.id // ID
-        );
-      }
-    }
-  }
-  
   visitors = data || [];
   renderVisitorList();
   updateVisitorBadge();
@@ -634,15 +613,12 @@ async function loadTodayVisitors() {
 function renderVisitorList() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
-  if (visitors.length === 0) { 
-    container.innerHTML = `<div class="alert alert-info">No visitors today.</div>`; 
-    return; 
-  }
+  if (visitors.length === 0) { container.innerHTML = `<div class="alert alert-info">No visitors today.</div>`; return; }
   const isLogged = localStorage.getItem('ps_user_logged') === 'true';
   container.innerHTML = visitors.map(v => {
     const showOutButton = !isLogged && v.status === 'IN';
     return `
-      <div class="visitor-card ${v.status === 'OUT' ? 'out' : ''}" data-visitor-id="${v.id}">
+      <div class="visitor-card ${v.status === 'OUT' ? 'out' : ''}">
         <div class="info">
           <h6>${v.name} <small class="text-muted">(${v.category})</small></h6>
           <small>Flat: ${v.flat_no} | ${v.society}</small><br>
@@ -665,57 +641,11 @@ async function submitVisitor(event) {
   const flat = document.getElementById('visitor-flat').value;
   const category = document.getElementById('visitor-category').value;
   const purpose = document.getElementById('visitor-purpose').value.trim();
-  
-  if (!society || !name || !flat || !mobile) { 
-    alert('Please fill all required fields.'); 
-    return; 
-  }
-  
-  const now = new Date(); 
-  const timeStr = now.toTimeString().substring(0,8);
-  
-  const newVisitor = { 
-    society, 
-    visit_date: now.toISOString().split('T')[0], 
-    name, 
-    mobile, 
-    flat_no: flat, 
-    category, 
-    purpose: purpose || '', 
-    in_time: timeStr, 
-    out_time: null, 
-    status: 'IN' 
-  };
-  
-  const { data, error } = await _supabase.from('visitors').insert([newVisitor]).select();
-  if (error) { 
-    alert('Error: ' + error.message); 
-    return; 
-  }
-  
-  // ⭐ VISITOR NOTIFICATION - Admin aur us flat ke member ko
-  if (data && data[0]) {
-    const visitorId = data[0].id;
-    // Admin ko
-    await sendPushNotification(
-      'Admin',
-      `🆕 New Visitor: ${name}`,
-      `${name} (${category}) arrived at ${flat} - ${timeStr}`,
-      'visitor',
-      'visitor',
-      visitorId
-    );
-    // Us flat ke member ko
-    await sendPushNotification(
-      flat,
-      `🆕 Visitor for your flat`,
-      `${name} (${category}) is here to meet you at ${timeStr}`,
-      'visitor',
-      'visitor',
-      visitorId
-    );
-  }
-  
+  if (!society || !name || !flat || !mobile) { alert('Please fill all required fields.'); return; }
+  const now = new Date(); const timeStr = now.toTimeString().substring(0,8);
+  const newVisitor = { society, visit_date: now.toISOString().split('T')[0], name, mobile, flat_no: flat, category, purpose: purpose || '', in_time: timeStr, out_time: null, status: 'IN' };
+  const { error } = await _supabase.from('visitors').insert([newVisitor]);
+  if (error) { alert('Error: ' + error.message); return; }
   alert('✅ Visitor entry recorded!');
   bootstrap.Modal.getInstance(document.getElementById('visitorModal')).hide();
   document.getElementById('visitorForm').reset();
@@ -926,6 +856,27 @@ function renderSOSContacts() {
   `).join('');
 }
 
+// ==================== FIREBASE PUSH NOTIFICATION SETUP ====================
+const firebaseConfig = {
+  apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
+  authDomain: "ps-society-solutions.firebaseapp.com",
+  projectId: "ps-society-solutions",
+  storageBucket: "ps-society-solutions.firebasestorage.app",
+  messagingSenderId: "345202451409",
+  appId: "1:345202451409:web:d72246d863c4131e7036f0",
+  measurementId: "G-8CZMXHWK5M"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const messaging = firebase.messaging();
+
+// messaging.onMessage((payload) => {
+//   console.log('Message received in foreground: ', payload);
+//   alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
+// });
 
 async function requestNotificationPermission() {
   try {
@@ -1442,29 +1393,11 @@ async function submitNotice(event) {
     attachment_url: attachmentUrl
   };
 
-  const { data, error } = await _supabase.from('notices').insert([newNotice]).select();
+  const { error } = await _supabase.from('notices').insert([newNotice]);
   btn.disabled = false;
   btn.innerText = 'Publish Notice';
 
   if (error) { alert('❌ Error: ' + error.message); return; }
-  
-  // ⭐ NOTICE NOTIFICATION
-  if (data && data[0]) {
-    const noticeId = data[0].id;
-    const recipients = targetMembers.length > 0 ? targetMembers : membersData.map(m => m.flat_no);
-    
-    for (const flat of recipients) {
-      await sendPushNotification(
-        flat,
-        `📢 New Notice: ${newNotice.title}`,
-        `${newNotice.content.substring(0, 100)}...`,
-        'community',
-        'notice',
-        noticeId
-      );
-    }
-  }
-
   alert('✅ Notice Published Successfully!');
   bootstrap.Modal.getInstance(document.getElementById('noticeModal')).hide();
   document.getElementById('noticeForm').reset();
@@ -1595,26 +1528,7 @@ async function submitEvent(event) {
     created_by: currentUser,
     created_at: new Date().toISOString()
   };
-  
-  const { data, error } = await _supabase.from('events').insert([newEvent]).select();
-  if (error) { alert('Error: ' + error.message); return; }
-  
-  // ⭐ EVENT NOTIFICATION - Sabhi members ko
-  if (data && data[0]) {
-    const eventId = data[0].id;
-    const members = membersData.map(m => m.flat_no);
-    for (const flat of members) {
-      await sendPushNotification(
-        flat,
-        `🎉 New Event: ${newEvent.title}`,
-        `📅 ${newEvent.date} at ${newEvent.time} - ${newEvent.location || 'Society'}`,
-        'community',
-        'event',
-        eventId
-      );
-    }
-  }
-  
+  await _supabase.from('events').insert([newEvent]);
   bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
   fetchEvents();
   renderCommunity();
@@ -2067,22 +1981,7 @@ async function submitComplaint(event) {
     image_url: imageUrl
   };
 
-  const { data, error } = await _supabase.from('complaints').insert([newComplaint]).select();
-  if (error) { alert('Error: ' + error.message); return; }
-  
-  // ⭐ COMPLAINT NOTIFICATION - Admin ko
-  if (data && data[0]) {
-    const complaintId = data[0].id;
-    await sendPushNotification(
-      'Admin',
-      `🛠️ New Complaint from ${flat}`,
-      `Category: ${category} - ${desc.substring(0, 50)}...`,
-      'complaints',
-      'complaint',
-      complaintId
-    );
-  }
-
+  await _supabase.from('complaints').insert([newComplaint]);
   alert('✅ Complaint submitted!');
   bootstrap.Modal.getInstance(document.getElementById('complaintModal')).hide();
   fetchSupabaseData();
@@ -2237,106 +2136,10 @@ async function submitPoll(event) {
     society_name: currentSociety
   };
 
-  const { data, error } = await _supabase.from('polls').insert([newPoll]).select();
-  if (error) { alert('Error: ' + error.message); return; }
-  
-  // ⭐ POLL NOTIFICATION - Sabhi members ko
-  if (data && data[0]) {
-    const pollId = data[0].id;
-    // Sabhi members ko notification bhejo
-    const members = membersData.map(m => m.flat_no);
-    for (const flat of members) {
-      await sendPushNotification(
-        flat,
-        '📊 New Poll Created',
-        `New poll: "${question}" - Please vote!`,
-        'polls',
-        'poll',
-        pollId
-      );
-    }
-  }
-
+  await _supabase.from('polls').insert([newPoll]);
   bootstrap.Modal.getInstance(document.getElementById('pollModal')).hide();
   document.getElementById('pollModal').querySelector('form').reset();
   fetchSupabaseData();
-}
-
-// ==================== UNIVERSAL NOTIFICATION SENDER ====================
-// Ye function kisi bhi type ki notification bhej sakta hai
-async function sendPushNotification(recipientFlat, title, body, tabName, itemType, itemId) {
-  try {
-    // Agar recipient specified nahi hai toh Admin ko bhejo
-    let targetFlat = recipientFlat || 'Admin';
-    
-    // FCM token fetch karo
-    let query = _supabase
-      .from('fcm_tokens')
-      .select('token')
-      .eq('society_name', currentSociety);
-    
-    if (targetFlat === 'Admin') {
-      // Admin ke saare tokens (Admin, SocietyAdmin, Chairman)
-      const { data: adminUsers } = await _supabase
-        .from('user_master')
-        .select('flat_no')
-        .in('role', ['Admin', 'SocietyAdmin', 'Chairman']);
-      
-      if (adminUsers && adminUsers.length > 0) {
-        const adminFlats = adminUsers.map(u => u.flat_no);
-        query = query.in('flat_no', adminFlats);
-      }
-    } else {
-      query = query.eq('flat_no', targetFlat);
-    }
-
-    const { data: tokens } = await query;
-
-    if (!tokens || tokens.length === 0) {
-      console.log('No FCM tokens found for:', targetFlat);
-      return;
-    }
-
-    // Deep link URL banayein
-    const baseUrl = 'https://pssocietysolutions.github.io/ps-society-app/';
-    let deepLinkUrl = `${baseUrl}?tab=${tabName}`;
-    if (itemId && itemType) {
-      deepLinkUrl += `&${itemType}Id=${itemId}`;
-    }
-
-    // Payload prepare karo
-    const payload = {
-      notification: {
-        title: title,
-        body: body,
-        click_action: deepLinkUrl
-      },
-      data: {
-        tab: tabName,
-        type: itemType,
-        id: itemId ? itemId.toString() : '',
-        click_action: deepLinkUrl
-      },
-      tokens: tokens.map(t => t.token)
-    };
-
-    // FCM API call (Server side se karna better hai)
-    // Yaha direct FCM API call nahi kar sakte kyunki access token chahiye
-    // Production me server side se bhejo
-    
-    console.log('📨 Notification Payload:', payload);
-    
-    // ⭐ Agar server side API available hai toh use karo
-    // const response = await fetch('/api/send-notification', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(payload)
-    // });
-    
-    return payload;
-  } catch (err) {
-    console.error('Send notification error:', err);
-  }
 }
 
 function generateReceiptPDF(type, id) {
@@ -3261,7 +3064,7 @@ function showSOSBanner(alertData) {
   }
 }
 
-// ==================== UNIVERSAL DEEP LINK HANDLER ====================
+// ==================== DEEP LINKING HANDLER ====================
 function handleDeepLink() {
   const params = new URLSearchParams(window.location.search);
   const tab = params.get('tab');
@@ -3269,165 +3072,41 @@ function handleDeepLink() {
   const noticeId = params.get('noticeId');
   const complaintId = params.get('complaintId');
   const eventId = params.get('eventId');
-  const visitorId = params.get('visitorId');
-  const maintenanceId = params.get('maintenanceId');
 
-  console.log('🔗 Deep Link Params:', { tab, pollId, noticeId, complaintId, eventId, visitorId, maintenanceId });
-
-  if (localStorage.getItem('ps_user_logged') !== 'true') {
-    if (tab) {
-      localStorage.setItem('ps_deep_link_tab', tab);
-      if (pollId) localStorage.setItem('ps_deep_link_pollId', pollId);
-      if (noticeId) localStorage.setItem('ps_deep_link_noticeId', noticeId);
-      if (complaintId) localStorage.setItem('ps_deep_link_complaintId', complaintId);
-      if (eventId) localStorage.setItem('ps_deep_link_eventId', eventId);
-      if (visitorId) localStorage.setItem('ps_deep_link_visitorId', visitorId);
-      if (maintenanceId) localStorage.setItem('ps_deep_link_maintenanceId', maintenanceId);
-    }
-    return;
-  }
-
-  // Tab switch karo
   if (tab) {
     const link = document.querySelector(`.nav-link[onclick*="${tab}"]`);
     if (link) {
-      switchTab(tab, link);
-    } else {
-      const targetTab = document.getElementById(`tab-${tab}`);
-      if (targetTab) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
-        targetTab.classList.remove('d-none');
-        if (window.innerWidth <= 768) {
-          openTabOverlay(tab);
-        }
+      const onclickAttr = link.getAttribute('onclick');
+      if (onclickAttr) {
+        switchTab(tab, link);
       }
     }
   }
 
-  // ⭐ UNIVERSAL: Kisi bhi type ke item ko highlight karo
+  // Highlight/scroll to specific item
   setTimeout(() => {
     let targetElement = null;
-    let mappings = {
-      'pollId': '[data-poll-id]',
-      'noticeId': '[data-notice-id]',
-      'complaintId': '[data-complaint-id]',
-      'eventId': '[data-event-id]',
-      'visitorId': '[data-visitor-id]',
-      'maintenanceId': '[data-maintenance-id]'
-    };
-    
-    for (const [param, selector] of Object.entries(mappings)) {
-      const id = params.get(param);
-      if (id) {
-        targetElement = document.querySelector(`${selector}="${id}"`);
-        if (targetElement) break;
-      }
+    if (pollId) {
+      targetElement = document.querySelector(`[data-poll-id="${pollId}"]`);
+    } else if (noticeId) {
+      targetElement = document.querySelector(`[data-notice-id="${noticeId}"]`);
+    } else if (complaintId) {
+      targetElement = document.querySelector(`[data-complaint-id="${complaintId}"]`);
+    } else if (eventId) {
+      targetElement = document.querySelector(`[data-event-id="${eventId}"]`);
     }
 
     if (targetElement) {
-      console.log('🎯 Scrolling to element:', targetElement);
       targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      
-      targetElement.style.transition = 'all 0.3s ease';
       targetElement.style.border = '3px solid #f59e0b';
       targetElement.style.backgroundColor = '#fef3c7';
-      targetElement.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.4)';
-      
       setTimeout(() => {
         targetElement.style.border = '';
         targetElement.style.backgroundColor = '';
-        targetElement.style.boxShadow = '';
-      }, 4000);
+      }, 3000);
     }
-  }, 1000);
-
-  // URL se params clear karo
-  if (window.history && window.history.replaceState) {
-    const url = new URL(window.location);
-    url.search = '';
-    window.history.replaceState({}, document.title, url.pathname);
-  }
+  }, 800);
 }
-
-// ⭐ Login ke baad deep link handle karo
-function handleStoredDeepLink() {
-  const tab = localStorage.getItem('ps_deep_link_tab');
-  const pollId = localStorage.getItem('ps_deep_link_pollId');
-  const noticeId = localStorage.getItem('ps_deep_link_noticeId');
-  const complaintId = localStorage.getItem('ps_deep_link_complaintId');
-  const eventId = localStorage.getItem('ps_deep_link_eventId');
-  const visitorId = localStorage.getItem('ps_deep_link_visitorId');
-
-  if (tab) {
-    // Query params set karo
-    const url = new URL(window.location);
-    url.searchParams.set('tab', tab);
-    if (pollId) url.searchParams.set('pollId', pollId);
-    if (noticeId) url.searchParams.set('noticeId', noticeId);
-    if (complaintId) url.searchParams.set('complaintId', complaintId);
-    if (eventId) url.searchParams.set('eventId', eventId);
-    if (visitorId) url.searchParams.set('visitorId', visitorId);
-    window.history.replaceState({}, document.title, url.pathname + url.search);
-    
-    // Store values clear karo
-    localStorage.removeItem('ps_deep_link_tab');
-    localStorage.removeItem('ps_deep_link_pollId');
-    localStorage.removeItem('ps_deep_link_noticeId');
-    localStorage.removeItem('ps_deep_link_complaintId');
-    localStorage.removeItem('ps_deep_link_eventId');
-    localStorage.removeItem('ps_deep_link_visitorId');
-    
-    // Deep link handle karo
-    setTimeout(handleDeepLink, 500);
-  }
-}
-
-// ⭐ Login function me deep link check add karo
-// Existing applyUserSession function me yeh line add karo:
-function applyUserSession(role, email) {
-  currentRole = role;
-  currentUser = email.toUpperCase();
-  checkUserConsent(currentUser, () => {
-    loadMainApp(role);
-    // ⭐ Stored deep link check karo login ke baad
-    setTimeout(handleStoredDeepLink, 1000);
-  });
-}
-
-// ⭐ Window load pe deep link handle karo
-window.onload = async () => {
-  clearStuckOverlays();
-
-  const isLogged = localStorage.getItem('ps_user_logged');
-  const role = localStorage.getItem('ps_user_role') || 'Admin';
-  const email = localStorage.getItem('ps_user_id') || 'A-101';
-  currentSociety = localStorage.getItem('ps_user_society') || 'Demo Society';
-
-  await loadSocietiesForDropdown('visitor-society');
-  await loadSocietiesForDropdown('login-society');
-  await loadSocietiesForDropdown('visitor-password-society');
-
-  if (isLogged === 'true') {
-    applyUserSession(role, email);
-    // ⭐ Deep link already handled in applyUserSession
-  } else {
-    showLandingPage();
-    // Agar login nahi hai aur deep link hai toh store karo
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
-    if (tab) {
-      localStorage.setItem('ps_deep_link_tab', tab);
-      if (params.get('pollId')) localStorage.setItem('ps_deep_link_pollId', params.get('pollId'));
-      if (params.get('noticeId')) localStorage.setItem('ps_deep_link_noticeId', params.get('noticeId'));
-      if (params.get('complaintId')) localStorage.setItem('ps_deep_link_complaintId', params.get('complaintId'));
-      if (params.get('eventId')) localStorage.setItem('ps_deep_link_eventId', params.get('eventId'));
-      if (params.get('visitorId')) localStorage.setItem('ps_deep_link_visitorId', params.get('visitorId'));
-    }
-  }
-};
-
-// ⭐ Existing handleDeepLink() ko replace karo with above code
-// ⭐ Existing applyUserSession me deep link call add karo
 
 async function resolveSOSAlert(alertId) {
   try {
