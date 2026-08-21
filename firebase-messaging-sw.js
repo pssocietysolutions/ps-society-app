@@ -33,25 +33,19 @@ self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
-  // अब data available होगा
-  const data = event.notification.data || {};
-  let urlToOpen = data.click_action || data.url || '/';
-
-  if (!urlToOpen.startsWith('http')) {
-    const baseUrl = self.location.origin;
-    urlToOpen = baseUrl + urlToOpen;
-  }
+  // ✅ FIXED: Aapke GitHub Pages ka exact sub-path URL yahan set kar diya hai
+  const targetUrl = 'https://pssocietysolutions.github.io/ps-society-app/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url === urlToOpen && 'focus' in client) {
+          if (client.url === targetUrl && 'focus' in client) {
             return client.focus();
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
+          return clients.openWindow(targetUrl);
         }
       })
   );
