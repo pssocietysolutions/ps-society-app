@@ -34,31 +34,25 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// ✅ Notification Click Handler - opens PWA correctly
+// 🔥 Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
+  console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || self.registration.scope || '/';
+  // ✅ FIXED: Aapke GitHub Pages ka exact sub-path URL yahan set kar diya hai
+  const targetUrl = 'https://pssocietysolutions.github.io/ps-society-app/';
 
   event.waitUntil(
-    clients.matchAll({ 
-      type: 'window', 
-      includeUncontrolled: true 
-    })
-    .then(windowClients => {
-      // Try to focus existing client
-      for (let client of windowClients) {
-        if (client.url === targetUrl || client.url.includes(window.location.hostname)) {
-          client.focus();
-          // Navigate if needed
-          if (client.url !== targetUrl) {
-            client.navigate(targetUrl);
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        for (let client of windowClients) {
+          if (client.url === targetUrl && 'focus' in client) {
+            return client.focus();
           }
-          return;
         }
-      }
-      // Open new window if none exists
-      return clients.openWindow(targetUrl);
-    })
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
   );
 });
