@@ -1,3 +1,4 @@
+// firebase-messaging-sw.js
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
@@ -17,6 +18,7 @@ messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Background message received: ', payload);
   const notificationTitle = payload.notification?.title || 'PS Society';
   
+  // ✅ FIXED: Exact GitHub Pages sub-path URL
   const clickAction = payload.data?.click_action || payload.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
 
   const notificationOptions = {
@@ -31,6 +33,7 @@ messaging.onBackgroundMessage((payload) => {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
+  // ✅ FIXED: Notification click par yahi URL open hoga
   const targetUrl = event.notification.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
 
   event.waitUntil(
