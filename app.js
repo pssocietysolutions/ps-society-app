@@ -873,10 +873,10 @@ if (!firebase.apps.length) {
 
 const messaging = firebase.messaging();
 
-messaging.onMessage((payload) => {
-  console.log('Message received in foreground: ', payload);
-  alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
-});
+// messaging.onMessage((payload) => {
+//   console.log('Message received in foreground: ', payload);
+//   alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
+// });
 
 async function requestNotificationPermission() {
   try {

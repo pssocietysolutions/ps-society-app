@@ -1,6 +1,6 @@
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
@@ -14,34 +14,37 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ FIXED: payload.data को notification options में pass करें
+// 🛑 Yeh background notification handler double notification (2 baar aana) ko rokega
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
+  console.log('[firebase-messaging-sw.js] Background message received: ', payload);
+  const notificationTitle = payload.notification?.title || 'PS Society';
+  
+  // Sahi URL ya default app URL set karna
+  const clickAction = payload.data?.click_action || 'https://pssocietysolutions.github.io/ps-society-app/';
+
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon.png',
-    // ✅ IMPORTANT: data को attach करें ताकि notificationclick में मिल सके
-    data: payload.data || {}
+    body: payload.notification?.body || '',
+    icon: 'icon-192.png',
+    data: { url: clickAction }
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// 🔥 Notification Click Handler
+// 🔥 Notification Click Handler (Seedha specific page par le jane ke liye)
 self.addEventListener('notificationclick', function(event) {
-  console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
-  // ✅ FIXED: Aapke GitHub Pages ka exact sub-path URL yahan set kar diya hai
-  const targetUrl = 'https://pssocietysolutions.github.io/ps-society-app/';
+  const targetUrl = event.notification.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url === targetUrl && 'focus' in client) {
-            return client.focus();
+          if (client.url.includes('ps-society-app') && 'focus' in client) {
+            client.focus();
+            client.navigate(targetUrl);
+            return;
           }
         }
         if (clients.openWindow) {
