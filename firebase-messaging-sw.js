@@ -1,6 +1,6 @@
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
@@ -14,11 +14,11 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// ✅ Mobile aur Desktop dono ke liye background message handler
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Background message received: ', payload);
-  const notificationTitle = payload.notification?.title || 'PS Society';
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
   
-  // Hamesha exact GitHub Pages URL set karein
+  const notificationTitle = payload.notification?.title || 'PS Society';
   const clickAction = payload.data?.click_action || payload.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
 
   const notificationOptions = {
@@ -30,6 +30,7 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
+// 🔥 Notification Click Handler (404 error fix ke sath)
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
@@ -38,7 +39,6 @@ self.addEventListener('notificationclick', function(event) {
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
-        // Pehle se khula hua tab mil jaye toh usko focus karke navigate karo
         for (let client of windowClients) {
           if (client.url.includes('pssocietysolutions.github.io/ps-society-app') && 'focus' in client) {
             client.focus();
@@ -46,7 +46,6 @@ self.addEventListener('notificationclick', function(event) {
             return;
           }
         }
-        // Agar app band hai toh naya window/tab kholo absolute URL ke sath
         if (clients.openWindow) {
           return clients.openWindow(targetUrl);
         }
