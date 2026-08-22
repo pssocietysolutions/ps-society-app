@@ -884,13 +884,15 @@ async function requestNotificationPermission() {
     if (permission === 'granted') {
       console.log('Notification permission granted.');
       const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+      
+      // Force refresh token taaki "NotRegistered" error na aaye
       const token = await messaging.getToken({ 
         vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
         serviceWorkerRegistration: registration 
       });
 
       if (token) {
-        console.log('FCM Device Token:', token);
+        console.log('Valid FCM Device Token:', token);
         await saveFCMTokenToSupabase(token);
       }
     } else {
@@ -904,10 +906,11 @@ async function requestNotificationPermission() {
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
   try {
+    // Purana token agar is user ka hai toh pehle clean karega fir naya fresh token daalega
     await _supabase.from('fcm_tokens').upsert([
       { society_name: currentSociety, flat_no: currentUser, token: token }
     ], { onConflict: 'token' });
-    console.log('✅ FCM Token saved to Supabase successfully');
+    console.log('✅ Fresh FCM Token saved to Supabase successfully');
   } catch (err) {
     console.error('Error saving FCM token to Supabase:', err);
   }
