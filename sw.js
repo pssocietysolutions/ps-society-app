@@ -1,82 +1,273 @@
 // ============================================================
-// SERVICE WORKER FOR PS SOCIETY SOLUTIONS (PWA)
+// PS SOCIETY SOLUTIONS
+// COMBINED PWA + FIREBASE MESSAGING SERVICE WORKER
 // ============================================================
 
-const CACHE_VERSION = 'v4.1';  // v3 → v4
-const CACHE_NAME = `ps-society-${CACHE_VERSION}`;
+const CACHE_VERSION = 'ps-society-v5';
+const CACHE_NAME = CACHE_VERSION;
 
-const urlsToCache = [
-  '.',
-  'index.html',
-  'app.js',
-  'manifest.json',
-  'icon-192.png',
-  'icon-512.png',
-  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js'
+const BASE_PATH = '/ps-society-app/';
+
+const APP_SHELL = [
+    BASE_PATH,
+    BASE_PATH + 'index.html',
+    BASE_PATH + 'manifest.json',
+    BASE_PATH + 'app.js',
+    BASE_PATH + 'icon-192.png',
+    BASE_PATH + 'icon-512.png'
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('✅ Service Worker: Cache opened');
-        return cache.addAll(urlsToCache);
-      })
-      .then(() => {
-        return self.skipWaiting();
-      })
-  );
+
+// ============================================================
+// FIREBASE
+// ============================================================
+
+importScripts(
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js'
+);
+
+importScripts(
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js'
+);
+
+
+firebase.initializeApp({
+    apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVKk",
+    authDomain: "ps-society-solutions.firebaseapp.com",
+    projectId: "ps-society-solutions",
+    storageBucket: "ps-society-solutions.firebasestorage.app",
+    messagingSenderId: "345202451409",
+    appId: "1:345202451409:web:d72246d863c4131e7036f0"
 });
+
+
+const messaging = firebase.messaging();
+
+
+// ============================================================
+// FIREBASE BACKGROUND NOTIFICATION
+// ============================================================
+
+messaging.onBackgroundMessage(payload => {
+
+    console.log(
+        '[FCM] Background message:',
+        payload
+    );
+
+    const title =
+        payload.notification?.title ||
+        payload.data?.title ||
+        'PS Society Solutions';
+
+    const body =
+        payload.notification?.body ||
+        payload.data?.body ||
+        'You have a new notification.';
+
+    const icon =
+        payload.notification?.icon ||
+        `${BASE_PATH}icon-192.png`;
+
+    self.registration.showNotification(
+        title,
+        {
+            body: body,
+            icon: icon,
+            badge: icon,
+            data: payload.data || {}
+        }
+    );
+
+});
+
+
+// ============================================================
+// NOTIFICATION CLICK
+// ============================================================
+
+self.addEventListener('notificationclick', event => {
+
+    event.notification.close();
+
+    event.waitUntil(
+
+        clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+        })
+        .then(clientList => {
+
+            for (const client of clientList) {
+
+                if ('focus' in client) {
+
+                    client.focus();
+
+                    return client;
+                }
+
+            }
+
+            if (clients.openWindow) {
+
+                return clients.openWindow(
+                    BASE_PATH
+                );
+
+            }
+
+        })
+
+    );
+
+});
+
+
+// ============================================================
+// INSTALL
+// ============================================================
+
+self.addEventListener('install', event => {
+
+    event.waitUntil(
+
+        caches.open(CACHE_NAME)
+            .then(cache => cache.addAll(APP_SHELL))
+            .then(() => self.skipWaiting())
+
+    );
+
+});
+
+
+// ============================================================
+// ACTIVATE
+// ============================================================
 
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log(`🗑️ Deleting old cache: ${cacheName}`);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-    .then(() => {
-      return self.clients.claim();
-    })
-  );
+
+    event.waitUntil(
+
+        caches.keys()
+            .then(cacheNames => {
+
+                return Promise.all(
+
+                    cacheNames
+                        .filter(name => name !== CACHE_NAME)
+                        .map(name => caches.delete(name))
+
+                );
+
+            })
+            .then(() => self.clients.claim())
+
+    );
+
 });
+
+
+// ============================================================
+// FETCH
+// ============================================================
 
 self.addEventListener('fetch', event => {
-  const request = event.request;
-  if (request.method !== 'GET') return;
 
-  if (request.mode === 'navigate') {
+    const request = event.request;
+
+    if (request.method !== 'GET') {
+        return;
+    }
+
+    const url = new URL(request.url);
+
+    if (
+        url.origin !== self.location.origin ||
+        !url.pathname.startsWith(BASE_PATH)
+    ) {
+        return;
+    }
+
+
+    // ========================================================
+    // DEEP LINK / SPA NAVIGATION
+    // ========================================================
+
+    if (request.mode === 'navigate') {
+
+        event.respondWith(
+
+            fetch(request)
+                .then(response => {
+
+                    // Normal page
+                    if (response.ok) {
+                        return response;
+                    }
+
+                    // GitHub Pages 404 → index.html
+                    return caches.match(
+                        BASE_PATH + 'index.html'
+                    );
+
+                })
+                .catch(() => {
+
+                    return caches.match(
+                        BASE_PATH + 'index.html'
+                    );
+
+                })
+
+        );
+
+        return;
+    }
+
+
+    // ========================================================
+    // STATIC FILES
+    // ========================================================
+
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (response.ok) {
-            return response;
-          }
-          // 404 या अन्य Error → index.html
-          return caches.match('./index.html');
-        })
-        .catch(() => caches.match('./index.html'))
+
+        caches.match(request)
+            .then(cached => {
+
+                if (cached) {
+                    return cached;
+                }
+
+                return fetch(request)
+                    .then(response => {
+
+                        if (
+                            response.status === 200 &&
+                            response.type === 'basic'
+                        ) {
+
+                            const clone =
+                                response.clone();
+
+                            caches.open(CACHE_NAME)
+                                .then(cache => {
+
+                                    cache.put(
+                                        request,
+                                        clone
+                                    );
+
+                                });
+
+                        }
+
+                        return response;
+
+                    });
+
+            })
+
     );
-    return;
-  }
 
-  event.respondWith(
-    caches.match(request)
-      .then(cached => cached || fetch(request))
-  );
-});
-
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
 });
