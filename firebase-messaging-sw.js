@@ -14,14 +14,14 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Mobile background notification handler
+// ✅ Mobile Background Notification Handler
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Background message received:', payload);
   
   const title = payload.notification?.title || payload.data?.title || "PS Society Alert";
   const body = payload.notification?.body || payload.data?.body || "New society update.";
   
-  // URL ko hamesha absolute banayein taaki mobile par 404 na aaye
+  // URL को Absolute बनाएँ
   let clickAction = payload.data?.click_action || payload.data?.url || '';
   if (!clickAction.startsWith('http')) {
     clickAction = 'https://pssocietysolutions.github.io/ps-society-app/' + clickAction;
@@ -29,16 +29,17 @@ messaging.onBackgroundMessage((payload) => {
 
   const options = {
     body: body,
-    icon: 'icon-192.png',
-    badge: 'icon-192.png',
-    data: { url: clickAction },
-    vibrate: [200, 100, 200]
+    icon: 'icon-192.png',          // ✅ सही Icon
+    badge: 'icon-192.png',         // ✅ Badge भी
+    data: { url: clickAction },    // ✅ Click के लिए Data
+    vibrate: [200, 100, 200]       // ✅ Vibration
   };
 
+  // ⚠️ IMPORTANT: return करें ताकि SW को पता चले कि Notification दिखाना है
   return self.registration.showNotification(title, options);
 });
 
-// 🔥 Notification Click Handler (Mobile Direct App Opening)
+// 🔥 Notification Click Handler (Deep Linking)
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const data = event.notification.data || {};
