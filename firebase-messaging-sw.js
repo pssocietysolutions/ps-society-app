@@ -14,45 +14,55 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ FIXED: payload.data को notification options में pass करें
+// 1. Double notification fix: Agar payload me notification object nahi hai tabhi manual show karein
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon.png',
-    // ✅ IMPORTANT: data को attach करें ताकि notificationclick में मिल सके
-    data: payload.data || {}
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  console.log('[firebase-messaging-sw.js] Background message: ', payload);
+  
+  if (!payload.notification) {
+    const title = payload.data?.title || "PS Society Notification";
+    const options = {
+      body: payload.data?.body || "New update received.",
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+      data: payload.data || {}
+    };
+    self.registration.showNotification(title, options);
+  }
 });
 
-// 🔥 Notification Click Handler
+// 2. 404 Error Fix & Deep Linking
 self.addEventListener('notificationclick', function(event) {
-  console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
-  // अब data available होगा
   const data = event.notification.data || {};
-  let urlToOpen = data.click_action || data.url || '/';
+  let clickAction = data.click_action || '';
 
-  if (!urlToOpen.startsWith('http')) {
-    const baseUrl = self.location.origin;
-    urlToOpen = baseUrl + urlToOpen;
+  const fullOrigin = self.location.origin;
+  const pathname = self.location.pathname.replace('/firebase-messaging-sw.js', ''); 
+  
+  let targetUrl = `${fullOrigin}${pathname}/index.html`;
+  if (clickAction) {
+    if (clickAction.startsWith('?')) {
+      targetUrl = `${fullOrigin}${pathname}/index.html${clickAction}`;
+    } else if (clickAction.startsWith('/')) {
+      targetUrl = `${fullOrigin}${pathname}${clickAction}`;
+    } else {
+      targetUrl = `${fullOrigin}${pathname}/${clickAction}`;
+    }
   }
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
-        for (let client of windowClients) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
-          }
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let client of windowClients) {
+        if (client.url.includes(fullOrigin + pathname) && 'focus' in client) {
+          client.focus();
+          client.navigate(targetUrl);
+          return;
         }
-        if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
-        }
-      })
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
   );
 });
