@@ -16,22 +16,21 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Background Message Handler – सिर्फ एक बार
+// ✅ एक ही हैंडलर – केवल data से Notification बनाएँ
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
 
-  // Data से लें, नहीं तो Notification से, नहीं तो Default
-  const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
-  const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
+  const notificationTitle = payload.data?.title || 'PS Society';
+  const notificationBody = payload.data?.body || 'New update';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: '/icon.png',
-    data: payload.data || {}   // यहाँ click_action और बाकी सब रहेगा
+    data: payload.data || {}   // click_action यहाँ आएगा
   });
 });
 
-// ✅ Notification Click Handler – सही URL पर ले जाए
+// ✅ Click Handler – सही URL खोले
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
@@ -39,7 +38,6 @@ self.addEventListener('notificationclick', function(event) {
   const data = event.notification.data || {};
   let urlToOpen = data.click_action || data.url || '/';
 
-  // Relative URL को Absolute बनाएँ
   if (!urlToOpen.startsWith('http')) {
     const baseUrl = self.location.origin;
     urlToOpen = baseUrl + urlToOpen;
