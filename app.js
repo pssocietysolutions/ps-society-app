@@ -904,6 +904,7 @@ async function requestNotificationPermission() {
     console.error('Error in notification setup:', err);
   }
 }
+
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
   try {
