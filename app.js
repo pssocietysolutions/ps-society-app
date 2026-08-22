@@ -883,35 +883,31 @@ async function requestNotificationPermission() {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       console.log('Notification permission granted.');
-      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/' });
-      console.log('SW registered successfully:', registration);
-      
-      const token = await messaging.getToken({
+      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+      const token = await messaging.getToken({ 
         vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
-        serviceWorkerRegistration: registration
+        serviceWorkerRegistration: registration 
       });
-      console.log('FCM Token received:', token);
+
       if (token) {
+        console.log('FCM Device Token:', token);
         await saveFCMTokenToSupabase(token);
-      } else {
-        console.warn('No token received.');
       }
     } else {
       console.log('Notification permission denied.');
     }
   } catch (err) {
-    console.error('Error in notification setup:', err);
+    console.error('Error getting notification permission or token: ', err);
   }
 }
 
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
   try {
-    // Purana token agar is user ka hai toh pehle clean karega fir naya fresh token daalega
     await _supabase.from('fcm_tokens').upsert([
       { society_name: currentSociety, flat_no: currentUser, token: token }
     ], { onConflict: 'token' });
-    console.log('✅ Fresh FCM Token saved to Supabase successfully');
+    console.log('✅ FCM Token saved to Supabase successfully');
   } catch (err) {
     console.error('Error saving FCM token to Supabase:', err);
   }
@@ -3043,28 +3039,6 @@ function listenForSOSAlerts() {
       sirenAudio.play().catch(e => console.log(e));
     }
   }).subscribe();
-}
-
-function listenForRealtimeBadges() {
-  _supabase
-    .channel('realtime-badges')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_proofs' }, async () => {
-      let { data: proofs } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety).order('submitted_at', { ascending: false });
-      paymentProofs = proofs || [];
-      renderPaymentProofs();
-      updateAllBadges();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, async () => {
-      let { data: complaints } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-      complaintData = complaints || [];
-      updateAllBadges();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, async () => {
-      let { data: notices } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-      noticesData = notices || [];
-      updateAllBadges();
-    })
-    .subscribe();
 }
 
 function showSOSBanner(alertData) {
