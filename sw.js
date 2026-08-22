@@ -86,43 +86,35 @@ messaging.onBackgroundMessage(payload => {
 // NOTIFICATION CLICK
 // ============================================================
 
-self.addEventListener('notificationclick', event => {
+self.addEventListener('notificationclick', function(event) {
+  console.log('🔔 Notification clicked:', event.notification);
+  event.notification.close();
 
-    event.notification.close();
+  const data = event.notification.data || {};
+  let urlToOpen = data.click_action || data.url || '/';
 
-    event.waitUntil(
+  // ✅ पूरा URL (Absolute) बनाएँ – Dynamic Origin
+  if (!urlToOpen.startsWith('http')) {
+    const baseUrl = self.location.origin;
+    urlToOpen = baseUrl + urlToOpen;
+  }
 
-        clients.matchAll({
-            type: 'window',
-            includeUncontrolled: true
-        })
-        .then(clientList => {
+  console.log('🔗 Opening URL:', urlToOpen);
 
-            for (const client of clientList) {
-
-                if ('focus' in client) {
-
-                    client.focus();
-
-                    return client;
-                }
-
-            }
-
-            if (clients.openWindow) {
-
-                return clients.openWindow(
-                    BASE_PATH
-                );
-
-            }
-
-        })
-
-    );
-
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        for (let client of windowClients) {
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
 });
-
 
 // ============================================================
 // INSTALL
