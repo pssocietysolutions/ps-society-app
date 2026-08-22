@@ -1,6 +1,6 @@
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
@@ -14,52 +14,45 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// ✅ FIXED: payload.data को notification options में pass करें
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Background message: ', payload);
-  const title = payload.notification?.title || payload.data?.title || "PS Society Alert";
-  const options = {
-    body: payload.notification?.body || payload.data?.body || "New update received.",
-    icon: './icon-192.png',
-    badge: './icon-192.png',
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/icon.png',
+    // ✅ IMPORTANT: data को attach करें ताकि notificationclick में मिल सके
     data: payload.data || {}
   };
-  return self.registration.showNotification(title, options);
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
+// 🔥 Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
+  console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
+  // अब data available होगा
   const data = event.notification.data || {};
-  let clickAction = data.click_action || '';
+  let urlToOpen = data.click_action || data.url || '/';
 
-  const fullOrigin = self.location.origin;
-  const pathname = self.location.pathname.replace('/firebase-messaging-sw.js', '').replace(/\/$/, ''); 
-  
-  let targetUrl = `${fullOrigin}${pathname}/index.html`;
-  if (clickAction) {
-    if (clickAction.startsWith('?')) {
-      targetUrl = `${fullOrigin}${pathname}/index.html${clickAction}`;
-    } else if (clickAction.startsWith('/')) {
-      targetUrl = `${fullOrigin}${pathname}${clickAction}`;
-    } else {
-      targetUrl = `${fullOrigin}${pathname}/${clickAction}`;
-    }
+  if (!urlToOpen.startsWith('http')) {
+    const baseUrl = self.location.origin;
+    urlToOpen = baseUrl + urlToOpen;
   }
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      for (let client of windowClients) {
-        if (client.url.includes(fullOrigin + pathname) && 'focus' in client) {
-          client.focus();
-          if ('navigate' in client) {
-            client.navigate(targetUrl);
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        for (let client of windowClients) {
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
           }
-          return;
         }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
-    })
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
   );
 });
