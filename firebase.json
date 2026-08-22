@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": ".",   // क्योंकि आपकी फाइलें (index.html) इसी लेवल पर हैं
+    "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
