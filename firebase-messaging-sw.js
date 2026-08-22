@@ -14,40 +14,44 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Mobile aur Desktop dono ke liye background message handler
+// ✅ FIXED: payload.data को notification options में pass करें
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  
-  const notificationTitle = payload.notification?.title || 'PS Society';
-  const clickAction = payload.data?.click_action || payload.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
-
+  const notificationTitle = payload.notification.title;
   const notificationOptions = {
-    body: payload.notification?.body || '',
-    icon: 'icon-192.png',
-    data: { url: clickAction }
+    body: payload.notification.body,
+    icon: '/icon.png',
+    // ✅ IMPORTANT: data को attach करें ताकि notificationclick में मिल सके
+    data: payload.data || {}
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// 🔥 Notification Click Handler (404 error fix ke sath)
+// 🔥 Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
+  console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
+  // अब data available होगा
+  const data = event.notification.data || {};
+  let urlToOpen = data.click_action || data.url || '/';
+
+  if (!urlToOpen.startsWith('http')) {
+    const baseUrl = self.location.origin;
+    urlToOpen = baseUrl + urlToOpen;
+  }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url.includes('pssocietysolutions.github.io/ps-society-app') && 'focus' in client) {
-            client.focus();
-            client.navigate(targetUrl);
-            return;
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
+          return clients.openWindow(urlToOpen);
         }
       })
   );

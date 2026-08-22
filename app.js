@@ -873,20 +873,17 @@ if (!firebase.apps.length) {
 
 const messaging = firebase.messaging();
 
-// messaging.onMessage((payload) => {
-//   console.log('Message received in foreground: ', payload);
-//   alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
-// });
+messaging.onMessage((payload) => {
+  console.log('Message received in foreground: ', payload);
+  alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
+});
 
 async function requestNotificationPermission() {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       console.log('Notification permission granted.');
-      
-      // ✅ FIXED: Mobile ke liye scope aur path sahi set kiya gaya hai
-      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: './' });
-      
+      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
       const token = await messaging.getToken({ 
         vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
         serviceWorkerRegistration: registration 
