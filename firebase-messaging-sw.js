@@ -17,16 +17,15 @@ const messaging = firebase.messaging();
 // ✅ FIXED: payload.data को notification options में pass करें
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
+  const notificationTitle = payload.data.title;     // अब data से लें
   const notificationOptions = {
-    body: payload.notification.body,
+    body: payload.data.body,
     icon: '/icon.png',
-    // ✅ IMPORTANT: data को attach करें ताकि notificationclick में मिल सके
     data: payload.data || {}
   };
-
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
 
 // 🔥 Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
