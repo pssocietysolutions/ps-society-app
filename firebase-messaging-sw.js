@@ -14,26 +14,25 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ FIXED: payload.data को notification options में pass करें
+// Background Message Handler
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
+  console.log('[firebase-messaging-sw.js] Received background message: ', payload);
+  
+  const notificationTitle = payload.notification?.title || payload.data?.title || "PS Society Notification";
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon.png',
-    // ✅ IMPORTANT: data को attach करें ताकि notificationclick में मिल सके
+    body: payload.notification?.body || payload.data?.body || "Aapke liye ek naya update aaya hai.",
+    icon: '/icon-192.png',
     data: payload.data || {}
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// 🔥 Notification Click Handler
+// Notification Click Handler for Deep Linking
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
-  // अब data available होगा
   const data = event.notification.data || {};
   let urlToOpen = data.click_action || data.url || '/';
 
