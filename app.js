@@ -3094,7 +3094,6 @@ function showSOSBanner(alertData) {
 // ==================== DEEP LINKING HANDLER ====================
 // ==================== DEEP LINKING HANDLER ====================
 function handleDeepLink() {
-    // थोड़ा Delay ताकि DOM और Global Functions Ready हो जाएँ
     setTimeout(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
@@ -3104,25 +3103,34 @@ function handleDeepLink() {
         const eventId = params.get('eventId');
 
         if (tab) {
-            // ✅ Mobile Grid Overlay (अगर मौजूद है) को Close करें
+            // ✅ Mobile Grid Overlay को बंद करें (सुरक्षित तरीका)
             const gridOverlay = document.getElementById('mobileMenuOverlay');
             if (gridOverlay) {
                 gridOverlay.style.display = 'none';
                 document.body.style.overflow = '';
             }
-
-            // ✅ Sidebar में वह Nav‑Link ढूँढें जिसका onclick "switchTab('...')" है
-            const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
-            if (link) {
-                // Global switchTab Function को Call करें
-                switchTab(tab, link);
-            } else {
-                // अगर Link न मिले तो Dashboard पर जाएँ
-                const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
-                if (dashboardLink) switchTab('dashboard', dashboardLink);
+            // अगर closeMobileMenu Function है तो उसे भी Call करें
+            if (typeof closeMobileMenu === 'function') {
+                closeMobileMenu();
             }
 
-            // ✅ अगर कोई Specific ID (Notice, Poll, etc.) है तो उसे Highlight करें
+            // ✅ Nav‑Link ढूँढें (case-insensitive match)
+            const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
+            if (link) {
+                switchTab(tab, link);
+            } else {
+                // अगर Link न मिले तो सीधे switchTab Call करें (Active Class नहीं मिलेगी, लेकिन Tab तो दिखेगा)
+                switchTab(tab, null);
+                // और Sidebar में सही Link को Active करने की कोशिश करें
+                const allLinks = document.querySelectorAll('.nav-link');
+                allLinks.forEach(l => {
+                    if (l.textContent.trim().toLowerCase() === tab.toLowerCase()) {
+                        l.classList.add('active');
+                    }
+                });
+            }
+
+            // ✅ Specific ID Highlight
             setTimeout(() => {
                 let targetElement = null;
                 if (pollId) {
@@ -3134,7 +3142,6 @@ function handleDeepLink() {
                 } else if (eventId) {
                     targetElement = document.querySelector(`[data-event-id="${eventId}"]`);
                 }
-
                 if (targetElement) {
                     targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     targetElement.style.border = '3px solid #f59e0b';
@@ -3146,7 +3153,7 @@ function handleDeepLink() {
                 }
             }, 500);
         }
-    }, 300);
+    }, 400); // Delay बढ़ा दिया (400ms)
 }
 
 // ✅ Deep Linking को और Robust बनाएँ – पहले से Open App पर भी काम करे
