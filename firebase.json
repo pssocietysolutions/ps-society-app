@@ -1,0 +1,16 @@
+{
+  "hosting": {
+    "public": ".",   // क्योंकि आपकी फाइलें (index.html) इसी लेवल पर हैं
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
