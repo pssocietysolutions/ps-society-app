@@ -14,29 +14,30 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Sirf ek single notification show hoga
+// ✅ Mobile background worker
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Background message: ', payload);
-  const data = payload.data || {};
-  const notificationTitle = data.title || payload.notification?.title || "PS Society Alert";
-  const notificationOptions = {
-    body: data.body || payload.notification?.body || "New society update.",
+  console.log('[firebase-messaging-sw.js] Background message received:', payload);
+  
+  // Agar browser ne already show kar diya hai toh dubara call nahi karega
+  const title = payload.notification?.title || payload.data?.title || "PS Society Alert";
+  const options = {
+    body: payload.notification?.body || payload.data?.body || "New society update.",
     icon: './icon-192.png',
     badge: './icon-192.png',
-    data: data
+    data: payload.data || {},
+    vibrate: [200, 100, 200]
   };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  return self.registration.showNotification(title, options);
 });
 
-// 🔥 Notification Click Handler (404 error fix)
+// 🔥 Notification Click Handler (Mobile 404 Fix)
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const data = event.notification.data || {};
   let clickAction = data.click_action || '';
 
-  // GitHub repository subfolder handle karega
-  const scopePath = self.registration.scope; // e.g. https://pssocietysolutions.github.io/ps-society-app/
+  const scopePath = self.registration.scope;
   let urlToOpen = new URL(clickAction, scopePath).href;
 
   event.waitUntil(
