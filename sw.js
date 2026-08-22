@@ -78,10 +78,9 @@ self.addEventListener('notificationclick', function(event) {
     const data = event.notification.data || {};
     let urlToOpen = data.click_action || data.url || BASE_PATH;
 
-    // यदि URL पहले से Absolute नहीं है तो Origin + Sub‑path जोड़ें
     if (!urlToOpen.startsWith('http')) {
         const baseUrl = self.location.origin;
-        // अगर URL / से शुरू होता है तो उसे BASE_PATH से जोड़ें
+        // अगर URL / से शुरू होता है तो उसे वैसे ही जोड़ें (अब वह /ps-society-app/... है)
         if (urlToOpen.startsWith('/')) {
             urlToOpen = baseUrl + urlToOpen;
         } else {
