@@ -1,21 +1,20 @@
 // ============================================================
-// PS SOCIETY SOLUTIONS
-// COMBINED PWA + FIREBASE MESSAGING SERVICE WORKER
+// PS SOCIETY SOLUTIONS – COMBINED PWA + FIREBASE MESSAGING SW
+// GitHub Pages Sub‑path Version
 // ============================================================
 
-const CACHE_VERSION = 'ps-society-v6';  // Version बढ़ाएँ
+const BASE_PATH = '/ps-society-app/';
+const CACHE_VERSION = 'ps-society-v7';
 const CACHE_NAME = CACHE_VERSION;
 
-// ✅ Root Path – Firebase Hosting पर App Root पर है
 const APP_SHELL = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/app.js',
-    '/icon-192.png',
-    '/icon-512.png'
+    BASE_PATH,
+    BASE_PATH + 'index.html',
+    BASE_PATH + 'manifest.json',
+    BASE_PATH + 'app.js',
+    BASE_PATH + 'icon-192.png',
+    BASE_PATH + 'icon-512.png'
 ];
-
 
 // ============================================================
 // FIREBASE
@@ -58,7 +57,7 @@ messaging.onBackgroundMessage(payload => {
 
     const icon =
         payload.notification?.icon ||
-        '/icon-192.png';
+        BASE_PATH + 'icon-192.png';
 
     self.registration.showNotification(title, {
         body: body,
@@ -69,7 +68,7 @@ messaging.onBackgroundMessage(payload => {
 });
 
 // ============================================================
-// NOTIFICATION CLICK – ✅ सही (Dynamic URL)
+// NOTIFICATION CLICK – Dynamic URL (with sub‑path)
 // ============================================================
 
 self.addEventListener('notificationclick', function(event) {
@@ -77,11 +76,18 @@ self.addEventListener('notificationclick', function(event) {
     event.notification.close();
 
     const data = event.notification.data || {};
-    let urlToOpen = data.click_action || data.url || '/';
+    let urlToOpen = data.click_action || data.url || BASE_PATH;
 
+    // यदि URL पहले से Absolute नहीं है तो Origin + Sub‑path जोड़ें
     if (!urlToOpen.startsWith('http')) {
         const baseUrl = self.location.origin;
-        urlToOpen = baseUrl + urlToOpen;
+        // अगर URL / से शुरू होता है तो उसे BASE_PATH से जोड़ें
+        if (urlToOpen.startsWith('/')) {
+            urlToOpen = baseUrl + urlToOpen;
+        } else {
+            // अगर Relative है तो BASE_PATH + urlToOpen
+            urlToOpen = baseUrl + BASE_PATH + urlToOpen;
+        }
     }
 
     console.log('🔗 Opening URL:', urlToOpen);
@@ -132,36 +138,38 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH – ✅ SPA Navigation Fallback (कोई BASE_PATH नहीं)
+// FETCH – SPA Navigation Fallback (Sub‑path aware)
 // ============================================================
 
 self.addEventListener('fetch', event => {
     const request = event.request;
-
     if (request.method !== 'GET') return;
+
+    const url = new URL(request.url);
+
+    // सिर्फ अपने Origin और Sub‑path की Requests को Intercept करें
+    if (url.origin !== self.location.origin) return;
+    if (!url.pathname.startsWith(BASE_PATH)) return;
 
     // ====== SPA NAVIGATION (Deep Links) ======
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request)
                 .then(response => {
-                    // अगर Response OK है तो Return करें
                     if (response.ok) {
                         return response;
                     }
-                    // 404 → index.html
                     console.warn('⚠️ Navigation got status:', response.status, '→ Falling back to index.html');
-                    return caches.match('/index.html');
+                    return caches.match(BASE_PATH + 'index.html');
                 })
                 .catch(() => {
-                    // Network Fail → index.html
-                    return caches.match('/index.html');
+                    return caches.match(BASE_PATH + 'index.html');
                 })
         );
         return;
     }
 
-    // ====== Static Assets (CSS, JS, Images) – Cache First ======
+    // ====== Static Assets – Cache First ======
     event.respondWith(
         caches.match(request)
             .then(cached => {
