@@ -2,6 +2,8 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
+console.log("🔥 Service Worker Loaded Successfully!");
+
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
   authDomain: "ps-society-solutions.firebaseapp.com",
@@ -14,30 +16,26 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ FIXED: payload.data को notification options में pass करें
+// ✅ Background Message Handler (सिर्फ एक बार)
 messaging.onBackgroundMessage((payload) => {
-  console.log('Received: ', payload);
+  console.log("📩 Background message received:", payload);
   
-  // ✅ ये Fallback डालो
-  const notificationTitle = payload.data.title || 'PS Society';
-  const notificationBody = payload.data.body || 'New update available';
-  
-  const notificationOptions = {
+  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
+  const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
+  const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
+
+  self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: '/icon.png',
     data: payload.data || {}
-  };
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 });
 
-
-
-// 🔥 Notification Click Handler
+// ✅ Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
-  // अब data available होगा
   const data = event.notification.data || {};
   let urlToOpen = data.click_action || data.url || '/';
 
