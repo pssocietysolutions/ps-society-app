@@ -1,5 +1,0 @@
-# Terminal me:
-touch .nojekyll
-git add .
-git commit -m "Fix: Notification single and deep linking"
-git push
