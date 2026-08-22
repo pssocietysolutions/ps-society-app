@@ -3092,48 +3092,72 @@ function showSOSBanner(alertData) {
 }
 
 // ==================== DEEP LINKING HANDLER ====================
+// ==================== DEEP LINKING HANDLER ====================
 function handleDeepLink() {
-  const params = new URLSearchParams(window.location.search);
-  const tab = params.get('tab');
-  const pollId = params.get('pollId');
-  const noticeId = params.get('noticeId');
-  const complaintId = params.get('complaintId');
-  const eventId = params.get('eventId');
+    // थोड़ा Delay ताकि DOM और Global Functions Ready हो जाएँ
+    setTimeout(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        const pollId = params.get('pollId');
+        const noticeId = params.get('noticeId');
+        const complaintId = params.get('complaintId');
+        const eventId = params.get('eventId');
 
-  if (tab) {
-    const link = document.querySelector(`.nav-link[onclick*="${tab}"]`);
-    if (link) {
-      const onclickAttr = link.getAttribute('onclick');
-      if (onclickAttr) {
-        switchTab(tab, link);
-      }
-    }
-  }
+        if (tab) {
+            // ✅ Mobile Grid Overlay (अगर मौजूद है) को Close करें
+            const gridOverlay = document.getElementById('mobileMenuOverlay');
+            if (gridOverlay) {
+                gridOverlay.style.display = 'none';
+                document.body.style.overflow = '';
+            }
 
-  // Highlight/scroll to specific item
-  setTimeout(() => {
-    let targetElement = null;
-    if (pollId) {
-      targetElement = document.querySelector(`[data-poll-id="${pollId}"]`);
-    } else if (noticeId) {
-      targetElement = document.querySelector(`[data-notice-id="${noticeId}"]`);
-    } else if (complaintId) {
-      targetElement = document.querySelector(`[data-complaint-id="${complaintId}"]`);
-    } else if (eventId) {
-      targetElement = document.querySelector(`[data-event-id="${eventId}"]`);
-    }
+            // ✅ Sidebar में वह Nav‑Link ढूँढें जिसका onclick "switchTab('...')" है
+            const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
+            if (link) {
+                // Global switchTab Function को Call करें
+                switchTab(tab, link);
+            } else {
+                // अगर Link न मिले तो Dashboard पर जाएँ
+                const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
+                if (dashboardLink) switchTab('dashboard', dashboardLink);
+            }
 
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      targetElement.style.border = '3px solid #f59e0b';
-      targetElement.style.backgroundColor = '#fef3c7';
-      setTimeout(() => {
-        targetElement.style.border = '';
-        targetElement.style.backgroundColor = '';
-      }, 3000);
-    }
-  }, 800);
+            // ✅ अगर कोई Specific ID (Notice, Poll, etc.) है तो उसे Highlight करें
+            setTimeout(() => {
+                let targetElement = null;
+                if (pollId) {
+                    targetElement = document.querySelector(`[data-poll-id="${pollId}"]`);
+                } else if (noticeId) {
+                    targetElement = document.querySelector(`[data-notice-id="${noticeId}"]`);
+                } else if (complaintId) {
+                    targetElement = document.querySelector(`[data-complaint-id="${complaintId}"]`);
+                } else if (eventId) {
+                    targetElement = document.querySelector(`[data-event-id="${eventId}"]`);
+                }
+
+                if (targetElement) {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetElement.style.border = '3px solid #f59e0b';
+                    targetElement.style.backgroundColor = '#fef3c7';
+                    setTimeout(() => {
+                        targetElement.style.border = '';
+                        targetElement.style.backgroundColor = '';
+                    }, 3000);
+                }
+            }, 500);
+        }
+    }, 300);
 }
+
+// ✅ Deep Linking को और Robust बनाएँ – पहले से Open App पर भी काम करे
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        handleDeepLink();
+    }
+});
+
+// पहले से Load Event पर भी Call करें
+window.addEventListener('load', handleDeepLink);
 
 async function resolveSOSAlert(alertId) {
   try {
