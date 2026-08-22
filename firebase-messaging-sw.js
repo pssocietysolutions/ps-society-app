@@ -16,15 +16,20 @@ const messaging = firebase.messaging();
 
 // ✅ FIXED: payload.data को notification options में pass करें
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.data.title;     // अब data से लें
+  console.log('Received: ', payload);
+  
+  // ✅ ये Fallback डालो
+  const notificationTitle = payload.data.title || 'PS Society';
+  const notificationBody = payload.data.body || 'New update available';
+  
   const notificationOptions = {
-    body: payload.data.body,
+    body: notificationBody,
     icon: '/icon.png',
     data: payload.data || {}
   };
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
 
 
 // 🔥 Notification Click Handler
