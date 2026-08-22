@@ -2,88 +2,184 @@
 // SERVICE WORKER FOR PS SOCIETY SOLUTIONS (PWA)
 // ============================================================
 
-const CACHE_VERSION = 'v4.1';  // v3 → v4
+const CACHE_VERSION = 'v4.2';
 const CACHE_NAME = `ps-society-${CACHE_VERSION}`;
 
 const urlsToCache = [
-  '.',
-  'index.html',
-  'app.js',
-  'manifest.json',
-  'icon-192.png',
-  'icon-512.png',
+  './',
+  './index.html',
+  './app.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+
+  // Bootstrap
   'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
+
+  // Font Awesome
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+
+  // jsPDF
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+
+  // jsPDF AutoTable
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js'
 ];
 
-// ===== INSTALL =====
+// ============================================================
+// INSTALL
+// ============================================================
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
+      .then(async cache => {
         console.log('✅ Service Worker: Cache opened');
-        return cache.addAll(urlsToCache);
+        // Cache files individually so one failed CDN request
+        // does NOT break the entire Service Worker installation.
+        for (const url of urlsToCache) {
+          try {
+            await cache.add(url);
+            console.log(`✅ Cached: ${url}`);
+          } catch (error) {
+            console.warn(`⚠️ Could not cache: ${url}`, error);
+          }
+        }
       })
       .then(() => {
+        // Activate the new Service Worker immediately
         return self.skipWaiting();
       })
   );
 });
 
-// ===== ACTIVATE =====
+// ============================================================
+// ACTIVATE
+// ============================================================
+
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log(`🗑️ Deleting old cache: ${cacheName}`);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-    .then(() => {
-      return self.clients.claim();
-    })
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (
+              cacheName.startsWith('ps-society-') &&
+              cacheName !== CACHE_NAME
+            ) {
+              console.log(`🗑️ Deleting old cache: ${cacheName}`);
+              return caches.delete(cacheName);
+            }
+            return Promise.resolve();
+          })
+        );
+      })
+      .then(() => {
+        // Take control of all open pages immediately
+        return self.clients.claim();
+      })
   );
 });
 
-// ===== FETCH (Modified – SPA Navigation Fallback Added) =====
+// ============================================================
+// FETCH - SPA 404 FALLBACK FIX (✅ यहाँ बदलाव किया गया है)
+// ============================================================
+
 self.addEventListener('fetch', event => {
-  // ✅ अगर यह Navigation Request है (नया पेज माँगना)
-  if (event.request.mode === 'navigate') {
+  const request = event.request;
+
+  // Only handle GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // ===== SPECIAL HANDLING FOR NAVIGATION (Deep Links) =====
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then(response => {
-          // Network से मिला तो Return करें
-          return response;
-        })
-        .catch(() => {
-          // Network Fail → Cache से index.html Return करें (404 खत्म)
-          return caches.match('index.html');
-        })
-    );
-  } else {
-    // ✅ बाकी Requests (CSS, JS, Images) – पहले Cache फिर Network
-    event.respondWith(
-      caches.match(event.request)
-        .then(response => {
-          if (response) {
+          // ✅ अगर Response OK (200-299) है, तो उसे Return करें
+          if (response.ok) {
             return response;
           }
-          return fetch(event.request);
+          // ❌ अगर 404 या कोई और Error Status है → index.html दें
+          console.warn('⚠️ Navigation returned status:', response.status, '→ Falling back to index.html');
+          return caches.match('./index.html');
+        })
+        .catch(() => {
+          // ✅ Network पूरी तरह Fail (ऑफलाइन) → index.html दें
+          return caches.match('./index.html');
         })
     );
+    return;
   }
+
+  // ===== ASSETS (CSS, JS, Images) – Cache First, Then Network =====
+  event.respondWith(
+    caches.match(request)
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(request)
+          .then(networkResponse => {
+            // Only cache successful responses
+            if (
+              networkResponse &&
+              networkResponse.status === 200 &&
+              networkResponse.type !== 'opaque'
+            ) {
+              const responseClone = networkResponse.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  cache.put(request, responseClone);
+                });
+            }
+            return networkResponse;
+          })
+          .catch(error => {
+            console.warn('⚠️ Network request failed:', request.url, error);
+            // Offline fallback for HTML pages
+            if (request.mode === 'navigate') {
+              return caches.match('./index.html');
+            }
+            // If no cached response exists, return a proper offline response
+            return new Response(
+              'You are currently offline.',
+              {
+                status: 503,
+                statusText: 'Service Unavailable',
+                headers: {
+                  'Content-Type': 'text/plain'
+                }
+              }
+            );
+          });
+      })
+  );
 });
 
-// ===== MESSAGE (Skip Waiting) =====
+// ============================================================
+// MESSAGE
+// ============================================================
+
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+});
+
+// ============================================================
+// OPTIONAL: CLEAN OLD CACHE ON MESSAGE
+// ============================================================
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.delete(CACHE_NAME)
+        .then(() => {
+          console.log('🧹 Current cache cleared');
+        })
+    );
   }
 });
