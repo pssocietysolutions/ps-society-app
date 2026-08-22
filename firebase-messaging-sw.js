@@ -1,4 +1,3 @@
-// firebase-messaging-sw.js
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
@@ -14,20 +13,31 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Background message: ', payload);
+// Background push event capture (jab app band ho)
+self.addEventListener('push', function(event) {
+  if (event.data) {
+    const payload = event.data.json();
+    console.log('[SW push event]', payload);
 
-  const title = payload.notification?.title || payload.data?.title || "PS Society Alert";
-  const options = {
-    body: payload.notification?.body || payload.data?.body || "New update received.",
-    icon: './icon-192.png',
-    badge: './icon-192.png',
-    data: payload.data || {}
-  };
+    const title = payload.notification?.title || payload.data?.title || "PS Society Alert";
+    const body = payload.notification?.body || payload.data?.body || "Aapke liye ek naya update aaya hai.";
+    
+    const options = {
+      body: body,
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+      vibrate: [200, 100, 200],
+      data: payload.data || {},
+      requireInteraction: true
+    };
 
-  self.registration.showNotification(title, options);
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  }
 });
 
+// Click open & deep link router
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
@@ -37,10 +47,10 @@ self.addEventListener('notificationclick', function(event) {
   const fullOrigin = self.location.origin;
   const pathname = self.location.pathname.replace('/firebase-messaging-sw.js', '').replace(/\/$/, ''); 
   
-  let targetUrl = `${fullOrigin}${pathname}/`;
+  let targetUrl = `${fullOrigin}${pathname}/index.html`;
   if (clickAction) {
     if (clickAction.startsWith('?')) {
-      targetUrl = `${fullOrigin}${pathname}/${clickAction}`;
+      targetUrl = `${fullOrigin}${pathname}/index.html${clickAction}`;
     } else if (clickAction.startsWith('/')) {
       targetUrl = `${fullOrigin}${pathname}${clickAction}`;
     } else {
