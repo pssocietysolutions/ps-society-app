@@ -883,7 +883,7 @@ async function requestNotificationPermission() {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       console.log('Notification permission granted.');
-      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/' });
       console.log('SW registered successfully:', registration);
       
       const token = await messaging.getToken({

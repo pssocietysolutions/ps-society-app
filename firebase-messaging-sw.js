@@ -17,11 +17,10 @@ const messaging = firebase.messaging();
 // ✅ Background Notification Handler
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Background message:', payload);
-  
+
   const title = payload.notification?.title || payload.data?.title || "PS Society Alert";
   const body = payload.notification?.body || payload.data?.body || "New society update.";
-  
-  // Absolute URL बनाएँ (ताकि Click पर 404 न आए)
+
   let clickAction = payload.data?.click_action || payload.data?.url || '';
   if (!clickAction.startsWith('http')) {
     clickAction = 'https://pssocietysolutions.github.io/ps-society-app/' + clickAction;
@@ -29,17 +28,16 @@ messaging.onBackgroundMessage((payload) => {
 
   const options = {
     body: body,
-    icon: 'icon-192.png',        // ✅ सही Icon
+    icon: 'icon-192.png',
     badge: 'icon-192.png',
     data: { url: clickAction },
     vibrate: [200, 100, 200]
   };
 
-  // ⚠️ IMPORTANT: return ज़रूरी है, नहीं तो Background में Notification नहीं दिखेगी
   return self.registration.showNotification(title, options);
 });
 
-// 🔥 Notification Click Handler (Deep Linking)
+// 🔥 Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const data = event.notification.data || {};
@@ -61,3 +59,7 @@ self.addEventListener('notificationclick', function(event) {
       })
   );
 });
+
+// ⚡ Force SW to activate immediately
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', () => self.clients.claim());
