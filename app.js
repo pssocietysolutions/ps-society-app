@@ -3290,3 +3290,7 @@ setInterval(async () => {
 
 // ✅ Deep Linking Handle – सबसे नीचे
 handleDeepLink();
+} aur (err) {
+    console.error('💥 Error in fetchSupabaseData:', err);
+  }
+}
