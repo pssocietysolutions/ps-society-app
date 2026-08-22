@@ -1,6 +1,6 @@
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
@@ -15,44 +15,12 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Background message received: ', payload);
-  const notificationTitle = payload.notification?.title || 'PS Society';
-  
-  // Default URL agar data mein kuch na ho
-  const clickAction = payload.data?.click_action || payload.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
-
+  console.log('[firebase-messaging-sw.js] Received background message ', payload);
+  const notificationTitle = payload.notification.title;
   const notificationOptions = {
-    body: payload.notification?.body || '',
-    icon: 'icon-192.png',
-    data: { url: clickAction }
+    body: payload.notification.body,
+    icon: '/icon.png'
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
-});
-
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-
-  let targetUrl = event.notification.data?.url || 'https://pssocietysolutions.github.io/ps-society-app/';
-
-  // ✅ Fix: Ensure URL is absolute and targets index.html correctly for GitHub Pages
-  if (!targetUrl.startsWith('http')) {
-    targetUrl = 'https://pssocietysolutions.github.io/ps-society-app/' + targetUrl;
-  }
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
-        for (let client of windowClients) {
-          if (client.url.includes('pssocietysolutions.github.io/ps-society-app') && 'focus' in client) {
-            client.focus();
-            client.navigate(targetUrl);
-            return;
-          }
-        }
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
-        }
-      })
-  );
 });
