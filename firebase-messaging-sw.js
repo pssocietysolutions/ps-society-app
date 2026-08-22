@@ -14,43 +14,48 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Mobile background worker
+// ✅ Mobile background notification handler
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Background message received:', payload);
   
-  // Agar browser ne already show kar diya hai toh dubara call nahi karega
   const title = payload.notification?.title || payload.data?.title || "PS Society Alert";
+  const body = payload.notification?.body || payload.data?.body || "New society update.";
+  
+  // URL ko hamesha absolute banayein taaki mobile par 404 na aaye
+  let clickAction = payload.data?.click_action || payload.data?.url || '';
+  if (!clickAction.startsWith('http')) {
+    clickAction = 'https://pssocietysolutions.github.io/ps-society-app/' + clickAction;
+  }
+
   const options = {
-    body: payload.notification?.body || payload.data?.body || "New society update.",
-    icon: './icon-192.png',
-    badge: './icon-192.png',
-    data: payload.data || {},
+    body: body,
+    icon: 'icon-192.png',
+    badge: 'icon-192.png',
+    data: { url: clickAction },
     vibrate: [200, 100, 200]
   };
 
   return self.registration.showNotification(title, options);
 });
 
-// 🔥 Notification Click Handler (Mobile 404 Fix)
+// 🔥 Notification Click Handler (Mobile Direct App Opening)
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
   const data = event.notification.data || {};
-  let clickAction = data.click_action || '';
-
-  const scopePath = self.registration.scope;
-  let urlToOpen = new URL(clickAction, scopePath).href;
+  let targetUrl = data.url || 'https://pssocietysolutions.github.io/ps-society-app/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if ('focus' in client) {
-            client.navigate(urlToOpen);
-            return client.focus();
+          if (client.url.includes('pssocietysolutions.github.io/ps-society-app') && 'focus' in client) {
+            client.focus();
+            client.navigate(targetUrl);
+            return;
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
+          return clients.openWindow(targetUrl);
         }
       })
   );

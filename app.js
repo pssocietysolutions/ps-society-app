@@ -884,22 +884,23 @@ async function requestNotificationPermission() {
     if (permission === 'granted') {
       console.log('Notification permission granted.');
       const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+      console.log('SW registered successfully:', registration);
       
-      // Force refresh token taaki "NotRegistered" error na aaye
-      const token = await messaging.getToken({ 
+      const token = await messaging.getToken({
         vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
-        serviceWorkerRegistration: registration 
+        serviceWorkerRegistration: registration
       });
-
+      console.log('FCM Token received:', token);
       if (token) {
-        console.log('Valid FCM Device Token:', token);
         await saveFCMTokenToSupabase(token);
+      } else {
+        console.warn('No token received.');
       }
     } else {
       console.log('Notification permission denied.');
     }
   } catch (err) {
-    console.error('Error getting notification permission or token: ', err);
+    console.error('Error in notification setup:', err);
   }
 }
 
