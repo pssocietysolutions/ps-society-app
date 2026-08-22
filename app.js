@@ -3289,8 +3289,13 @@ setInterval(async () => {
 }, 30000);
 
 // ✅ Deep Linking Handle – सबसे नीचे
-handleDeepLink();
-} aur (err) {
+try {
+      handleDeepLink();
+    } catch (e) {
+      console.log("Deep link error ignored:", e);
+    }
+
+  } catch (err) {
     console.error('💥 Error in fetchSupabaseData:', err);
   }
 }
