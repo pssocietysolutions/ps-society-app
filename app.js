@@ -3093,6 +3093,7 @@ function showSOSBanner(alertData) {
 
 // ==================== DEEP LINKING HANDLER ====================
 // ==================== DEEP LINKING HANDLER ====================
+// ==================== DEEP LINKING HANDLER ====================
 function handleDeepLink() {
     setTimeout(() => {
         const params = new URLSearchParams(window.location.search);
@@ -3103,34 +3104,39 @@ function handleDeepLink() {
         const eventId = params.get('eventId');
 
         if (tab) {
-            // ✅ Mobile Grid Overlay को बंद करें (सुरक्षित तरीका)
+            // ✅ Mobile Grid Overlay को बंद करें
             const gridOverlay = document.getElementById('mobileMenuOverlay');
             if (gridOverlay) {
                 gridOverlay.style.display = 'none';
                 document.body.style.overflow = '';
             }
-            // अगर closeMobileMenu Function है तो उसे भी Call करें
+            // अगर closeMobileMenu Function है तो Call करें
             if (typeof closeMobileMenu === 'function') {
                 closeMobileMenu();
             }
 
-            // ✅ Nav‑Link ढूँढें (case-insensitive match)
-            const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
-            if (link) {
-                switchTab(tab, link);
+            // ✅ Device के अनुसार Tab खोलें
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                // Mobile: Full‑Screen Overlay में Tab खोलें
+                openTabOverlay(tab);
             } else {
-                // अगर Link न मिले तो सीधे switchTab Call करें (Active Class नहीं मिलेगी, लेकिन Tab तो दिखेगा)
-                switchTab(tab, null);
-                // और Sidebar में सही Link को Active करने की कोशिश करें
-                const allLinks = document.querySelectorAll('.nav-link');
-                allLinks.forEach(l => {
-                    if (l.textContent.trim().toLowerCase() === tab.toLowerCase()) {
-                        l.classList.add('active');
-                    }
-                });
+                // Desktop: Sidebar में Tab Switch करें
+                const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
+                if (link) {
+                    switchTab(tab, link);
+                } else {
+                    switchTab(tab, null);
+                    // Active Class Set करें
+                    document.querySelectorAll('.nav-link').forEach(l => {
+                        if (l.textContent.trim().toLowerCase() === tab.toLowerCase()) {
+                            l.classList.add('active');
+                        }
+                    });
+                }
             }
 
-            // ✅ Specific ID Highlight
+            // ✅ अगर Specific ID है तो उसे Highlight करें (Overlay के अंदर)
             setTimeout(() => {
                 let targetElement = null;
                 if (pollId) {
@@ -3151,9 +3157,9 @@ function handleDeepLink() {
                         targetElement.style.backgroundColor = '';
                     }, 3000);
                 }
-            }, 500);
+            }, 600); // थोड़ा extra delay ताकि Overlay का Content Render हो जाए
         }
-    }, 400); // Delay बढ़ा दिया (400ms)
+    }, 400);
 }
 
 // ✅ Deep Linking को और Robust बनाएँ – पहले से Open App पर भी काम करे
