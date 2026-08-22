@@ -3041,6 +3041,28 @@ function listenForSOSAlerts() {
   }).subscribe();
 }
 
+function listenForRealtimeBadges() {
+  _supabase
+    .channel('realtime-badges')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_proofs' }, async () => {
+      let { data: proofs } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety).order('submitted_at', { ascending: false });
+      paymentProofs = proofs || [];
+      renderPaymentProofs();
+      updateAllBadges();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, async () => {
+      let { data: complaints } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
+      complaintData = complaints || [];
+      updateAllBadges();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, async () => {
+      let { data: notices } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
+      noticesData = notices || [];
+      updateAllBadges();
+    })
+    .subscribe();
+}
+
 function showSOSBanner(alertData) {
   const existing = document.getElementById('sosAlertBanner');
   if (existing) existing.remove();

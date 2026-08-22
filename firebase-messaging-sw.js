@@ -14,39 +14,37 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ FIXED: payload.data को notification options में pass करें
+// ✅ Sirf ek single notification show hoga
 messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
+  console.log('[firebase-messaging-sw.js] Background message: ', payload);
+  const data = payload.data || {};
+  const notificationTitle = data.title || payload.notification?.title || "PS Society Alert";
   const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon.png',
-    // ✅ IMPORTANT: data को attach करें ताकि notificationclick में मिल सके
-    data: payload.data || {}
+    body: data.body || payload.notification?.body || "New society update.",
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    data: data
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// 🔥 Notification Click Handler
+// 🔥 Notification Click Handler (404 error fix)
 self.addEventListener('notificationclick', function(event) {
-  console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
-
-  // अब data available होगा
   const data = event.notification.data || {};
-  let urlToOpen = data.click_action || data.url || '/';
+  let clickAction = data.click_action || '';
 
-  if (!urlToOpen.startsWith('http')) {
-    const baseUrl = self.location.origin;
-    urlToOpen = baseUrl + urlToOpen;
-  }
+  // GitHub repository subfolder handle karega
+  const scopePath = self.registration.scope; // e.g. https://pssocietysolutions.github.io/ps-society-app/
+  let urlToOpen = new URL(clickAction, scopePath).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url === urlToOpen && 'focus' in client) {
+          if ('focus' in client) {
+            client.navigate(urlToOpen);
             return client.focus();
           }
         }
