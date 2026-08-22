@@ -3091,7 +3091,6 @@ function showSOSBanner(alertData) {
 }
 
 // ==================== DEEP LINKING HANDLER ====================
-// ==================== DEEP LINKING HANDLER ====================
 function handleDeepLink() {
   const params = new URLSearchParams(window.location.search);
   const tab = params.get('tab');
@@ -3110,6 +3109,7 @@ function handleDeepLink() {
     }
   }
 
+  // Highlight/scroll to specific item
   setTimeout(() => {
     let targetElement = null;
     if (pollId) {
@@ -3132,6 +3132,22 @@ function handleDeepLink() {
       }, 3000);
     }
   }, 800);
+}
+
+async function resolveSOSAlert(alertId) {
+  try {
+    await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
+  } catch (err) {
+    console.error('Error resolving SOS:', err);
+  }
+  
+  if (typeof sirenAudio !== 'undefined' && sirenAudio) {
+    sirenAudio.pause();
+    sirenAudio.currentTime = 0;
+  }
+  
+  const banner = document.getElementById('sosAlertBanner');
+  if (banner) banner.remove();
 }
 
 function renderCelebrations() {
@@ -3253,13 +3269,6 @@ window.onload = async () => {
   } else {
     showLandingPage();
   }
-
-  // ✅ Safe Deep Link Call on Page Load
-  try {
-    handleDeepLink();
-  } catch (e) {
-    console.log("Deep link error ignored:", e);
-  }
 };
 
 setInterval(async () => {
@@ -3278,3 +3287,6 @@ setInterval(async () => {
     }
   }
 }, 30000);
+
+// ✅ Deep Linking Handle – सबसे नीचे
+handleDeepLink();
