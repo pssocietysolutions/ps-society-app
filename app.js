@@ -883,18 +883,19 @@ async function requestNotificationPermission() {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       console.log('Notification permission granted.');
-      const registration = await navigator.serviceWorker.register('firebase-messaging-sw.js', { scope: '/' });
-      console.log('SW registered successfully:', registration);
+      
+      // Explicit registration path
+      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+      await navigator.serviceWorker.ready;
       
       const token = await messaging.getToken({
         vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
         serviceWorkerRegistration: registration
       });
+
       console.log('FCM Token received:', token);
       if (token) {
         await saveFCMTokenToSupabase(token);
-      } else {
-        console.warn('No token received.');
       }
     } else {
       console.log('Notification permission denied.');
@@ -903,7 +904,6 @@ async function requestNotificationPermission() {
     console.error('Error in notification setup:', err);
   }
 }
-
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
   try {
