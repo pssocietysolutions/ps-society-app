@@ -529,7 +529,10 @@ function changeLanguage(lang) {
 
 function applyTranslations() {
   const langSelector = document.getElementById('languageSelector');
+  const mobileLangSelector = document.getElementById('mobileLanguageSelector');
+  
   if (langSelector) langSelector.value = currentLang;
+  if (mobileLangSelector) mobileLangSelector.value = currentLang; // 🟢 मोबाइल ड्रॉपडाउन को सिंक करें
 
   const dict = translations[currentLang] || translations['en'];
   
@@ -3410,7 +3413,7 @@ function closeAboutPS() {
   if (overlay) overlay.style.display = 'none';
   document.body.style.overflow = '';
   
-  // 🟢 मोबाइल में '✕' दबाने पर ग्रिड मेनू वापस दिखाएं
+  // 🟢 मोबाइल में '✕' या बैक बटन दबाने पर ग्रिड मेनू को तुरंत वापस एक्टिव करें
   if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -3420,7 +3423,6 @@ function closeAboutPS() {
     }
   }
 }
-
 
 // 🟢 Update openTabOverlay to support Browser Back Button
 async function openTabOverlay(tabId) {
