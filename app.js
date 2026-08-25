@@ -17,8 +17,10 @@ let membersData = [];
 let maintenanceData = [];
 let expenseData = [];
 let customBankEntries = [];
+let journalVouchersData = [];
 let pollsData = [];
 let noticesData = [];
+let meetingsData = [];
 let complaintData = [];
 let assetData = [];
 let fdData = [];
@@ -63,6 +65,25 @@ function showLandingPage() {
   document.getElementById('login-section').style.display = 'none';
   document.getElementById('app-section').classList.add('d-none');
   updateFloatingButtonsVisibility(true);
+}
+
+// ==================== DYNAMIC AUTO LATE FEE FUNCTION ====================
+function calculateLateFee(flatPendingDue) {
+  const isLateFeeEnabled = societySettings.enable_late_fee === 'true';
+  if (!isLateFeeEnabled || flatPendingDue <= 0) return 0;
+
+  const lateFeeType = societySettings.late_fee_type || 'fixed'; 
+  const customRate = Number(societySettings.late_fee_amount || 0);
+
+  let calculatedLateFee = 0;
+  
+  if (lateFeeType === 'fixed') {
+    calculatedLateFee = customRate; 
+  } else if (lateFeeType === 'percentage') {
+    calculatedLateFee = (flatPendingDue * customRate) / 100; 
+  }
+
+  return Math.round(calculatedLateFee);
 }
 
 function showVisitorPage() {
@@ -440,6 +461,62 @@ function markAllAsRead() {
   updateBadge('visitor-badge', 0);
 }
 
+// 🟢 Multi-Language Dictionary & Localization
+const translations = {
+  en: {
+    dashboard: "Dashboard",
+    members: "Members Directory",
+    maintenance: "Maintenance Log",
+    expenses: "Expense Ledger",
+    visitors: "Visitor Management",
+    complaints: "Complaints",
+    meetings: "Meeting Minutes"
+  },
+  hi: {
+    dashboard: "डैशबोर्ड",
+    members: "सदस्य सूची (Members)",
+    maintenance: "रखरखाव लॉग (Maintenance)",
+    expenses: "खर्च बही (Expenses)",
+    visitors: "आगंतुक प्रबंधन (Visitors)",
+    complaints: "शिकायतें (Complaints)",
+    meetings: "मीटिंग मिनट्स (AGM)"
+  },
+  gu: {
+    dashboard: "ડેશબોર્ડ",
+    members: "સભ્યોની યાદી (Members)",
+    maintenance: "મેન્ટેનન્સ લોગ (Maintenance)",
+    expenses: "ખર્ચ લેજર (Expenses)",
+    visitors: "વિઝિટર મેનેજમેન્ટ (Visitors)",
+    complaints: "ફરિયાદો (Complaints)",
+    meetings: "મીટિંગ મિનિટ્સ (AGM)"
+  }
+};
+
+let currentLang = localStorage.getItem('ps_lang') || 'en';
+
+function changeLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('ps_lang', lang);
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const langSelector = document.getElementById('languageSelector');
+  if (langSelector) langSelector.value = currentLang;
+
+  const dict = translations[currentLang] || translations['en'];
+  
+  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+    if (link.getAttribute('onclick')?.includes('dashboard')) link.innerHTML = `<i class="fa-solid fa-chart-line me-2"></i> ${dict.dashboard}`;
+    if (link.getAttribute('onclick')?.includes('members')) link.innerHTML = `<i class="fa-solid fa-users me-2"></i> ${dict.members}`;
+    if (link.getAttribute('onclick')?.includes('maintenance')) link.innerHTML = `<i class="fa-solid fa-indian-rupee-sign me-2"></i> ${dict.maintenance}`;
+    if (link.getAttribute('onclick')?.includes('expenses')) link.innerHTML = `<i class="fa-solid fa-receipt me-2"></i> ${dict.expenses}`;
+    if (link.getAttribute('onclick')?.includes('visitor')) link.innerHTML = `<i class="fa-solid fa-user-plus me-2"></i> ${dict.visitors}`;
+    if (link.getAttribute('onclick')?.includes('complaints')) link.innerHTML = `<i class="fa-solid fa-headset me-2"></i> ${dict.complaints}`;
+    if (link.getAttribute('onclick')?.includes('meetings')) link.innerHTML = `<i class="fa-solid fa-book-open me-2"></i> ${dict.meetings}`;
+  });
+}
+
 function handleLogout() {
   markAllAsRead();
   _supabase.auth.signOut();
@@ -451,7 +528,6 @@ function handleLogout() {
   const gridOverlay = document.getElementById('mobileMenuOverlay');
   if (gridOverlay) gridOverlay.style.display = 'none';
   showLandingPage();
-  resetIdleTimer();
 }
 
 async function fetchSupabaseData() {
@@ -481,6 +557,10 @@ async function fetchSupabaseData() {
     let { data: notices } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
     noticesData = notices || [];
 
+    let { data: meets } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).order('meeting_date', { ascending: false });
+    meetingsData = meets || [];
+    renderMeetings();
+
     let { data: amcs } = await _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety);
     amcContractsData = amcs || [];
 
@@ -488,12 +568,33 @@ async function fetchSupabaseData() {
     societySettings = {};
     if (settings) {
       settings.forEach(s => { societySettings[s.key] = s.value; });
+      
       document.getElementById('sidebar-society-name').innerText = societySettings.society_name || currentSociety;
       if (document.getElementById('settings-name')) document.getElementById('settings-name').value = societySettings.society_name || '';
       if (document.getElementById('settings-address')) document.getElementById('settings-address').value = societySettings.society_address || '';
       if (document.getElementById('settings-phone')) document.getElementById('settings-phone').value = societySettings.society_phone || '';
       if (document.getElementById('settings-email')) document.getElementById('settings-email').value = societySettings.society_email || '';
       if (document.getElementById('settings-pan')) document.getElementById('settings-pan').value = societySettings.society_pan || '';
+
+      // लेट फीस सेटिंग्स लोड करना
+      if (document.getElementById('settings-enable-late-fee')) 
+        document.getElementById('settings-enable-late-fee').value = societySettings.enable_late_fee || 'false';
+
+      if (document.getElementById('settings-late-fee-type')) 
+        document.getElementById('settings-late-fee-type').value = societySettings.late_fee_type || 'fixed';
+
+      if (document.getElementById('settings-late-fee-amount')) 
+        document.getElementById('settings-late-fee-amount').value = societySettings.late_fee_amount || '';
+
+      // GST सेटिंग्स को UI पर तुरंत सेट करना
+      if (document.getElementById('settings-enable-gst')) {
+        document.getElementById('settings-enable-gst').value = societySettings.enable_gst || 'false';
+        toggleGSTFields(societySettings.enable_gst || 'false');
+      }
+
+      if (document.getElementById('settings-society-gstin')) {
+        document.getElementById('settings-society-gstin').value = societySettings.society_gstin || '';
+      }
     }
 
     openingBalance = parseFloat(societySettings.opening_bank_balance) || 0;
@@ -501,6 +602,10 @@ async function fetchSupabaseData() {
 
     let { data: proofs } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety).order('submitted_at', { ascending: false });
     paymentProofs = proofs || [];
+
+    let { data: jvs } = await _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
+    journalVouchersData = jvs || [];
+    renderJournalVouchers();
 
     let { data: team } = await _supabase.from('team').select('*').eq('society_name', currentSociety).order('type', { ascending: true });
     teamData = team || [];
@@ -882,9 +987,6 @@ async function requestNotificationPermission() {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      console.log('Notification permission granted.');
-      
-      // Explicit registration path
       const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
       await navigator.serviceWorker.ready;
       
@@ -893,12 +995,9 @@ async function requestNotificationPermission() {
         serviceWorkerRegistration: registration
       });
 
-      console.log('FCM Token received:', token);
       if (token) {
         await saveFCMTokenToSupabase(token);
       }
-    } else {
-      console.log('Notification permission denied.');
     }
   } catch (err) {
     console.error('Error in notification setup:', err);
@@ -908,11 +1007,9 @@ async function requestNotificationPermission() {
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
   try {
-    // Purana token agar is user ka hai toh pehle clean karega fir naya fresh token daalega
     await _supabase.from('fcm_tokens').upsert([
       { society_name: currentSociety, flat_no: currentUser, token: token }
     ], { onConflict: 'token' });
-    console.log('✅ Fresh FCM Token saved to Supabase successfully');
   } catch (err) {
     console.error('Error saving FCM token to Supabase:', err);
   }
@@ -1076,6 +1173,128 @@ async function submitPaymentDetails(event) {
   fetchSupabaseData();
 }
 
+// ==================== MEMBER CENTRAL VIEW & LEDGER ====================
+function renderMemberPersonalView() {
+  if (currentRole !== 'Member') return;
+  const userFlat = (currentUser || '').trim().toUpperCase();
+  
+  const ledgerContainer = document.getElementById('my-member-ledger-list');
+  if (!ledgerContainer) return;
+
+  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === userFlat);
+  const myFlatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === userFlat);
+  const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === userFlat);
+  
+  const rate = member ? Number(member.monthly_rate || 600) : 600;
+  const openingDue = member ? Number(member.opening_due || 0) : 0;
+  
+  let runningBalance = openingDue;
+  let ledgerRows = [{ date: '2026-04-01', particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
+  
+  const fyStartDate = new Date('2026-04-01');
+  let currentIterDate = new Date(fyStartDate);
+  
+  let monthlyDueEntries = [];
+  for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
+    const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+    const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-05`;
+    monthlyDueEntries.push({
+      date: dueDate,
+      type: 'monthly_due',
+      particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`,
+      amount: rate
+    });
+    currentIterDate.setMonth(currentIterDate.getMonth() + 1);
+  }
+
+  let combinedTransactions = [
+    ...monthlyDueEntries.map(m => ({ date: m.date, type: 'due', data: m })),
+    ...myFlatData.map(r => ({ date: r.payment_date, type: 'receipt', data: r })),
+    ...myFlatJVs.map(jv => ({ date: jv.date, type: 'jv', data: jv }))
+  ];
+  combinedTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  combinedTransactions.forEach(item => {
+    if (item.type === 'due') {
+      const d = item.data;
+      runningBalance += d.amount;
+      ledgerRows.push({
+        date: d.date,
+        particulars: d.particulars,
+        debit: d.amount,
+        credit: 0,
+        balance: runningBalance
+      });
+    } else if (item.type === 'receipt') {
+      const r = item.data;
+      const amt = Number(r.amount_paid || 0);
+      runningBalance -= amt; 
+      ledgerRows.push({
+        date: r.payment_date || '-',
+        particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`,
+        debit: 0,
+        credit: amt,
+        balance: runningBalance
+      });
+    } else if (item.type === 'jv') {
+      const jv = item.data;
+      const amt = Number(jv.amount || 0);
+      if (jv.type === 'Debit') {
+        runningBalance += amt;
+        ledgerRows.push({
+          date: jv.date || '-',
+          particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`,
+          debit: amt,
+          credit: 0,
+          balance: runningBalance
+        });
+      } else {
+        runningBalance -= amt;
+        ledgerRows.push({
+          date: jv.date || '-',
+          particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`,
+          debit: 0,
+          credit: amt,
+          balance: runningBalance
+        });
+      }
+    }
+  });
+
+  const finalPendingBeforeLateFee = Math.max(0, runningBalance);
+  const lateFee = calculateLateFee(finalPendingBeforeLateFee, rate);
+  if (lateFee > 0) {
+    runningBalance += lateFee;
+    ledgerRows.push({
+      date: new Date().toISOString().split('T')[0],
+      particulars: `Auto Late Fee / Interest Penalty`,
+      debit: lateFee,
+      credit: 0,
+      balance: runningBalance
+    });
+  }
+
+  const myTotalPaid = myFlatData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+  if (document.getElementById('my-flat-pending')) {
+    if (lateFee > 0) {
+      document.getElementById('my-flat-pending').innerHTML = `${runningBalance} <br><small class="text-warning" style="font-size: 12px; font-weight: 600;">(Incl. Late Fee: ₹${lateFee})</small>`;
+    } else {
+      document.getElementById('my-flat-pending').innerText = runningBalance;
+    }
+  }
+  if (document.getElementById('my-flat-paid')) document.getElementById('my-flat-paid').innerText = myTotalPaid;
+
+  ledgerContainer.innerHTML = ledgerRows.map(row => `
+    <tr>
+      <td>${row.date}</td>
+      <td>${row.particulars}</td>
+      <td class="text-danger">${row.debit > 0 ? row.debit : '-'}</td>
+      <td class="text-success">${row.credit > 0 ? row.credit : '-'}</td>
+      <td class="fw-bold ${row.balance > 0 ? 'text-danger' : 'text-success'}">${row.balance}</td>
+    </tr>
+  `).join('');
+}
+
 function renderTallyBankBook() {
   const tbody = document.getElementById('tally-bank-entries');
   if (!tbody) return;
@@ -1225,6 +1444,39 @@ function switchTab(tabId, element) {
   if (tabId === 'sos-contacts') renderSOSContacts();
 }
 
+async function submitMeetingMinutes(event) {
+  event.preventDefault();
+  const title = document.getElementById('meet-title').value.trim();
+  const date = document.getElementById('meet-date').value;
+  const type = document.getElementById('meet-type').value;
+  const venue = document.getElementById('meet-venue').value.trim();
+  const attendees = document.getElementById('meet-attendees').value.trim();
+  const content = document.getElementById('meet-content').value.trim();
+
+  const newMeeting = {
+    society_name: currentSociety,
+    meeting_title: title,
+    meeting_date: date,
+    meeting_type: type,
+    venue: venue || 'Society Clubhouse',
+    attendees: attendees || 'All Members',
+    minutes_content: content,
+    created_by: currentUser,
+    created_at: new Date().toISOString()
+  };
+
+  const { error } = await _supabase.from('society_meetings').insert([newMeeting]);
+  if (error) {
+    alert('❌ Error saving meeting: ' + error.message);
+    return;
+  }
+
+  alert('✅ Meeting Minutes Recorded Successfully!');
+  bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
+  document.getElementById('meetingForm').reset();
+  fetchSupabaseData();
+}
+
 function renderAllTables() {
   renderMembers();
   renderMaintenance();
@@ -1299,7 +1551,7 @@ function renderEventsCommunity() {
     return;
   }
   container.innerHTML = eventsData.map(ev => `
-    <div class="col-md-6 col-lg-4" data-event-id="${ev.id}">   <!-- ✅ Added data-event-id -->
+    <div class="col-md-6 col-lg-4" data-event-id="${ev.id}">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex align-items-center mb-2">
           <i class="fa-regular fa-calendar-circle-plus" style="color:#2563eb; font-size:24px;"></i>
@@ -1335,7 +1587,7 @@ function renderNoticesCommunity() {
     const priorityColor = n.priority === 'High' ? 'danger' : (n.priority === 'Medium' ? 'warning' : 'secondary');
     const isTargeted = n.target_members && n.target_members.length > 0;
     return `
-      <div class="col-md-6 col-lg-4" data-notice-id="${n.id}">   <!-- ✅ Added data-notice-id -->
+      <div class="col-md-6 col-lg-4" data-notice-id="${n.id}">
         <div class="card border-0 shadow-sm rounded-4 p-3 h-100 border-start border-4 border-${priorityColor}">
           <div class="d-flex justify-content-between align-items-start">
             <h6 class="fw-bold">${n.title}</h6>
@@ -1683,37 +1935,6 @@ function renderAllBookings() {
   }).join('');
 }
 
-function renderMemberPersonalView() {
-  if (currentRole !== 'Member') return;
-  const userFlat = currentUser.toUpperCase();
-  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').toUpperCase() === userFlat);
-  const member = membersData.find(m => (m.flat_no || '').toUpperCase() === userFlat);
-  const rate = member ? Number(member.monthly_rate || 600) : 600;
-  const openingDue = member ? Number(member.opening_due || 0) : 0;
-  const totalDue = MONTHS_IN_FY_SO_FAR * rate;
-  const myTotalPaid = myFlatData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-  const myPending = Math.max(0, openingDue + totalDue - myTotalPaid);
-  
-  if (document.getElementById('my-flat-pending')) document.getElementById('my-flat-pending').innerText = myPending;
-  if (document.getElementById('my-flat-paid')) document.getElementById('my-flat-paid').innerText = myTotalPaid;
-  
-  const historyTable = document.getElementById('my-payment-history-list');
-  if (historyTable) {
-    if (myFlatData.length === 0) {
-      historyTable.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No Payment History</td></tr>`;
-      return;
-    }
-    historyTable.innerHTML = myFlatData.map(r => `
-      <tr>
-        <td><b>${r.receipt_no || '-'}</b></td>
-        <td>${r.payment_date || '-'}</td>
-        <td class="text-success fw-bold">${r.amount_paid || 0}</td>
-        <td><span class="badge bg-info text-dark">${r.mode_of_payment || '-'}</span></td>
-      </tr>
-    `).join('');
-  }
-}
-
 function renderMembers() {
   const tbody = document.getElementById('members-list');
   if (!tbody) return;
@@ -1723,6 +1944,10 @@ function renderMembers() {
     document.getElementById('dash-pending').innerText = `0`;
     return;
   }
+
+  const canEdit = currentRole === 'Admin' || currentRole === 'SocietyAdmin';
+  const canViewLedger = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
+
   tbody.innerHTML = membersData.map((m, index) => {
     const flatNo = (m.flat_no || '').trim().toUpperCase();
     const ownerName = m.name || '-';
@@ -1730,11 +1955,24 @@ function renderMembers() {
     const status = m.status || 'Owner';
     const rate = Number(m.monthly_rate || 600);
     const openingDue = Number(m.opening_due || 0);
+    
     const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
-    const pendingDue = Math.max(0, openingDue + totalDueTillDate - flatPaid);
+    
+    const flatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === flatNo);
+    const totalDebitJV = flatJVs.filter(jv => jv.type === 'Debit').reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+    const totalCreditJV = flatJVs.filter(jv => jv.type === 'Credit').reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+    const netJVEffect = totalDebitJV - totalCreditJV;
+
+    let rawPending = openingDue + totalDueTillDate + totalDebitJV - totalCreditJV - flatPaid;
+    let pendingDue = Math.max(0, rawPending);
+    
+    const lateFee = calculateLateFee(pendingDue, rate);
+    pendingDue += lateFee;
+
     grandTotalPending += pendingDue;
     const showWhatsApp = (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && phone;
+
     return `
       <tr>
         <td><b>${flatNo}</b></td>
@@ -1746,14 +1984,16 @@ function renderMembers() {
         <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">${flatPaid}</td>
         <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">
           <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">${pendingDue}</span>
+          ${lateFee > 0 ? `<br><small class="text-warning fw-bold">(Incl. Late Fee: ₹${lateFee})</small>` : ''}
+          ${netJVEffect !== 0 ? `<br><small class="text-info fw-bold">(Net JV: ₹${netJVEffect})</small>` : ''}
         </td>
-        <td class="no-print ${currentRole === 'Member' ? 'd-none' : ''}">
-          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id || index})"><i class="fa-solid fa-trash"></i></button>
+        <td class="no-print">
+          ${canViewLedger ? `<button class="btn btn-sm btn-outline-primary me-1" onclick="openAdminMemberLedger('${flatNo}')" title="View Ledger"><i class="fa-solid fa-file-lines"></i></button>` : ''}
+          ${canEdit ? `
+            <button class="btn btn-sm btn-outline-warning me-1" onclick="openEditMemberModal(${m.id})" title="Edit Member"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
           ` : ''}
-          ${showWhatsApp ? `
-            <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. Please pay at the earliest. - PS Society')"><i class="fa-brands fa-whatsapp"></i></button>
-          ` : ''}
+          ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. - PS Society')"><i class="fa-brands fa-whatsapp"></i></button>` : ''}
         </td>
       </tr>
     `;
@@ -1786,7 +2026,7 @@ function renderMaintenance() {
         <td>${amt}</td>
         <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
         <td class="no-print">
-          <button class="btn btn-sm btn-outline-primary" onclick="generateReceiptPDF('maintenance', ${r.id})" title="PDF"><i class="fa-solid fa-file-pdf"></i></button>
+          <button class="btn btn-sm btn-outline-primary" onclick="generateTaxInvoicePDF(${r.id})" title="Tax Invoice PDF"><i class="fa-solid fa-file-pdf"></i></button>
           ${currentRole === 'Admin' || currentRole === 'SocietyAdmin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMaintenance(${r.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
           ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Reminder: Your maintenance for ${r.month_accounted || ''} is due. - PS Society')"><i class="fa-brands fa-whatsapp"></i></button>` : ''}
         </td>
@@ -1826,7 +2066,8 @@ function renderExpenses() {
   document.getElementById('dash-expenses').innerText = total;
 }
 
-function renderCAAuditReport() {
+// 🟢 CA Audit & GST Summary Report Generator
+async function renderCAAuditReport() {
   const totalIncome = maintenanceData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
   const totalExp = expenseData.reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const totalAssets = assetData.reduce((sum, a) => sum + Number(a.cost || 0), 0);
@@ -1836,21 +2077,75 @@ function renderCAAuditReport() {
   const openingCapitalOrSurplus = Math.max(0, totalDebit - totalIncome);
 
   const tbody = document.getElementById('ca-trial-balance-rows');
-  if (!tbody) return;
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr><td>Opening Bank Balance</td><td>Asset</td><td class="text-success fw-bold">${openingBalance.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${totalIncome.toFixed(2)}</td></tr>
+      <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${totalAssets.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${totalExp.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${totalFDs.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Opening Capital / Accumulated Surplus</td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${openingCapitalOrSurplus.toFixed(2)}</td></tr>
+      <tr class="table-secondary fw-bold">
+        <td colspan="2">GRAND TOTAL (MATCHED)</td>
+        <td class="text-success">${totalDebit.toFixed(2)}</td>
+        <td class="text-primary">${(totalIncome + openingCapitalOrSurplus).toFixed(2)}</td>
+      </tr>
+    `;
+  }
 
-  tbody.innerHTML = `
-    <tr><td>Opening Bank Balance</td><td>Asset</td><td class="text-success fw-bold">${openingBalance.toFixed(2)}</td><td>-</td></tr>
-    <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${totalIncome.toFixed(2)}</td></tr>
-    <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${totalAssets.toFixed(2)}</td><td>-</td></tr>
-    <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${totalExp.toFixed(2)}</td><td>-</td></tr>
-    <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${totalFDs.toFixed(2)}</td><td>-</td></tr>
-    <tr><td>Opening Capital / Accumulated Surplus</td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${openingCapitalOrSurplus.toFixed(2)}</td></tr>
-    <tr class="table-secondary fw-bold">
-      <td colspan="2">GRAND TOTAL (MATCHED)</td>
-      <td class="text-success">${totalDebit.toFixed(2)}</td>
-      <td class="text-primary">${(totalIncome + openingCapitalOrSurplus).toFixed(2)}</td>
-    </tr>
-  `;
+  // 🟢 Fetch & Render GST Invoices Summary for CA
+  try {
+    const { data: invData, error } = await _supabase
+      .from('society_invoices')
+      .select('*')
+      .eq('society_name', currentSociety);
+
+    const gstTbody = document.getElementById('ca-gst-summary-rows');
+    if (!gstTbody) return;
+
+    if (error || !invData || invData.length === 0) {
+      gstTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No GST Invoices recorded for this society yet.</td></tr>`;
+      return;
+    }
+
+    let totalBase = 0;
+    let totalCgst = 0;
+    let totalSgst = 0;
+    let totalInvoiceVal = 0;
+
+    invData.forEach(inv => {
+      totalBase += Number(inv.base_amount || 0);
+      totalCgst += Number(inv.cgst_amount || 0);
+      totalSgst += Number(inv.sgst_amount || 0);
+      totalInvoiceVal += Number(inv.total_amount || 0);
+    });
+
+    gstTbody.innerHTML = `
+      <tr>
+        <td><strong>Central Goods & Services Tax (CGST)</strong></td>
+        <td>9%</td>
+        <td>₹ ${totalBase.toFixed(2)}</td>
+        <td class="text-primary fw-bold">₹ ${totalCgst.toFixed(2)}</td>
+      </tr>
+      <tr>
+        <td><strong>State Goods & Services Tax (SGST)</strong></td>
+        <td>9%</td>
+        <td>₹ ${totalBase.toFixed(2)}</td>
+        <td class="text-primary fw-bold">₹ ${totalSgst.toFixed(2)}</td>
+      </tr>
+      <tr class="table-primary fw-bold">
+        <td colspan="2">TOTAL GST OUTPUT LIABILITY (CGST + SGST)</td>
+        <td>₹ ${totalBase.toFixed(2)}</td>
+        <td class="text-success">₹ ${(totalCgst + totalSgst).toFixed(2)}</td>
+      </tr>
+      <tr class="table-secondary fw-bold">
+        <td colspan="2">TOTAL GROSS TAXABLE TURNOVER (Incl. GST)</td>
+        <td colspan="2" class="text-dark">₹ ${totalInvoiceVal.toFixed(2)}</td>
+      </tr>
+    `;
+  } catch (err) {
+    console.error('Error loading CA GST summary:', err);
+  }
 }
 
 function renderChairmanReport() {
@@ -1939,7 +2234,7 @@ function renderComplaints() {
     const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === (c.flat_no || '').trim().toUpperCase());
     const memberPhone = c.phone || member?.phone || '';
     return `
-      <tr data-complaint-id="${c.id || index+1}">   <!-- ✅ Added data-complaint-id -->
+      <tr data-complaint-id="${c.id || index+1}">
         <td><b>CMP-${c.id || index+1}</b></td>
         <td>${c.flat_no || '-'}</td>
         <td>${memberPhone ? `<a href="tel:${memberPhone}">${memberPhone}</a>` : '-'}</td>
@@ -1992,6 +2287,233 @@ async function submitComplaint(event) {
   fetchSupabaseData();
 }
 
+function openEditMemberModal(id) {
+  const member = membersData.find(m => m.id === id);
+  if (!member) return;
+
+  document.getElementById('edit-mem-id').value = member.id;
+  document.getElementById('edit-mem-flat').value = member.flat_no;
+  document.getElementById('edit-mem-name').value = member.name || '';
+  document.getElementById('edit-mem-phone').value = member.phone || '';
+  document.getElementById('edit-mem-status').value = member.status || 'Owner';
+  document.getElementById('edit-mem-rate').value = member.monthly_rate || 600;
+  document.getElementById('edit-mem-opening-due').value = member.opening_due || 0;
+
+  new bootstrap.Modal(document.getElementById('editMemberModal')).show();
+}
+
+async function updateMember(event) {
+  event.preventDefault();
+  const id = document.getElementById('edit-mem-id').value;
+  const name = document.getElementById('edit-mem-name').value.trim();
+  const phone = document.getElementById('edit-mem-phone').value.trim();
+  const status = document.getElementById('edit-mem-status').value;
+  const monthly_rate = Number(document.getElementById('edit-mem-rate').value);
+  const opening_due = Number(document.getElementById('edit-mem-opening-due').value);
+
+  const { error } = await _supabase.from('members').update({
+    name, phone, status, monthly_rate, opening_due
+  }).eq('id', id);
+
+  if (error) {
+    alert('❌ Error updating member: ' + error.message);
+    return;
+  }
+
+  alert('✅ Member details updated successfully!');
+  bootstrap.Modal.getInstance(document.getElementById('editMemberModal')).hide();
+  fetchSupabaseData();
+}
+
+function openAdminMemberLedger(flatNo) {
+  const targetFlat = flatNo.trim().toUpperCase();
+  document.getElementById('ledger-flat-title').innerText = targetFlat;
+  
+  const ledgerContainer = document.getElementById('admin-member-ledger-list');
+  if (!ledgerContainer) return;
+
+  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === targetFlat);
+  const myFlatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === targetFlat);
+  const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === targetFlat);
+  
+  const rate = member ? Number(member.monthly_rate || 600) : 600;
+  const openingDue = member ? Number(member.opening_due || 0) : 0;
+  
+  let runningBalance = openingDue;
+  let ledgerRows = [{ date: '2026-04-01', particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
+  
+  const fyStartDate = new Date('2026-04-01');
+  let currentIterDate = new Date(fyStartDate);
+  
+  let monthlyDueEntries = [];
+  for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
+    const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+    const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-05`;
+    monthlyDueEntries.push({
+      date: dueDate,
+      type: 'monthly_due',
+      particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`,
+      amount: rate
+    });
+    currentIterDate.setMonth(currentIterDate.getMonth() + 1);
+  }
+
+  let combinedTransactions = [
+    ...monthlyDueEntries.map(m => ({ date: m.date, type: 'due', data: m })),
+    ...myFlatData.map(r => ({ date: r.payment_date, type: 'receipt', data: r })),
+    ...myFlatJVs.map(jv => ({ date: jv.date, type: 'jv', data: jv }))
+  ];
+  combinedTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  combinedTransactions.forEach(item => {
+    if (item.type === 'due') {
+      const d = item.data;
+      runningBalance += d.amount;
+      ledgerRows.push({
+        date: d.date,
+        particulars: d.particulars,
+        debit: d.amount,
+        credit: 0,
+        balance: runningBalance
+      });
+    } else if (item.type === 'receipt') {
+      const r = item.data;
+      const amt = Number(r.amount_paid || 0);
+      runningBalance -= amt; 
+      ledgerRows.push({
+        date: r.payment_date || '-',
+        particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`,
+        debit: 0,
+        credit: amt,
+        balance: runningBalance
+      });
+    } else if (item.type === 'jv') {
+      const jv = item.data;
+      const amt = Number(jv.amount || 0);
+      if (jv.type === 'Debit') {
+        runningBalance += amt;
+        ledgerRows.push({
+          date: jv.date || '-',
+          particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`,
+          debit: amt,
+          credit: 0,
+          balance: runningBalance
+        });
+      } else {
+        runningBalance -= amt;
+        ledgerRows.push({
+          date: jv.date || '-',
+          particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`,
+          debit: 0,
+          credit: amt,
+          balance: runningBalance
+        });
+      }
+    }
+  });
+
+  const finalPendingBeforeLateFee = Math.max(0, runningBalance);
+  const lateFee = calculateLateFee(finalPendingBeforeLateFee, rate);
+  if (lateFee > 0) {
+    runningBalance += lateFee;
+    ledgerRows.push({
+      date: new Date().toISOString().split('T')[0],
+      particulars: `Auto Late Fee / Interest Penalty`,
+      debit: lateFee,
+      credit: 0,
+      balance: runningBalance
+    });
+  }
+
+  ledgerContainer.innerHTML = ledgerRows.map(row => `
+    <tr>
+      <td>${row.date}</td>
+      <td>${row.particulars}</td>
+      <td class="text-danger">${row.debit > 0 ? row.debit : '-'}</td>
+      <td class="text-success">${row.credit > 0 ? row.credit : '-'}</td>
+      <td class="fw-bold ${row.balance > 0 ? 'text-danger' : 'text-success'}">${row.balance}</td>
+    </tr>
+  `).join('');
+
+  new bootstrap.Modal(document.getElementById('adminMemberLedgerModal')).show();
+}
+
+async function submitMeetingMinutes(event) {
+  event.preventDefault();
+  const title = document.getElementById('meet-title').value.trim();
+  const date = document.getElementById('meet-date').value;
+  const type = document.getElementById('meet-type').value;
+  const venue = document.getElementById('meet-venue').value.trim();
+  const attendees = document.getElementById('meet-attendees').value.trim();
+  const content = document.getElementById('meet-content').value.trim();
+
+  const newMeeting = {
+    society_name: currentSociety,
+    meeting_title: title,
+    meeting_date: date,
+    meeting_type: type,
+    venue: venue || 'Society Clubhouse',
+    attendees: attendees || 'All Members',
+    minutes_content: content,
+    created_by: currentUser,
+    created_at: new Date().toISOString()
+  };
+
+  const { error } = await _supabase.from('society_meetings').insert([newMeeting]);
+  if (error) {
+    alert('❌ Error saving meeting: ' + error.message);
+    return;
+  }
+
+  alert('✅ Meeting Minutes Recorded Successfully!');
+  bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
+  document.getElementById('meetingForm').reset();
+  fetchSupabaseData();
+}
+
+function renderMeetings() {
+  const container = document.getElementById('meetings-container');
+  if (!container) return;
+  
+  if (!meetingsData || meetingsData.length === 0) {
+    container.innerHTML = `<div class="col-12 text-center text-muted p-4">No meeting minutes recorded yet.</div>`;
+    return;
+  }
+
+  const canDelete = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
+
+  container.innerHTML = meetingsData.map(m => `
+    <div class="col-md-6 col-lg-4" data-meeting-id="${m.id}">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 border-start border-4 border-primary bg-white">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="badge bg-primary-subtle text-primary fw-semibold">${m.meeting_type}</span>
+          <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> ${m.meeting_date}</small>
+        </div>
+        <h5 class="fw-bold text-dark mb-2">${m.meeting_title}</h5>
+        <p class="small text-muted mb-1"><i class="fa-solid fa-location-dot me-1"></i> <strong>Venue:</strong> ${m.venue || 'N/A'}</p>
+        <p class="small text-muted mb-3"><i class="fa-solid fa-users me-1"></i> <strong>Attendees:</strong> ${m.attendees || 'N/A'}</p>
+        <div class="p-3 bg-light rounded-3 small text-secondary mb-3" style="white-space: pre-line; max-height: 150px; overflow-y: auto;">
+          ${m.minutes_content}
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+          <small class="text-muted">By: ${m.created_by || 'Admin'}</small>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i></button>
+            ${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMeeting(${m.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function deleteMeeting(id) {
+  if (!confirm('⚠️ Delete these meeting minutes permanently?')) return;
+  const { error } = await _supabase.from('society_meetings').delete().eq('id', id);
+  if (error) alert('Error: ' + error.message);
+  else fetchSupabaseData();
+}
+
 async function resolveComplaint(index) {
   if (!confirm('✅ Mark complaint as resolved?')) return;
   const complaint = complaintData[index];
@@ -2013,7 +2535,7 @@ function renderPolls() {
     const totalVotes = votes.reduce((a, b) => a + b, 0);
     const hasVoted = p.voters && p.voters.includes(currentUser);
     return `
-      <div class="col-md-6" data-poll-id="${p.id}">   <!-- ✅ Added data-poll-id -->
+      <div class="col-md-6" data-poll-id="${p.id}">
         <div class="card p-3 bg-white shadow-sm border-0 rounded-3">
           <h6 class="fw-bold">${p.question}</h6>
           <div class="mt-2">
@@ -2163,20 +2685,156 @@ function generateReceiptPDF(type, id) {
   doc.save(`${type}-${id}.pdf`);
 }
 
+// 🟢 Single, Unified & Safe Society Settings Update
 async function updateSocietySettings(event) {
   event.preventDefault();
+  
+  const sigFile = document.getElementById('settings-signature-file')?.files?.[0];
+  let sigUrl = societySettings.digital_signature_url || '';
+
+  if (sigFile) {
+    const fileExt = sigFile.name.split('.').pop();
+    const filePath = `${currentSociety}/signature_${Date.now()}.${fileExt}`;
+    const { error: uploadError } = await _supabase.storage.from('qr_codes').upload(filePath, sigFile);
+    if (!uploadError) {
+      const { data: urlData } = _supabase.storage.from('qr_codes').getPublicUrl(filePath);
+      sigUrl = urlData?.publicUrl || sigUrl;
+    }
+  }
+
   const settings = {
     society_name: document.getElementById('settings-name').value,
     society_address: document.getElementById('settings-address').value,
     society_phone: document.getElementById('settings-phone').value,
     society_email: document.getElementById('settings-email').value,
-    society_pan: document.getElementById('settings-pan').value
+    society_pan: document.getElementById('settings-pan').value,
+    enable_late_fee: document.getElementById('settings-enable-late-fee').value,
+    late_fee_type: document.getElementById('settings-late-fee-type').value,
+    late_fee_amount: document.getElementById('settings-late-fee-amount').value,
+    enable_gst: document.getElementById('settings-enable-gst').value, // 👈 अब यह सुरक्षित रूप से सेव होगा
+    society_gstin: document.getElementById('settings-society-gstin').value.trim(), // 👈 GSTIN सुरक्षित रहेगा
+    digital_signature_url: sigUrl
   };
+
   for (const [key, value] of Object.entries(settings)) {
-    await _supabase.from('society_settings').upsert({ key, value, society_name: currentSociety }, { onConflict: 'key,society_name' });
+    await _supabase.from('society_settings').upsert({ key, value: String(value), society_name: currentSociety }, { onConflict: 'key,society_name' });
   }
-  alert('✅ Society Details Updated!');
+
+  alert('✅ Society Settings & GST Details Updated Successfully!');
   fetchSupabaseData();
+}
+
+// 🟢 Toggle GST Input Box based on Dropdown
+function toggleGSTFields(val) {
+  const container = document.getElementById('gstin-input-container');
+  if (container) {
+    container.style.display = val === 'true' ? 'block' : 'none';
+  }
+}
+
+// 🟢 Load GST Settings into UI
+function loadGSTSettingsToUI() {
+  const isGstEnabled = societySettings.enable_gst || 'false';
+  const gstinField = document.getElementById('settings-enable-gst');
+  if (gstinField) {
+    gstinField.value = isGstEnabled;
+    toggleGSTFields(isGstEnabled);
+  }
+  const gstinInput = document.getElementById('settings-society-gstin');
+  if (gstinInput) {
+    gstinInput.value = societySettings.society_gstin || '';
+  }
+}
+
+// 🟢 Smart GST-Aware Invoice & Receipt Generator (Fixed & Clean)
+async function generateTaxInvoicePDF(receiptId) {
+  if (typeof window.jspdf === 'undefined') return;
+  const data = maintenanceData.find(r => r.id === receiptId);
+  if (!data) return;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const societyName = societySettings.society_name || currentSociety;
+  
+  const isGstOn = societySettings.enable_gst === true || societySettings.enable_gst === 'true';
+  const societyGstin = societySettings.society_gstin || '24AAAAA0000A1Z5';
+
+  doc.setFontSize(16);
+  doc.text(societyName, 105, 15, { align: 'center' });
+  
+  doc.setFontSize(12);
+  doc.text(isGstOn ? 'TAX INVOICE (GST 18%)' : 'MAINTENANCE RECEIPT', 105, 23, { align: 'center' });
+
+  if (isGstOn) {
+    doc.setFontSize(10);
+    doc.text(`Society GSTIN: ${societyGstin}`, 14, 30);
+  }
+
+  const totalPaid = Number(data.amount_paid || 0);
+  let baseAmount = totalPaid;
+  let cgst = 0, sgst = 0;
+  let finalTotal = totalPaid;
+
+  let tableRows = [
+    ['Receipt / Invoice No', data.receipt_no || '-'],
+    ['Flat No', data.flat_no || '-'],
+    ['Date', data.payment_date || '-'],
+    ['Billing Period', data.month_accounted || '-']
+  ];
+
+  if (isGstOn) {
+    // Inclusive GST Calculation (₹2000 के अंदर ही 18% GST शामिल है)
+    baseAmount = totalPaid / 1.18; 
+    const totalTax = totalPaid - baseAmount;
+    cgst = totalTax / 2;
+    sgst = totalTax / 2;
+    finalTotal = totalPaid;
+
+    tableRows.push(
+      ['Base Amount', `Rs. ${baseAmount.toFixed(2)}`],
+      ['CGST (9%)', `Rs. ${cgst.toFixed(2)}`],
+      ['SGST (9%)', `Rs. ${sgst.toFixed(2)}`],
+      ['Total Invoice Amount (Incl. GST)', `Rs. ${finalTotal.toFixed(2)}`]
+    );
+
+    // 🟢 डेटाबेस की `society_invoices` टेबल में रिकॉर्ड सिंक करना
+    try {
+      await _supabase.from('society_invoices').upsert([{
+        society_name: currentSociety,
+        invoice_no: data.receipt_no || `INV-${Date.now()}`,
+        invoice_date: data.payment_date,
+        flat_no: data.flat_no,
+        base_amount: Number(baseAmount.toFixed(2)),
+        cgst_rate: 9,
+        sgst_rate: 9,
+        cgst_amount: Number(cgst.toFixed(2)),
+        sgst_amount: Number(sgst.toFixed(2)),
+        total_amount: finalTotal,
+        is_gst_applicable: true,
+        gstin: societyGstin
+      }], { onConflict: 'society_name,invoice_no' });
+    } catch (e) {
+      console.log('Invoice table sync note:', e);
+    }
+
+  } else {
+    tableRows.push(
+      ['Total Amount Paid', `Rs. ${finalTotal.toFixed(2)}`]
+    );
+  }
+
+  doc.autoTable({
+    startY: isGstOn ? 35 : 30,
+    head: [['Description', 'Details']],
+    body: tableRows,
+    theme: 'grid'
+  });
+
+  if (societySettings.digital_signature_url) {
+    doc.text('Authorized Signatory', 160, doc.lastAutoTable.finalY + 25);
+  }
+
+  doc.save(`${isGstOn ? 'Tax_Invoice' : 'Receipt'}_${data.flat_no}_${data.receipt_no || 'REC'}.pdf`);
 }
 
 function generateMonthlySummary() {
@@ -2242,10 +2900,22 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
   const tbody = document.getElementById('monthly-summary-rows');
   if (!tbody) return;
 
-  const expCategories = {};
+  const expCategories = {
+    'Administrative Expenses': 0,
+    'Utility Expenses': 0,
+    'Repairs & Maintenance': 0,
+    'Staff & Salary': 0,
+    'Statutory & Legal': 0,
+    'Other Expenses': 0
+  };
+
   expenses.forEach(e => {
-    const cat = e.category || 'General';
-    expCategories[cat] = (expCategories[cat] || 0) + Number(e.amount || 0);
+    const cat = e.category || 'Other Expenses';
+    if (expCategories[cat] !== undefined) {
+      expCategories[cat] += Number(e.amount || 0);
+    } else {
+      expCategories['Other Expenses'] += Number(e.amount || 0);
+    }
   });
 
   let html = `
@@ -2258,14 +2928,16 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
   `;
 
   for (const [cat, amt] of Object.entries(expCategories)) {
-    html += `
-      <tr>
-        <td>Expense: ${cat}</td>
-        <td><span class="badge bg-danger">Expense</span></td>
-        <td>-</td>
-        <td class="text-danger fw-bold">${amt.toFixed(2)}</td>
-      </tr>
-    `;
+    if (amt > 0) {
+      html += `
+        <tr>
+          <td>Expense Head: ${cat}</td>
+          <td><span class="badge bg-danger">Expense Group</span></td>
+          <td>-</td>
+          <td class="text-danger fw-bold">${amt.toFixed(2)}</td>
+        </tr>
+      `;
+    }
   }
 
   html += `
@@ -2319,6 +2991,68 @@ async function submitFD(event) {
   await _supabase.from('sinking_fund_fd').insert([newFD]);
   bootstrap.Modal.getInstance(document.getElementById('fdModal')).hide();
   fetchSupabaseData();
+}
+
+async function submitJournalVoucher(event) {
+  event.preventDefault();
+  const jvNo = document.getElementById('jv-no').value.trim();
+  const date = document.getElementById('jv-date').value;
+  const flat = document.getElementById('jv-flat').value.trim().toUpperCase();
+  const type = document.getElementById('jv-type').value;
+  const amount = Number(document.getElementById('jv-amount').value);
+  const reason = document.getElementById('jv-reason').value.trim();
+
+  const newJV = {
+    society_name: currentSociety,
+    jv_no: jvNo,
+    date: date,
+    flat_no: flat,
+    type: type,
+    amount: amount,
+    reason: reason,
+    created_at: new Date().toISOString()
+  };
+
+  const { error } = await _supabase.from('journal_vouchers').insert([newJV]);
+  if (error) {
+    alert('❌ Error saving JV: ' + error.message);
+    return;
+  }
+
+  alert('✅ Journal Voucher Posted Successfully!');
+  bootstrap.Modal.getInstance(document.getElementById('journalModal')).hide();
+  document.getElementById('journalForm').reset();
+  fetchSupabaseData();
+}
+
+function renderJournalVouchers() {
+  const tbody = document.getElementById('journal-list');
+  if (!tbody) return;
+  if (!journalVouchersData || journalVouchersData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No journal vouchers recorded.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = journalVouchersData.map((jv, index) => `
+    <tr>
+      <td><b>${jv.jv_no}</b></td>
+      <td>${jv.date}</td>
+      <td>${jv.flat_no}</td>
+      <td><span class="badge ${jv.type === 'Debit' ? 'bg-danger' : 'bg-success'}">${jv.type}</span></td>
+      <td class="fw-bold">${jv.amount}</td>
+      <td>${jv.reason}</td>
+      <td class="no-print admin-only">
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteJournalVoucher(${jv.id})"><i class="fa-solid fa-trash"></i></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function deleteJournalVoucher(id) {
+  if (!confirm('⚠️ Delete this Journal Voucher?')) return;
+  const { error } = await _supabase.from('journal_vouchers').delete().eq('id', id);
+  if (error) alert('Error: ' + error.message);
+  else fetchSupabaseData();
 }
 
 async function submitAsset(event) {
@@ -2542,6 +3276,7 @@ function renderGridCards() {
     { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
     { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
     { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
+    { id: 'meetings', icon: 'fa-book-open', label: 'Meeting Minutes', color: '#2563eb' },
     { id: 'bank-details', icon: 'fa-qrcode', label: 'Bank / QR', color: '#2563eb' },
     { id: 'marketplace', icon: 'fa-store', label: 'Marketplace', color: '#f59e0b' },
     { id: 'sos-contacts', icon: 'fa-truck-medical', label: 'Emergency SOS', color: '#ef4444' },
@@ -2550,6 +3285,7 @@ function renderGridCards() {
     { id: 'proofs', icon: 'fa-file-invoice', label: 'Payment Details', color: '#3b82f6' },
     { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
     { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
+    { id: 'terms', icon: 'fa-file-contract', label: 'Terms of Service', color: '#d97706' },
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
     { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
@@ -2576,63 +3312,6 @@ function renderGridCards() {
       <span style="color: #fff; font-weight: 500; display: block;">${card.label}</span>
     </div>
   `).join('');
-}
-
-async function openTabOverlay(tabId) {
-  closeMobileMenu();
-  if (tabId === 'about') { openAboutPS(); return; }
-  if (tabId === 'visitor') { showVisitorPage(); return; }
-
-  if (tabId === 'activity-logs') await fetchActivityLogs();
-
-  if (tabId === 'chairman-report') generateMonthlySummary();
-
-  const target = document.getElementById(`tab-${tabId}`);
-  if (!target) return;
-  
-  if (tabId === 'polls') renderPolls();
-  if (tabId === 'community') renderCommunity();
-  if (tabId === 'amc-tracker') renderAMCTracker();
-  if (tabId === 'bank-details') renderBankDetails();
-  if (tabId === 'sos-contacts') renderSOSContacts();
-  if (tabId === 'manage-societies') await loadSocietiesList();
-  if (tabId === 'proofs') renderPaymentProofs();
-  if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
-
-  const overlay = createTabOverlay(tabId, target.innerHTML);
-  document.body.appendChild(overlay);
-  document.body.style.overflow = 'hidden';
-}
-
-function createTabOverlay(tabId, content) {
-  const overlay = document.createElement('div');
-  overlay.id = 'tabOverlay';
-  overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;';
-  overlay.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <button onclick="closeTabOverlay()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
-      <span style="color: #f59e0b; font-weight: 600;">${tabId.toUpperCase()}</span>
-      <span style="width: 50px;"></span>
-    </div>
-    <div id="tabOverlayContent" style="flex: 1; margin-top: 15px; background: #fff; border-radius: 16px; padding: 20px; overflow-y: auto; color: #0f172a;">
-      ${content}
-    </div>
-  `;
-  return overlay;
-}
-
-function closeTabOverlay() {
-  const overlay = document.getElementById('tabOverlay');
-  if (overlay) overlay.remove();
-  document.body.style.overflow = '';
-  if (window.innerWidth <= 768) {
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) {
-      gridOverlay.style.display = 'flex';
-      renderGridCards();
-      document.body.style.overflow = 'hidden';
-    }
-  }
 }
 
 function openAboutPS() {
@@ -2694,12 +3373,60 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
-function closeAboutPS() {
-  const overlay = document.getElementById('aboutPSOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
+// 🟢 Update openTabOverlay to support Browser Back Button
+async function openTabOverlay(tabId) {
+  closeMobileMenu();
+  if (tabId === 'about') { openAboutPS(); return; }
+  if (tabId === 'terms') { openTermsOfService(); return; }
+  if (tabId === 'visitor') { showVisitorPage(); return; }
 
-  if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
+  if (tabId === 'activity-logs') await fetchActivityLogs();
+  if (tabId === 'chairman-report') generateMonthlySummary();
+
+  const target = document.getElementById(`tab-${tabId}`);
+  if (!target) return;
+  
+  if (tabId === 'polls') renderPolls();
+  if (tabId === 'community') renderCommunity();
+  if (tabId === 'meetings') renderMeetings();
+  if (tabId === 'amc-tracker') renderAMCTracker();
+  if (tabId === 'bank-details') renderBankDetails();
+  if (tabId === 'sos-contacts') renderSOSContacts();
+  if (tabId === 'manage-societies') await loadSocietiesList();
+  if (tabId === 'proofs') renderPaymentProofs();
+  if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
+
+  const overlay = createTabOverlay(tabId, target.innerHTML);
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  // 🟢 Push state so mobile back button closes overlay instead of exiting app
+  history.pushState({ overlayOpen: true, tabId: tabId }, '', window.location.href);
+}
+
+function createTabOverlay(tabId, content) {
+  const overlay = document.createElement('div');
+  overlay.id = 'tabOverlay';
+  overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;';
+  overlay.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <button onclick="closeTabOverlay()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <span style="color: #f59e0b; font-weight: 600;">${tabId.toUpperCase()}</span>
+      <span style="width: 50px;"></span>
+    </div>
+    <div id="tabOverlayContent" style="flex: 1; margin-top: 15px; background: #fff; border-radius: 16px; padding: 20px; overflow-y: auto; color: #0f172a;">
+      ${content}
+    </div>
+  `;
+  return overlay;
+}
+
+function closeTabOverlay(isPopState = false) {
+  const overlay = document.getElementById('tabOverlay');
+  if (overlay) overlay.remove();
+  document.body.style.overflow = '';
+  
+  if (window.innerWidth <= 768) {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
       gridOverlay.style.display = 'flex';
@@ -2709,19 +3436,67 @@ function closeAboutPS() {
   }
 }
 
+function openTermsOfService() {
+  const overlay = document.getElementById('termsOfServiceOverlay');
+  const body = document.getElementById('termsOfServiceBody');
+  if (!overlay || !body) return;
+
+  body.innerHTML = `
+    <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; padding: 5px;">
+      <h3 class="fw-bold border-bottom pb-2"><span style="color: #f59e0b;">PS</span> Society Solutions — Terms of Service</h3>
+      <p class="text-muted small">Effective Date: August 2026 • Last Updated: August 2026</p>
+      
+      <h5 class="fw-bold mt-3">1. Acceptance of Terms</h5>
+      <p class="small text-muted">By accessing or using PS Society Solutions ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Service. We reserve the right to update these Terms at any time.</p>
+
+      <h5 class="fw-bold mt-3">2. Description of Service</h5>
+      <p class="small text-muted">PS Society Solutions is a Software-as-a-Service (SaaS) platform providing housing societies with digital management tools including member directory, maintenance billing, expense tracking, visitor management, and financial reporting. The Service is provided "as-is".</p>
+
+      <h5 class="fw-bold mt-3">3. User Accounts and Responsibility</h5>
+      <p class="small text-muted">You are solely responsible for maintaining the confidentiality of your login credentials (Flat Number and Password) and for all activities that occur under your account.</p>
+
+      <h5 class="fw-bold mt-3">4. Acceptable Use Policy</h5>
+      <p class="small text-muted">You agree not to use the Service for unlawful purposes, upload defamatory content, attempt unauthorized system access, introduce malware, or reverse engineer the platform.</p>
+
+      <h5 class="fw-bold mt-3">5. Data Privacy and DPDP Act 2023 Compliance</h5>
+      <p class="small text-muted"> We comply with the Digital Personal Data Protection (DPDP) Act, 2023. Data is collected strictly for society administrative operations based on explicit consent. We do not sell or share personal data with third-party advertisers. You hold rights to access, correct, or erase your data.</p>
+
+      <h5 class="fw-bold mt-3">6. Payments and Subscription</h5>
+      <p class="small text-muted">Subscription plans include Silver (₹49/month), Gold (₹79/month), and Platinum (₹149/month) per house. Fees are billed in advance and are non-refundable except as required by law.</p>
+
+      <h5 class="fw-bold mt-3">7. Intellectual Property</h5>
+      <p class="small text-muted">All software, code, logos, and designs are the property of PS Society Solutions. Users retain ownership of content they upload but grant us a license to host and display it for service operations.</p>
+
+      <h5 class="fw-bold mt-3">8. Limitation of Liability</h5>
+      <p class="small text-muted">The Service is provided "AS IS" without warranties of any kind. Our total liability shall not exceed the total amount paid by you during the preceding twelve (12) months.</p>
+
+      <h5 class="fw-bold mt-3">9. Governing Law and Jurisdiction</h5>
+      <p class="small text-muted">These Terms are governed by the laws of India. Legal disputes are subject to the exclusive jurisdiction of the courts in Vadodara, Gujarat, India.</p>
+
+      <h5 class="fw-bold mt-3">10. Contact and Grievance Redressal</h5>
+      <p class="small text-muted mb-0">Grievance Officer: PS Society Solutions Team<br>Email: ps.societysolutions@gmail.com | Phone: +91 8866376056</p>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTermsOfService() {
+  const overlay = document.getElementById('termsOfServiceOverlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function closeAboutPS() {
+  const overlay = document.getElementById('aboutPSOverlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
 function closePrivacyPolicy() {
   const overlay = document.getElementById('privacyPolicyOverlay');
   if (overlay) overlay.style.display = 'none';
   document.body.style.overflow = '';
-
-  if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) {
-      gridOverlay.style.display = 'flex';
-      renderGridCards();
-      document.body.style.overflow = 'hidden';
-    }
-  }
 }
 
 function openPrivacyPolicy() {
@@ -3038,138 +3813,65 @@ async function triggerSOS(alertType) {
 }
 
 function listenForSOSAlerts() {
-  _supabase.channel('sos-realtime-channel').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, (payload) => {
-    if (payload.new && payload.new.status === 'active' && payload.new.society_name === currentSociety) {
-      showSOSBanner(payload.new);
-      sirenAudio.play().catch(e => console.log(e));
-    }
-  }).subscribe();
-}
-
-function listenForRealtimeBadges() {
-  _supabase
-    .channel('realtime-badges')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_proofs' }, async () => {
-      let { data: proofs } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety).order('submitted_at', { ascending: false });
-      paymentProofs = proofs || [];
-      renderPaymentProofs();
-      updateAllBadges();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, async () => {
-      let { data: complaints } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-      complaintData = complaints || [];
-      updateAllBadges();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, async () => {
-      let { data: notices } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-      noticesData = notices || [];
-      updateAllBadges();
+  const channelName = `sos-realtime-${currentSociety.replace(/\s+/g, '_')}`;
+  _supabase.channel(channelName)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, (payload) => {
+      if (payload.new && payload.new.status === 'active' && payload.new.society_name === currentSociety) {
+        showSOSBanner(payload.new);
+        sirenAudio.play().catch(e => console.log(e));
+      }
     })
     .subscribe();
 }
 
-function showSOSBanner(alertData) {
-  const existing = document.getElementById('sosAlertBanner');
-  if (existing) existing.remove();
-
-  if ("vibrate" in navigator) {
-    navigator.vibrate([500, 200, 500, 200, 500, 200, 500]); 
-  }
-
-  const banner = document.createElement('div');
-  banner.id = 'sosAlertBanner';
-  banner.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; z-index: 999999; background-color: #dc2626; color: white; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);';
-  banner.innerHTML = `
-    <h2 style="font-weight: 900; margin-bottom: 5px;">🚨 EMERGENCY SOS ALERT! 🚨</h2>
-    <p style="font-size: 16px; margin-bottom: 15px;">Type: <b>${alertData.alert_type}</b> | Flat: <b>${alertData.flat_no}</b></p>
-    <button onclick="resolveSOSAlert('${alertData.id}')" style="padding: 10px 25px; background: white; color: #dc2626; border: none; font-weight: bold; cursor: pointer; border-radius: 20px; font-size: 16px;">Stop Alert</button>
-  `;
-  document.body.appendChild(banner);
-
-  if (typeof sirenAudio !== 'undefined' && sirenAudio) {
-    sirenAudio.play().catch(e => console.log("Audio autoplay blocked by browser:", e));
-  }
-}
-
-// ==================== DEEP LINKING HANDLER ====================
-// ==================== DEEP LINKING HANDLER ====================
-// ==================== DEEP LINKING HANDLER ====================
+// 🟢 Fixed handleDeepLink to prevent grid overlay from overriding notification click
 function handleDeepLink() {
     setTimeout(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
-        const pollId = params.get('pollId');
-        const noticeId = params.get('noticeId');
-        const complaintId = params.get('complaintId');
-        const eventId = params.get('eventId');
 
         if (tab) {
-            // ✅ Mobile Grid Overlay को बंद करें
+            // 🟢 अगर नोटिफिकेशन से आए हैं, तो मेन ग्रिड को खुलने से रोकें
             const gridOverlay = document.getElementById('mobileMenuOverlay');
             if (gridOverlay) {
                 gridOverlay.style.display = 'none';
                 document.body.style.overflow = '';
             }
-            // अगर closeMobileMenu Function है तो Call करें
             if (typeof closeMobileMenu === 'function') {
                 closeMobileMenu();
             }
 
-            // ✅ Device के अनुसार Tab खोलें
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
-                // Mobile: Full‑Screen Overlay में Tab खोलें
+                // मोबाइल पर सीधे ओवरले खोलें और ग्रिड को ब्लॉक रखें
                 openTabOverlay(tab);
             } else {
-                // Desktop: Sidebar में Tab Switch करें
                 const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
                 if (link) {
                     switchTab(tab, link);
                 } else {
                     switchTab(tab, null);
-                    // Active Class Set करें
-                    document.querySelectorAll('.nav-link').forEach(l => {
-                        if (l.textContent.trim().toLowerCase() === tab.toLowerCase()) {
-                            l.classList.add('active');
-                        }
-                    });
                 }
             }
-
-            // ✅ अगर Specific ID है तो उसे Highlight करें (Overlay के अंदर)
-            setTimeout(() => {
-                let targetElement = null;
-                if (pollId) {
-                    targetElement = document.querySelector(`[data-poll-id="${pollId}"]`);
-                } else if (noticeId) {
-                    targetElement = document.querySelector(`[data-notice-id="${noticeId}"]`);
-                } else if (complaintId) {
-                    targetElement = document.querySelector(`[data-complaint-id="${complaintId}"]`);
-                } else if (eventId) {
-                    targetElement = document.querySelector(`[data-event-id="${eventId}"]`);
-                }
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetElement.style.border = '3px solid #f59e0b';
-                    targetElement.style.backgroundColor = '#fef3c7';
-                    setTimeout(() => {
-                        targetElement.style.border = '';
-                        targetElement.style.backgroundColor = '';
-                    }, 3000);
-                }
-            }, 600); // थोड़ा extra delay ताकि Overlay का Content Render हो जाए
         }
-    }, 400);
+    }, 600); // थोड़ा समय बढ़ा दिया ताकि डेटा लोड होने के बाद डिस्टर्ब न हो
 }
 
-// ✅ Deep Linking को और Robust बनाएँ – पहले से Open App पर भी काम करे
 window.addEventListener('pageshow', function(event) {
     if (event.persisted) {
         handleDeepLink();
     }
 });
 
-// पहले से Load Event पर भी Call करें
+window.addEventListener('popstate', function(event) {
+  const overlay = document.getElementById('tabOverlay');
+  if (overlay) {
+    // अगर ओवरले खुला है, तो बैक दबाने पर सिर्फ ओवरले बंद हो, ऐप बंद न हो
+    event.preventDefault();
+    closeTabOverlay(true);
+  }
+});
+
 window.addEventListener('load', handleDeepLink);
 
 async function resolveSOSAlert(alertId) {
@@ -3271,14 +3973,34 @@ async function submitMarketplacePost(event) {
   fetchMarketplaceData().then(renderMarketplace);
 }
 
+function calculateLateFee(flatPendingDue, monthlyRate) {
+  const isLateFeeEnabled = societySettings.enable_late_fee === 'true';
+  if (!isLateFeeEnabled || flatPendingDue <= 0) return 0;
+
+  const lateFeeType = societySettings.late_fee_type || 'fixed'; 
+  const customRate = Number(societySettings.late_fee_amount || 0);
+
+  let calculatedLateFee = 0;
+  
+  if (lateFeeType === 'fixed') {
+    const rate = Number(monthlyRate || 600);
+    const pendingMonths = Math.ceil(flatPendingDue / rate); 
+    calculatedLateFee = customRate * Math.max(1, pendingMonths); 
+  } else if (lateFeeType === 'percentage') {
+    calculatedLateFee = (flatPendingDue * customRate) / 100; 
+  }
+
+  return Math.round(calculatedLateFee);
+}
+
 function clearStuckOverlays() {
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
   
-  const overlays = ['tabOverlay', 'consentOverlay', 'mobileMenuOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay'];
+  const overlays = ['tabOverlay', 'consentOverlay', 'mobileMenuOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay'];
   overlays.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      if (id === 'mobileMenuOverlay' || id === 'visitorPasswordOverlay' || id === 'aboutPSOverlay' || id === 'privacyPolicyOverlay') {
+      if (id === 'mobileMenuOverlay' || id === 'visitorPasswordOverlay' || id === 'aboutPSOverlay' || id === 'privacyPolicyOverlay' || id === 'termsOfServiceOverlay') {
         el.style.display = 'none';
       } else {
         el.remove();
@@ -3326,5 +4048,4 @@ setInterval(async () => {
   }
 }, 30000);
 
-// ✅ Deep Linking Handle – सबसे नीचे
 handleDeepLink();
