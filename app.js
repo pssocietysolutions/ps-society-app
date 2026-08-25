@@ -473,7 +473,11 @@ const translations = {
     expenses: "Expense Ledger",
     visitors: "Visitor Management",
     complaints: "Complaints",
-    meetings: "Meeting Minutes"
+    meetings: "Meeting Minutes",
+    aboutTitle: "PS Society Solutions",
+    aboutTagline: "Smart Society Management Engine • Simple • Transparent • Affordable",
+    aboutPlans: "Subscription Plans (Per House / Month)",
+    aboutFeatures: "What Your Society Gets"
   },
   hi: {
     dashboard: "डैशबोर्ड",
@@ -482,16 +486,24 @@ const translations = {
     expenses: "खर्च बही (Expenses)",
     visitors: "आगंतुक प्रबंधन (Visitors)",
     complaints: "शिकायतें (Complaints)",
-    meetings: "मीटिंग मिनट्स (AGM)"
+    meetings: "मीटिंग मिनट्स (AGM)",
+    aboutTitle: "पी.एस. सोसायटी सॉल्यूशंस",
+    aboutTagline: "स्मार्ट सोसायटी मैनेजमेंट इंजन • सरल • पारदर्शी • किफायती",
+    aboutPlans: "सब्सक्रिप्शन प्लान (प्रति घर / माह)",
+    aboutFeatures: "आपकी सोसायटी को क्या मिलता है"
   },
   gu: {
-    dashboard: "ડેશબોર્ડ",
+    dashboard: "ડેશબોર્ड",
     members: "સભ્યોની યાદી (Members)",
     maintenance: "મેન્ટેનન્સ લોગ (Maintenance)",
     expenses: "ખર્ચ લેજર (Expenses)",
-    visitors: "વિઝિટર મેનેજમેન્ટ (Visitors)",
+    visitors: "વિઝિટર મેनेજमेंट (Visitors)",
     complaints: "ફરિયાદો (Complaints)",
-    meetings: "મીટિંગ મિનિટ્સ (AGM)"
+    meetings: "મીટિંગ મિનિટ્સ (AGM)",
+    aboutTitle: "પી.એસ. સોસાયટી સોলিউશન્સ",
+    aboutTagline: "સ્માર્ટ સોસાયટી મેનેજમેન્ટ એન્જિન • સરળ • પારદર્શક • સસ્તું",
+    aboutPlans: "સબ્સ્ક્રિપ્શન પ્લાન (દર ઘર / મહિનો)",
+    aboutFeatures: "તમારી સોસાયટીને શું મળે છે"
   }
 };
 
@@ -501,6 +513,12 @@ function changeLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('ps_lang', lang);
   applyTranslations();
+
+  // 🟢 अगर About PS का ओवरले खुला है, तो भाषा बदलते ही उसे भी रिफ्रेश करें
+  const aboutOverlay = document.getElementById('aboutPSOverlay');
+  if (aboutOverlay && aboutOverlay.style.display === 'flex') {
+    openAboutPS();
+  }
 
   // 🟢 दोनों लैंग्वेज सेलेक्टर्स को सिंक रखें
   const desktopSelector = document.getElementById('languageSelector');
@@ -3328,11 +3346,62 @@ function openAboutPS() {
   const body = document.getElementById('aboutPSBody');
   if (!overlay || !body) return;
 
-  // (आपका About HTML कंटेंट यहाँ रहेगा जो पहले से है)
+  const t = translations[currentLang] || translations['en'];
+
+  body.innerHTML = `
+    <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left;">
+      <div class="text-center mb-3">
+        <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> ${t.aboutTitle}</h3>
+        <p class="text-primary fw-semibold small mb-0">${t.aboutTagline}</p>
+      </div>
+
+      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ ${t.aboutPlans}</h6>
+      <div class="row g-2 mb-3 text-center">
+        <div class="col-4">
+          <div class="p-2 border rounded-3 bg-light">
+            <span class="badge bg-secondary mb-1">SILVER</span>
+            <h5 class="fw-bold mb-0 text-dark">₹49</h5>
+            <small class="text-muted" style="font-size: 10px;">Digital Accounting</small>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="p-2 border border-warning rounded-3 bg-warning-subtle">
+            <span class="badge bg-warning text-dark mb-1">GOLD</span>
+            <h5 class="fw-bold mb-0 text-dark">₹79</h5>
+            <small class="text-muted" style="font-size: 10px;">Accounting + Visits</small>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="p-2 border border-primary rounded-3 bg-primary-subtle">
+            <span class="badge bg-primary mb-1">PLATINUM</span>
+            <h5 class="fw-bold mb-0 text-dark">₹149</h5>
+            <small class="text-muted" style="font-size: 10px;">Complete Suite</small>
+          </div>
+        </div>
+      </div>
+
+      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">✨ ${t.aboutFeatures}</h6>
+      <ul class="small text-muted ps-3 mb-3" style="line-height: 1.6;">
+        <li>📊 <strong>Digital Accounting:</strong> Member ledgers, automated collection tracking & vouchers.</li>
+        <li>📑 <strong>CA-Ready Audit Reports:</strong> Automatic Balance Sheet & Trial Balance generation.</li>
+        <li>📢 <strong>WhatsApp Reminders:</strong> Direct 1-click pending payment alerts to defaulters.</li>
+        <li>🛡️ <strong>Zero Cash Handling:</strong> Complete bank & QR transparency with Society's accounts.</li>
+      </ul>
+
+      <div class="p-3 bg-light rounded-3 text-center border">
+        <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
+        <div class="d-flex justify-content-center gap-2">
+          <a href="https://wa.me/918866376056" target="_blank" class="btn btn-success btn-sm px-3 fw-semibold"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
+          <a href="tel:8866376056" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
+        </div>
+      </div>
+    </div>
+  `;
+
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
-  // 🟢 बैक बटन सपोर्ट के लिए
+  // 🟢 मोबाइल बैक बटन के लिए हिस्ट्री स्टेट
   history.pushState({ overlay: 'aboutPS' }, '', window.location.href);
 }
 
@@ -3844,6 +3913,7 @@ window.addEventListener('pageshow', function(event) {
 });
 
 // 🟢 Unified & Clean Mobile Back Button Handler (popstate)
+// 🟢 Unified & Clean Mobile Back Button Handler (popstate)
 window.addEventListener('popstate', function(event) {
   const tabOverlay = document.getElementById('tabOverlay');
   const visitorSec = document.getElementById('visitor-section');
@@ -3886,31 +3956,6 @@ async function resolveSOSAlert(alertId) {
   const banner = document.getElementById('sosAlertBanner');
   if (banner) banner.remove();
 }
-
-window.addEventListener('popstate', function(event) {
-  const tabOverlay = document.getElementById('tabOverlay');
-  const visitorSec = document.getElementById('visitor-section');
-  const aboutOverlay = document.getElementById('aboutPSOverlay');
-  const privacyOverlay = document.getElementById('privacyPolicyOverlay');
-  const termsOverlay = document.getElementById('termsOfServiceOverlay');
-
-  if (tabOverlay) {
-    event.preventDefault();
-    closeTabOverlay(true);
-  } else if (visitorSec && visitorSec.style.display === 'block') {
-    event.preventDefault();
-    goBackFromVisitor();
-  } else if (aboutOverlay && aboutOverlay.style.display === 'flex') {
-    event.preventDefault();
-    closeAboutPS();
-  } else if (privacyOverlay && privacyOverlay.style.display === 'flex') {
-    event.preventDefault();
-    closePrivacyPolicy();
-  } else if (termsOverlay && termsOverlay.style.display === 'flex') {
-    event.preventDefault();
-    closeTermsOfService();
-  }
-});
 
 function renderCelebrations() {
   const container = document.getElementById('dashboard-celebrations-container');
