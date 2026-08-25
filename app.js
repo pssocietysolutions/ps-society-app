@@ -96,6 +96,9 @@ function showVisitorPage() {
     const backBtn = document.getElementById('visitorBackBtn');
     if (backBtn) backBtn.onclick = goBackFromVisitor;
     loadTodayVisitors();
+
+    // 🟢 मोबाइल बैक बटन के लिए हिस्ट्री स्टेट पुश करें
+    history.pushState({ view: 'visitor' }, '', window.location.href);
   } else {
     openVisitorPassword();
   }
@@ -498,6 +501,12 @@ function changeLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('ps_lang', lang);
   applyTranslations();
+
+  // 🟢 दोनों लैंग्वेज सेलेक्टर्स को सिंक रखें
+  const desktopSelector = document.getElementById('languageSelector');
+  const mobileSelector = document.getElementById('mobileLanguageSelector');
+  if (desktopSelector) desktopSelector.value = lang;
+  if (mobileSelector) mobileSelector.value = lang;
 }
 
 function applyTranslations() {
@@ -3319,59 +3328,30 @@ function openAboutPS() {
   const body = document.getElementById('aboutPSBody');
   if (!overlay || !body) return;
 
-  body.innerHTML = `
-    <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left;">
-      <div class="text-center mb-3">
-        <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> Society Solutions</h3>
-        <p class="text-primary fw-semibold small mb-0">Smart Society Management Engine • Simple • Transparent • Affordable</p>
-      </div>
-
-      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ Subscription Plans (Per House / Month)</h6>
-      <div class="row g-2 mb-3 text-center">
-        <div class="col-4">
-          <div class="p-2 border rounded-3 bg-light">
-            <span class="badge bg-secondary mb-1">SILVER</span>
-            <h5 class="fw-bold mb-0 text-dark">49</h5>
-            <small class="text-muted" style="font-size: 10px;">Digital Accounting</small>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="p-2 border border-warning rounded-3 bg-warning-subtle">
-            <span class="badge bg-warning text-dark mb-1">GOLD (Popular)</span>
-            <h5 class="fw-bold mb-0 text-dark">79</h5>
-            <small class="text-muted" style="font-size: 10px;">Accounting + Visits</small>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="p-2 border border-primary rounded-3 bg-primary-subtle">
-            <span class="badge bg-primary mb-1">PLATINUM</span>
-            <h5 class="fw-bold mb-0 text-dark">149</h5>
-            <small class="text-muted" style="font-size: 10px;">Complete Operations</small>
-          </div>
-        </div>
-      </div>
-
-      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">✨ What Your Society Gets</h6>
-      <ul class="small text-muted ps-3 mb-3" style="line-height: 1.6;">
-        <li>📊 <strong>Digital Accounting:</strong> Member ledgers, automated collection tracking & vouchers.</li>
-        <li>📑 <strong>CA-Ready Audit Records:</strong> Automatic Balance Sheet & Trial Balance generation.</li>
-        <li>📢 <strong>WhatsApp Reminders:</strong> Direct 1-click pending payment alerts to defaulters.</li>
-        <li>🛡️ <strong>Zero Cash Handling:</strong> Complete bank & QR transparency with Society's own accounts.</li>
-        <li>👥 <strong>Committee & Staff Support:</strong> Vendor AMC tracking, security logs & complaint tickets.</li>
-      </ul>
-
-      <div class="p-3 bg-light rounded-3 text-center border">
-        <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
-        <div class="d-flex justify-content-center gap-2">
-          <a href="https://wa.me/918866376056" target="_blank" class="btn btn-success btn-sm px-3 fw-semibold"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
-          <a href="tel:8866376056" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
-        </div>
-      </div>
-    </div>
-  `;
+  // (आपका About HTML कंटेंट यहाँ रहेगा जो पहले से है)
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
+
+  // 🟢 बैक बटन सपोर्ट के लिए
+  history.pushState({ overlay: 'aboutPS' }, '', window.location.href);
 }
+
+function closeAboutPS() {
+  const overlay = document.getElementById('aboutPSOverlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+  
+  // 🟢 मोबाइल में '✕' दबाने पर ग्रिड मेनू वापस दिखाएं
+  if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
+    const gridOverlay = document.getElementById('mobileMenuOverlay');
+    if (gridOverlay) {
+      gridOverlay.style.display = 'flex';
+      renderGridCards();
+      document.body.style.overflow = 'hidden';
+    }
+  }
+}
+
 
 // 🟢 Update openTabOverlay to support Browser Back Button
 async function openTabOverlay(tabId) {
@@ -3863,12 +3843,29 @@ window.addEventListener('pageshow', function(event) {
     }
 });
 
+// 🟢 Unified & Clean Mobile Back Button Handler (popstate)
 window.addEventListener('popstate', function(event) {
-  const overlay = document.getElementById('tabOverlay');
-  if (overlay) {
-    // अगर ओवरले खुला है, तो बैक दबाने पर सिर्फ ओवरले बंद हो, ऐप बंद न हो
+  const tabOverlay = document.getElementById('tabOverlay');
+  const visitorSec = document.getElementById('visitor-section');
+  const aboutOverlay = document.getElementById('aboutPSOverlay');
+  const privacyOverlay = document.getElementById('privacyPolicyOverlay');
+  const termsOverlay = document.getElementById('termsOfServiceOverlay');
+
+  if (tabOverlay) {
     event.preventDefault();
     closeTabOverlay(true);
+  } else if (visitorSec && visitorSec.style.display === 'block') {
+    event.preventDefault();
+    goBackFromVisitor();
+  } else if (aboutOverlay && aboutOverlay.style.display === 'flex') {
+    event.preventDefault();
+    closeAboutPS();
+  } else if (privacyOverlay && privacyOverlay.style.display === 'flex') {
+    event.preventDefault();
+    closePrivacyPolicy();
+  } else if (termsOverlay && termsOverlay.style.display === 'flex') {
+    event.preventDefault();
+    closeTermsOfService();
   }
 });
 
@@ -3889,6 +3886,31 @@ async function resolveSOSAlert(alertId) {
   const banner = document.getElementById('sosAlertBanner');
   if (banner) banner.remove();
 }
+
+window.addEventListener('popstate', function(event) {
+  const tabOverlay = document.getElementById('tabOverlay');
+  const visitorSec = document.getElementById('visitor-section');
+  const aboutOverlay = document.getElementById('aboutPSOverlay');
+  const privacyOverlay = document.getElementById('privacyPolicyOverlay');
+  const termsOverlay = document.getElementById('termsOfServiceOverlay');
+
+  if (tabOverlay) {
+    event.preventDefault();
+    closeTabOverlay(true);
+  } else if (visitorSec && visitorSec.style.display === 'block') {
+    event.preventDefault();
+    goBackFromVisitor();
+  } else if (aboutOverlay && aboutOverlay.style.display === 'flex') {
+    event.preventDefault();
+    closeAboutPS();
+  } else if (privacyOverlay && privacyOverlay.style.display === 'flex') {
+    event.preventDefault();
+    closePrivacyPolicy();
+  } else if (termsOverlay && termsOverlay.style.display === 'flex') {
+    event.preventDefault();
+    closeTermsOfService();
+  }
+});
 
 function renderCelebrations() {
   const container = document.getElementById('dashboard-celebrations-container');

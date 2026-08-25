@@ -428,6 +428,7 @@
       <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 
         <!-- MOBILE GRID OVERLAY -->
+ <!-- MOBILE GRID OVERLAY -->
         <div id="mobileMenuOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10000; display: none; flex-direction: column; padding: 20px; overflow-y: auto;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.15);">
             <div style="text-align: left;">
@@ -444,8 +445,19 @@
               </button>
             </div>
           </div>
-          <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; flex: 1;"></div>
+
+          <!-- 🟢 यहाँ मोबाइल के लिए भाषा बदलने का ड्रॉपडाउन जोड़ दिया गया है -->
+          <div class="px-1 pt-3 pb-1">
+            <select id="mobileLanguageSelector" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="changeLanguage(this.value)">
+              <option value="en">English</option>
+              <option value="hi">हिंदी (Hindi)</option>
+              <option value="gu">ગુજરાતી (Gujarati)</option>
+            </select>
+          </div>
+
+          <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; flex: 1;"></div>
         </div>
+
 
 <!-- 🟢 Language Selector Dropdown -->
 <div class="px-3 mb-3">
