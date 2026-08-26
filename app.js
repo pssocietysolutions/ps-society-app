@@ -3288,7 +3288,10 @@ function renderGridCards() {
     { id: 'terms', icon: 'fa-file-contract', label: 'Terms of Service', color: '#d97706' },
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
-    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
+    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' },
+    // ========== NEW CARDS (Mobile) ==========
+    { id: 'privacy', icon: 'fa-file-shield', label: 'Privacy Policy', color: '#8b5cf6' },
+    { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#3b82f6' }
   ];
 
   if (role === 'Member') {
@@ -3315,6 +3318,8 @@ function renderGridCards() {
 }
 
 function openAboutPS() {
+  // Push state for back button
+  history.pushState(null, '', window.location.href);
   const overlay = document.getElementById('aboutPSOverlay');
   const body = document.getElementById('aboutPSBody');
   if (!overlay || !body) return;
@@ -3375,12 +3380,16 @@ function openAboutPS() {
 
 async function openTabOverlay(tabId) {
   closeMobileMenu();
+  // Push state for back button
+  history.pushState(null, '', window.location.href);
+
+  // Handle special overlays
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'terms') { openTermsOfService(); return; }
+  if (tabId === 'privacy') { openPrivacyPolicy(); return; }
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
   if (tabId === 'activity-logs') await fetchActivityLogs();
-
   if (tabId === 'chairman-report') generateMonthlySummary();
 
   const target = document.getElementById(`tab-${tabId}`);
@@ -3395,27 +3404,11 @@ async function openTabOverlay(tabId) {
   if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
+  // For journal-voucher, the content is already rendered via renderJournalVouchers() in fetchSupabaseData, so we just display.
 
   const overlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
-}
-
-function createTabOverlay(tabId, content) {
-  const overlay = document.createElement('div');
-  overlay.id = 'tabOverlay';
-  overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;';
-  overlay.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <button onclick="closeTabOverlay()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
-      <span style="color: #f59e0b; font-weight: 600;">${tabId.toUpperCase()}</span>
-      <span style="width: 50px;"></span>
-    </div>
-    <div id="tabOverlayContent" style="flex: 1; margin-top: 15px; background: #fff; border-radius: 16px; padding: 20px; overflow-y: auto; color: #0f172a;">
-      ${content}
-    </div>
-  `;
-  return overlay;
 }
 
 function closeTabOverlay() {
@@ -3433,6 +3426,7 @@ function closeTabOverlay() {
 }
 
 function openTermsOfService() {
+  history.pushState(null, '', window.location.href);
   const overlay = document.getElementById('termsOfServiceOverlay');
   const body = document.getElementById('termsOfServiceBody');
   if (!overlay || !body) return;
@@ -3496,6 +3490,7 @@ function closePrivacyPolicy() {
 }
 
 function openPrivacyPolicy() {
+  history.pushState(null, '', window.location.href);
   const overlay = document.getElementById('privacyPolicyOverlay');
   const body = document.getElementById('privacyPolicyBody');
   if (!overlay || !body) return;
@@ -3683,6 +3678,7 @@ function markCommunityRead() {
 }
 
 async function openVisitorPassword() {
+  history.pushState(null, '', window.location.href);
   await loadSocietiesForDropdown('visitor-password-society');
   document.getElementById('visitorPasswordOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -4004,6 +4000,56 @@ function clearStuckOverlays() {
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
 }
+
+// ==================== NATIVE BACK BUTTON HANDLER ====================
+function closeAllOverlays() {
+  // Close tab overlay
+  const tabOverlay = document.getElementById('tabOverlay');
+  if (tabOverlay) tabOverlay.remove();
+
+  // Hide all overlay containers
+  const overlays = ['aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay', 'visitorPasswordOverlay'];
+  overlays.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  // Also close mobile grid if open
+  const gridOverlay = document.getElementById('mobileMenuOverlay');
+  if (gridOverlay && gridOverlay.style.display === 'flex') {
+    gridOverlay.style.display = 'none';
+  }
+
+  document.body.style.overflow = '';
+}
+
+function handlePopState(event) {
+  // If any overlay is visible, close all and prevent default navigation
+  const isAnyOverlayVisible = 
+    document.getElementById('tabOverlay') ||
+    document.getElementById('aboutPSOverlay')?.style.display === 'flex' ||
+    document.getElementById('privacyPolicyOverlay')?.style.display === 'flex' ||
+    document.getElementById('termsOfServiceOverlay')?.style.display === 'flex' ||
+    document.getElementById('visitorPasswordOverlay')?.style.display === 'flex' ||
+    (document.getElementById('mobileMenuOverlay') && document.getElementById('mobileMenuOverlay').style.display === 'flex');
+
+  if (isAnyOverlayVisible) {
+    closeAllOverlays();
+    // Prevent the browser from navigating back
+    event.preventDefault();
+    // Push a new state to keep the URL same (so that back button doesn't go to previous page)
+    history.pushState(null, '', window.location.href);
+  } else {
+    // If no overlay, allow normal back navigation
+    // (no action needed)
+  }
+}
+
+// Add popstate listener
+window.addEventListener('popstate', handlePopState);
+
+// Override open functions to push state (already done above)
+// All overlay open functions now have history.pushState
 
 window.onload = async () => {
   clearStuckOverlays();
