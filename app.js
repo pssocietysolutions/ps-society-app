@@ -3390,12 +3390,15 @@ async function openTabOverlay(tabId) {
   if (tabId === 'activity-logs') await fetchActivityLogs();
   if (tabId === 'chairman-report') generateMonthlySummary();
 
+  // 🟢 सभी टैब को पहले छिपाएं
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
+
+  // 🟢 टारगेट टैब को ढूंढें और दिखाएं
   const target = document.getElementById(`tab-${tabId}`);
-  if (!target) {
-    console.error(`Tab content not found for: tab-${tabId}`);
-    return;
+  if (target) {
+    target.classList.remove('d-none');
   }
-  
+
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
   if (tabId === 'meetings') renderMeetings();
@@ -3406,16 +3409,14 @@ async function openTabOverlay(tabId) {
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
-  // 🟢 नया सेफ तरीका: सीधे टैब की क्लास से 'd-none' हटाकर दिखाना
-  target.classList.remove('d-none');
-  
-  // अगर आपने कोई कस्टम ओवरले बनाया है, तो उसे यहाँ मैनेज करें
+  // 🟢 सुनिश्चित करें कि मेन ऐप सेक्शन छिपा न रहे
   const appSection = document.getElementById('app-section');
-  if (appSection) appSection.classList.remove('d-none');
-  
+  if (appSection) {
+    appSection.classList.remove('d-none');
+  }
+
   document.body.style.overflow = '';
 }
-
 
 function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
