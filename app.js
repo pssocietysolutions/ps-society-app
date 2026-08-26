@@ -3449,7 +3449,7 @@ function openTabOverlay(tabId) {
   if (tabId === 'terms') { openTermsOfService(); return; }
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
-  if (tabId === 'activity-logs') await fetchActivityLogs();
+  if (tabId === 'activity-logs') fetchActivityLogs();
 
   if (tabId === 'chairman-report') generateMonthlySummary();
 
@@ -3462,9 +3462,9 @@ function openTabOverlay(tabId) {
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
   if (tabId === 'sos-contacts') renderSOSContacts();
-  if (tabId === 'manage-societies') await loadSocietiesList();
+  if (tabId === 'manage-societies') loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
-  if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
+  if (tabId === 'marketplace') { fetchMarketplaceData(); renderMarketplace(); }
 
   const overlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(overlay);
