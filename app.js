@@ -3292,14 +3292,9 @@ function toggleMobileMenu() {
   if (overlay.style.display === 'flex') {
     overlay.style.display = 'none';
     document.body.style.overflow = '';
-    // अगर हिस्ट्री आगे बढ़ाई थी तो पीछे आएं
-    if (window.location.hash === '#menu') {
-      history.back();
-    }
   } else {
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    history.pushState({ menuOpen: true }, '', '#menu'); // 👈 मोबाइल बैक बटन ट्रैक करने के लिए
     renderGridCards();
   }
 }
@@ -3449,7 +3444,7 @@ async function openTabOverlay(tabId) {
   if (tabId === 'terms') { openTermsOfService(); return; }
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
-  if (tabId === 'activity-logs') fetchActivityLogs();
+  if (tabId === 'activity-logs') await fetchActivityLogs();
 
   if (tabId === 'chairman-report') generateMonthlySummary();
 
@@ -3462,14 +3457,13 @@ async function openTabOverlay(tabId) {
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
   if (tabId === 'sos-contacts') renderSOSContacts();
-  if (tabId === 'manage-societies') loadSocietiesList();
+  if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
-  if (tabId === 'marketplace') { fetchMarketplaceData(); renderMarketplace(); }
+  if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
   const overlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
-  history.pushState({ overlayOpen: true }, '', `#tab-${tabId}`); // 👈 बैक बटन के लिए स्टेट पुश किया
 }
 
 function createTabOverlay(tabId, content) {
@@ -3493,11 +3487,6 @@ function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
-  
-  if (window.location.hash.startsWith('#tab-')) {
-    history.back(); // हिस्ट्री को क्लीन करें
-  }
-
   if (window.innerWidth <= 768) {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -4099,46 +4088,6 @@ window.onload = async () => {
     showLandingPage();
   }
 };
-
-// 🟢 Native Mobile / Browser Back Button Handler (Smooth & Glitch-free)
-window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-        handleDeepLink();
-    }
-});
-
-window.addEventListener('load', handleDeepLink);
-
-// 🟢 Native Mobile / Browser Back Button Handler (Glitch-free)
-window.addEventListener('popstate', (event) => {
-  const tabOverlay = document.getElementById('tabOverlay');
-  if (tabOverlay) {
-    tabOverlay.remove();
-    document.body.style.overflow = '';
-    if (window.innerWidth <= 768) {
-      const gridOverlay = document.getElementById('mobileMenuOverlay');
-      if (gridOverlay) {
-        gridOverlay.style.display = 'flex';
-        renderGridCards();
-        document.body.style.overflow = 'hidden';
-      }
-    }
-    return;
-  }
-
-  const mobileMenu = document.getElementById('mobileMenuOverlay');
-  if (mobileMenu && mobileMenu.style.display === 'flex') {
-    mobileMenu.style.display = 'none';
-    document.body.style.overflow = '';
-    return;
-  }
-
-  const visitorSection = document.getElementById('visitor-section');
-  if (visitorSection && visitorSection.style.display === 'block') {
-    goBackFromVisitor();
-    return;
-  }
-});
 
 setInterval(async () => {
   if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {
