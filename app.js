@@ -3443,7 +3443,7 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
-function openTabOverlay(tabId) {
+async function openTabOverlay(tabId) {
   closeMobileMenu();
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'terms') { openTermsOfService(); return; }
