@@ -4101,8 +4101,16 @@ window.onload = async () => {
 };
 
 // 🟢 Native Mobile / Browser Back Button Handler (Smooth & Glitch-free)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        handleDeepLink();
+    }
+});
+
+window.addEventListener('load', handleDeepLink);
+
+// 🟢 Native Mobile / Browser Back Button Handler (Glitch-free)
 window.addEventListener('popstate', (event) => {
-  // 1. अगर टैब ओवरले खुला है तो उसे बंद करें
   const tabOverlay = document.getElementById('tabOverlay');
   if (tabOverlay) {
     tabOverlay.remove();
@@ -4118,7 +4126,6 @@ window.addEventListener('popstate', (event) => {
     return;
   }
 
-  // 2. अगर मोबाइल ग्रिड मेनू खुला है तो उसे बंद करें
   const mobileMenu = document.getElementById('mobileMenuOverlay');
   if (mobileMenu && mobileMenu.style.display === 'flex') {
     mobileMenu.style.display = 'none';
@@ -4126,7 +4133,6 @@ window.addEventListener('popstate', (event) => {
     return;
   }
 
-  // 3. अगर विजीटर सेक्शन खुला है तो पीछे जाएं
   const visitorSection = document.getElementById('visitor-section');
   if (visitorSection && visitorSection.style.display === 'block') {
     goBackFromVisitor();
