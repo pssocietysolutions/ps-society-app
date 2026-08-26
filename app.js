@@ -3380,10 +3380,8 @@ function openAboutPS() {
 
 async function openTabOverlay(tabId) {
   closeMobileMenu();
-  // Push state for back button
   history.pushState(null, '', window.location.href);
 
-  // Handle special overlays
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'terms') { openTermsOfService(); return; }
   if (tabId === 'privacy') { openPrivacyPolicy(); return; }
@@ -3393,7 +3391,10 @@ async function openTabOverlay(tabId) {
   if (tabId === 'chairman-report') generateMonthlySummary();
 
   const target = document.getElementById(`tab-${tabId}`);
-  if (!target) return;
+  if (!target) {
+    console.error(`Tab content not found for: tab-${tabId}`);
+    return;
+  }
   
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
@@ -3404,12 +3405,17 @@ async function openTabOverlay(tabId) {
   if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
-  // For journal-voucher, the content is already rendered via renderJournalVouchers() in fetchSupabaseData, so we just display.
 
-  const overlay = createTabOverlay(tabId, target.innerHTML);
-  document.body.appendChild(overlay);
-  document.body.style.overflow = 'hidden';
+  // 🟢 नया सेफ तरीका: सीधे टैब की क्लास से 'd-none' हटाकर दिखाना
+  target.classList.remove('d-none');
+  
+  // अगर आपने कोई कस्टम ओवरले बनाया है, तो उसे यहाँ मैनेज करें
+  const appSection = document.getElementById('app-section');
+  if (appSection) appSection.classList.remove('d-none');
+  
+  document.body.style.overflow = '';
 }
+
 
 function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
