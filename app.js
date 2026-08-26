@@ -96,9 +96,6 @@ function showVisitorPage() {
     const backBtn = document.getElementById('visitorBackBtn');
     if (backBtn) backBtn.onclick = goBackFromVisitor;
     loadTodayVisitors();
-
-    // 🟢 मोबाइल बैक बटन के लिए हिस्ट्री स्टेट पुश करें
-    history.pushState({ view: 'visitor' }, '', window.location.href);
   } else {
     openVisitorPassword();
   }
@@ -464,46 +461,97 @@ function markAllAsRead() {
   updateBadge('visitor-badge', 0);
 }
 
-// 🟢 Multi-Language Dictionary & Localization
+// 🟢 Multi-Language Dictionary & Localization (Extended for All Tabs & Sections)
 const translations = {
   en: {
-    dashboard: "Dashboard",
+    dashboard: "Dashboard Overview",
     members: "Members Directory",
-    maintenance: "Maintenance Log",
+    maintenance: "Maintenance Recovery Ledger",
     expenses: "Expense Ledger",
-    visitors: "Visitor Management",
-    complaints: "Complaints",
-    meetings: "Meeting Minutes",
-    aboutTitle: "PS Society Solutions",
-    aboutTagline: "Smart Society Management Engine • Simple • Transparent • Affordable",
-    aboutPlans: "Subscription Plans (Per House / Month)",
-    aboutFeatures: "What Your Society Gets"
+    amc: "AMC Service Contracts Tracker",
+    tally: "Tally Bank Passbook Register",
+    jv: "Manual Journal Vouchers (Adjustments)",
+    ca: "CA Verification & Tax Compliance Engine",
+    chairman: "Chairman Monthly Executive Summary",
+    visitor: "Visitor Management",
+    complaints: "Complaints & Tickets",
+    polls: "Polls & Voting",
+    community: "Community Hub",
+    meetings: "Society Meeting Minutes (AGM / Committee)",
+    marketplace: "Community Marketplace & Classifieds",
+    bank: "Society Bank & Payment QR",
+    sos: "Emergency SOS Hub",
+    assets: "Asset Register",
+    fds: "FD Reserve Register",
+    proofs: "Payment Details",
+    settings: "Society Settings",
+    team: "Committee & Staff",
+    addMemberBtn: "+ Add Member",
+    addPaymentBtn: "+ Record Payment",
+    addVoucherBtn: "+ Add Voucher",
+    totalPending: "Total Society Pending Dues",
+    totalCollected: "Total Maintenance Collected",
+    totalExpenses: "Total Society Expenses Paid"
   },
   hi: {
-    dashboard: "डैशबोर्ड",
-    members: "सदस्य सूची (Members)",
-    maintenance: "रखरखाव लॉग (Maintenance)",
-    expenses: "खर्च बही (Expenses)",
-    visitors: "आगंतुक प्रबंधन (Visitors)",
-    complaints: "शिकायतें (Complaints)",
-    meetings: "मीटिंग मिनट्स (AGM)",
-    aboutTitle: "पी.एस. सोसायटी सॉल्यूशंस",
-    aboutTagline: "स्मार्ट सोसायटी मैनेजमेंट इंजन • सरल • पारदर्शी • किफायती",
-    aboutPlans: "सब्सक्रिप्शन प्लान (प्रति घर / माह)",
-    aboutFeatures: "आपकी सोसायटी को क्या मिलता है"
+    dashboard: "डैशबोर्ड सिंहावलोकन",
+    members: "सदस्य निर्देशिका (Members Directory)",
+    maintenance: "रखरखाव वसूली बही (Maintenance Ledger)",
+    expenses: "खर्च बही (Expense Ledger)",
+    amc: "एएमसी सर्विस कॉन्ट्रैक्ट्स ट्रैकर",
+    tally: "टैली बैंक पासबुक रजिस्टर",
+    jv: "मैनुअल जर्नल वाउचर (समायोजन)",
+    ca: "सीए सत्यापन और कर अनुपालन इंजन",
+    chairman: "चेयरमैन मासिक कार्यकारी सारांश",
+    visitor: "आगंतुक प्रबंधन (Visitor Management)",
+    complaints: "शिकायतें और टिकट (Complaints)",
+    polls: "पोल और मतदान (Polls & Voting)",
+    community: "कम्युनिटी हब",
+    meetings: "सोसायटी मीटिंग मिनट्स (AGM)",
+    marketplace: "कम्युनिटी मार्केटप्लेस",
+    bank: "सोसायटी बैंक और भुगतान QR",
+    sos: "आपातकालीन SOS हब",
+    assets: "परिसंपत्ति रजिस्टर (Asset Register)",
+    fds: "एफडी रिजर्व रजिस्टर",
+    proofs: "भुगतान विवरण (Payment Details)",
+    settings: "सोसायटी सेटिंग्स",
+    team: "कमटी और स्टाफ (Committee)",
+    addMemberBtn: "+ सदस्य जोड़ें",
+    addPaymentBtn: "+ भुगतान दर्ज करें",
+    addVoucherBtn: "+ वाउचर जोड़ें",
+    totalPending: "कुल लंबित सोसायटी बकाया",
+    totalCollected: "कुल रखरखाव संग्रहित",
+    totalExpenses: "कुल सोसायटी खर्च भुगतान"
   },
   gu: {
-    dashboard: "ડેશબોર્ड",
-    members: "સભ્યોની યાદી (Members)",
-    maintenance: "મેન્ટેનન્સ લોગ (Maintenance)",
-    expenses: "ખર્ચ લેજર (Expenses)",
-    visitors: "વિઝિટર મેनेજमेंट (Visitors)",
-    complaints: "ફરિયાદો (Complaints)",
-    meetings: "મીટિંગ મિનિટ્સ (AGM)",
-    aboutTitle: "પી.એસ. સોસાયટી સોলিউશન્સ",
-    aboutTagline: "સ્માર્ટ સોસાયટી મેનેજમેન્ટ એન્જિન • સરળ • પારદર્શક • સસ્તું",
-    aboutPlans: "સબ્સ્ક્રિપ્શન પ્લાન (દર ઘર / મહિનો)",
-    aboutFeatures: "તમારી સોસાયટીને શું મળે છે"
+    dashboard: "ડેશબોર્ડ અવલોકન",
+    members: "સભ્યોની ડિરેક્ટરી (Members Directory)",
+    maintenance: "મેન્ટેનન્સ રિકવરી લેજર",
+    expenses: "ખર્ચ લેજર (Expense Ledger)",
+    amc: "AMC સર્વિસ કોન્ટ્રેક્ટ્સ ટ્રેકર",
+    tally: "ટૅલી બૅન્ક પાસબુક રજિસ્ટર",
+    jv: "જર્નલ વાઉચર (એડજસ્ટમેન્ટ)",
+    ca: "CA ચકાસણી અને ટેક્સ કમ્પ્લાયન્સ એન્જિન",
+    chairman: "ચેરમેન માસિક કાર્યવાહક સારાંશ",
+    visitor: "વિઝિટર મેનેજમેન્ટ",
+    complaints: "ફરિયાદો અને ટિકિટ્સ",
+    polls: "પોલ્સ અને વોટિંગ",
+    community: "કમ્યુનિટી હબ",
+    meetings: "સોસાયટી મીટિંગ મિનિટ્સ (AGM)",
+    marketplace: "કમ્યુનિટી માર્કેટપ્લેસ",
+    bank: "સોસાયટી બૅન્ક અને પેમેન્ટ QR",
+    sos: "ઇમરજન્સી SOS હબ",
+    assets: "એસેટ રજિસ્ટર",
+    fds: "FD રિઝર્વ રજિસ્ટર",
+    proofs: "પેમેન્ટ વિગતો",
+    settings: "સોસાયટી સેટિંગ્સ",
+    team: "કમિટી અને સ્ટાફ",
+    addMemberBtn: "+ સભ્ય ઉમેરો",
+    addPaymentBtn: "+ ચુકવણી રેકોર્ડ કરો",
+    addVoucherBtn: "+ વાઉચર ઉમેરો",
+    totalPending: "કુલ બાકી લેણાં",
+    totalCollected: "કુલ મેન્ટેનન્સ વસૂલાત",
+    totalExpenses: "કુલ ખર્ચ ચૂકવણી"
   }
 };
 
@@ -513,37 +561,27 @@ function changeLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('ps_lang', lang);
   applyTranslations();
-
-  // 🟢 अगर About PS का ओवरले खुला है, तो भाषा बदलते ही उसे भी रिफ्रेश करें
-  const aboutOverlay = document.getElementById('aboutPSOverlay');
-  if (aboutOverlay && aboutOverlay.style.display === 'flex') {
-    openAboutPS();
-  }
-
-  // 🟢 दोनों लैंग्वेज सेलेक्टर्स को सिंक रखें
-  const desktopSelector = document.getElementById('languageSelector');
-  const mobileSelector = document.getElementById('mobileLanguageSelector');
-  if (desktopSelector) desktopSelector.value = lang;
-  if (mobileSelector) mobileSelector.value = lang;
+  renderGridCards(); // 👈 मोबाइल मेनू को भी तुरंत अपडेट करने के लिए
 }
 
 function applyTranslations() {
   const langSelector = document.getElementById('languageSelector');
-  const mobileLangSelector = document.getElementById('mobileLanguageSelector');
-  
   if (langSelector) langSelector.value = currentLang;
-  if (mobileLangSelector) mobileLangSelector.value = currentLang; // 🟢 मोबाइल ड्रॉपडाउन को सिंक करें
 
   const dict = translations[currentLang] || translations['en'];
   
-  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
-    if (link.getAttribute('onclick')?.includes('dashboard')) link.innerHTML = `<i class="fa-solid fa-chart-line me-2"></i> ${dict.dashboard}`;
-    if (link.getAttribute('onclick')?.includes('members')) link.innerHTML = `<i class="fa-solid fa-users me-2"></i> ${dict.members}`;
-    if (link.getAttribute('onclick')?.includes('maintenance')) link.innerHTML = `<i class="fa-solid fa-indian-rupee-sign me-2"></i> ${dict.maintenance}`;
-    if (link.getAttribute('onclick')?.includes('expenses')) link.innerHTML = `<i class="fa-solid fa-receipt me-2"></i> ${dict.expenses}`;
-    if (link.getAttribute('onclick')?.includes('visitor')) link.innerHTML = `<i class="fa-solid fa-user-plus me-2"></i> ${dict.visitors}`;
-    if (link.getAttribute('onclick')?.includes('complaints')) link.innerHTML = `<i class="fa-solid fa-headset me-2"></i> ${dict.complaints}`;
-    if (link.getAttribute('onclick')?.includes('meetings')) link.innerHTML = `<i class="fa-solid fa-book-open me-2"></i> ${dict.meetings}`;
+  // ऑटोमैटिक उन सभी एलिमेंट्स को बदल देगा जिनपर data-i18n लगा है
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) {
+      const icon = el.querySelector('i');
+      if (icon) {
+        const iconHTML = icon.outerHTML;
+        el.innerHTML = `${iconHTML} ${dict[key]}`;
+      } else {
+        el.innerText = dict[key];
+      }
+    }
   });
 }
 
@@ -3254,9 +3292,14 @@ function toggleMobileMenu() {
   if (overlay.style.display === 'flex') {
     overlay.style.display = 'none';
     document.body.style.overflow = '';
+    // अगर हिस्ट्री आगे बढ़ाई थी तो पीछे आएं
+    if (window.location.hash === '#menu') {
+      history.back();
+    }
   } else {
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    history.pushState({ menuOpen: true }, '', '#menu'); // 👈 मोबाइल बैक बटन ट्रैक करने के लिए
     renderGridCards();
   }
 }
@@ -3292,56 +3335,53 @@ function renderGridCards() {
   const container = document.querySelector('#mobileMenuOverlay .grid-container');
   if (!container) return;
   const role = currentRole || 'Member';
+  
+  // 🟢 यहाँ labels की जगह i18n की (keys) का इस्तेमाल किया है
   let allCards = [
-    { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', color: '#2563eb' },
-    { id: 'activity-logs', icon: 'fa-list-check', label: 'Activity Logs', color: '#0ea5e9' },
-    { id: 'members', icon: 'fa-users', label: 'Members', color: '#22c55e' },
-    { id: 'maintenance', icon: 'fa-indian-rupee-sign', label: 'Maintenance', color: '#f59e0b' },
-    { id: 'expenses', icon: 'fa-receipt', label: 'Expenses', color: '#ef4444' },
-    { id: 'amc-tracker', icon: 'fa-screwdriver-wrench', label: 'AMC Tracker', color: '#f59e0b' },
-    { id: 'visitor', icon: 'fa-user-plus', label: 'Visitor', color: '#8b5cf6' },
-    { id: 'complaints', icon: 'fa-headset', label: 'Complaints', color: '#ec4899' },
-    { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
-    { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
-    { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
-    { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
-    { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
-    { id: 'meetings', icon: 'fa-book-open', label: 'Meeting Minutes', color: '#2563eb' },
-    { id: 'bank-details', icon: 'fa-qrcode', label: 'Bank / QR', color: '#2563eb' },
-    { id: 'marketplace', icon: 'fa-store', label: 'Marketplace', color: '#f59e0b' },
-    { id: 'sos-contacts', icon: 'fa-truck-medical', label: 'Emergency SOS', color: '#ef4444' },
-    { id: 'assets', icon: 'fa-boxes-stacked', label: 'Assets', color: '#64748b' },
-    { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
-    { id: 'proofs', icon: 'fa-file-invoice', label: 'Payment Details', color: '#3b82f6' },
-    { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
-    { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
-    { id: 'terms', icon: 'fa-file-contract', label: 'Terms of Service', color: '#d97706' },
-    { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
-    { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
-    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
+    { id: 'dashboard', icon: 'fa-chart-line', i18nKey: 'dashboard', label: 'Dashboard', color: '#2563eb' },
+    { id: 'activity-logs', icon: 'fa-list-check', i18nKey: 'activityLogs', label: 'Activity Logs', color: '#0ea5e9' },
+    { id: 'members', icon: 'fa-users', i18nKey: 'members', label: 'Members', color: '#22c55e' },
+    { id: 'maintenance', icon: 'fa-indian-rupee-sign', i18nKey: 'maintenance', label: 'Maintenance', color: '#f59e0b' },
+    { id: 'expenses', icon: 'fa-receipt', i18nKey: 'expenses', label: 'Expenses', color: '#ef4444' },
+    { id: 'amc-tracker', icon: 'fa-screwdriver-wrench', i18nKey: 'amc', label: 'AMC Tracker', color: '#f59e0b' },
+    { id: 'visitor', icon: 'fa-user-plus', i18nKey: 'visitor', label: 'Visitor', color: '#8b5cf6' },
+    { id: 'complaints', icon: 'fa-headset', i18nKey: 'complaints', label: 'Complaints', color: '#ec4899' },
+    { id: 'ca-audit', icon: 'fa-calculator', i18nKey: 'ca', label: 'CA Audit', color: '#06b6d4' },
+    { id: 'polls', icon: 'fa-check-to-slot', i18nKey: 'polls', label: 'Polls', color: '#f97316' },
+    { id: 'tally-bank', icon: 'fa-building-columns', i18nKey: 'tally', label: 'Tally Bank', color: '#8b5cf6' },
+    { id: 'chairman-report', icon: 'fa-file-invoice-dollar', i18nKey: 'chairman', label: 'Chairman Report', color: '#f59e0b' },
+    { id: 'community', icon: 'fa-people-group', i18nKey: 'community', label: 'Community Hub', color: '#14b8a6' },
+    { id: 'meetings', icon: 'fa-book-open', i18nKey: 'meetings', label: 'Meeting Minutes', color: '#2563eb' },
+    { id: 'bank-details', icon: 'fa-qrcode', i18nKey: 'bank', label: 'Bank / QR', color: '#2563eb' },
+    { id: 'marketplace', icon: 'fa-store', i18nKey: 'marketplace', label: 'Marketplace', color: '#f59e0b' },
+    { id: 'sos-contacts', icon: 'fa-truck-medical', i18nKey: 'sos', label: 'Emergency SOS', color: '#ef4444' },
+    { id: 'assets', icon: 'fa-boxes-stacked', i18nKey: 'assets', label: 'Assets', color: '#64748b' },
+    { id: 'fds', icon: 'fa-piggy-bank', i18nKey: 'fds', label: 'FDs', color: '#8b5cf6' },
+    { id: 'proofs', icon: 'fa-file-invoice', i18nKey: 'proofs', label: 'Payment Details', color: '#3b82f6' },
+    { id: 'settings', icon: 'fa-gear', i18nKey: 'settings', label: 'Settings', color: '#475569' },
+    { id: 'team', icon: 'fa-people-group', i18nKey: 'team', label: 'Committee', color: '#8b5cf6' }
   ];
 
   if (role === 'Member') {
-    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
+    const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman' || role === 'SocietyAdmin') {
     allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
   }
 
-  allCards.sort((a, b) => {
-    if (a.id === 'dashboard') return -1;
-    if (b.id === 'dashboard') return 1;
-    if (a.id === 'about') return 1;
-    if (b.id === 'about') return -1;
-    return a.label.localeCompare(b.label);
-  });
+  // 🟢 वर्तमान भाषा (currentLang) के हिसाब से टेक्स्ट सेट करना
+  const dict = translations[currentLang] || translations['en'];
 
-  container.innerHTML = allCards.map(card => `
-    <div onclick="openTabOverlay('${card.id}')" class="grid-card-item" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 10px; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);">
-      <i class="fa-solid ${card.icon}" style="color: ${card.color};"></i>
-      <span style="color: #fff; font-weight: 500; display: block;">${card.label}</span>
-    </div>
-  `).join('');
+  container.innerHTML = allCards.map(card => {
+    // अगर डिक्शनरी में नाम है तो वो लो, नहीं तो डिफ़ॉल्ट label लो
+    const cardLabel = dict[card.i18nKey] || card.label;
+    return `
+      <div onclick="openTabOverlay('${card.id}')" class="grid-card-item" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 10px; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);">
+        <i class="fa-solid ${card.icon}" style="color: ${card.color}; font-size: 24px; margin-bottom: 8px;"></i>
+        <span style="color: #fff; font-weight: 500; display: block; font-size: 13px;">${card.label}</span>
+      </div>
+    `;
+  }).join('');
 }
 
 function openAboutPS() {
@@ -3349,46 +3389,45 @@ function openAboutPS() {
   const body = document.getElementById('aboutPSBody');
   if (!overlay || !body) return;
 
-  const t = translations[currentLang] || translations['en'];
-
   body.innerHTML = `
     <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left;">
       <div class="text-center mb-3">
-        <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> ${t.aboutTitle}</h3>
-        <p class="text-primary fw-semibold small mb-0">${t.aboutTagline}</p>
+        <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> Society Solutions</h3>
+        <p class="text-primary fw-semibold small mb-0">Smart Society Management Engine • Simple • Transparent • Affordable</p>
       </div>
 
-      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ ${t.aboutPlans}</h6>
+      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ Subscription Plans (Per House / Month)</h6>
       <div class="row g-2 mb-3 text-center">
         <div class="col-4">
           <div class="p-2 border rounded-3 bg-light">
             <span class="badge bg-secondary mb-1">SILVER</span>
-            <h5 class="fw-bold mb-0 text-dark">₹49</h5>
+            <h5 class="fw-bold mb-0 text-dark">49</h5>
             <small class="text-muted" style="font-size: 10px;">Digital Accounting</small>
           </div>
         </div>
         <div class="col-4">
           <div class="p-2 border border-warning rounded-3 bg-warning-subtle">
-            <span class="badge bg-warning text-dark mb-1">GOLD</span>
-            <h5 class="fw-bold mb-0 text-dark">₹79</h5>
+            <span class="badge bg-warning text-dark mb-1">GOLD (Popular)</span>
+            <h5 class="fw-bold mb-0 text-dark">79</h5>
             <small class="text-muted" style="font-size: 10px;">Accounting + Visits</small>
           </div>
         </div>
         <div class="col-4">
           <div class="p-2 border border-primary rounded-3 bg-primary-subtle">
             <span class="badge bg-primary mb-1">PLATINUM</span>
-            <h5 class="fw-bold mb-0 text-dark">₹149</h5>
-            <small class="text-muted" style="font-size: 10px;">Complete Suite</small>
+            <h5 class="fw-bold mb-0 text-dark">149</h5>
+            <small class="text-muted" style="font-size: 10px;">Complete Operations</small>
           </div>
         </div>
       </div>
 
-      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">✨ ${t.aboutFeatures}</h6>
+      <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">✨ What Your Society Gets</h6>
       <ul class="small text-muted ps-3 mb-3" style="line-height: 1.6;">
         <li>📊 <strong>Digital Accounting:</strong> Member ledgers, automated collection tracking & vouchers.</li>
-        <li>📑 <strong>CA-Ready Audit Reports:</strong> Automatic Balance Sheet & Trial Balance generation.</li>
+        <li>📑 <strong>CA-Ready Audit Records:</strong> Automatic Balance Sheet & Trial Balance generation.</li>
         <li>📢 <strong>WhatsApp Reminders:</strong> Direct 1-click pending payment alerts to defaulters.</li>
-        <li>🛡️ <strong>Zero Cash Handling:</strong> Complete bank & QR transparency with Society's accounts.</li>
+        <li>🛡️ <strong>Zero Cash Handling:</strong> Complete bank & QR transparency with Society's own accounts.</li>
+        <li>👥 <strong>Committee & Staff Support:</strong> Vendor AMC tracking, security logs & complaint tickets.</li>
       </ul>
 
       <div class="p-3 bg-light rounded-3 text-center border">
@@ -3400,38 +3439,18 @@ function openAboutPS() {
       </div>
     </div>
   `;
-
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
-
-  // 🟢 मोबाइल बैक बटन के लिए हिस्ट्री स्टेट
-  history.pushState({ overlay: 'aboutPS' }, '', window.location.href);
 }
 
-function closeAboutPS() {
-  const overlay = document.getElementById('aboutPSOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
-  
-  // 🟢 मोबाइल में '✕' या बैक बटन दबाने पर ग्रिड मेनू को तुरंत वापस एक्टिव करें
-  if (window.innerWidth <= 768 && localStorage.getItem('ps_user_logged') === 'true') {
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) {
-      gridOverlay.style.display = 'flex';
-      renderGridCards();
-      document.body.style.overflow = 'hidden';
-    }
-  }
-}
-
-// 🟢 Update openTabOverlay to support Browser Back Button
-async function openTabOverlay(tabId) {
+function openTabOverlay(tabId) {
   closeMobileMenu();
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'terms') { openTermsOfService(); return; }
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
   if (tabId === 'activity-logs') await fetchActivityLogs();
+
   if (tabId === 'chairman-report') generateMonthlySummary();
 
   const target = document.getElementById(`tab-${tabId}`);
@@ -3450,9 +3469,7 @@ async function openTabOverlay(tabId) {
   const overlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
-
-  // 🟢 Push state so mobile back button closes overlay instead of exiting app
-  history.pushState({ overlayOpen: true, tabId: tabId }, '', window.location.href);
+  history.pushState({ overlayOpen: true }, '', `#tab-${tabId}`); // 👈 बैक बटन के लिए स्टेट पुश किया
 }
 
 function createTabOverlay(tabId, content) {
@@ -3472,11 +3489,15 @@ function createTabOverlay(tabId, content) {
   return overlay;
 }
 
-function closeTabOverlay(isPopState = false) {
+function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
   
+  if (window.location.hash.startsWith('#tab-')) {
+    history.back(); // हिस्ट्री को क्लीन करें
+  }
+
   if (window.innerWidth <= 768) {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -3875,14 +3896,16 @@ function listenForSOSAlerts() {
     .subscribe();
 }
 
-// 🟢 Fixed handleDeepLink to prevent grid overlay from overriding notification click
 function handleDeepLink() {
     setTimeout(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
+        const pollId = params.get('pollId');
+        const noticeId = params.get('noticeId');
+        const complaintId = params.get('complaintId');
+        const eventId = params.get('eventId');
 
         if (tab) {
-            // 🟢 अगर नोटिफिकेशन से आए हैं, तो मेन ग्रिड को खुलने से रोकें
             const gridOverlay = document.getElementById('mobileMenuOverlay');
             if (gridOverlay) {
                 gridOverlay.style.display = 'none';
@@ -3894,7 +3917,6 @@ function handleDeepLink() {
 
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
-                // मोबाइल पर सीधे ओवरले खोलें और ग्रिड को ब्लॉक रखें
                 openTabOverlay(tab);
             } else {
                 const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
@@ -3902,43 +3924,21 @@ function handleDeepLink() {
                     switchTab(tab, link);
                 } else {
                     switchTab(tab, null);
+                    document.querySelectorAll('.nav-link').forEach(l => {
+                        if (l.textContent.trim().toLowerCase() === tab.toLowerCase()) {
+                            l.classList.add('active');
+                        }
+                    });
                 }
             }
         }
-    }, 600); // थोड़ा समय बढ़ा दिया ताकि डेटा लोड होने के बाद डिस्टर्ब न हो
+    }, 400);
 }
 
 window.addEventListener('pageshow', function(event) {
     if (event.persisted) {
         handleDeepLink();
     }
-});
-
-// 🟢 Unified & Clean Mobile Back Button Handler (popstate)
-// 🟢 Unified & Clean Mobile Back Button Handler (popstate)
-window.addEventListener('popstate', function(event) {
-  const tabOverlay = document.getElementById('tabOverlay');
-  const visitorSec = document.getElementById('visitor-section');
-  const aboutOverlay = document.getElementById('aboutPSOverlay');
-  const privacyOverlay = document.getElementById('privacyPolicyOverlay');
-  const termsOverlay = document.getElementById('termsOfServiceOverlay');
-
-  if (tabOverlay) {
-    event.preventDefault();
-    closeTabOverlay(true);
-  } else if (visitorSec && visitorSec.style.display === 'block') {
-    event.preventDefault();
-    goBackFromVisitor();
-  } else if (aboutOverlay && aboutOverlay.style.display === 'flex') {
-    event.preventDefault();
-    closeAboutPS();
-  } else if (privacyOverlay && privacyOverlay.style.display === 'flex') {
-    event.preventDefault();
-    closePrivacyPolicy();
-  } else if (termsOverlay && termsOverlay.style.display === 'flex') {
-    event.preventDefault();
-    closeTermsOfService();
-  }
 });
 
 window.addEventListener('load', handleDeepLink);
@@ -4099,6 +4099,40 @@ window.onload = async () => {
     showLandingPage();
   }
 };
+
+// 🟢 Native Mobile / Browser Back Button Handler (Smooth & Glitch-free)
+window.addEventListener('popstate', (event) => {
+  // 1. अगर टैब ओवरले खुला है तो उसे बंद करें
+  const tabOverlay = document.getElementById('tabOverlay');
+  if (tabOverlay) {
+    tabOverlay.remove();
+    document.body.style.overflow = '';
+    if (window.innerWidth <= 768) {
+      const gridOverlay = document.getElementById('mobileMenuOverlay');
+      if (gridOverlay) {
+        gridOverlay.style.display = 'flex';
+        renderGridCards();
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    return;
+  }
+
+  // 2. अगर मोबाइल ग्रिड मेनू खुला है तो उसे बंद करें
+  const mobileMenu = document.getElementById('mobileMenuOverlay');
+  if (mobileMenu && mobileMenu.style.display === 'flex') {
+    mobileMenu.style.display = 'none';
+    document.body.style.overflow = '';
+    return;
+  }
+
+  // 3. अगर विजीटर सेक्शन खुला है तो पीछे जाएं
+  const visitorSection = document.getElementById('visitor-section');
+  if (visitorSection && visitorSection.style.display === 'block') {
+    goBackFromVisitor();
+    return;
+  }
+});
 
 setInterval(async () => {
   if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {

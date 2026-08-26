@@ -11,6 +11,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PS Society Solutions - Management Portal</title>
 
+<!-- 🟢 Google Translate Script -->
+<script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement({
+      pageLanguage: 'en',
+      includedLanguages: 'hi,gu,en',
+      layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+    }, 'google_translate_element');
+  }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
   <!-- PWA META -->
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -383,42 +395,42 @@
           </div>
         </div>
         <ul class="nav nav-pills flex-column mb-auto">
-          <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('members', this)"><i class="fa-solid fa-users me-2"></i> Members Directory</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('maintenance', this)"><i class="fa-solid fa-indian-rupee-sign me-2"></i> Maintenance Log <span id="maintenance-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('expenses', this)"><i class="fa-solid fa-receipt me-2"></i> Expense Ledger</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)"><i class="fa-solid fa-screwdriver-wrench me-2"></i> AMC Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)"><i class="fa-solid fa-building-columns me-2"></i> Tally Bank Book</a></li>
-<li class="nav-item role-restricted admin-only chairman-only">
-  <a class="nav-link" onclick="switchTab('journal-voucher', this)">
-    <i class="fa-solid fa-file-pen me-2"></i> Journal Voucher (JV)
-  </a>
-</li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('ca-audit', this)"><i class="fa-solid fa-calculator me-2"></i> CA Audit Report</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('chairman-report', this)"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Chairman Report</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('visitor', this)"><i class="fa-solid fa-user-plus me-2"></i> Visitor <span id="visitor-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('complaints', this)"><i class="fa-solid fa-headset me-2"></i> Complaints <span id="complaints-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('polls', this)"><i class="fa-solid fa-check-to-slot me-2"></i> Polls & Voting <span id="polls-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item" id="community-nav-item"><a class="nav-link" onclick="switchTab('community', this)"><i class="fa-solid fa-people-group me-2"></i> Community Hub <span id="community-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-<li class="nav-item role-restricted admin-only chairman-only">
-  <a class="nav-link" onclick="switchTab('meetings', this)">
-    <i class="fa-solid fa-book-open me-2"></i> Meeting Minutes (AGM)
-  </a>
-</li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('marketplace', this)"><i class="fa-solid fa-store me-2 text-warning"></i> Marketplace</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('bank-details', this)"><i class="fa-solid fa-qrcode me-2"></i> Society Bank / QR</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('sos-contacts', this)"><i class="fa-solid fa-truck-medical me-2 text-danger"></i> Emergency SOS</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('assets', this)"><i class="fa-solid fa-boxes-stacked me-2"></i> Asset Register</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('fds', this)"><i class="fa-solid fa-piggy-bank me-2"></i> FDs & Reserve</a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('proofs', this)"><i class="fa-solid fa-file-invoice me-2"></i> Payment Details <span id="proofs-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('settings', this)"><i class="fa-solid fa-gear me-2"></i> Settings</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="openAboutPS()"><i class="fa-solid fa-circle-info me-2"></i> About PS</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="openPrivacyPolicy()"><i class="fa-solid fa-file-shield me-2"></i> Privacy Policy</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="openTermsOfService()"><i class="fa-solid fa-file-contract me-2"></i> Terms of Service</a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('deletion-requests', this)"><i class="fa-solid fa-trash-can me-2"></i> Deletion Requests</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('team', this)"><i class="fa-solid fa-people-group me-2"></i> Committee / Team</a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('manage-societies', this)"><i class="fa-solid fa-building me-2"></i> Manage Societies</a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('activity-logs', this)"><i class="fa-solid fa-list-check me-2"></i> Activity Logs</a></li>
+          <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard', this)" data-i18n="dashboard"><i class="fa-solid fa-chart-line me-2"></i> Dashboard Overview</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('members', this)" data-i18n="members"><i class="fa-solid fa-users me-2"></i> Members Directory</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('maintenance', this)" data-i18n="maintenance"><i class="fa-solid fa-indian-rupee-sign me-2"></i> Maintenance Recovery Ledger <span id="maintenance-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('expenses', this)" data-i18n="expenses"><i class="fa-solid fa-receipt me-2"></i> Expense Ledger</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)" data-i18n="amc"><i class="fa-solid fa-screwdriver-wrench me-2"></i> AMC Service Contracts Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)" data-i18n="tally"><i class="fa-solid fa-building-columns me-2"></i> Tally Bank Passbook Register</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only">
+            <a class="nav-link" onclick="switchTab('journal-voucher', this)" data-i18n="jv">
+              <i class="fa-solid fa-file-pen me-2"></i> Manual Journal Vouchers (Adjustments)
+            </a>
+          </li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('ca-audit', this)" data-i18n="ca"><i class="fa-solid fa-calculator me-2"></i> CA Verification & Tax Compliance Engine</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('chairman-report', this)" data-i18n="chairman"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Chairman Monthly Executive Summary</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('visitor', this)" data-i18n="visitor"><i class="fa-solid fa-user-plus me-2"></i> Visitor Management <span id="visitor-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('complaints', this)" data-i18n="complaints"><i class="fa-solid fa-headset me-2"></i> Complaints & Tickets <span id="complaints-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('polls', this)" data-i18n="polls"><i class="fa-solid fa-check-to-slot me-2"></i> Polls & Voting <span id="polls-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item" id="community-nav-item"><a class="nav-link" onclick="switchTab('community', this)" data-i18n="community"><i class="fa-solid fa-people-group me-2"></i> Community Hub <span id="community-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only">
+            <a class="nav-link" onclick="switchTab('meetings', this)" data-i18n="meetings">
+              <i class="fa-solid fa-book-open me-2"></i> Society Meeting Minutes (AGM / Committee)
+            </a>
+          </li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('marketplace', this)" data-i18n="marketplace"><i class="fa-solid fa-store me-2 text-warning"></i> Community Marketplace & Classifieds</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('bank-details', this)" data-i18n="bank"><i class="fa-solid fa-qrcode me-2"></i> Society Bank & Payment QR</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('sos-contacts', this)" data-i18n="sos"><i class="fa-solid fa-truck-medical me-2 text-danger"></i> Emergency SOS Hub</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('assets', this)" data-i18n="assets"><i class="fa-solid fa-boxes-stacked me-2"></i> Asset Register</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('fds', this)" data-i18n="fds"><i class="fa-solid fa-piggy-bank me-2"></i> FD Reserve Register</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('proofs', this)" data-i18n="proofs"><i class="fa-solid fa-file-invoice me-2"></i> Payment Details <span id="proofs-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('settings', this)" data-i18n="settings"><i class="fa-solid fa-gear me-2"></i> Society Settings</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="openAboutPS()" data-i18n="about"><i class="fa-solid fa-circle-info me-2"></i> About PS</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="openPrivacyPolicy()" data-i18n="privacy"><i class="fa-solid fa-file-shield me-2"></i> Privacy Policy</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="openTermsOfService()" data-i18n="terms"><i class="fa-solid fa-file-contract me-2"></i> Terms of Service</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('deletion-requests', this)" data-i18n="deletion"><i class="fa-solid fa-trash-can me-2"></i> Deletion Requests</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('team', this)" data-i18n="team"><i class="fa-solid fa-people-group me-2"></i> Committee & Staff</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('manage-societies', this)" data-i18n="societies"><i class="fa-solid fa-building me-2"></i> Manage Societies</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('activity-logs', this)" data-i18n="logs"><i class="fa-solid fa-list-check me-2"></i> Audit Trail & Activity Logs</a></li>
         </ul>
         <hr class="text-secondary">
         <button class="btn btn-outline-warning w-100 mb-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fa-solid fa-key me-2"></i> Change Password</button>
@@ -428,7 +440,6 @@
       <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 
         <!-- MOBILE GRID OVERLAY -->
- <!-- MOBILE GRID OVERLAY -->
         <div id="mobileMenuOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10000; display: none; flex-direction: column; padding: 20px; overflow-y: auto;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.15);">
             <div style="text-align: left;">
@@ -445,28 +456,13 @@
               </button>
             </div>
           </div>
-
-          <!-- 🟢 यहाँ मोबाइल के लिए भाषा बदलने का ड्रॉपडाउन जोड़ दिया गया है -->
-          <div class="px-1 pt-3 pb-1">
-            <select id="mobileLanguageSelector" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="changeLanguage(this.value)">
-              <option value="en">English</option>
-              <option value="hi">हिंदी (Hindi)</option>
-              <option value="gu">ગુજરાતી (Gujarati)</option>
-            </select>
-          </div>
-
-          <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; flex: 1;"></div>
+          <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; flex: 1;"></div>
         </div>
 
-
-<!-- 🟢 Language Selector Dropdown -->
+<!-- 🟢 Google Translate Dropdown यहाँ दिखेगा -->
 <div class="px-3 mb-3">
   <label class="form-label text-white-50 small fw-semibold mb-1"><i class="fa-solid fa-language me-1"></i> Language / ભાષા / भाषा</label>
-  <select id="languageSelector" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="changeLanguage(this.value)">
-    <option value="en">English</option>
-    <option value="hi">हिंदी (Hindi)</option>
-    <option value="gu">ગુજરાતી (Gujarati)</option>
-  </select>
+  <div id="google_translate_element"></div>
 </div>
         <!-- TAB 1: DASHBOARD -->
         <div id="tab-dashboard" class="tab-content">
