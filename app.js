@@ -461,97 +461,34 @@ function markAllAsRead() {
   updateBadge('visitor-badge', 0);
 }
 
-// 🟢 Multi-Language Dictionary & Localization (Extended for All Tabs & Sections)
+// 🟢 Multi-Language Dictionary & Localization
 const translations = {
   en: {
-    dashboard: "Dashboard Overview",
+    dashboard: "Dashboard",
     members: "Members Directory",
-    maintenance: "Maintenance Recovery Ledger",
+    maintenance: "Maintenance Log",
     expenses: "Expense Ledger",
-    amc: "AMC Service Contracts Tracker",
-    tally: "Tally Bank Passbook Register",
-    jv: "Manual Journal Vouchers (Adjustments)",
-    ca: "CA Verification & Tax Compliance Engine",
-    chairman: "Chairman Monthly Executive Summary",
-    visitor: "Visitor Management",
-    complaints: "Complaints & Tickets",
-    polls: "Polls & Voting",
-    community: "Community Hub",
-    meetings: "Society Meeting Minutes (AGM / Committee)",
-    marketplace: "Community Marketplace & Classifieds",
-    bank: "Society Bank & Payment QR",
-    sos: "Emergency SOS Hub",
-    assets: "Asset Register",
-    fds: "FD Reserve Register",
-    proofs: "Payment Details",
-    settings: "Society Settings",
-    team: "Committee & Staff",
-    addMemberBtn: "+ Add Member",
-    addPaymentBtn: "+ Record Payment",
-    addVoucherBtn: "+ Add Voucher",
-    totalPending: "Total Society Pending Dues",
-    totalCollected: "Total Maintenance Collected",
-    totalExpenses: "Total Society Expenses Paid"
+    visitors: "Visitor Management",
+    complaints: "Complaints",
+    meetings: "Meeting Minutes"
   },
   hi: {
-    dashboard: "डैशबोर्ड सिंहावलोकन",
-    members: "सदस्य निर्देशिका (Members Directory)",
-    maintenance: "रखरखाव वसूली बही (Maintenance Ledger)",
-    expenses: "खर्च बही (Expense Ledger)",
-    amc: "एएमसी सर्विस कॉन्ट्रैक्ट्स ट्रैकर",
-    tally: "टैली बैंक पासबुक रजिस्टर",
-    jv: "मैनुअल जर्नल वाउचर (समायोजन)",
-    ca: "सीए सत्यापन और कर अनुपालन इंजन",
-    chairman: "चेयरमैन मासिक कार्यकारी सारांश",
-    visitor: "आगंतुक प्रबंधन (Visitor Management)",
-    complaints: "शिकायतें और टिकट (Complaints)",
-    polls: "पोल और मतदान (Polls & Voting)",
-    community: "कम्युनिटी हब",
-    meetings: "सोसायटी मीटिंग मिनट्स (AGM)",
-    marketplace: "कम्युनिटी मार्केटप्लेस",
-    bank: "सोसायटी बैंक और भुगतान QR",
-    sos: "आपातकालीन SOS हब",
-    assets: "परिसंपत्ति रजिस्टर (Asset Register)",
-    fds: "एफडी रिजर्व रजिस्टर",
-    proofs: "भुगतान विवरण (Payment Details)",
-    settings: "सोसायटी सेटिंग्स",
-    team: "कमटी और स्टाफ (Committee)",
-    addMemberBtn: "+ सदस्य जोड़ें",
-    addPaymentBtn: "+ भुगतान दर्ज करें",
-    addVoucherBtn: "+ वाउचर जोड़ें",
-    totalPending: "कुल लंबित सोसायटी बकाया",
-    totalCollected: "कुल रखरखाव संग्रहित",
-    totalExpenses: "कुल सोसायटी खर्च भुगतान"
+    dashboard: "डैशबोर्ड",
+    members: "सदस्य सूची (Members)",
+    maintenance: "रखरखाव लॉग (Maintenance)",
+    expenses: "खर्च बही (Expenses)",
+    visitors: "आगंतुक प्रबंधन (Visitors)",
+    complaints: "शिकायतें (Complaints)",
+    meetings: "मीटिंग मिनट्स (AGM)"
   },
   gu: {
-    dashboard: "ડેશબોર્ડ અવલોકન",
-    members: "સભ્યોની ડિરેક્ટરી (Members Directory)",
-    maintenance: "મેન્ટેનન્સ રિકવરી લેજર",
-    expenses: "ખર્ચ લેજર (Expense Ledger)",
-    amc: "AMC સર્વિસ કોન્ટ્રેક્ટ્સ ટ્રેકર",
-    tally: "ટૅલી બૅન્ક પાસબુક રજિસ્ટર",
-    jv: "જર્નલ વાઉચર (એડજસ્ટમેન્ટ)",
-    ca: "CA ચકાસણી અને ટેક્સ કમ્પ્લાયન્સ એન્જિન",
-    chairman: "ચેરમેન માસિક કાર્યવાહક સારાંશ",
-    visitor: "વિઝિટર મેનેજમેન્ટ",
-    complaints: "ફરિયાદો અને ટિકિટ્સ",
-    polls: "પોલ્સ અને વોટિંગ",
-    community: "કમ્યુનિટી હબ",
-    meetings: "સોસાયટી મીટિંગ મિનિટ્સ (AGM)",
-    marketplace: "કમ્યુનિટી માર્કેટપ્લેસ",
-    bank: "સોસાયટી બૅન્ક અને પેમેન્ટ QR",
-    sos: "ઇમરજન્સી SOS હબ",
-    assets: "એસેટ રજિસ્ટર",
-    fds: "FD રિઝર્વ રજિસ્ટર",
-    proofs: "પેમેન્ટ વિગતો",
-    settings: "સોસાયટી સેટિંગ્સ",
-    team: "કમિટી અને સ્ટાફ",
-    addMemberBtn: "+ સભ્ય ઉમેરો",
-    addPaymentBtn: "+ ચુકવણી રેકોર્ડ કરો",
-    addVoucherBtn: "+ વાઉચર ઉમેરો",
-    totalPending: "કુલ બાકી લેણાં",
-    totalCollected: "કુલ મેન્ટેનન્સ વસૂલાત",
-    totalExpenses: "કુલ ખર્ચ ચૂકવણી"
+    dashboard: "ડેશબોર્ડ",
+    members: "સભ્યોની યાદી (Members)",
+    maintenance: "મેન્ટેનન્સ લોગ (Maintenance)",
+    expenses: "ખર્ચ લેજર (Expenses)",
+    visitors: "વિઝિટર મેનેજમેન્ટ (Visitors)",
+    complaints: "ફરિયાદો (Complaints)",
+    meetings: "મીટિંગ મિનિટ્સ (AGM)"
   }
 };
 
@@ -561,7 +498,6 @@ function changeLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('ps_lang', lang);
   applyTranslations();
-  renderGridCards(); // 👈 मोबाइल मेनू को भी तुरंत अपडेट करने के लिए
 }
 
 function applyTranslations() {
@@ -570,18 +506,14 @@ function applyTranslations() {
 
   const dict = translations[currentLang] || translations['en'];
   
-  // ऑटोमैटिक उन सभी एलिमेंट्स को बदल देगा जिनपर data-i18n लगा है
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (dict[key]) {
-      const icon = el.querySelector('i');
-      if (icon) {
-        const iconHTML = icon.outerHTML;
-        el.innerHTML = `${iconHTML} ${dict[key]}`;
-      } else {
-        el.innerText = dict[key];
-      }
-    }
+  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
+    if (link.getAttribute('onclick')?.includes('dashboard')) link.innerHTML = `<i class="fa-solid fa-chart-line me-2"></i> ${dict.dashboard}`;
+    if (link.getAttribute('onclick')?.includes('members')) link.innerHTML = `<i class="fa-solid fa-users me-2"></i> ${dict.members}`;
+    if (link.getAttribute('onclick')?.includes('maintenance')) link.innerHTML = `<i class="fa-solid fa-indian-rupee-sign me-2"></i> ${dict.maintenance}`;
+    if (link.getAttribute('onclick')?.includes('expenses')) link.innerHTML = `<i class="fa-solid fa-receipt me-2"></i> ${dict.expenses}`;
+    if (link.getAttribute('onclick')?.includes('visitor')) link.innerHTML = `<i class="fa-solid fa-user-plus me-2"></i> ${dict.visitors}`;
+    if (link.getAttribute('onclick')?.includes('complaints')) link.innerHTML = `<i class="fa-solid fa-headset me-2"></i> ${dict.complaints}`;
+    if (link.getAttribute('onclick')?.includes('meetings')) link.innerHTML = `<i class="fa-solid fa-book-open me-2"></i> ${dict.meetings}`;
   });
 }
 
@@ -3330,53 +3262,56 @@ function renderGridCards() {
   const container = document.querySelector('#mobileMenuOverlay .grid-container');
   if (!container) return;
   const role = currentRole || 'Member';
-  
-  // 🟢 यहाँ labels की जगह i18n की (keys) का इस्तेमाल किया है
   let allCards = [
-    { id: 'dashboard', icon: 'fa-chart-line', i18nKey: 'dashboard', label: 'Dashboard', color: '#2563eb' },
-    { id: 'activity-logs', icon: 'fa-list-check', i18nKey: 'activityLogs', label: 'Activity Logs', color: '#0ea5e9' },
-    { id: 'members', icon: 'fa-users', i18nKey: 'members', label: 'Members', color: '#22c55e' },
-    { id: 'maintenance', icon: 'fa-indian-rupee-sign', i18nKey: 'maintenance', label: 'Maintenance', color: '#f59e0b' },
-    { id: 'expenses', icon: 'fa-receipt', i18nKey: 'expenses', label: 'Expenses', color: '#ef4444' },
-    { id: 'amc-tracker', icon: 'fa-screwdriver-wrench', i18nKey: 'amc', label: 'AMC Tracker', color: '#f59e0b' },
-    { id: 'visitor', icon: 'fa-user-plus', i18nKey: 'visitor', label: 'Visitor', color: '#8b5cf6' },
-    { id: 'complaints', icon: 'fa-headset', i18nKey: 'complaints', label: 'Complaints', color: '#ec4899' },
-    { id: 'ca-audit', icon: 'fa-calculator', i18nKey: 'ca', label: 'CA Audit', color: '#06b6d4' },
-    { id: 'polls', icon: 'fa-check-to-slot', i18nKey: 'polls', label: 'Polls', color: '#f97316' },
-    { id: 'tally-bank', icon: 'fa-building-columns', i18nKey: 'tally', label: 'Tally Bank', color: '#8b5cf6' },
-    { id: 'chairman-report', icon: 'fa-file-invoice-dollar', i18nKey: 'chairman', label: 'Chairman Report', color: '#f59e0b' },
-    { id: 'community', icon: 'fa-people-group', i18nKey: 'community', label: 'Community Hub', color: '#14b8a6' },
-    { id: 'meetings', icon: 'fa-book-open', i18nKey: 'meetings', label: 'Meeting Minutes', color: '#2563eb' },
-    { id: 'bank-details', icon: 'fa-qrcode', i18nKey: 'bank', label: 'Bank / QR', color: '#2563eb' },
-    { id: 'marketplace', icon: 'fa-store', i18nKey: 'marketplace', label: 'Marketplace', color: '#f59e0b' },
-    { id: 'sos-contacts', icon: 'fa-truck-medical', i18nKey: 'sos', label: 'Emergency SOS', color: '#ef4444' },
-    { id: 'assets', icon: 'fa-boxes-stacked', i18nKey: 'assets', label: 'Assets', color: '#64748b' },
-    { id: 'fds', icon: 'fa-piggy-bank', i18nKey: 'fds', label: 'FDs', color: '#8b5cf6' },
-    { id: 'proofs', icon: 'fa-file-invoice', i18nKey: 'proofs', label: 'Payment Details', color: '#3b82f6' },
-    { id: 'settings', icon: 'fa-gear', i18nKey: 'settings', label: 'Settings', color: '#475569' },
-    { id: 'team', icon: 'fa-people-group', i18nKey: 'team', label: 'Committee', color: '#8b5cf6' }
+    { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', color: '#2563eb' },
+    { id: 'activity-logs', icon: 'fa-list-check', label: 'Activity Logs', color: '#0ea5e9' },
+    { id: 'members', icon: 'fa-users', label: 'Members', color: '#22c55e' },
+    { id: 'maintenance', icon: 'fa-indian-rupee-sign', label: 'Maintenance', color: '#f59e0b' },
+    { id: 'expenses', icon: 'fa-receipt', label: 'Expenses', color: '#ef4444' },
+    { id: 'amc-tracker', icon: 'fa-screwdriver-wrench', label: 'AMC Tracker', color: '#f59e0b' },
+    { id: 'visitor', icon: 'fa-user-plus', label: 'Visitor', color: '#8b5cf6' },
+    { id: 'complaints', icon: 'fa-headset', label: 'Complaints', color: '#ec4899' },
+    { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
+    { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
+    { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
+    { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
+    { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
+    { id: 'meetings', icon: 'fa-book-open', label: 'Meeting Minutes', color: '#2563eb' },
+    { id: 'bank-details', icon: 'fa-qrcode', label: 'Bank / QR', color: '#2563eb' },
+    { id: 'marketplace', icon: 'fa-store', label: 'Marketplace', color: '#f59e0b' },
+    { id: 'sos-contacts', icon: 'fa-truck-medical', label: 'Emergency SOS', color: '#ef4444' },
+    { id: 'assets', icon: 'fa-boxes-stacked', label: 'Assets', color: '#64748b' },
+    { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
+    { id: 'proofs', icon: 'fa-file-invoice', label: 'Payment Details', color: '#3b82f6' },
+    { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
+    { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
+    { id: 'terms', icon: 'fa-file-contract', label: 'Terms of Service', color: '#d97706' },
+    { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
+    { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
+    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
   if (role === 'Member') {
-    const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'team'];
+    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman' || role === 'SocietyAdmin') {
     allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
   }
 
-  // 🟢 वर्तमान भाषा (currentLang) के हिसाब से टेक्स्ट सेट करना
-  const dict = translations[currentLang] || translations['en'];
+  allCards.sort((a, b) => {
+    if (a.id === 'dashboard') return -1;
+    if (b.id === 'dashboard') return 1;
+    if (a.id === 'about') return 1;
+    if (b.id === 'about') return -1;
+    return a.label.localeCompare(b.label);
+  });
 
-  container.innerHTML = allCards.map(card => {
-    // अगर डिक्शनरी में नाम है तो वो लो, नहीं तो डिफ़ॉल्ट label लो
-    const cardLabel = dict[card.i18nKey] || card.label;
-    return `
-      <div onclick="openTabOverlay('${card.id}')" class="grid-card-item" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 10px; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);">
-        <i class="fa-solid ${card.icon}" style="color: ${card.color}; font-size: 24px; margin-bottom: 8px;"></i>
-        <span style="color: #fff; font-weight: 500; display: block; font-size: 13px;">${card.label}</span>
-      </div>
-    `;
-  }).join('');
+  container.innerHTML = allCards.map(card => `
+    <div onclick="openTabOverlay('${card.id}')" class="grid-card-item" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px 10px; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05);">
+      <i class="fa-solid ${card.icon}" style="color: ${card.color};"></i>
+      <span style="color: #fff; font-weight: 500; display: block;">${card.label}</span>
+    </div>
+  `).join('');
 }
 
 function openAboutPS() {
