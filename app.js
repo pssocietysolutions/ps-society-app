@@ -3378,9 +3378,17 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
+// 🟢 1. मोबाइल में जब किसी ग्रिड कार्ड पर क्लिक हो
 async function openTabOverlay(tabId) {
-  closeMobileMenu();
-  history.pushState(null, '', window.location.href);
+  // अगर डेस्कटॉप है, तो सामान्य switchTab चलाएं
+  if (window.innerWidth > 768) {
+    const link = document.querySelector(`.nav-link[onclick*="switchTab('${tabId}')"]`);
+    if (link) switchTab(tabId, link);
+    return;
+  }
+
+  // मोबाइल के लिए: हिस्ट्री में स्टेट पुश करें ताकि नेटिव बैक बटन काम करे
+  history.pushState({ view: 'tab', tabId: tabId }, '', window.location.href);
 
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'terms') { openTermsOfService(); return; }
@@ -3390,15 +3398,23 @@ async function openTabOverlay(tabId) {
   if (tabId === 'activity-logs') await fetchActivityLogs();
   if (tabId === 'chairman-report') generateMonthlySummary();
 
-  // 🟢 सभी टैब को पहले छिपाएं
+  // मोबाइल ग्रिड मेनू छिपाएं
+  const gridOverlay = document.getElementById('mobileMenuOverlay');
+  if (gridOverlay) gridOverlay.style.display = 'none';
+
+  // मेन ऐप सेक्शन दिखाएं ताकि सफ़ेद स्क्रीन न आए
+  const appSection = document.getElementById('app-section');
+  if (appSection) appSection.classList.remove('d-none');
+
+  // सभी टैब छिपाएं और सिर्फ क्लिक किया हुआ टैब दिखाएं
   document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
 
-  // 🟢 टारगेट टैब को ढूंढें और दिखाएं
   const target = document.getElementById(`tab-${tabId}`);
   if (target) {
     target.classList.remove('d-none');
   }
 
+  // डेटा लोड करने वाले फंक्शन्स
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
   if (tabId === 'meetings') renderMeetings();
@@ -3409,14 +3425,29 @@ async function openTabOverlay(tabId) {
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
-  // 🟢 सुनिश्चित करें कि मेन ऐप सेक्शन छिपा न रहे
-  const appSection = document.getElementById('app-section');
-  if (appSection) {
-    appSection.classList.remove('d-none');
-  }
-
   document.body.style.overflow = '';
 }
+
+// 🟢 2. मोबाइल का नेटिव बैक बटन दबाने पर वापस ग्रिड पर आना
+window.addEventListener('popstate', function(event) {
+  if (window.innerWidth > 768) return; // डेस्कटॉप पर कोई दखल न दें
+
+  const openModal = document.querySelector('.modal.show');
+  if (openModal) return; // अगर कोई मॉडल खुला है तो उसे बंद होने दें
+
+  const appSection = document.getElementById('app-section');
+  const gridOverlay = document.getElementById('mobileMenuOverlay');
+
+  // यदि यूजर किसी टैब के अंदर है, तो उसे वापस मोबाइल ग्रिड पर भेजें
+  if (appSection && !appSection.classList.contains('d-none')) {
+    appSection.classList.add('d-none');
+    if (gridOverlay) {
+      gridOverlay.style.display = 'flex';
+      renderGridCards();
+    }
+    history.pushState({ view: 'grid' }, '', window.location.href);
+  }
+});
 
 function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
