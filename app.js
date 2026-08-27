@@ -1302,6 +1302,11 @@ function switchTab(tabId, element) {
   document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => link.classList.remove('active'));
   if (element) element.classList.add('active');
 
+  // 🟢 नया जोड़ा गया कोड: जब भी डेस्कटॉप पर 'about' टैब खुले, उसके अंदर सारा डेटा रेंडर हो जाए
+  if (tabId === 'about') {
+    renderAboutTab();
+  }
+
   if (tabId === 'visitor') {
     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
     document.body.classList.remove('modal-open');
@@ -3320,11 +3325,10 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
-async function openTabOverlay(tabId) {
+function openTabOverlay(tabId) {
   closeMobileMenu();
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
-  // 🟢 अगर यूजर Terms या Privacy पर भी क्लिक करे, तो वह 'about' वाले टैब पर ही खुलेगा
   if (tabId === 'terms' || tabId === 'privacy') {
     tabId = 'about'; 
   }
@@ -3357,6 +3361,9 @@ async function openTabOverlay(tabId) {
   const finalOverlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(finalOverlay);
   document.body.style.overflow = 'hidden';
+
+  // 🟢 PWA / Mobile Native Back Button के लिए हिस्ट्री पुश करें
+  window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
 }
 
 function createTabOverlay(tabId, content) {
@@ -3957,6 +3964,28 @@ async function resolveSOSAlert(alertId) {
   const banner = document.getElementById('sosAlertBanner');
   if (banner) banner.remove();
 }
+
+// 🟢 PWA और मोबाइल का नेटिव बैक बटन हैंडलर
+window.addEventListener('popstate', function(event) {
+  const tabOverlay = document.getElementById('tabOverlay');
+  const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+  
+  if (tabOverlay) {
+    // अगर कोई अंदर का टैब खुला है, तो बैक दबाने पर वह बंद होकर ग्रिड पर आ जाएगा
+    const overlay = document.getElementById('tabOverlay');
+    if (overlay) overlay.remove();
+    document.body.style.overflow = '';
+    
+    if (window.innerWidth <= 768 && mobileMenuOverlay) {
+      mobileMenuOverlay.style.display = 'flex';
+      renderGridCards();
+      document.body.style.overflow = 'hidden';
+    }
+  } else if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
+    // अगर मोबाइल ग्रिड मेनू खुला है, तो वह बंद हो जाएगा
+    closeMobileMenu();
+  }
+});
 
 function renderCelebrations() {
   const container = document.getElementById('dashboard-celebrations-container');
