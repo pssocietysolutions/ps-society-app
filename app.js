@@ -3318,33 +3318,24 @@ async function openTabOverlay(tabId) {
     renderJournalVouchers();
   }
 
-  const target = document.getElementById(actualTabId);
-  if (!target) return;
-  
-  // 🟢 तुरंत ओवरले खोलें ताकि वाइट स्क्रीन न आए (लोडिंग स्टेट के साथ)
-  const finalOverlay = createTabOverlay(tabId, '<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted">Loading...</p></div>');
-  document.body.appendChild(finalOverlay);
-  document.body.style.overflow = 'hidden';
-
-  // 🟢 अब बैकग्राउंड में डेटा फेच करें
-  if (tabId === 'activity-logs') await fetchActivityLogs();
-  if (tabId === 'chairman-report') generateMonthlySummary();
-  if (tabId === 'marketplace') await fetchMarketplaceData();
+  // 🟢 1. क्लिक करते ही तुरंत रेंडरिंग फंक्शन्स चलाएं ताकि डेटा तैयार रहे
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
   if (tabId === 'meetings') renderMeetings();
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
   if (tabId === 'sos-contacts') renderSOSContacts();
-  if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') renderMarketplace();
+  if (tabId === 'manage-societies') loadSocietiesList();
 
-  // 🟢 डेटा आने के बाद ओवरले के अंदर का कंटेंट असली डेटा से अपडेट करें
-  const contentContainer = document.getElementById('tabOverlayContent');
-  if (contentContainer) {
-    contentContainer.innerHTML = target.innerHTML;
-  }
+  const target = document.getElementById(actualTabId);
+  if (!target) return;
+
+  // 🟢 2. बिना किसी स्पिनर के तुरंत ओवरले खोलें क्योंकि डेटा अब मेमोरी में पहले से मौजूद है
+  const finalOverlay = createTabOverlay(tabId, target.innerHTML);
+  document.body.appendChild(finalOverlay);
+  document.body.style.overflow = 'hidden';
 
   // PWA / Mobile Native Back Button के लिए हिस्ट्री पुश करें
   window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
@@ -3949,16 +3940,27 @@ async function resolveSOSAlert(alertId) {
   if (banner) banner.remove();
 }
 
-// 🟢 PWA और मोबाइल का नेटिव बैक बटन हैंडलर
+// 🟢 PWA और मोबाइल का नेटिव बैक बटन हैंडलर (अपडेटेड)
 window.addEventListener('popstate', function(event) {
   const tabOverlay = document.getElementById('tabOverlay');
   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
   
+  // 1. अगर कोई भी बूटस्ट्रैप मॉडल (पॉप-अप) खुला है, तो पहले उसे बंद करें
+  document.querySelectorAll('.modal.show').forEach(modal => {
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    if (modalInstance) {
+      modalInstance.hide();
+    }
+  });
+
+  // 2. स्क्रीन पर बचे हुए किसी भी मॉडल बैकड्रॉप या स्टक ओवरले को साफ़ करें
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+
   if (tabOverlay) {
     // अगर कोई अंदर का टैब खुला है, तो बैक दबाने पर वह बंद होकर ग्रिड पर आ जाएगा
-    const overlay = document.getElementById('tabOverlay');
-    if (overlay) overlay.remove();
-    document.body.style.overflow = '';
+    tabOverlay.remove();
     
     if (window.innerWidth <= 768 && mobileMenuOverlay) {
       mobileMenuOverlay.style.display = 'flex';
