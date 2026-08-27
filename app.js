@@ -3218,6 +3218,7 @@ function renderGridCards() {
     { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
     { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
     { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
+    { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#2563eb' }, <!-- 🟢 JV जोड़ा गया -->
     { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
     { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
     { id: 'meetings', icon: 'fa-book-open', label: 'Meeting Minutes', color: '#2563eb' },
@@ -3230,13 +3231,14 @@ function renderGridCards() {
     { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
     { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
     { id: 'terms', icon: 'fa-file-contract', label: 'Terms of Service', color: '#d97706' },
+    { id: 'privacy', icon: 'fa-file-shield', label: 'Privacy Policy', color: '#0284c7' }, <!-- 🟢 Privacy Policy जोड़ी गई -->
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
     { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
   if (role === 'Member') {
-    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
+    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team', 'privacy'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman' || role === 'SocietyAdmin') {
     allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
@@ -3318,17 +3320,53 @@ function openAboutPS() {
 }
 
 async function openTabOverlay(tabId) {
+  // 1. सबसे पहले मोबाइल मेनू को बंद करें ताकि बैकग्राउंड साफ़ रहे
   closeMobileMenu();
-  if (tabId === 'about') { openAboutPS(); return; }
-  if (tabId === 'terms') { openTermsOfService(); return; }
-  if (tabId === 'visitor') { showVisitorPage(); return; }
 
+  // 2. अगर About या Terms है, तो सीधे उनके ओवरले खोलें और ग्रिड बंद रखें
+  if (tabId === 'about') { 
+    openAboutPS(); 
+    return; 
+  }
+  if (tabId === 'terms') { 
+    openTermsOfService(); 
+    return; 
+  }
+  if (tabId === 'privacy') { 
+    openPrivacyPolicy(); 
+    return; 
+  }
+  if (tabId === 'visitor') { 
+    showVisitorPage(); 
+    return; 
+  }
+
+  // 3. वाइट स्क्रीन से बचने के लिए पहले से ही लोडिंग ओवरले दिखा दें
+  const loadingOverlay = createTabOverlay(tabId, '<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted">Loading...</p></div>');
+  document.body.appendChild(loadingOverlay);
+  document.body.style.overflow = 'hidden';
+
+  // 4. अब बैकग्राउंड में भारी डेटा (जैसे Activity Logs या Marketplace) फेच करें
   if (tabId === 'activity-logs') await fetchActivityLogs();
-
   if (tabId === 'chairman-report') generateMonthlySummary();
+  if (tabId === 'marketplace') await fetchMarketplaceData();
 
-  const target = document.getElementById(`tab-${tabId}`);
-  if (!target) return;
+  // 5. सही HTML आईडी सेट करें
+  let actualTabId = tabId;
+  if (tabId === 'journal-voucher') {
+    actualTabId = 'tab-journal-voucher';
+    renderJournalVouchers();
+  } else {
+    actualTabId = `tab-${tabId}`;
+  }
+
+  const target = document.getElementById(actualTabId);
+  if (!target) {
+    // अगर टारगेट न मिले तो लोडिंग हटा दें
+    loadingOverlay.remove();
+    document.body.style.overflow = '';
+    return;
+  }
   
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
@@ -3338,10 +3376,13 @@ async function openTabOverlay(tabId) {
   if (tabId === 'sos-contacts') renderSOSContacts();
   if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
-  if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
+  if (tabId === 'marketplace') renderMarketplace();
 
-  const overlay = createTabOverlay(tabId, target.innerHTML);
-  document.body.appendChild(overlay);
+  // 6. लोडिंग ओवरले को हटाकर असली कंटेंट वाला ओवरले सेट करें
+  loadingOverlay.remove();
+
+  const finalOverlay = createTabOverlay(tabId, target.innerHTML);
+  document.body.appendChild(finalOverlay);
   document.body.style.overflow = 'hidden';
 }
 
