@@ -3323,10 +3323,12 @@ async function openTabOverlay(tabId) {
   closeMobileMenu();
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
-  // 🟢 अब About, Terms और Privacy भी बाकी टैब्स की तरह ही खुलेंगे (कोई अलग पॉपअप नहीं)
+  // 🟢 अगर यूजर Terms या Privacy पर भी क्लिक करे, तो वह 'about' वाले टैब पर ही खुलेगा
+  if (tabId === 'terms' || tabId === 'privacy') {
+    tabId = 'about'; 
+  }
+
   if (tabId === 'about') renderAboutTab();
-  if (tabId === 'terms') renderTermsTab();
-  if (tabId === 'privacy') renderPrivacyTab();
 
   if (tabId === 'activity-logs') await fetchActivityLogs();
   if (tabId === 'chairman-report') generateMonthlySummary();
@@ -3505,45 +3507,115 @@ function renderAboutTab() {
   const body = document.getElementById('aboutTabBody');
   if (body) {
     body.innerHTML = `
-      <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left;">
-        <div class="text-center mb-3">
+      <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left; line-height: 1.7;">
+        
+        <!-- 1. About / Main Branding Section -->
+        <div class="text-center mb-4 pb-3 border-bottom">
           <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> Society Solutions</h3>
           <p class="text-primary fw-semibold small mb-0">Smart Society Management Engine • Simple • Transparent • Affordable</p>
         </div>
-        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ Subscription Plans (Per House / Month)</h6>
-        <div class="row g-2 mb-3 text-center">
-          <div class="col-4"><div class="p-2 border rounded-3 bg-light"><span class="badge bg-secondary mb-1">SILVER</span><h5 class="fw-bold mb-0 text-dark">49</h5></div></div>
-          <div class="col-4"><div class="p-2 border border-warning rounded-3 bg-warning-subtle"><span class="badge bg-warning text-dark mb-1">GOLD</span><h5 class="fw-bold mb-0 text-dark">79</h5></div></div>
-          <div class="col-4"><div class="p-2 border border-primary rounded-3 bg-primary-subtle"><span class="badge bg-primary mb-1">PLATINUM</span><h5 class="fw-bold mb-0 text-dark">149</h5></div></div>
+
+        <h5 class="fw-bold text-dark mb-3">🏷️ Subscription Plans (Per House / Month)</h5>
+        <div class="row g-2 mb-4 text-center">
+          <div class="col-4">
+            <div class="p-2 border rounded-3 bg-light">
+              <span class="badge bg-secondary mb-1">SILVER</span>
+              <h5 class="fw-bold mb-0 text-dark">₹49</h5>
+              <small class="text-muted" style="font-size: 10px;">Digital Accounting</small>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 border border-warning rounded-3 bg-warning-subtle">
+              <span class="badge bg-warning text-dark mb-1">GOLD</span>
+              <h5 class="fw-bold mb-0 text-dark">₹79</h5>
+              <small class="text-muted" style="font-size: 10px;">Accounting + Visits</small>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 border border-primary rounded-3 bg-primary-subtle">
+              <span class="badge bg-primary mb-1">PLATINUM</span>
+              <h5 class="fw-bold mb-0 text-dark">₹149</h5>
+              <small class="text-muted" style="font-size: 10px;">Complete Operations</small>
+            </div>
+          </div>
         </div>
-        <p class="small text-muted">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
+
+        <h5 class="fw-bold text-dark mb-2">✨ What Your Society Gets</h5>
+        <ul class="small text-muted ps-3 mb-4">
+          <li>📊 <strong>Digital Accounting:</strong> Member ledgers, automated collection tracking & vouchers.</li>
+          <li>📑 <strong>CA-Ready Audit Records:</strong> Automatic Balance Sheet & Trial Balance generation.</li>
+          <li>📢 <strong>WhatsApp Reminders:</strong> Direct 1-click pending payment alerts to defaulters.</li>
+          <li>🛡️ <strong>Zero Cash Handling:</strong> Complete bank & QR transparency with Society's own accounts.</li>
+          <li>👥 <strong>Committee & Staff Support:</strong> Vendor AMC tracking, security logs & complaint tickets.</li>
+        </ul>
+
+        <div class="p-3 bg-light rounded-3 text-center border mb-4">
+          <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
+          <div class="d-flex justify-content-center gap-2">
+            <a href="https://wa.me/918866376056" target="_blank" class="btn btn-success btn-sm px-3 fw-semibold"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
+            <a href="tel:8866376056" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- 2. Terms of Service Section -->
+        <h4 class="fw-bold text-dark mb-2">📜 Terms of Service</h4>
+        <p class="text-muted small">Effective Date: August 2026 • Last Updated: August 2026</p>
+        
+        <h6 class="fw-bold text-dark mt-3">1. Acceptance of Terms</h6>
+        <p class="small text-muted">By accessing or using PS Society Solutions ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Service. We reserve the right to update these Terms at any time.</p>
+
+        <h6 class="fw-bold text-dark mt-3">2. Description of Service</h6>
+        <p class="small text-muted">PS Society Solutions is a Software-as-a-Service (SaaS) platform providing housing societies with digital management tools including member directory, maintenance billing, expense tracking, visitor management, and financial reporting. The Service is provided "as-is".</p>
+
+        <h6 class="fw-bold text-dark mt-3">3. User Accounts and Responsibility</h6>
+        <p class="small text-muted">You are solely responsible for maintaining the confidentiality of your login credentials (Flat Number and Password) and for all activities that occur under your account.</p>
+
+        <h6 class="fw-bold text-dark mt-3">4. Acceptable Use Policy</h6>
+        <p class="small text-muted">You agree not to use the Service for unlawful purposes, upload defamatory content, attempt unauthorized system access, introduce malware, or reverse engineer the platform.</p>
+
+        <h6 class="fw-bold text-dark mt-3">5. Data Privacy and DPDP Act 2023 Compliance</h6>
+        <p class="small text-muted">We comply with the Digital Personal Data Protection (DPDP) Act, 2023. Data is collected strictly for society administrative operations based on explicit consent. We do not sell or share personal data with third-party advertisers. You hold rights to access, correct, or erase your data.</p>
+
+        <h6 class="fw-bold text-dark mt-3">6. Payments and Subscription</h6>
+        <p class="small text-muted">Subscription plans include Silver (₹49/month), Gold (₹79/month), and Platinum (₹149/month) per house. Fees are billed in advance and are non-refundable except as required by law.</p>
+
+        <h6 class="fw-bold text-dark mt-3">7. Intellectual Property</h6>
+        <p class="small text-muted">All software, code, logos, and designs are the property of PS Society Solutions. Users retain ownership of content they upload but grant us a license to host and display it for service operations.</p>
+
+        <h6 class="fw-bold text-dark mt-3">8. Limitation of Liability</h6>
+        <p class="small text-muted">The Service is provided "AS IS" without warranties of any kind. Our total liability shall not exceed the total amount paid by you during the preceding twelve (12) months.</p>
+
+        <h6 class="fw-bold text-dark mt-3">9. Governing Law and Jurisdiction</h6>
+        <p class="small text-muted">These Terms are governed by the laws of India. Legal disputes are subject to the exclusive jurisdiction of the courts in Vadodara, Gujarat, India.</p>
+
+        <h6 class="fw-bold text-dark mt-3">10. Contact and Grievance Redressal</h6>
+        <p class="small text-muted mb-0">Grievance Officer: PS Society Solutions Team<br>Email: ps.societysolutions@gmail.com | Phone: +91 8866376056</p>
+
+        <hr class="my-4">
+
+        <!-- 3. Privacy Policy Section -->
+        <h4 class="fw-bold text-dark mb-2">🛡️ Privacy Policy</h4>
+        <p class="text-muted small">Effective Date: August 2026 • Compliant with Digital Personal Data Protection (DPDP) Act 2023</p>
+        
+        <h6 class="fw-bold text-dark mt-3">1. Information We Collect</h6>
+        <p class="small text-muted">We collect resident details (name, flat number, phone, email), maintenance payment proofs (UTR numbers, receipt screenshots), visitor logs (visitor name, phone, purpose, in/out timestamps), and maintenance ticket data exclusively for society administrative operations.</p>
+
+        <h6 class="fw-bold text-dark mt-3">2. How Your Data Is Handled</h6>
+        <ul class="small text-muted ps-3">
+          <li><strong>Data Isolation:</strong> Each housing society's database is segregated using Row-Level Security (RLS) policies.</li>
+          <li><strong>No Third-Party Commercial Sharing:</strong> Personal information is never sold, rented, or shared with third-party advertisers.</li>
+          <li><strong>Payment Safety:</strong> Society collections route strictly through authorized society bank accounts and UPI IDs.</li>
+        </ul>
+
+        <h6 class="fw-bold text-dark mt-3">3. Your Rights & Data Deletion</h6>
+        <p class="small text-muted">Residents reserve the right to review payment histories and request removal of personal data via the in-app <em>Deletion Request</em> workflow under statutory compliance terms.</p>
+
+        <h6 class="fw-bold text-dark mt-3">4. Grievance Redressal</h6>
+        <p class="small text-muted mb-0">For privacy inquiries or data requests, contact our Grievance Officer at <strong>ps.societysolutions@gmail.com</strong> or call <strong>+91 8866376056</strong>.</p>
+
       </div>
-    `;
-  }
-}
-
-function renderTermsTab() {
-  const body = document.getElementById('termsTabBody');
-  if (body) {
-    body.innerHTML = `
-      <h3 class="fw-bold border-bottom pb-2"><span style="color: #f59e0b;">PS</span> Terms of Service</h3>
-      <p class="text-muted small">Effective Date: August 2026</p>
-      <h5 class="fw-bold mt-3">1. Acceptance of Terms</h5>
-      <p class="small text-muted">By accessing or using PS Society Solutions, you agree to be bound by these Terms.</p>
-      <h5 class="fw-bold mt-3">2. User Accounts</h5>
-      <p class="small text-muted">You are responsible for maintaining the confidentiality of your login credentials.</p>
-    `;
-  }
-}
-
-function renderPrivacyTab() {
-  const body = document.getElementById('privacyTabBody');
-  if (body) {
-    body.innerHTML = `
-      <h3 class="fw-bold border-bottom pb-2"><span style="color: #f59e0b;">PS</span> Privacy Policy</h3>
-      <p class="text-muted small">Compliant with DPDP Act 2023</p>
-      <h5 class="fw-bold mt-3">1. Information We Collect</h5>
-      <p class="small text-muted">We collect resident details and payment proofs exclusively for society management.</p>
     `;
   }
 }
