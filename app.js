@@ -3335,10 +3335,6 @@ async function openTabOverlay(tabId) {
 
   if (tabId === 'about') renderAboutTab();
 
-  if (tabId === 'activity-logs') await fetchActivityLogs();
-  if (tabId === 'chairman-report') generateMonthlySummary();
-  if (tabId === 'marketplace') await fetchMarketplaceData();
-
   let actualTabId = `tab-${tabId}`;
   if (tabId === 'journal-voucher') {
     actualTabId = 'tab-journal-voucher';
@@ -3348,6 +3344,15 @@ async function openTabOverlay(tabId) {
   const target = document.getElementById(actualTabId);
   if (!target) return;
   
+  // 🟢 तुरंत ओवरले खोलें ताकि वाइट स्क्रीन न आए (लोडिंग स्टेट के साथ)
+  const finalOverlay = createTabOverlay(tabId, '<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted">Loading...</p></div>');
+  document.body.appendChild(finalOverlay);
+  document.body.style.overflow = 'hidden';
+
+  // 🟢 अब बैकग्राउंड में डेटा फेच करें
+  if (tabId === 'activity-logs') await fetchActivityLogs();
+  if (tabId === 'chairman-report') generateMonthlySummary();
+  if (tabId === 'marketplace') await fetchMarketplaceData();
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
   if (tabId === 'meetings') renderMeetings();
@@ -3358,11 +3363,13 @@ async function openTabOverlay(tabId) {
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') renderMarketplace();
 
-  const finalOverlay = createTabOverlay(tabId, target.innerHTML);
-  document.body.appendChild(finalOverlay);
-  document.body.style.overflow = 'hidden';
+  // 🟢 डेटा आने के बाद ओवरले के अंदर का कंटेंट असली डेटा से अपडेट करें
+  const contentContainer = document.getElementById('tabOverlayContent');
+  if (contentContainer) {
+    contentContainer.innerHTML = target.innerHTML;
+  }
 
-  // 🟢 PWA / Mobile Native Back Button के लिए हिस्ट्री पुश करें
+  // PWA / Mobile Native Back Button के लिए हिस्ट्री पुश करें
   window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
 }
 
