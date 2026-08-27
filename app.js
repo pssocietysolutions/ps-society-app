@@ -3411,8 +3411,10 @@ async function openTabOverlay(tabId) {
 
   const target = document.getElementById(`tab-${tabId}`);
   if (target) {
-    target.classList.remove('d-none');
-  }
+  target.classList.remove('d-none');
+  // CSS के !important को ओवरराइड करने के लिए
+  target.style.setProperty('display', 'block', 'important');
+}
 
   // डेटा लोड करने वाले फंक्शन्स
   if (tabId === 'polls') renderPolls();
@@ -3428,26 +3430,45 @@ async function openTabOverlay(tabId) {
   document.body.style.overflow = '';
 }
 
-// 🟢 2. मोबाइल का नेटिव बैक बटन दबाने पर वापस ग्रिड पर आना
+// एकीकृत popstate हैंडलर (मोबाइल के लिए)
 window.addEventListener('popstate', function(event) {
-  if (window.innerWidth > 768) return; // डेस्कटॉप पर कोई दखल न दें
+  // डेस्कटॉप पर कोई बदलाव नहीं
+  if (window.innerWidth > 768) return;
 
-  const openModal = document.querySelector('.modal.show');
-  if (openModal) return; // अगर कोई मॉडल खुला है तो उसे बंद होने दें
+  // 1. क्या कोई ओवरले खुला है? (About, Privacy, Terms, Visitor Password)
+  const overlayIds = ['aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay', 'visitorPasswordOverlay'];
+  let anyOverlayOpen = overlayIds.some(id => {
+    const el = document.getElementById(id);
+    return el && el.style.display === 'flex';
+  });
 
+  if (anyOverlayOpen) {
+    // सभी ओवरले बंद करें और बैक नेविगेशन रोकें
+    closeAllOverlays();   // यह फंक्शन पहले से मौजूद है
+    event.preventDefault();
+    history.pushState(null, '', window.location.href);
+    return;
+  }
+
+  // 2. क्या हम किसी टैब (app-section) में हैं और ग्रिड छिपा है?
   const appSection = document.getElementById('app-section');
   const gridOverlay = document.getElementById('mobileMenuOverlay');
 
-  // यदि यूजर किसी टैब के अंदर है, तो उसे वापस मोबाइल ग्रिड पर भेजें
-  if (appSection && !appSection.classList.contains('d-none')) {
+  if (appSection && !appSection.classList.contains('d-none') &&
+      gridOverlay && gridOverlay.style.display !== 'flex') {
+    // वापस ग्रिड पर जाएँ
     appSection.classList.add('d-none');
-    if (gridOverlay) {
-      gridOverlay.style.display = 'flex';
-      renderGridCards();
-    }
+    gridOverlay.style.display = 'flex';
+    renderGridCards();    // ग्रिड कार्ड फिर से रेंडर करें
+    document.body.style.overflow = 'hidden';
+    event.preventDefault();
     history.pushState({ view: 'grid' }, '', window.location.href);
+    return;
   }
+
+  // बाकी स्थितियों में डिफ़ॉल्ट बैक नेविगेशन होने दें
 });
+
 
 function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
@@ -3890,7 +3911,7 @@ function handleDeepLink() {
                 }
             }
         }
-    }, 400);
+    }, 300);
 }
 
 window.addEventListener('pageshow', function(event) {
@@ -4060,31 +4081,6 @@ function closeAllOverlays() {
 
   document.body.style.overflow = '';
 }
-
-function handlePopState(event) {
-  // If any overlay is visible, close all and prevent default navigation
-  const isAnyOverlayVisible = 
-    document.getElementById('tabOverlay') ||
-    document.getElementById('aboutPSOverlay')?.style.display === 'flex' ||
-    document.getElementById('privacyPolicyOverlay')?.style.display === 'flex' ||
-    document.getElementById('termsOfServiceOverlay')?.style.display === 'flex' ||
-    document.getElementById('visitorPasswordOverlay')?.style.display === 'flex' ||
-    (document.getElementById('mobileMenuOverlay') && document.getElementById('mobileMenuOverlay').style.display === 'flex');
-
-  if (isAnyOverlayVisible) {
-    closeAllOverlays();
-    // Prevent the browser from navigating back
-    event.preventDefault();
-    // Push a new state to keep the URL same (so that back button doesn't go to previous page)
-    history.pushState(null, '', window.location.href);
-  } else {
-    // If no overlay, allow normal back navigation
-    // (no action needed)
-  }
-}
-
-// Add popstate listener
-window.addEventListener('popstate', handlePopState);
 
 // Override open functions to push state (already done above)
 // All overlay open functions now have history.pushState
