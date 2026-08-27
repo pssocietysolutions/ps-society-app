@@ -2764,7 +2764,7 @@ async function generateTaxInvoicePDF(receiptId) {
 }
 
 function generateMonthlySummary() {
-  const monthInput = document.getElementById('summary-month-picker');
+  let monthInput = document.querySelector('#tabOverlay #summary-month-picker') || document.getElementById('summary-month-picker');
   let selectedMonth = monthInput ? monthInput.value : '';
 
   if (!selectedMonth) {
@@ -2810,14 +2810,13 @@ function generateMonthlySummary() {
     if (totalDue - flatPaid > 0) defaulterCount++;
   });
 
-  if (document.getElementById('summary-month-collected')) 
-    document.getElementById('summary-month-collected').innerText = totalCollected;
-  if (document.getElementById('summary-month-expenses')) 
-    document.getElementById('summary-month-expenses').innerText = totalExpenses;
-  if (document.getElementById('summary-month-net')) 
-    document.getElementById('summary-month-net').innerText = netCashflow;
-  if (document.getElementById('summary-month-defaulters')) 
-    document.getElementById('summary-month-defaulters').innerText = `${defaulterCount} Flats`;
+  document.querySelectorAll('#summary-month-collected').forEach(el => el.innerText = totalCollected);
+  document.querySelectorAll('#summary-month-expenses').forEach(el => el.innerText = totalExpenses);
+  document.querySelectorAll('#summary-month-net').forEach(el => {
+    el.innerText = netCashflow;
+    el.className = netCashflow >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
+  });
+  document.querySelectorAll('#summary-month-defaulters').forEach(el => el.innerText = `${defaulterCount} Flats`);
 
   renderMonthlySummaryTable(monthCollections, monthExpenses, totalCollected, totalExpenses, netCashflow);
 }
@@ -3318,10 +3317,9 @@ async function openTabOverlay(tabId) {
     renderJournalVouchers();
   }
 
-  // 🟢 1. क्लिक करते ही तुरंत रेंडरिंग फंक्शन्स चलाएं ताकि डेटा तैयार रहे
   if (tabId === 'polls') renderPolls();
-  if (tabId === 'chairman-report') generateMonthlySummary(); // 👈 यह लाइन जोड़ें
-  if (tabId === 'activity-logs') fetchActivityLogs(); // 👈 यह लाइन जोड़ें
+  if (tabId === 'chairman-report') generateMonthlySummary(); 
+  if (tabId === 'activity-logs') fetchActivityLogs(); 
   if (tabId === 'community') renderCommunity();
   if (tabId === 'meetings') renderMeetings();
   if (tabId === 'amc-tracker') renderAMCTracker();
@@ -3334,12 +3332,10 @@ async function openTabOverlay(tabId) {
   const target = document.getElementById(actualTabId);
   if (!target) return;
 
-  // 🟢 2. बिना किसी स्पिनर के तुरंत ओवरले खोलें क्योंकि डेटा अब मेमोरी में पहले से मौजूद है
   const finalOverlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(finalOverlay);
   document.body.style.overflow = 'hidden';
 
-  // PWA / Mobile Native Back Button के लिए हिस्ट्री पुश करें
   window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
 }
 

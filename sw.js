@@ -4,7 +4,7 @@
 // ============================================================
 
 const BASE_PATH = '/ps-society-app/';
-const CACHE_VERSION = 'ps-society-v2';
+const CACHE_VERSION = 'ps-society-v3';
 const CACHE_NAME = CACHE_VERSION;
 
 const APP_SHELL = [
