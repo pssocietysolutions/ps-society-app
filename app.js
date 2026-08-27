@@ -3218,7 +3218,7 @@ function renderGridCards() {
     { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
     { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
     { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
-    { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#2563eb' }, <!-- 🟢 JV जोड़ा गया -->
+    { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#2563eb' },
     { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
     { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
     { id: 'meetings', icon: 'fa-book-open', label: 'Meeting Minutes', color: '#2563eb' },
@@ -3229,16 +3229,17 @@ function renderGridCards() {
     { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
     { id: 'proofs', icon: 'fa-file-invoice', label: 'Payment Details', color: '#3b82f6' },
     { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
+    
+    // 🟢 यहाँ सिर्फ 'about' (About PS) रखा गया है, 'terms' और 'privacy' हटा दिए गए हैं
     { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
-    { id: 'terms', icon: 'fa-file-contract', label: 'Terms of Service', color: '#d97706' },
-    { id: 'privacy', icon: 'fa-file-shield', label: 'Privacy Policy', color: '#0284c7' }, <!-- 🟢 Privacy Policy जोड़ी गई -->
+    
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
     { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
   if (role === 'Member') {
-    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team', 'privacy'];
+    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman' || role === 'SocietyAdmin') {
     allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
