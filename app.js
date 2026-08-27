@@ -3320,53 +3320,26 @@ function openAboutPS() {
 }
 
 async function openTabOverlay(tabId) {
-  // 1. सबसे पहले मोबाइल मेनू को बंद करें ताकि बैकग्राउंड साफ़ रहे
   closeMobileMenu();
+  if (tabId === 'visitor') { showVisitorPage(); return; }
 
-  // 2. अगर About या Terms है, तो सीधे उनके ओवरले खोलें और ग्रिड बंद रखें
-  if (tabId === 'about') { 
-    openAboutPS(); 
-    return; 
-  }
-  if (tabId === 'terms') { 
-    openTermsOfService(); 
-    return; 
-  }
-  if (tabId === 'privacy') { 
-    openPrivacyPolicy(); 
-    return; 
-  }
-  if (tabId === 'visitor') { 
-    showVisitorPage(); 
-    return; 
-  }
+  // 🟢 अब About, Terms और Privacy भी बाकी टैब्स की तरह ही खुलेंगे (कोई अलग पॉपअप नहीं)
+  if (tabId === 'about') renderAboutTab();
+  if (tabId === 'terms') renderTermsTab();
+  if (tabId === 'privacy') renderPrivacyTab();
 
-  // 3. वाइट स्क्रीन से बचने के लिए पहले से ही लोडिंग ओवरले दिखा दें
-  const loadingOverlay = createTabOverlay(tabId, '<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="mt-2 text-muted">Loading...</p></div>');
-  document.body.appendChild(loadingOverlay);
-  document.body.style.overflow = 'hidden';
-
-  // 4. अब बैकग्राउंड में भारी डेटा (जैसे Activity Logs या Marketplace) फेच करें
   if (tabId === 'activity-logs') await fetchActivityLogs();
   if (tabId === 'chairman-report') generateMonthlySummary();
   if (tabId === 'marketplace') await fetchMarketplaceData();
 
-  // 5. सही HTML आईडी सेट करें
-  let actualTabId = tabId;
+  let actualTabId = `tab-${tabId}`;
   if (tabId === 'journal-voucher') {
     actualTabId = 'tab-journal-voucher';
     renderJournalVouchers();
-  } else {
-    actualTabId = `tab-${tabId}`;
   }
 
   const target = document.getElementById(actualTabId);
-  if (!target) {
-    // अगर टारगेट न मिले तो लोडिंग हटा दें
-    loadingOverlay.remove();
-    document.body.style.overflow = '';
-    return;
-  }
+  if (!target) return;
   
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
@@ -3377,9 +3350,6 @@ async function openTabOverlay(tabId) {
   if (tabId === 'manage-societies') await loadSocietiesList();
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') renderMarketplace();
-
-  // 6. लोडिंग ओवरले को हटाकर असली कंटेंट वाला ओवरले सेट करें
-  loadingOverlay.remove();
 
   const finalOverlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(finalOverlay);
@@ -3529,6 +3499,53 @@ function renderTeam() {
       </td>
     </tr>
   `).join('');
+}
+
+function renderAboutTab() {
+  const body = document.getElementById('aboutTabBody');
+  if (body) {
+    body.innerHTML = `
+      <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left;">
+        <div class="text-center mb-3">
+          <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> Society Solutions</h3>
+          <p class="text-primary fw-semibold small mb-0">Smart Society Management Engine • Simple • Transparent • Affordable</p>
+        </div>
+        <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ Subscription Plans (Per House / Month)</h6>
+        <div class="row g-2 mb-3 text-center">
+          <div class="col-4"><div class="p-2 border rounded-3 bg-light"><span class="badge bg-secondary mb-1">SILVER</span><h5 class="fw-bold mb-0 text-dark">49</h5></div></div>
+          <div class="col-4"><div class="p-2 border border-warning rounded-3 bg-warning-subtle"><span class="badge bg-warning text-dark mb-1">GOLD</span><h5 class="fw-bold mb-0 text-dark">79</h5></div></div>
+          <div class="col-4"><div class="p-2 border border-primary rounded-3 bg-primary-subtle"><span class="badge bg-primary mb-1">PLATINUM</span><h5 class="fw-bold mb-0 text-dark">149</h5></div></div>
+        </div>
+        <p class="small text-muted">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
+      </div>
+    `;
+  }
+}
+
+function renderTermsTab() {
+  const body = document.getElementById('termsTabBody');
+  if (body) {
+    body.innerHTML = `
+      <h3 class="fw-bold border-bottom pb-2"><span style="color: #f59e0b;">PS</span> Terms of Service</h3>
+      <p class="text-muted small">Effective Date: August 2026</p>
+      <h5 class="fw-bold mt-3">1. Acceptance of Terms</h5>
+      <p class="small text-muted">By accessing or using PS Society Solutions, you agree to be bound by these Terms.</p>
+      <h5 class="fw-bold mt-3">2. User Accounts</h5>
+      <p class="small text-muted">You are responsible for maintaining the confidentiality of your login credentials.</p>
+    `;
+  }
+}
+
+function renderPrivacyTab() {
+  const body = document.getElementById('privacyTabBody');
+  if (body) {
+    body.innerHTML = `
+      <h3 class="fw-bold border-bottom pb-2"><span style="color: #f59e0b;">PS</span> Privacy Policy</h3>
+      <p class="text-muted small">Compliant with DPDP Act 2023</p>
+      <h5 class="fw-bold mt-3">1. Information We Collect</h5>
+      <p class="small text-muted">We collect resident details and payment proofs exclusively for society management.</p>
+    `;
+  }
 }
 
 async function loadSocietiesList() {
