@@ -461,62 +461,6 @@ function markAllAsRead() {
   updateBadge('visitor-badge', 0);
 }
 
-// 🟢 Multi-Language Dictionary & Localization
-const translations = {
-  en: {
-    dashboard: "Dashboard",
-    members: "Members Directory",
-    maintenance: "Maintenance Log",
-    expenses: "Expense Ledger",
-    visitors: "Visitor Management",
-    complaints: "Complaints",
-    meetings: "Meeting Minutes"
-  },
-  hi: {
-    dashboard: "डैशबोर्ड",
-    members: "सदस्य सूची (Members)",
-    maintenance: "रखरखाव लॉग (Maintenance)",
-    expenses: "खर्च बही (Expenses)",
-    visitors: "आगंतुक प्रबंधन (Visitors)",
-    complaints: "शिकायतें (Complaints)",
-    meetings: "मीटिंग मिनट्स (AGM)"
-  },
-  gu: {
-    dashboard: "ડેશબોર્ડ",
-    members: "સભ્યોની યાદી (Members)",
-    maintenance: "મેન્ટેનન્સ લોગ (Maintenance)",
-    expenses: "ખર્ચ લેજર (Expenses)",
-    visitors: "વિઝિટર મેનેજમેન્ટ (Visitors)",
-    complaints: "ફરિયાદો (Complaints)",
-    meetings: "મીટિંગ મિનિટ્સ (AGM)"
-  }
-};
-
-let currentLang = localStorage.getItem('ps_lang') || 'en';
-
-function changeLanguage(lang) {
-  currentLang = lang;
-  localStorage.setItem('ps_lang', lang);
-  applyTranslations();
-}
-
-function applyTranslations() {
-  const langSelector = document.getElementById('languageSelector');
-  if (langSelector) langSelector.value = currentLang;
-
-  const dict = translations[currentLang] || translations['en'];
-  
-  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => {
-    if (link.getAttribute('onclick')?.includes('dashboard')) link.innerHTML = `<i class="fa-solid fa-chart-line me-2"></i> ${dict.dashboard}`;
-    if (link.getAttribute('onclick')?.includes('members')) link.innerHTML = `<i class="fa-solid fa-users me-2"></i> ${dict.members}`;
-    if (link.getAttribute('onclick')?.includes('maintenance')) link.innerHTML = `<i class="fa-solid fa-indian-rupee-sign me-2"></i> ${dict.maintenance}`;
-    if (link.getAttribute('onclick')?.includes('expenses')) link.innerHTML = `<i class="fa-solid fa-receipt me-2"></i> ${dict.expenses}`;
-    if (link.getAttribute('onclick')?.includes('visitor')) link.innerHTML = `<i class="fa-solid fa-user-plus me-2"></i> ${dict.visitors}`;
-    if (link.getAttribute('onclick')?.includes('complaints')) link.innerHTML = `<i class="fa-solid fa-headset me-2"></i> ${dict.complaints}`;
-    if (link.getAttribute('onclick')?.includes('meetings')) link.innerHTML = `<i class="fa-solid fa-book-open me-2"></i> ${dict.meetings}`;
-  });
-}
-
 function handleLogout() {
   markAllAsRead();
   _supabase.auth.signOut();
@@ -3288,10 +3232,7 @@ function renderGridCards() {
     { id: 'terms', icon: 'fa-file-contract', label: 'Terms of Service', color: '#d97706' },
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
-    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' },
-    // ========== NEW CARDS (Mobile) ==========
-    { id: 'privacy', icon: 'fa-file-shield', label: 'Privacy Policy', color: '#8b5cf6' },
-    { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#3b82f6' }
+    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
   if (role === 'Member') {
@@ -3318,8 +3259,6 @@ function renderGridCards() {
 }
 
 function openAboutPS() {
-  // Push state for back button
-  history.pushState(null, '', window.location.href);
   const overlay = document.getElementById('aboutPSOverlay');
   const body = document.getElementById('aboutPSBody');
   if (!overlay || !body) return;
@@ -3378,45 +3317,19 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
-// 🟢 1. मोबाइल में जब किसी ग्रिड कार्ड पर क्लिक हो
 async function openTabOverlay(tabId) {
-  // अगर डेस्कटॉप है, तो सामान्य switchTab चलाएं
-  if (window.innerWidth > 768) {
-    const link = document.querySelector(`.nav-link[onclick*="switchTab('${tabId}')"]`);
-    if (link) switchTab(tabId, link);
-    return;
-  }
-
-  // मोबाइल के लिए: हिस्ट्री में स्टेट पुश करें ताकि नेटिव बैक बटन काम करे
-  history.pushState({ view: 'tab', tabId: tabId }, '', window.location.href);
-
+  closeMobileMenu();
   if (tabId === 'about') { openAboutPS(); return; }
   if (tabId === 'terms') { openTermsOfService(); return; }
-  if (tabId === 'privacy') { openPrivacyPolicy(); return; }
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
   if (tabId === 'activity-logs') await fetchActivityLogs();
+
   if (tabId === 'chairman-report') generateMonthlySummary();
 
-  // मोबाइल ग्रिड मेनू छिपाएं
-  const gridOverlay = document.getElementById('mobileMenuOverlay');
-  if (gridOverlay) gridOverlay.style.display = 'none';
-
-  // मेन ऐप सेक्शन दिखाएं ताकि सफ़ेद स्क्रीन न आए
-  const appSection = document.getElementById('app-section');
-  if (appSection) appSection.classList.remove('d-none');
-
-  // सभी टैब छिपाएं और सिर्फ क्लिक किया हुआ टैब दिखाएं
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
-
   const target = document.getElementById(`tab-${tabId}`);
-  if (target) {
-  target.classList.remove('d-none');
-  // CSS के !important को ओवरराइड करने के लिए
-  target.style.setProperty('display', 'block', 'important');
-}
-
-  // डेटा लोड करने वाले फंक्शन्स
+  if (!target) return;
+  
   if (tabId === 'polls') renderPolls();
   if (tabId === 'community') renderCommunity();
   if (tabId === 'meetings') renderMeetings();
@@ -3427,48 +3340,27 @@ async function openTabOverlay(tabId) {
   if (tabId === 'proofs') renderPaymentProofs();
   if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
-  document.body.style.overflow = '';
+  const overlay = createTabOverlay(tabId, target.innerHTML);
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
 }
 
-// एकीकृत popstate हैंडलर (मोबाइल के लिए)
-window.addEventListener('popstate', function(event) {
-  // डेस्कटॉप पर कोई बदलाव नहीं
-  if (window.innerWidth > 768) return;
-
-  // 1. क्या कोई ओवरले खुला है? (About, Privacy, Terms, Visitor Password)
-  const overlayIds = ['aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay', 'visitorPasswordOverlay'];
-  let anyOverlayOpen = overlayIds.some(id => {
-    const el = document.getElementById(id);
-    return el && el.style.display === 'flex';
-  });
-
-  if (anyOverlayOpen) {
-    // सभी ओवरले बंद करें और बैक नेविगेशन रोकें
-    closeAllOverlays();   // यह फंक्शन पहले से मौजूद है
-    event.preventDefault();
-    history.pushState(null, '', window.location.href);
-    return;
-  }
-
-  // 2. क्या हम किसी टैब (app-section) में हैं और ग्रिड छिपा है?
-  const appSection = document.getElementById('app-section');
-  const gridOverlay = document.getElementById('mobileMenuOverlay');
-
-  if (appSection && !appSection.classList.contains('d-none') &&
-      gridOverlay && gridOverlay.style.display !== 'flex') {
-    // वापस ग्रिड पर जाएँ
-    appSection.classList.add('d-none');
-    gridOverlay.style.display = 'flex';
-    renderGridCards();    // ग्रिड कार्ड फिर से रेंडर करें
-    document.body.style.overflow = 'hidden';
-    event.preventDefault();
-    history.pushState({ view: 'grid' }, '', window.location.href);
-    return;
-  }
-
-  // बाकी स्थितियों में डिफ़ॉल्ट बैक नेविगेशन होने दें
-});
-
+function createTabOverlay(tabId, content) {
+  const overlay = document.createElement('div');
+  overlay.id = 'tabOverlay';
+  overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;';
+  overlay.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <button onclick="closeTabOverlay()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <span style="color: #f59e0b; font-weight: 600;">${tabId.toUpperCase()}</span>
+      <span style="width: 50px;"></span>
+    </div>
+    <div id="tabOverlayContent" style="flex: 1; margin-top: 15px; background: #fff; border-radius: 16px; padding: 20px; overflow-y: auto; color: #0f172a;">
+      ${content}
+    </div>
+  `;
+  return overlay;
+}
 
 function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
@@ -3485,7 +3377,6 @@ function closeTabOverlay() {
 }
 
 function openTermsOfService() {
-  history.pushState(null, '', window.location.href);
   const overlay = document.getElementById('termsOfServiceOverlay');
   const body = document.getElementById('termsOfServiceBody');
   if (!overlay || !body) return;
@@ -3549,7 +3440,6 @@ function closePrivacyPolicy() {
 }
 
 function openPrivacyPolicy() {
-  history.pushState(null, '', window.location.href);
   const overlay = document.getElementById('privacyPolicyOverlay');
   const body = document.getElementById('privacyPolicyBody');
   if (!overlay || !body) return;
@@ -3737,7 +3627,6 @@ function markCommunityRead() {
 }
 
 async function openVisitorPassword() {
-  history.pushState(null, '', window.location.href);
   await loadSocietiesForDropdown('visitor-password-society');
   document.getElementById('visitorPasswordOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -3911,7 +3800,7 @@ function handleDeepLink() {
                 }
             }
         }
-    }, 300);
+    }, 400);
 }
 
 window.addEventListener('pageshow', function(event) {
@@ -4059,31 +3948,6 @@ function clearStuckOverlays() {
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
 }
-
-// ==================== NATIVE BACK BUTTON HANDLER ====================
-function closeAllOverlays() {
-  // Close tab overlay
-  const tabOverlay = document.getElementById('tabOverlay');
-  if (tabOverlay) tabOverlay.remove();
-
-  // Hide all overlay containers
-  const overlays = ['aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay', 'visitorPasswordOverlay'];
-  overlays.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-
-  // Also close mobile grid if open
-  const gridOverlay = document.getElementById('mobileMenuOverlay');
-  if (gridOverlay && gridOverlay.style.display === 'flex') {
-    gridOverlay.style.display = 'none';
-  }
-
-  document.body.style.overflow = '';
-}
-
-// Override open functions to push state (already done above)
-// All overlay open functions now have history.pushState
 
 window.onload = async () => {
   clearStuckOverlays();

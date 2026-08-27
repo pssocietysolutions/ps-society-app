@@ -254,7 +254,7 @@
   }
   
   /* 4. साइडबार, नेविगेशन, बटन्स और अनचाहे हिस्से हमेशा छिपाएँ */
-  .sidebar, .navbar, .btn, .no-print, #languageSelector, .nav-actions, .modal { 
+  .sidebar, .navbar, .btn, .no-print, .nav-actions, .modal { 
     display: none !important; 
   }
   
@@ -266,8 +266,7 @@
     @media (max-width: 768px) {
       #sidebarMenu { display: none !important; }
       .container-fluid .row { display: block !important; }
-       /* .tab-content { display: none !important; }   ← इसे हटाएँ */
-}
+      .tab-content { display: none !important; }
       #visitor-section { padding: 15px !important; }
       .grid-card-item { padding: 25px 10px !important; min-height: 100px; display: flex !important; flex-direction: column; justify-content: center; align-items: center; }
       .grid-card-item i { font-size: 42px !important; margin-bottom: 12px !important; }
@@ -360,11 +359,8 @@
 
 <!-- ========== MAIN APP ========== -->
 <div id="app-section" class="d-none">
-  <!-- यह नेविगेशन बार अब मोबाइल पर नहीं दिखेगा, डेस्कटॉप जैसा है वैसा ही रहेगा -->
-<nav class="navbar navbar-dark bg-dark d-none px-3 sticky-top">
-  <a class="navbar-brand fw-bold text-warning" href="#">PS Society</a>
-</nav>
-
+  <nav class="navbar navbar-dark bg-dark d-md-none px-3 sticky-top">
+    <a class="navbar-brand fw-bold text-warning" href="#">PS Society</a>
     <button class="navbar-toggler d-md-none" type="button" onclick="toggleMobileMenu()" style="border: none; color: #fff; font-size: 24px; background: none;"><i class="fa-solid fa-bars"></i></button>
   </nav>
   <div class="container-fluid">
