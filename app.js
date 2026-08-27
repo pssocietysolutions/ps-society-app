@@ -3320,6 +3320,8 @@ async function openTabOverlay(tabId) {
 
   // 🟢 1. क्लिक करते ही तुरंत रेंडरिंग फंक्शन्स चलाएं ताकि डेटा तैयार रहे
   if (tabId === 'polls') renderPolls();
+  if (tabId === 'chairman-report') generateMonthlySummary(); // 👈 यह लाइन जोड़ें
+  if (tabId === 'activity-logs') fetchActivityLogs(); // 👈 यह लाइन जोड़ें
   if (tabId === 'community') renderCommunity();
   if (tabId === 'meetings') renderMeetings();
   if (tabId === 'amc-tracker') renderAMCTracker();
