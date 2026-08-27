@@ -2822,9 +2822,6 @@ function generateMonthlySummary() {
 }
 
 function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, net) {
-  const tbody = document.getElementById('monthly-summary-rows');
-  if (!tbody) return;
-
   const expCategories = {
     'Administrative Expenses': 0,
     'Utility Expenses': 0,
@@ -2876,7 +2873,11 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
     </tr>
   `;
 
-  tbody.innerHTML = html;
+  // 🟢 यहाँ हमने .querySelectorAll का इस्तेमाल किया है ताकि मोबाइल और डेस्कटॉप दोनों जगह की टेबल एक साथ अपडेट हो जाएं
+  const tbodies = document.querySelectorAll('#monthly-summary-rows');
+  tbodies.forEach(tbody => {
+    tbody.innerHTML = html;
+  });
 }
 
 async function submitMember(event) {
