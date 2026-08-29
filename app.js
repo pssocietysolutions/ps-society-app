@@ -3995,10 +3995,6 @@ function handleDeepLink() {
     setTimeout(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
-        const pollId = params.get('pollId');
-        const noticeId = params.get('noticeId');
-        const complaintId = params.get('complaintId');
-        const eventId = params.get('eventId');
 
         if (tab) {
             const gridOverlay = document.getElementById('mobileMenuOverlay');
@@ -4011,19 +4007,42 @@ function handleDeepLink() {
             }
 
             const isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                openTabOverlay(tab);
-            } else {
-                const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
-                if (link) {
-                    switchTab(tab, link);
-                } else {
-                    switchTab(tab, null);
-                    document.querySelectorAll('.nav-link').forEach(l => {
-                        if (l.textContent.trim().toLowerCase() === tab.toLowerCase()) {
-                            l.classList.add('active');
+            
+            // 🟢 डेटा फेच करके फिर टैब खोलने का सुरक्षित तरीका
+            if (tab === 'marketplace') {
+                fetchMarketplaceData().then(() => {
+                    if (isMobile) {
+                        openTabOverlay('marketplace');
+                    } else {
+                        switchTab('marketplace', document.querySelector('.nav-link[onclick*="marketplace"]'));
+                    }
+                });
+            } else if (tab === 'community') {
+                fetchEvents().then(() => {
+                    fetchFacilityData().then(() => {
+                        if (isMobile) {
+                            openTabOverlay('community');
+                        } else {
+                            switchTab('community', document.querySelector('.nav-link[onclick*="community"]'));
                         }
                     });
+                });
+            } else if (tab === 'meetings') {
+                _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
+                    meetingsData = data || [];
+                    if (isMobile) {
+                        openTabOverlay('meetings');
+                    } else {
+                        switchTab('meetings', document.querySelector('.nav-link[onclick*="meetings"]'));
+                    }
+                });
+            } else {
+                if (isMobile) {
+                    openTabOverlay(tab);
+                } else {
+                    const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
+                    if (link) switchTab(tab, link);
+                    else switchTab(tab, null);
                 }
             }
         }
