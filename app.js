@@ -477,83 +477,90 @@ function handleLogout() {
 async function fetchSupabaseData() {
   try {
     await _supabase.rpc('clean_old_activity_logs');
-    let { data: members } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
+
+    // 1. जरूरी और शुरुआती डेटा एक साथ पैरेलल लोड करें
+    const [
+      { data: members },
+      { data: maint },
+      { data: expenses },
+      { data: settings }
+    ] = await Promise.all([
+      _supabase.from('members').select('*').eq('society_name', currentSociety),
+      _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
+      _supabase.from('expenses').select('*').eq('society_name', currentSociety),
+      _supabase.from('society_settings').select('*').eq('society_name', currentSociety)
+    ]);
+
     membersData = members || [];
-
-    let { data: maint } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
     maintenanceData = maint || [];
-
-    let { data: expenses } = await _supabase.from('expenses').select('*').eq('society_name', currentSociety);
     expenseData = expenses || [];
-
-    let { data: assets } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
-    assetData = assets || [];
-
-    let { data: fds } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
-    fdData = fds || [];
-
-    let { data: complaints } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-    complaintData = complaints || [];
-
-    let { data: polls } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
-    pollsData = polls || [];
-
-    let { data: notices } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-    noticesData = notices || [];
-
-    let { data: meets } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).order('meeting_date', { ascending: false });
-    meetingsData = meets || [];
-    renderMeetings();
-
-    let { data: amcs } = await _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety);
-    amcContractsData = amcs || [];
-
-    let { data: settings } = await _supabase.from('society_settings').select('*').eq('society_name', currentSociety);
+    
     societySettings = {};
     if (settings) {
       settings.forEach(s => { societySettings[s.key] = s.value; });
-      // ... (बाकी सेटिंग्स का कोड वैसे ही रहेगा)
     }
-
     openingBalance = parseFloat(societySettings.opening_bank_balance) || 0;
-    customBankEntries = [];
 
-    let { data: proofs } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety).order('submitted_at', { ascending: false });
-    paymentProofs = proofs || [];
-
-    let { data: jvs } = await _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
-    journalVouchersData = jvs || [];
-    renderJournalVouchers();
-
-    let { data: team } = await _supabase.from('team').select('*').eq('society_name', currentSociety).order('type', { ascending: true });
-    teamData = team || [];
-
-    await fetchFacilityData();
-    await fetchEvents();
-    
-    // 🟢 यहाँ जोड़ें: अब ऐप लोड होते ही Marketplace और Societies का डेटा भी पहले से आ जाएगा
-    await fetchMarketplaceData();
-    await loadSocietiesList(); // (अगर Admin/Manage Societies के लिए है)
-
-    if (currentRole === 'Admin') await loadDeletionRequests();
-
-    loadTodayVisitors();
-    renderPaymentProofs();
-    populateComplaintFlatDropdown();
+    // तुरंत डैशबोर्ड और मेन टेबल रेंडर करें ताकि '0' या लोडिंग न दिखे
     renderAllTables();
-    populateNoticeMemberSelect();
-    renderDeletionRequests();
-    renderBankDetails();
-    renderAMCTracker();
-    renderSOSContacts();
-    updateCommunityBadge();
     updateAllBadges();
     updateMobileHeaderInfo();
-    listenForSOSAlerts();
-    setTimeout(checkForNewNotifications, 500);
+
+    // 2. बाकी सभी सेकंडरी और भारी डेटा (JV और Deletion Requests सहित) बैकग्राउंड में लोड करें
+    loadSecondaryData();
 
   } catch (err) {
     console.error('💥 Error in fetchSupabaseData:', err);
+  }
+}
+
+async function loadSecondaryData() {
+  try {
+    const [
+      { data: assets },
+      { data: fds },
+      { data: complaints },
+      { data: polls },
+      { data: notices },
+      { data: meets },
+      { data: amcs },
+      { data: proofs },
+      { data: jvs },
+      { data: team },
+      { data: delReq }
+    ] = await Promise.all([
+      _supabase.from('assets').select('*').eq('society_name', currentSociety),
+      _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety),
+      _supabase.from('complaints').select('*').eq('society_name', currentSociety),
+      _supabase.from('polls').select('*').eq('society_name', currentSociety),
+      _supabase.from('notices').select('*').eq('society_name', currentSociety),
+      _supabase.from('society_meetings').select('*').eq('society_name', currentSociety),
+      _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety),
+      _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety),
+      _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
+      _supabase.from('team').select('*').eq('society_name', currentSociety),
+      _supabase.from('deletion_requests').select('*').eq('society_name', currentSociety).order('requested_at', { ascending: false })
+    ]);
+
+    assetData = assets || [];
+    fdData = fds || [];
+    complaintData = complaints || [];
+    pollsData = polls || [];
+    noticesData = notices || [];
+    meetingsData = meets || [];
+    amcContractsData = amcs || [];
+    paymentProofs = proofs || [];
+    journalVouchersData = jvs || [];
+    teamData = team || [];
+    deletionRequests = delReq || [];
+
+    // डेटा आने के बाद इनकी टेबल्स और डेटा को अपडेट करें
+    renderJournalVouchers();
+    if (currentRole === 'Admin') renderDeletionRequests();
+    renderAllTables();
+    updateAllBadges();
+  } catch (e) {
+    console.log('Background sync error:', e);
   }
 }
 
