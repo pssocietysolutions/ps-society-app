@@ -402,7 +402,15 @@ function loadMainApp(role) {
   if (window.innerWidth <= 768) {
     const sidebar = document.querySelector('#sidebarMenu');
     if (sidebar) sidebar.style.display = 'none';
-    toggleMobileMenu();
+    
+    // 🟢 यहाँ चेक करें कि क्या URL में कोई 'tab' पैरामीटर (Notification Deep Link) है या नहीं
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasTabParam = urlParams.has('tab');
+
+    // अगर डीप लिंक नहीं है तभी मोबाइल का मेनू ग्रिड खोलें, वरना सीधे नोटिफाइड टैब पर रहने दें
+    if (!hasTabParam) {
+      toggleMobileMenu();
+    }
   } else {
     const sidebar = document.querySelector('#sidebarMenu');
     if (sidebar) sidebar.style.display = 'block';
