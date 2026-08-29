@@ -2165,28 +2165,45 @@ function renderFDs() {
   `).join('');
 }
 
-function populateComplaintFlatDropdown() {
+// 🟢 सुधरा हुआ और सुरक्षित फंक्शन (डेटा न होने पर सीधे Supabase से फ्लैट्स लोड करेगा)
+async function populateComplaintFlatDropdown() {
   const select = document.getElementById('cmp-flat');
   if (!select) return;
-  select.innerHTML = '';
+  
+  select.innerHTML = '<option value="">⏳ Loading flats...</option>';
+
   if (currentRole === 'Member') {
-    const option = document.createElement('option');
-    option.value = currentUser;
-    option.textContent = currentUser;
-    select.appendChild(option);
+    select.innerHTML = `<option value="${currentUser}">${currentUser}</option>`;
     select.disabled = true;
-  } else {
-    membersData.forEach(m => {
-      const flat = (m.flat_no || '').toUpperCase();
-      if (flat) {
-        const opt = document.createElement('option');
-        opt.value = flat;
-        opt.textContent = flat;
-        select.appendChild(opt);
-      }
-    });
-    select.disabled = false;
+    return;
   }
+
+  // अगर membersData खाली है, तो तुरंत डेटाबेस से फेच करें
+  if (!membersData || membersData.length === 0) {
+    const { data } = await _supabase
+      .from('members')
+      .select('flat_no, name')
+      .eq('society_name', currentSociety)
+      .order('flat_no');
+    membersData = data || [];
+  }
+
+  if (membersData.length === 0) {
+    select.innerHTML = '<option value="">⚠️ No flats found</option>';
+    return;
+  }
+
+  select.innerHTML = '<option value="">-- Select Flat --</option>';
+  membersData.forEach(m => {
+    const flat = (m.flat_no || '').toUpperCase();
+    if (flat) {
+      const opt = document.createElement('option');
+      opt.value = flat;
+      opt.textContent = `${flat} ${m.name ? '- ' + m.name : ''}`;
+      select.appendChild(opt);
+    }
+  });
+  select.disabled = false;
 }
 
 function renderComplaints() {
@@ -2216,6 +2233,15 @@ function renderComplaints() {
       </tr>
     `;
   }).join('');
+}
+
+// 🟢 Complaint Modal खुलते ही फ्लैट्स की लिस्ट लोड करने का फंक्शन
+function openComplaintModal() {
+  populateComplaintFlatDropdown();
+  const modalEl = document.getElementById('complaintModal');
+  if (modalEl) {
+    new bootstrap.Modal(modalEl).show();
+  }
 }
 
 async function submitComplaint(event) {

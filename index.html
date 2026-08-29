@@ -713,7 +713,7 @@
 
         <!-- TAB 10: COMPLAINTS -->
         <div id="tab-complaints" class="tab-content d-none">
-          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Complaints & Tickets</h3><button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#complaintModal"><i class="fa-solid fa-plus me-1"></i> Raise Complaint</button></div>
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Complaints & Tickets</h3><button class="btn btn-danger" onclick="openComplaintModal()">Raise Complaint</button>
           <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Ticket ID</th><th>Flat</th><th>Mobile</th><th>Category</th><th>Details</th><th>Status</th><th>Image</th><th class="no-print admin-only chairman-only">Actions</th></tr></thead><tbody id="complaint-list"></tbody></table></div>
         </div>
 
