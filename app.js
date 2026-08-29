@@ -486,22 +486,37 @@ async function fetchSupabaseData() {
   try {
     await _supabase.rpc('clean_old_activity_logs');
 
-    // 1. जरूरी और शुरुआती डेटा एक साथ पैरेलल लोड करें
+    // 🟢 यहाँ marketplace_posts, notices, events और facilities को तुरंत लोड होने वाले ग्रुप में जोड़ा गया है
     const [
       { data: members },
       { data: maint },
       { data: expenses },
-      { data: settings }
+      { data: settings },
+      { data: market },
+      { data: notices },
+      { data: events },
+      { data: facilities },
+      { data: bookings }
     ] = await Promise.all([
       _supabase.from('members').select('*').eq('society_name', currentSociety),
       _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
       _supabase.from('expenses').select('*').eq('society_name', currentSociety),
-      _supabase.from('society_settings').select('*').eq('society_name', currentSociety)
+      _supabase.from('society_settings').select('*').eq('society_name', currentSociety),
+      _supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false }),
+      _supabase.from('notices').select('*').eq('society_name', currentSociety),
+      _supabase.from('events').select('*').eq('society_name', currentSociety).order('date', { ascending: true }),
+      _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
+      _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true })
     ]);
 
     membersData = members || [];
     maintenanceData = maint || [];
     expenseData = expenses || [];
+    marketplaceData = market || [];
+    noticesData = notices || [];
+    eventsData = events || [];
+    facilitiesData = facilities || [];
+    bookingsData = bookings || [];
     
     societySettings = {};
     if (settings) {
@@ -509,12 +524,13 @@ async function fetchSupabaseData() {
     }
     openingBalance = parseFloat(societySettings.opening_bank_balance) || 0;
 
-    // तुरंत डैशबोर्ड और मेन टेबल रेंडर करें ताकि '0' या लोडिंग न दिखे
+    // तुरंत डैशबोर्ड, मार्केटप्लेस और कम्युनिटी रेंडर करें
     renderAllTables();
+    renderMarketplace();
     updateAllBadges();
     updateMobileHeaderInfo();
 
-    // 2. बाकी सभी सेकंडरी और भारी डेटा (JV और Deletion Requests सहित) बैकग्राउंड में लोड करें
+    // बाकी सेकंडरी डेटा बैकग्राउंड में लोड होगा
     loadSecondaryData();
 
   } catch (err) {
@@ -1322,6 +1338,17 @@ function switchTab(tabId, element) {
       localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString());
     }
     updateBadge('visitor-badge', 0);
+  }
+
+if (tabId === 'marketplace') {
+    fetchMarketplaceData().then(renderMarketplace);
+  }
+
+  if (tabId === 'community') {
+    markCommunityRead();
+    fetchEvents().then(() => {
+      fetchFacilityData().then(renderCommunity);
+    });
   }
 
   if (tabId === 'polls') {
@@ -3323,6 +3350,15 @@ async function openTabOverlay(tabId) {
 
   if (tabId === 'terms' || tabId === 'privacy') {
     tabId = 'about'; 
+  }
+
+if (tabId === 'marketplace') {
+    fetchMarketplaceData().then(renderMarketplace);
+  }
+  if (tabId === 'community') {
+    fetchEvents().then(() => {
+      fetchFacilityData().then(renderCommunity);
+    });
   }
 
   if (tabId === 'about') renderAboutTab();
