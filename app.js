@@ -417,7 +417,30 @@ function loadMainApp(role) {
   }
   
   clearAllData();
-  fetchSupabaseData();
+  
+  // 🟢 नोटिफिकेशन डीप-लिंक से आने पर सबसे पहले डेटा फेच करने का सही कोड
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeTab = urlParams.get('tab');
+
+  if (activeTab === 'marketplace') {
+    fetchMarketplaceData().then(() => {
+      fetchSupabaseData();
+    });
+  } else if (activeTab === 'community') {
+    fetchEvents().then(() => {
+      fetchFacilityData().then(() => {
+        fetchSupabaseData();
+      });
+    });
+  } else if (activeTab === 'meetings') {
+    _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
+      meetingsData = data || [];
+      fetchSupabaseData();
+    });
+  } else {
+    fetchSupabaseData();
+  }
+
   setTimeout(requestNotificationPermission, 2000);
 }
 
@@ -595,8 +618,10 @@ function clearAllData() {
   maintenanceData = [];
   expenseData = [];
   customBankEntries = [];
+  journalVouchersData = [];
   pollsData = [];
   noticesData = [];
+  meetingsData = [];
   complaintData = [];
   assetData = [];
   fdData = [];
@@ -604,6 +629,10 @@ function clearAllData() {
   visitors = [];
   paymentProofs = [];
   teamData = [];
+  allSocieties = [];
+  facilitiesData = [];
+  bookingsData = [];
+  eventsData = [];
   amcContractsData = [];
   deletionRequests = [];
   openingBalance = 0;
@@ -3393,13 +3422,6 @@ if (tabId === 'marketplace') {
   if (tabId === 'community') {
     fetchEvents().then(() => {
       fetchFacilityData().then(renderCommunity);
-    });
-  }
-
-if (tabId === 'meetings') {
-    _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
-      meetingsData = data || [];
-      renderMeetings();
     });
   }
 
