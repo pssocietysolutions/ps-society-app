@@ -486,7 +486,7 @@ async function fetchSupabaseData() {
   try {
     await _supabase.rpc('clean_old_activity_logs');
 
-    // 🟢 यहाँ marketplace_posts, notices, events और facilities को तुरंत लोड होने वाले ग्रुप में जोड़ा गया है
+    // 🟢 यहाँ society_meetings को भी तुरंत लोड होने वाले ग्रुप में जोड़ा गया है
     const [
       { data: members },
       { data: maint },
@@ -496,7 +496,8 @@ async function fetchSupabaseData() {
       { data: notices },
       { data: events },
       { data: facilities },
-      { data: bookings }
+      { data: bookings },
+      { data: meets } // 👈 मीटिंग्स डेटा यहाँ जोड़ा गया
     ] = await Promise.all([
       _supabase.from('members').select('*').eq('society_name', currentSociety),
       _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
@@ -506,7 +507,8 @@ async function fetchSupabaseData() {
       _supabase.from('notices').select('*').eq('society_name', currentSociety),
       _supabase.from('events').select('*').eq('society_name', currentSociety).order('date', { ascending: true }),
       _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
-      _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true })
+      _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true }),
+      _supabase.from('society_meetings').select('*').eq('society_name', currentSociety) // 👈 फेच क्वेरी
     ]);
 
     membersData = members || [];
@@ -517,6 +519,7 @@ async function fetchSupabaseData() {
     eventsData = events || [];
     facilitiesData = facilities || [];
     bookingsData = bookings || [];
+    meetingsData = meets || []; // 👈 यहाँ असाइन होगा
     
     societySettings = {};
     if (settings) {
@@ -524,13 +527,12 @@ async function fetchSupabaseData() {
     }
     openingBalance = parseFloat(societySettings.opening_bank_balance) || 0;
 
-    // तुरंत डैशबोर्ड, मार्केटप्लेस और कम्युनिटी रेंडर करें
     renderAllTables();
     renderMarketplace();
+    renderMeetings(); // 👈 तुरंत मीटिंग्स रेंडर करें
     updateAllBadges();
     updateMobileHeaderInfo();
 
-    // बाकी सेकंडरी डेटा बैकग्राउंड में लोड होगा
     loadSecondaryData();
 
   } catch (err) {
@@ -1356,6 +1358,13 @@ if (tabId === 'marketplace') {
     localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
     updateAllBadges();
     renderPolls();
+  }
+
+if (tabId === 'meetings') {
+    _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
+      meetingsData = data || [];
+      renderMeetings();
+    });
   }
 
   if (tabId === 'activity-logs') {
@@ -3384,6 +3393,13 @@ if (tabId === 'marketplace') {
   if (tabId === 'community') {
     fetchEvents().then(() => {
       fetchFacilityData().then(renderCommunity);
+    });
+  }
+
+if (tabId === 'meetings') {
+    _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
+      meetingsData = data || [];
+      renderMeetings();
     });
   }
 
