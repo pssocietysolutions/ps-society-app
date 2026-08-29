@@ -3992,7 +3992,7 @@ function listenForSOSAlerts() {
 }
 
 function handleDeepLink() {
-    setTimeout(() => {
+    setTimeout(async () => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
 
@@ -4006,43 +4006,42 @@ function handleDeepLink() {
                 closeMobileMenu();
             }
 
-            const isMobile = window.innerWidth <= 768;
-            
-            // 🟢 डेटा फेच करके फिर टैब खोलने का सुरक्षित तरीका
-            if (tab === 'marketplace') {
-                fetchMarketplaceData().then(() => {
-                    if (isMobile) {
-                        openTabOverlay('marketplace');
-                    } else {
-                        switchTab('marketplace', document.querySelector('.nav-link[onclick*="marketplace"]'));
-                    }
-                });
-            } else if (tab === 'community') {
-                fetchEvents().then(() => {
-                    fetchFacilityData().then(() => {
-                        if (isMobile) {
-                            openTabOverlay('community');
-                        } else {
-                            switchTab('community', document.querySelector('.nav-link[onclick*="community"]'));
-                        }
-                    });
-                });
-            } else if (tab === 'meetings') {
-                _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
+            // 🟢 यूनिवर्सल डेटा फेचिंग: किसी भी टैब पर जाने से पहले उसका डेटा पक्का लोड करें
+            try {
+                if (tab === 'marketplace') {
+                    await fetchMarketplaceData();
+                } else if (tab === 'community') {
+                    await fetchEvents();
+                    await fetchFacilityData();
+                } else if (tab === 'meetings') {
+                    const { data } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety);
                     meetingsData = data || [];
-                    if (isMobile) {
-                        openTabOverlay('meetings');
-                    } else {
-                        switchTab('meetings', document.querySelector('.nav-link[onclick*="meetings"]'));
-                    }
-                });
+                } else if (tab === 'complaints') {
+                    const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
+                    complaintData = data || [];
+                } else if (tab === 'polls') {
+                    await fetchPollsData();
+                } else if (tab === 'maintenance') {
+                    const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
+                    maintenanceData = data || [];
+                } else if (tab === 'proofs') {
+                    const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
+                    paymentProofs = data || [];
+                }
+            } catch (err) {
+                console.error('Deep link data fetch error:', err);
+            }
+
+            // डेटा आने के बाद अब टैब खोलें (मोबाइल के लिए ओवरले, डेस्कटॉप के लिए स्विच टैब)
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                openTabOverlay(tab);
             } else {
-                if (isMobile) {
-                    openTabOverlay(tab);
+                const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
+                if (link) {
+                    switchTab(tab, link);
                 } else {
-                    const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
-                    if (link) switchTab(tab, link);
-                    else switchTab(tab, null);
+                    switchTab(tab, null);
                 }
             }
         }
