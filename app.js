@@ -555,6 +555,7 @@ async function fetchSupabaseData() {
 
     renderAllTables();
     renderMarketplace();
+    renderMyPaymentHistory();
     renderMeetings(); // 👈 तुरंत मीटिंग्स रेंडर करें
     updateAllBadges();
     updateMobileHeaderInfo();
@@ -1472,6 +1473,10 @@ function renderMemberPersonalView() {
   }
   if (document.getElementById('my-flat-paid')) document.getElementById('my-flat-paid').innerText = myTotalPaid;
 
+// 🟢 यह नई लाइन यहाँ जोड़ें
+  renderMyPaymentHistory();
+}
+
   ledgerContainer.innerHTML = ledgerRows.map(row => `
     <tr>
       <td>${row.date}</td>
@@ -2253,6 +2258,27 @@ function renderMaintenance() {
     `;
   }).join('');
   document.getElementById('dash-collected').innerText = total;
+}
+
+function renderMyPaymentHistory() {
+  const tbody = document.getElementById('my-payment-history-list');
+  if (!tbody) return;
+  const userFlat = (currentUser || '').trim().toUpperCase();
+  const myPayments = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === userFlat);
+  
+  if (myPayments.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No payment history found.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = myPayments.map(r => `
+    <tr>
+      <td><b>${r.receipt_no || '-'}</b></td>
+      <td>${r.payment_date || '-'}</td>
+      <td class="text-success fw-bold">${r.amount_paid || 0}</td>
+      <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
+    </tr>
+  `).join('');
 }
 
 function renderExpenses() {
@@ -3540,6 +3566,12 @@ function renderGridCards() {
     { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
+if (role === 'Member') {
+    // 🟢 यहाँ 'parking' जोड़ दिया गया है
+    const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'about', 'team'];
+    allCards = allCards.filter(c => memberCards.includes(c.id));
+  }
+
   if (role === 'Member') {
     const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
@@ -4212,6 +4244,7 @@ function showSOSBanner(alertData) {
     background: rgba(220, 38, 38, 0.95); z-index: 999999;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     color: white; text-align: center; padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif;
+    animation: pulse 0.8s infinite alternate;
   `;
   banner.innerHTML = `
     <div style="font-size: 80px; margin-bottom: 20px;"><i class="fa-solid fa-triangle-exclamation fa-beat"></i></div>
@@ -4228,18 +4261,24 @@ function showSOSBanner(alertData) {
   `;
   document.body.appendChild(banner);
   
-  // 🟢 सायरन प्ले करने की सेफ कोशिश (ब्रह्मास्त्र तरीका)
+  // 🟢 सायरन प्ले करने की कोशिश
   try {
     sirenAudio.loop = true;
     sirenAudio.play().catch(e => {
-      console.log("Audio autoplay restricted, playing on user interaction context.");
-      // यदि ब्राउज़र ने ब्लॉक किया, तो स्क्रीन पर कहीं भी क्लिक होते ही सायरन बज उठेगा
-      document.body.addEventListener('click', () => {
-        sirenAudio.play();
-      }, { once: true });
+      console.log("Audio autoplay restricted, waiting for user click.");
+      document.body.addEventListener('click', () => { sirenAudio.play(); }, { once: true });
     });
   } catch (err) {
-    console.log("Siren play error:", err);
+    console.log("Siren error:", err);
+  }
+
+  // 🟢 मोबाइल वाइब्रेशन (लगातार वाइब्रेट होगा जब तक एकनॉलेज न किया जाए)
+  if ("vibrate" in navigator) {
+    try {
+      navigator.vibrate([500, 250, 500, 250, 500, 250, 1000]);
+    } catch (e) {
+      console.log("Vibration error:", e);
+    }
   }
 }
 
