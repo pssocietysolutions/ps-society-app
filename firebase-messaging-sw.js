@@ -1,8 +1,6 @@
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
-
-console.log("🔥 Service Worker Loaded Successfully!");
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
@@ -16,44 +14,52 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Background Message Handler (सिर्फ एक बार)
+// Background Message Handler
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
-  const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
-  const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
+  const title = payload.notification?.title || payload.data?.title || 'PS Society';
+  const body = payload.notification?.body || payload.data?.body || 'New update';
+  const icon = '/ps-society-app/icon-192.png';
+  const data = payload.data || {};
 
-  self.registration.showNotification(notificationTitle, {
-    body: notificationBody,
-    icon: '/icon.png',
-    data: payload.data || {}
+  self.registration.showNotification(title, {
+    body: body,
+    icon: icon,
+    badge: icon,
+    data: data
   });
 });
 
-// ✅ Notification Click Handler
+// Notification Click Handler (Deep Linking WhatsApp/Facebook style)
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
   const data = event.notification.data || {};
-  let urlToOpen = data.click_action || data.url || '/';
+  let targetUrl = data.click_action || data.url || '/ps-society-app/';
 
-  if (!urlToOpen.startsWith('http')) {
+  // Absolute URL conversion for GitHub Pages sub-path
+  if (!targetUrl.startsWith('http')) {
     const baseUrl = self.location.origin;
-    urlToOpen = baseUrl + urlToOpen;
+    if (targetUrl.startsWith('/')) {
+      targetUrl = baseUrl + targetUrl;
+    } else {
+      targetUrl = baseUrl + '/ps-society-app/' + targetUrl;
+    }
   }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url === urlToOpen && 'focus' in client) {
+          if (client.url.includes('/ps-society-app/') && 'focus' in client) {
+            client.navigate(targetUrl);
             return client.focus();
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
+          return clients.openWindow(targetUrl);
         }
       })
   );
