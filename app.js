@@ -555,7 +555,6 @@ async function fetchSupabaseData() {
 
     renderAllTables();
     renderMarketplace();
-    renderMyPaymentHistory();
     renderMeetings(); // 👈 तुरंत मीटिंग्स रेंडर करें
     updateAllBadges();
     updateMobileHeaderInfo();
@@ -1473,10 +1472,6 @@ function renderMemberPersonalView() {
   }
   if (document.getElementById('my-flat-paid')) document.getElementById('my-flat-paid').innerText = myTotalPaid;
 
-// 🟢 यह नई लाइन यहाँ जोड़ें
-  renderMyPaymentHistory();
-}
-
   ledgerContainer.innerHTML = ledgerRows.map(row => `
     <tr>
       <td>${row.date}</td>
@@ -1486,6 +1481,9 @@ function renderMemberPersonalView() {
       <td class="fw-bold ${row.balance > 0 ? 'text-danger' : 'text-success'}">${row.balance}</td>
     </tr>
   `).join('');
+
+  // 🟢 यहीं के यहीं पेमेंट हिस्ट्री वाला फंक्शन भी कॉल कर दिया गया है
+  renderMyPaymentHistory();
 }
 
 function renderTallyBankBook() {
@@ -1715,6 +1713,7 @@ function renderAllTables() {
   renderFDs();
   renderTeam();
   renderMemberPersonalView();
+  renderMyPaymentHistory();
   renderBankDetails();
   renderAMCTracker();
   renderSOSContacts();
