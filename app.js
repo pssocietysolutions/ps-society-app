@@ -22,6 +22,7 @@ let pollsData = [];
 let noticesData = [];
 let meetingsData = [];
 let complaintData = [];
+let parkingData = [];
 let assetData = [];
 let fdData = [];
 let societySettings = {};
@@ -442,6 +443,8 @@ function loadMainApp(role) {
   }
 
   setTimeout(requestNotificationPermission, 2000);
+// 🟢 SOS रियल-टाइम अलर्ट्स को यहाँ एक्टिवेट करें
+  listenForSOSAlerts();
 }
 
 async function loadSocietySwitcher() {
@@ -572,6 +575,7 @@ async function loadSecondaryData() {
       { data: polls },
       { data: notices },
       { data: meets },
+      { data: parking }, // 👈 पार्किंग डेटा यहाँ सही से है
       { data: amcs },
       { data: proofs },
       { data: jvs },
@@ -584,6 +588,7 @@ async function loadSecondaryData() {
       _supabase.from('polls').select('*').eq('society_name', currentSociety),
       _supabase.from('notices').select('*').eq('society_name', currentSociety),
       _supabase.from('society_meetings').select('*').eq('society_name', currentSociety),
+      _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety), // 👈 सही क्वेरी
       _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety),
       _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety),
       _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
@@ -597,6 +602,7 @@ async function loadSecondaryData() {
     pollsData = polls || [];
     noticesData = notices || [];
     meetingsData = meets || [];
+    parkingData = parking || []; // 👈 यहाँ असाइन होगा
     amcContractsData = amcs || [];
     paymentProofs = proofs || [];
     journalVouchersData = jvs || [];
@@ -702,23 +708,52 @@ function renderVisitorList() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
   if (visitors.length === 0) { container.innerHTML = `<div class="alert alert-info">No visitors today.</div>`; return; }
-  const isLogged = localStorage.getItem('ps_user_logged') === 'true';
+  
+  const isMemberOrAdmin = currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Member';
+
   container.innerHTML = visitors.map(v => {
-    const showOutButton = !isLogged && v.status === 'IN';
+    let statusBadge = '';
+    let actionButtons = '';
+
+    if (v.status === 'PENDING') {
+      statusBadge = `<span class="badge bg-warning text-dark">Pending Approval</span>`;
+      if (isMemberOrAdmin) {
+        actionButtons = `
+          <button class="btn btn-sm btn-success me-1" onclick="updateVisitorStatus(${v.id}, 'APPROVED')"><i class="fa-solid fa-check"></i> Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="updateVisitorStatus(${v.id}, 'REJECTED')"><i class="fa-solid fa-times"></i> Reject</button>
+        `;
+      }
+    } else if (v.status === 'APPROVED' || v.status === 'IN') {
+      statusBadge = `<span class="badge bg-success">Approved / In</span>`;
+      actionButtons = `<button class="btn btn-sm btn-outline-danger" onclick="markVisitorOut(${v.id})">OUT</button>`;
+    } else if (v.status === 'REJECTED') {
+      statusBadge = `<span class="badge bg-danger">Rejected</span>`;
+    } else {
+      statusBadge = `<span class="badge bg-secondary">Out</span>`;
+    }
+
     return `
-      <div class="visitor-card ${v.status === 'OUT' ? 'out' : ''}">
+      <div class="visitor-card ${v.status === 'REJECTED' ? 'border border-danger' : ''}">
         <div class="info">
           <h6>${v.name} <small class="text-muted">(${v.category})</small></h6>
           <small>Flat: ${v.flat_no} | ${v.society}</small><br>
           <small>Mobile: ${v.mobile || 'N/A'}</small><br>
-          <small>In: ${v.in_time ? v.in_time.substring(0,5) : 'N/A'}</small>
-          ${v.out_time ? `| Out: ${v.out_time.substring(0,5)}` : ''}
-          ${v.purpose ? `| Purpose: ${v.purpose}` : ''}
+          <small>In: ${v.in_time ? v.in_time.substring(0,5) : 'N/A'}</small> | ${statusBadge}
         </div>
-        ${showOutButton ? `<button class="btn btn-sm btn-outline-danger" onclick="markVisitorOut(${v.id})">OUT</button>` : (v.status === 'OUT' ? '<span class="badge bg-secondary">Out</span>' : '<span class="badge bg-success">In</span>')}
+        <div>${actionButtons}</div>
       </div>
     `;
   }).join('');
+}
+
+async function updateVisitorStatus(id, newStatus) {
+  const { error } = await _supabase.from('visitors').update({ status: newStatus }).eq('id', id);
+  if (error) {
+    alert('❌ Error: ' + error.message);
+  } else {
+    alert(`✅ Visitor ${newStatus.toLowerCase()} successfully!`);
+    loadTodayVisitors();
+  }
 }
 
 async function submitVisitor(event) {
@@ -731,7 +766,19 @@ async function submitVisitor(event) {
   const purpose = document.getElementById('visitor-purpose').value.trim();
   if (!society || !name || !flat || !mobile) { alert('Please fill all required fields.'); return; }
   const now = new Date(); const timeStr = now.toTimeString().substring(0,8);
-  const newVisitor = { society, visit_date: now.toISOString().split('T')[0], name, mobile, flat_no: flat, category, purpose: purpose || '', in_time: timeStr, out_time: null, status: 'IN' };
+  const newVisitor = { 
+  society, 
+  visit_date: now.toISOString().split('T')[0], 
+  name, 
+  mobile, 
+  flat_no: flat, 
+  category, 
+  purpose: purpose || '', 
+  in_time: timeStr, 
+  out_time: null, 
+  status: 'PENDING', // 👈 नया अप्रूवल स्टेटस
+  created_at: new Date().toISOString()
+};
   const { error } = await _supabase.from('visitors').insert([newVisitor]);
   if (error) { alert('Error: ' + error.message); return; }
   alert('✅ Visitor entry recorded!');
@@ -800,6 +847,164 @@ function renderAMCTracker() {
   }).join('');
 
   updateBadge('amc-badge', expiringSoonCount > 0 ? '🔔' : 0);
+}
+
+function renderParking() {
+  const tbody = document.getElementById('parking-list');
+  const pendingTbody = document.getElementById('pending-parking-list');
+  const pendingSection = document.getElementById('pending-parking-section');
+  if (!tbody) return;
+
+  const approvedList = parkingData.filter(p => p.status === 'Approved');
+  const pendingList = parkingData.filter(p => p.status === 'Pending');
+
+  // 1. Approved List Render
+  if (approvedList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No approved vehicles registered yet.</td></tr>`;
+  } else {
+    const canManage = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
+    tbody.innerHTML = approvedList.map(p => `
+      <tr>
+        <td><b>${p.flat_no}</b></td>
+        <td><span class="badge bg-info text-dark">${p.vehicle_type}</span></td>
+        <td>${p.vehicle_number}</td>
+        <td>${p.slot_number || '<span class="text-muted">Not Assigned</span>'}</td>
+        <td>${p.owner_name}</td>
+        <td><span class="badge bg-success">Approved</span></td>
+        <td class="no-print admin-only chairman-only ${!canManage ? 'd-none' : ''}">
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteParking(${p.id})"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // 2. Pending List Render (For Admin/Chairman)
+  if (pendingSection && pendingTbody) {
+    if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
+      pendingSection.classList.remove('d-none');
+      if (pendingList.length === 0) {
+        pendingTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No pending parking requests.</td></tr>`;
+      } else {
+        pendingTbody.innerHTML = pendingList.map(p => `
+          <tr>
+            <td><b>${p.flat_no}</b></td>
+            <td>${p.vehicle_type}</td>
+            <td>${p.vehicle_number}</td>
+            <td>${p.owner_name}</td>
+            <td>${p.remarks || '-'}</td>
+            <td class="no-print">
+              <button class="btn btn-sm btn-success me-1" onclick="approveParking(${p.id}, 'Approved')"><i class="fa-solid fa-check"></i> Approve</button>
+              <button class="btn btn-sm btn-danger" onclick="approveParking(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i> Reject</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    } else {
+      pendingSection.classList.add('d-none');
+    }
+  }
+
+  // Update Badge
+  const pendingCount = pendingList.length;
+  updateBadge('parking-badge', pendingCount > 0 ? pendingCount : 0);
+}
+
+function resetParkingForm() {
+  const form = document.getElementById('parkingForm');
+  if (form) form.reset();
+  
+  const select = document.getElementById('park-flat');
+  if (select) {
+    if (currentRole === 'Member') {
+      select.innerHTML = `<option value="${currentUser}">${currentUser}</option>`;
+      select.disabled = true;
+      document.getElementById('park-owner').value = currentUser;
+    } else {
+      select.disabled = false;
+      select.innerHTML = '<option value="">-- Select Flat --</option>';
+      membersData.forEach(m => {
+        select.innerHTML += `<option value="${m.flat_no}">${m.flat_no} - ${m.name || ''}</option>`;
+      });
+    }
+  }
+}
+
+async function submitParkingVehicle(event) {
+  event.preventDefault();
+  const flatNo = currentRole === 'Member' ? currentUser : document.getElementById('park-flat').value;
+  const vehicleType = document.getElementById('park-type').value;
+  const vehicleNumber = document.getElementById('park-number').value.trim().toUpperCase();
+  const slotNumber = document.getElementById('park-slot')?.value.trim() || '';
+  const ownerName = document.getElementById('park-owner').value.trim();
+  const remarks = document.getElementById('park-remarks').value.trim();
+
+  const isMember = currentRole === 'Member';
+  const initialStatus = isMember ? 'Pending' : 'Approved';
+
+  const newVehicle = {
+    society_name: currentSociety,
+    flat_no: flatNo,
+    vehicle_type: vehicleType,
+    vehicle_number: vehicleNumber,
+    slot_number: slotNumber,
+    owner_name: ownerName,
+    remarks: remarks,
+    status: initialStatus,
+    submitted_at: new Date().toISOString()
+  };
+
+  const { error } = await _supabase.from('parking_vehicles').insert([newVehicle]);
+  if (error) {
+    alert('❌ Error: ' + error.message);
+    return;
+  }
+
+  alert(isMember ? '✅ Vehicle submitted for admin approval!' : '✅ Vehicle registered & approved successfully!');
+  bootstrap.Modal.getInstance(document.getElementById('parkingModal')).hide();
+  fetchSupabaseData();
+}
+
+// 🟢 30 सेकंड ऑटो-अप्रूवल चेक करने का लूप या फंक्शन
+async function checkAndAutoApproveVisitors() {
+  if (!currentSociety) return;
+  const { data: pendingVisitors } = await _supabase
+    .from('visitors')
+    .select('*')
+    .eq('society', currentSociety)
+    .eq('status', 'PENDING');
+
+  if (!pendingVisitors) return;
+
+  const now = new Date().getTime();
+  for (const v of pendingVisitors) {
+    const createdAt = new Date(v.created_at || v.visit_date).getTime();
+    // यदि 30 सेकंड (30000 मिलीसेकंड) से ज्यादा हो गए हैं
+    if (now - createdAt > 30000) {
+      await _supabase.from('visitors').update({ status: 'APPROVED' }).eq('id', v.id);
+      loadTodayVisitors();
+    }
+  }
+}
+
+// हर 5 सेकंड में ऑटो-अप्रूवल चेक करें
+setInterval(checkAndAutoApproveVisitors, 5000);
+
+async function approveParking(id, status) {
+  if (!confirm(`Are you sure you want to ${status.toLowerCase()} this vehicle?`)) return;
+  const { error } = await _supabase.from('parking_vehicles').update({ status: status }).eq('id', id);
+  if (error) {
+    alert('❌ Error: ' + error.message);
+  } else {
+    alert(`✅ Vehicle ${status} successfully!`);
+    fetchSupabaseData();
+  }
+}
+
+async function deleteParking(id) {
+  if (!confirm('⚠️ Delete this vehicle record permanently?')) return;
+  const { error } = await _supabase.from('parking_vehicles').delete().eq('id', id);
+  if (error) alert('Error: ' + error.message);
+  else fetchSupabaseData();
 }
 
 async function submitAMCContract(event) {
@@ -1382,6 +1587,13 @@ if (tabId === 'marketplace') {
     });
   }
 
+if (tabId === 'parking') {
+  _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety).then(({ data }) => {
+    parkingData = data || [];
+    renderParking();
+  });
+}
+
   if (tabId === 'polls') {
     const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
     localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
@@ -1492,6 +1704,7 @@ function renderAllTables() {
   renderChairmanReport();
   generateMonthlySummary();
   renderComplaints();
+  renderParking();
   renderPolls();
   renderAssets();
   renderFDs();
@@ -3305,6 +3518,7 @@ function renderGridCards() {
     { id: 'complaints', icon: 'fa-headset', label: 'Complaints', color: '#ec4899' },
     { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
     { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
+{ id: 'parking', icon: 'fa-square-parking', label: 'Parking', color: '#f59e0b' },
     { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
     { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#2563eb' },
     { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
@@ -3419,6 +3633,14 @@ async function openTabOverlay(tabId) {
 if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
   }
+
+if (tabId === 'parking') {
+  _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety).then(({ data }) => {
+    parkingData = data || [];
+    renderParking();
+  });
+}
+
   if (tabId === 'community') {
     fetchEvents().then(() => {
       fetchFacilityData().then(renderCommunity);
@@ -3979,16 +4201,77 @@ async function triggerSOS(alertType) {
   } catch (err) { console.error(err); }
 }
 
+function showSOSBanner(alertData) {
+  const existingBanner = document.getElementById('sosAlertBanner');
+  if (existingBanner) existingBanner.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'sosAlertBanner';
+  banner.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(220, 38, 38, 0.95); z-index: 999999;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    color: white; text-align: center; padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif;
+  `;
+  banner.innerHTML = `
+    <div style="font-size: 80px; margin-bottom: 20px;"><i class="fa-solid fa-triangle-exclamation fa-beat"></i></div>
+    <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">🚨 EMERGENCY SOS ALERT! 🚨</h1>
+    <h3 style="font-weight: 700; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 50px;">
+      Type: ${alertData.alert_type} | Flat: ${alertData.flat_no}
+    </h3>
+    <p style="font-size: 1.1rem; margin-bottom: 30px; max-width: 500px;">
+      इमरजेंसी अलर्ट ट्रिगर किया गया है! कृपया तुरंत सहायता भेजें या एक्शन लें।
+    </p>
+    <button onclick="resolveSOSAlert(${alertData.id})" style="background: #fff; color: #dc2626; border: none; padding: 15px 40px; font-size: 18px; font-weight: 800; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+      <i class="fa-solid fa-check-circle me-2"></i> Acknowledge & Stop Siren
+    </button>
+  `;
+  document.body.appendChild(banner);
+  
+  // 🟢 सायरन प्ले करने की सेफ कोशिश (ब्रह्मास्त्र तरीका)
+  try {
+    sirenAudio.loop = true;
+    sirenAudio.play().catch(e => {
+      console.log("Audio autoplay restricted, playing on user interaction context.");
+      // यदि ब्राउज़र ने ब्लॉक किया, तो स्क्रीन पर कहीं भी क्लिक होते ही सायरन बज उठेगा
+      document.body.addEventListener('click', () => {
+        sirenAudio.play();
+      }, { once: true });
+    });
+  } catch (err) {
+    console.log("Siren play error:", err);
+  }
+}
+
 function listenForSOSAlerts() {
-  const channelName = `sos-realtime-${currentSociety.replace(/\s+/g, '_')}`;
+  // 🟢 सोसायटी के नाम से स्पेस और स्पेशल कैरेक्टर्स हटाकर एक साफ चैनल नाम बनाएं
+  const cleanSocietyName = (currentSociety || 'default').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+  const channelName = `sos-realtime-${cleanSocietyName}`;
+
+  // यदि पहले से कोई चैनल जुड़ा है तो उसे अनसब्सक्राइब करें ताकि डुप्लीकेट कनेक्शन न बनें
+  try {
+    _supabase.removeAllChannels();
+  } catch (e) {
+    console.log(e);
+  }
+
   _supabase.channel(channelName)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, (payload) => {
-      if (payload.new && payload.new.status === 'active' && payload.new.society_name === currentSociety) {
-        showSOSBanner(payload.new);
-        sirenAudio.play().catch(e => console.log(e));
+    .on('postgres_changes', { 
+      event: 'INSERT', 
+      schema: 'public', 
+      table: 'sos_alerts' 
+    }, (payload) => {
+      console.log('🚨 SOS Alert Received via Realtime:', payload.new);
+      if (payload.new && payload.new.status === 'active') {
+        // सुनिश्चित करें कि यह उसी सोसायटी का अलर्ट है
+        if ((payload.new.society_name || '').trim().toLowerCase() === (currentSociety || '').trim().toLowerCase()) {
+          showSOSBanner(payload.new);
+        }
       }
     })
-    .subscribe();
+    .subscribe((status) => {
+      console.log('SOS Realtime Subscription Status:', status);
+    });
 }
 
 function handleDeepLink() {
@@ -4021,6 +4304,9 @@ function handleDeepLink() {
                     complaintData = data || [];
                 } else if (tab === 'polls') {
                     await fetchPollsData();
+                } else if (tab === 'parking') {
+                    const { data } = await _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety);
+                    parkingData = data || [];
                 } else if (tab === 'maintenance') {
                     const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
                     maintenanceData = data || [];

@@ -244,6 +244,14 @@
     visibility: visible !important; 
   }
   
+/* WhatsApp Icon Green Styling */
+.fa-whatsapp {
+  color: #25d366 !important;
+}
+button:hover .fa-whatsapp {
+  color: #ffffff !important; 
+}
+
   /* 3. खुले हुए टैब को पेज पर सही से सेट करें */
   .tab-content:not(.d-none) {
     position: absolute !important;
@@ -407,6 +415,11 @@
   </a>
 </li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('marketplace', this)"><i class="fa-solid fa-store me-2 text-warning"></i> Marketplace</a></li>
+<li class="nav-item">
+  <a class="nav-link" onclick="switchTab('parking', this)">
+    <i class="fa-solid fa-square-parking me-2 text-warning"></i> Parking & Vehicles <span id="parking-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span>
+  </a>
+</li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('bank-details', this)"><i class="fa-solid fa-qrcode me-2"></i> Society Bank / QR</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('sos-contacts', this)"><i class="fa-solid fa-truck-medical me-2 text-danger"></i> Emergency SOS</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('assets', this)"><i class="fa-solid fa-boxes-stacked me-2"></i> Asset Register</a></li>
@@ -743,6 +756,61 @@
           <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Polls & Voting</h3><button class="btn btn-primary role-restricted admin-only chairman-only" data-bs-toggle="modal" data-bs-target="#pollModal">+ Create Poll</button></div>
           <div id="polls-container" class="row g-3"></div>
         </div>
+
+<!-- TAB: PARKING MANAGEMENT -->
+<div id="tab-parking" class="tab-content d-none">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold"><i class="fa-solid fa-square-parking text-warning me-2"></i> Vehicle & Parking Directory</h3>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#parkingModal" onclick="resetParkingForm()">
+      <i class="fa-solid fa-plus me-1"></i> Register Vehicle
+    </button>
+  </div>
+
+  <!-- Pending Approvals Section (Admin/Chairman Only) -->
+  <div id="pending-parking-section" class="card border-0 shadow-sm rounded-4 p-3 mb-4 role-restricted admin-only chairman-only d-none">
+    <h5 class="fw-bold text-danger mb-3"><i class="fa-solid fa-clock-rotate-left me-2"></i> Pending Vehicle Approvals</h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Flat No</th>
+            <th>Vehicle Type</th>
+            <th>Vehicle Number</th>
+            <th>Owner Name</th>
+            <th>Remarks</th>
+            <th class="no-print">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pending-parking-list">
+          <tr><td colspan="6" class="text-center text-muted">No pending parking requests.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Approved Vehicles Directory -->
+  <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+    <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-car me-2 text-primary"></i> Approved Vehicles & Parking Slots</h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle" id="parking-table">
+        <thead class="table-light">
+          <tr>
+            <th>Flat No</th>
+            <th>Vehicle Type</th>
+            <th>Vehicle Number</th>
+            <th>Slot No</th>
+            <th>Owner Name</th>
+            <th>Status</th>
+            <th class="no-print admin-only chairman-only">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="parking-list">
+          <tr><td colspan="7" class="text-center text-muted">Loading parking records...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
         <!-- TAB 12: COMMUNITY HUB -->
         <div id="tab-community" class="tab-content d-none">
@@ -1299,6 +1367,53 @@
       <button type="submit" class="btn btn-primary w-100 fw-bold mt-3">Publish</button>
     </form>
   </div></div></div></div>
+
+<!-- Parking Registration / Allocation Modal -->
+<div class="modal fade" id="parkingModal" tabindex="-1">
+  <div class="modal-dialog border-0 shadow-lg">
+    <div class="modal-content border-0" style="border-radius: 20px;">
+      <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0;">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-car me-2"></i> Register Vehicle / Parking</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form onsubmit="submitParkingVehicle(event)" id="parkingForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Flat No</label>
+              <select id="park-flat" class="form-select" required></select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Vehicle Type</label>
+              <select id="park-type" class="form-select" required>
+                <option value="Car">Car (कार)</option>
+                <option value="Bike">Bike (बाइक / स्कूटर)</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Vehicle Number</label>
+              <input type="text" id="park-number" class="form-control" placeholder="e.g. GJ01AA1234" required style="text-transform: uppercase;">
+            </div>
+            <div class="col-md-6 role-restricted admin-only chairman-only">
+              <label class="form-label fw-semibold">Parking Slot No (Admin)</label>
+              <input type="text" id="park-slot" class="form-control" placeholder="e.g. P-12">
+            </div>
+            <div class="col-md-12">
+              <label class="form-label fw-semibold">Owner / Resident Name</label>
+              <input type="text" id="park-owner" class="form-control" placeholder="Owner Name" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Remarks / Details</label>
+              <textarea id="park-remarks" class="form-control" rows="2" placeholder="e.g. Covered parking or second vehicle"></textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2.5 mt-4">Submit for Approval</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Notice Modal -->
 <div class="modal fade" id="noticeModal" tabindex="-1">
