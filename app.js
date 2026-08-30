@@ -3566,13 +3566,7 @@ function renderGridCards() {
   ];
 
 if (role === 'Member') {
-    // 🟢 यहाँ 'parking' जोड़ दिया गया है
     const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'about', 'team'];
-    allCards = allCards.filter(c => memberCards.includes(c.id));
-  }
-
-  if (role === 'Member') {
-    const memberCards = ['dashboard', 'members','marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'bank-details', 'sos-contacts', 'about', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman' || role === 'SocietyAdmin') {
     allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
