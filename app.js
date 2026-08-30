@@ -3543,7 +3543,7 @@ function renderGridCards() {
     { id: 'complaints', icon: 'fa-headset', label: 'Complaints', color: '#ec4899' },
     { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
     { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
-{ id: 'parking', icon: 'fa-square-parking', label: 'Parking', color: '#f59e0b' },
+    { id: 'parking', icon: 'fa-square-parking', label: 'Parking', color: '#f59e0b' },
     { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
     { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#2563eb' },
     { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
@@ -3556,16 +3556,13 @@ function renderGridCards() {
     { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
     { id: 'proofs', icon: 'fa-file-invoice', label: 'Payment Details', color: '#3b82f6' },
     { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
-    
-    // 🟢 यहाँ सिर्फ 'about' (About PS) रखा गया है, 'terms' और 'privacy' हटा दिए गए हैं
     { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
-    
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
     { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
-if (role === 'Member') {
+  if (role === 'Member') {
     const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'about', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman' || role === 'SocietyAdmin') {
