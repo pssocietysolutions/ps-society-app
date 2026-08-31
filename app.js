@@ -1813,18 +1813,44 @@ function renderNoticesCommunity() {
     container.innerHTML = `<div class="col-12 text-muted text-center">No notices.</div>`;
     return;
   }
+
+  // 🟢 सुरक्षित फ़िल्टरिंग लॉजिक
   const visibleNotices = noticesData.filter(n => {
+    // अगर यूजर Admin, Chairman, या SocietyAdmin है, तो उसे सारे नोटिस दिखेंगे
     if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') return true;
+    
+    // अगर target_members खाली है या 'all' है, तो यह सबके लिए है
     if (!n.target_members || n.target_members.length === 0) return true;
-    return n.target_members.includes(currentUser);
+    
+    // यदि target_members एक स्ट्रिंग है (कभी-कभी डेटाबेस में JSON स्ट्रिंग आ जाती है), तो उसे एरे बनाएं
+    let targets = n.target_members;
+    if (typeof targets === 'string') {
+      try { targets = JSON.parse(targets); } catch (e) { targets = []; }
+    }
+
+    // अगर टारगेट एरे में वर्तमान यूजर (या फ्लैट नंबर) शामिल है
+    if (Array.isArray(targets) && targets.length > 0) {
+      return targets.map(t => t.toUpperCase()).includes((currentUser || '').toUpperCase());
+    }
+
+    return true;
   });
+
   if (visibleNotices.length === 0) {
     container.innerHTML = `<div class="col-12 text-muted text-center">No notices for you.</div>`;
     return;
   }
+
   container.innerHTML = visibleNotices.map(n => {
     const priorityColor = n.priority === 'High' ? 'danger' : (n.priority === 'Medium' ? 'warning' : 'secondary');
-    const isTargeted = n.target_members && n.target_members.length > 0;
+    
+    // टारगेट्ज़ को सेफली दिखाने के लिए
+    let targets = n.target_members;
+    if (typeof targets === 'string') {
+      try { targets = JSON.parse(targets); } catch (e) { targets = []; }
+    }
+    const isTargeted = Array.isArray(targets) && targets.length > 0;
+
     return `
       <div class="col-md-6 col-lg-4" data-notice-id="${n.id}">
         <div class="card border-0 shadow-sm rounded-4 p-3 h-100 border-start border-4 border-${priorityColor}">
@@ -1837,7 +1863,7 @@ function renderNoticesCommunity() {
             <span><i class="fa-regular fa-user me-1"></i> ${n.author || 'Admin'}</span>
           </div>
           <div class="mt-1">
-            ${isTargeted ? `<span class="badge bg-info text-dark">Selected: ${n.target_members.join(', ')}</span>` : `<span class="badge bg-secondary">All Members</span>`}
+            ${isTargeted ? `<span class="badge bg-info text-dark">Selected: ${targets.join(', ')}</span>` : `<span class="badge bg-secondary">All Members</span>`}
           </div>
           <p class="mt-2 text-secondary mb-2">${n.content}</p>
           ${n.attachment_url ? `
