@@ -351,14 +351,13 @@ async function acceptConsent(flatNo) {
 
 function loadMainApp(role) {
   document.getElementById('landing-section').style.display = 'none';
-  document.getElementById('login-section').style.display = 'none'; // 👈 Yeh line yahan honi chahiye
+  document.getElementById('login-section').style.display = 'none'; 
   
-  // 🟢 URL पैरामीटर चेक करें (नया फिक्स)
+  // 🟢 URL पैरामीटर सबसे ऊपर एक बार डिक्लेयर कर दिया
   const urlParams = new URLSearchParams(window.location.search);
   const activeTab = urlParams.get('tab');
   
   if (activeTab === 'visitor') {
-    // अगर विजिटर का डीप लिंक है, तो सीधे विजिटर पेज दिखाएं और मेन ऐप को रोकें
     showVisitorPage();
     return;
   }
@@ -415,11 +414,9 @@ function loadMainApp(role) {
     const sidebar = document.querySelector('#sidebarMenu');
     if (sidebar) sidebar.style.display = 'none';
     
-    // 🟢 यहाँ चेक करें कि क्या URL में कोई 'tab' पैरामीटर (Notification Deep Link) है या नहीं
-    const urlParams = new URLSearchParams(window.location.search);
+    // 🟢 यहाँ दोबारा 'const' नहीं लिखा, सीधे 'urlParams' का इस्तेमाल किया
     const hasTabParam = urlParams.has('tab');
 
-    // अगर डीप लिंक नहीं है तभी मोबाइल का मेनू ग्रिड खोलें, वरना सीधे नोटिफाइड टैब पर रहने दें
     if (!hasTabParam) {
       toggleMobileMenu();
     }
@@ -430,10 +427,7 @@ function loadMainApp(role) {
   
   clearAllData();
   
-  // 🟢 नोटिफिकेशन डीप-लिंक से आने पर सबसे पहले डेटा फेच करने का सही कोड
-  const urlParams = new URLSearchParams(window.location.search);
-  const activeTab = urlParams.get('tab');
-
+  // 🟢 यहाँ भी दोबारा 'const' नहीं लिखा, ऊपर वाले 'activeTab' का इस्तेमाल कर लिया
   if (activeTab === 'marketplace') {
     fetchMarketplaceData().then(() => {
       fetchSupabaseData();
@@ -454,7 +448,6 @@ function loadMainApp(role) {
   }
 
   setTimeout(requestNotificationPermission, 2000);
-// 🟢 SOS रियल-टाइम अलर्ट्स को यहाँ एक्टिवेट करें
   listenForSOSAlerts();
 }
 
