@@ -546,7 +546,6 @@ async function fetchSupabaseData() {
     expenseData = expenses || [];
     marketplaceData = market || [];
     noticesData = notices || [];
-    noticesData = notices || [];
     eventsData = events || [];
     facilitiesData = facilities || [];
     bookingsData = bookings || [];
