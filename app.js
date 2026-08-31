@@ -351,8 +351,19 @@ async function acceptConsent(flatNo) {
 
 function loadMainApp(role) {
   document.getElementById('landing-section').style.display = 'none';
+  document.getElementById('login-section').style.display = 'none'; // 👈 Yeh line yahan honi chahiye
+  
+  // 🟢 URL पैरामीटर चेक करें (नया फिक्स)
+  const urlParams = new URLSearchParams(window.location.search);
+  const activeTab = urlParams.get('tab');
+  
+  if (activeTab === 'visitor') {
+    // अगर विजिटर का डीप लिंक है, तो सीधे विजिटर पेज दिखाएं और मेन ऐप को रोकें
+    showVisitorPage();
+    return;
+  }
+
   document.getElementById('visitor-section').style.display = 'none';
-  document.getElementById('login-section').style.display = 'none';
   document.getElementById('app-section').classList.remove('d-none');
   updateFloatingButtonsVisibility(false);
 
