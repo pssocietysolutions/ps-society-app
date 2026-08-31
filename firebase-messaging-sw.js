@@ -1,6 +1,8 @@
 // firebase-messaging-sw.js
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+
+console.log("🔥 Service Worker Loaded Successfully!");
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
@@ -14,52 +16,44 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Background Message Handler
+// ✅ Background Message Handler (सिर्फ एक बार)
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  const title = payload.notification?.title || payload.data?.title || 'PS Society';
-  const body = payload.notification?.body || payload.data?.body || 'New update';
-  const icon = '/ps-society-app/icon-192.png';
-  const data = payload.data || {};
+  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
+  const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
+  const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
 
-  self.registration.showNotification(title, {
-    body: body,
-    icon: icon,
-    badge: icon,
-    data: data
+  self.registration.showNotification(notificationTitle, {
+    body: notificationBody,
+    icon: '/icon.png',
+    data: payload.data || {}
   });
 });
 
-// Notification Click Handler (Deep Linking WhatsApp/Facebook style)
+// ✅ Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
   const data = event.notification.data || {};
-  let targetUrl = data.click_action || data.url || '/ps-society-app/';
+  let urlToOpen = data.click_action || data.url || '/';
 
-  // Absolute URL conversion for GitHub Pages sub-path
-  if (!targetUrl.startsWith('http')) {
+  if (!urlToOpen.startsWith('http')) {
     const baseUrl = self.location.origin;
-    if (targetUrl.startsWith('/')) {
-      targetUrl = baseUrl + targetUrl;
-    } else {
-      targetUrl = baseUrl + '/ps-society-app/' + targetUrl;
-    }
+    urlToOpen = baseUrl + urlToOpen;
   }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url.includes('/ps-society-app/') && 'focus' in client) {
-            client.navigate(targetUrl);
+          if (client.url === urlToOpen && 'focus' in client) {
             return client.focus();
           }
         }
         if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
+          return clients.openWindow(urlToOpen);
         }
       })
   );
