@@ -546,6 +546,7 @@ async function fetchSupabaseData() {
     expenseData = expenses || [];
     marketplaceData = market || [];
     noticesData = notices || [];
+    noticesData = notices || [];
     eventsData = events || [];
     facilitiesData = facilities || [];
     bookingsData = bookings || [];
@@ -561,6 +562,7 @@ async function fetchSupabaseData() {
     renderMarketplace();
     renderMeetings(); // 👈 तुरंत मीटिंग्स रेंडर करें
     updateAllBadges();
+    renderNoticesCommunity();
     updateMobileHeaderInfo();
 
     loadSecondaryData();
@@ -3694,21 +3696,24 @@ async function openTabOverlay(tabId) {
     tabId = 'about'; 
   }
 
-if (tabId === 'marketplace') {
+  // 🟢 यदि टैब community या notice है, तो सबसे पहले नोटिस और कम्युनिटी का डेटा लोड करें
+  if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
+    tabId = 'community';
+    markCommunityRead();
+    await fetchEvents();
+    await fetchFacilityData();
+    const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
+    noticesData = data || [];
+  }
+
+  if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
-if (tabId === 'parking') {
-  _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety).then(({ data }) => {
+  if (tabId === 'parking') {
+    const { data } = await _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety);
     parkingData = data || [];
     renderParking();
-  });
-}
-
-  if (tabId === 'community') {
-    fetchEvents().then(() => {
-      fetchFacilityData().then(renderCommunity);
-    });
   }
 
   if (tabId === 'about') renderAboutTab();
@@ -3722,7 +3727,12 @@ if (tabId === 'parking') {
   if (tabId === 'polls') renderPolls();
   if (tabId === 'chairman-report') generateMonthlySummary(); 
   if (tabId === 'activity-logs') fetchActivityLogs(); 
-  if (tabId === 'community') renderCommunity();
+  
+  // 🟢 यदि कम्युनिटी टैब है, तो उसके अंदर के सभी सेक्शंस (नोटिस, इवेंट्स आदि) को रेंडर करें
+  if (tabId === 'community') {
+    renderCommunity();
+  }
+
   if (tabId === 'meetings') renderMeetings();
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
