@@ -649,9 +649,21 @@ function clearAllData() {
   renderAllTables();
 }
 
-function populateNoticeMemberSelect() {
+async function populateNoticeMemberSelect() {
   const select = document.getElementById('notice-target-members');
   if (!select) return;
+  
+  select.innerHTML = '<option value="">⏳ Loading members...</option>';
+
+  if (!membersData || membersData.length === 0) {
+    const { data } = await _supabase
+      .from('members')
+      .select('flat_no, name')
+      .eq('society_name', currentSociety)
+      .order('flat_no');
+    membersData = data || [];
+  }
+
   select.innerHTML = '';
   membersData.forEach(m => {
     const flat = (m.flat_no || '').toUpperCase();
