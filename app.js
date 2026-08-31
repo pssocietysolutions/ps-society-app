@@ -4348,10 +4348,15 @@ function listenForSOSAlerts() {
 function handleDeepLink() {
     setTimeout(async () => {
         const params = new URLSearchParams(window.location.search);
-        const tab = params.get('tab');
+        let tab = params.get('tab');
+
+        // 🟢 यदि नोटिफिकेशन से 'notice' आया है, तो उसे 'community' टैब पर सेट कर दें
+        if (tab === 'notice' || tab === 'notices') {
+            tab = 'community';
+        }
 
         if (tab) {
-            // 🟢 सबसे पहले सभी अटके हुए ओवरले और बैकड्रॉप्स को साफ़ करें ताकि मोबाइल टच अनब्लॉक हो जाए
+            // सबसे पहले सभी अटके हुए ओवरले साफ़ करें
             if (typeof clearStuckOverlays === 'function') {
                 clearStuckOverlays();
             }
@@ -4371,6 +4376,9 @@ function handleDeepLink() {
                 } else if (tab === 'community') {
                     await fetchEvents();
                     await fetchFacilityData();
+                    // 🟢 नोटिस डेटा भी तुरंत फेच करें
+                    const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
+                    noticesData = data || [];
                 } else if (tab === 'meetings') {
                     const { data } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety);
                     meetingsData = data || [];
@@ -4398,6 +4406,7 @@ function handleDeepLink() {
                 if (tab === 'visitor') {
                     showVisitorPage();
                 } else {
+                    // 🟢 कम्युनिटी हब (जहाँ नोटिस दिखते हैं) को मोबाइल ओवरले में खोलें
                     openTabOverlay(tab);
                 }
             } else {
