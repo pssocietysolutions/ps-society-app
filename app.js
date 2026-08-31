@@ -4313,16 +4313,20 @@ function handleDeepLink() {
         const tab = params.get('tab');
 
         if (tab) {
+            // 🟢 सबसे पहले सभी अटके हुए ओवरले और बैकड्रॉप्स को साफ़ करें ताकि मोबाइल टच अनब्लॉक हो जाए
+            if (typeof clearStuckOverlays === 'function') {
+                clearStuckOverlays();
+            }
+
             const gridOverlay = document.getElementById('mobileMenuOverlay');
             if (gridOverlay) {
                 gridOverlay.style.display = 'none';
-                document.body.style.overflow = '';
             }
             if (typeof closeMobileMenu === 'function') {
                 closeMobileMenu();
             }
 
-            // 🟢 यूनिवर्सल डेटा फेचिंग: किसी भी टैब पर जाने से पहले उसका डेटा पक्का लोड करें
+            // यूनिवर्सल डेटा फेचिंग
             try {
                 if (tab === 'marketplace') {
                     await fetchMarketplaceData();
@@ -4351,10 +4355,13 @@ function handleDeepLink() {
                 console.error('Deep link data fetch error:', err);
             }
 
-            // डेटा आने के बाद अब टैब खोलें (मोबाइल के लिए ओवरले, डेस्कटॉप के लिए स्विच टैब)
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
-                openTabOverlay(tab);
+                if (tab === 'visitor') {
+                    showVisitorPage();
+                } else {
+                    openTabOverlay(tab);
+                }
             } else {
                 const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
                 if (link) {
