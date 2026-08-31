@@ -4359,75 +4359,60 @@ function handleDeepLink() {
         const params = new URLSearchParams(window.location.search);
         let tab = params.get('tab');
 
-        // 🟢 यदि नोटिफिकेशन से 'notice' आया है, तो उसे 'community' टैब पर सेट कर दें
         if (tab === 'notice' || tab === 'notices') {
             tab = 'community';
         }
 
         if (tab) {
-            // सबसे पहले सभी अटके हुए ओवरले साफ़ करें
             if (typeof clearStuckOverlays === 'function') {
                 clearStuckOverlays();
             }
 
             const gridOverlay = document.getElementById('mobileMenuOverlay');
-            if (gridOverlay) {
-                gridOverlay.style.display = 'none';
-            }
-            if (typeof closeMobileMenu === 'function') {
-                closeMobileMenu();
-            }
+            if (gridOverlay) gridOverlay.style.display = 'none';
+            if (typeof closeMobileMenu === 'function') closeMobileMenu();
 
-            // यूनिवर्सल डेटा फेचिंग
+            // 🟢 केवल उसी टैब का डेटा फेच करें जिसकी डिमाड है (Slow loading fix)
             try {
-                if (tab === 'marketplace') {
+                if (tab === 'community') {
+                    // सिर्फ नोटिस और इवेंट्स लाएं, बाकी भारी डेटा रोकें
+                    const [{ data: notices }, { data: events }] = await Promise.all([
+                        _supabase.from('notices').select('*').eq('society_name', currentSociety),
+                        _supabase.from('events').select('*').eq('society_name', currentSociety)
+                    ]);
+                    noticesData = notices || [];
+                    eventsData = events || [];
+                    renderNoticesCommunity();
+                } else if (tab === 'visitor') {
+                    showVisitorPage();
+                    return;
+                } else if (tab === 'marketplace') {
                     await fetchMarketplaceData();
-                } else if (tab === 'community') {
-                    await fetchEvents();
-                    await fetchFacilityData();
-                    // 🟢 नोटिस डेटा भी तुरंत फेच करें
-                    const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-                    noticesData = data || [];
-                } else if (tab === 'meetings') {
-                    const { data } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety);
-                    meetingsData = data || [];
+                    renderMarketplace();
                 } else if (tab === 'complaints') {
                     const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
                     complaintData = data || [];
-                } else if (tab === 'polls') {
-                    await fetchPollsData();
-                } else if (tab === 'parking') {
-                    const { data } = await _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety);
-                    parkingData = data || [];
-                } else if (tab === 'maintenance') {
-                    const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
-                    maintenanceData = data || [];
-                } else if (tab === 'proofs') {
-                    const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
-                    paymentProofs = data || [];
+                    renderComplaints();
                 }
             } catch (err) {
-                console.error('Deep link data fetch error:', err);
+                console.error('Fast deep link fetch error:', err);
             }
 
+            // UIतुरंत खोलें बिना पूरी सोसाइटी का भारी डेटा लोड किए
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
-                if (tab === 'visitor') {
-                    showVisitorPage();
-                } else {
-                    // 🟢 कम्युनिटी हब (जहाँ नोटिस दिखते हैं) को मोबाइल ओवरले में खोलें
-                    openTabOverlay(tab);
-                }
+                openTabOverlay(tab);
             } else {
                 const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
-                if (link) {
-                    switchTab(tab, link);
-                } else {
-                    switchTab(tab, null);
-                }
+                if (link) switchTab(tab, link);
             }
+
+            // 🟢 बाकी का बचा हुआ भारी डेटा background me aaram se load hone dein
+            setTimeout(() => {
+                fetchSupabaseData();
+            }, 1000);
         }
-    }, 400);
+    }, 100); // 400ms delay ko hata kar 100ms kar diya taಕಿ turant khule
 }
 
 window.addEventListener('pageshow', function(event) {
