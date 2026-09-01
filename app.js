@@ -1875,13 +1875,13 @@ async function renderSuperAdminMasterDashboard() {
     return;
   }
   
+  // 🟢 डेस्कटॉप और मोबाइल दोनों के कंटेनर्स को टारगेट करें
   const container = document.getElementById('super-admin-master-container');
   if (!container) return;
 
   container.innerHTML = `<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="text-muted mt-2">Fetching master data across all active societies...</p></div>`;
 
   try {
-    // 1. सभी एक्टिव सोसाइटियों को फेच करें
     const { data: societiesList, error: socError } = await _supabase
       .from('societies')
       .select('*')
@@ -1897,11 +1897,9 @@ async function renderSuperAdminMasterDashboard() {
     let grandTotalPending = 0;
     let grandTotalSubDue = 0;
 
-    // 2. हर सोसायटी का डेटा लूप चलाकर कलेक्ट करें
     for (const soc of societiesList) {
       const socName = soc.name;
 
-      // इस सोसायटी के मेंबर्स और पेमेंट्स एक साथ लाएं
       const [{ data: members }, { data: payments }] = await Promise.all([
         _supabase.from('members').select('*').eq('society_name', socName),
         _supabase.from('maintenance_payments').select('*').eq('society_name', socName)
@@ -1910,11 +1908,9 @@ async function renderSuperAdminMasterDashboard() {
       const socMembers = members || [];
       const socPayments = payments || [];
       
-      // कुल कलेक्शन निकालें
       const totalCollected = socPayments.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
       grandTotalCollection += totalCollected;
 
-      // कुल पेंडिंग ड्यू निकालें
       let socPending = 0;
       socMembers.forEach(m => {
         const rate = Number(m.monthly_rate || 600);
@@ -1929,7 +1925,6 @@ async function renderSuperAdminMasterDashboard() {
       });
       grandTotalPending += socPending;
 
-      // आपकी एजेंसी का मंथली SaaS रेवेन्यू हिसाब
       const housesCount = socMembers.length;
       const subRatePerHouse = Number(soc.per_house_rate || 79); 
       const monthlySubDue = housesCount * subRatePerHouse;
@@ -1952,8 +1947,7 @@ async function renderSuperAdminMasterDashboard() {
       `;
     }
 
-    // 3. पूरा मास्टर डैशबोर्ड रेंडर करें
-    container.innerHTML = `
+    const htmlContent = `
       <div class="row g-3 mb-4">
         <div class="col-md-4">
           <div class="card p-3 border-0 shadow-sm rounded-4 bg-success-subtle">
@@ -1997,6 +1991,11 @@ async function renderSuperAdminMasterDashboard() {
         </div>
       </div>
     `;
+
+    // 🟢 दोनों जगह (डैशबोर्ड टैब और मोबाइल ओवरले के अंदर अगर खुला हो) पर डेटा रेंडर करें
+    document.querySelectorAll('#super-admin-master-container').forEach(el => {
+      el.innerHTML = htmlContent;
+    });
 
   } catch (err) {
     console.error('Master dashboard error:', err);
