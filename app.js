@@ -69,23 +69,6 @@ function showLandingPage() {
 }
 
 // ==================== DYNAMIC AUTO LATE FEE FUNCTION ====================
-function calculateLateFee(flatPendingDue) {
-  const isLateFeeEnabled = societySettings.enable_late_fee === 'true';
-  if (!isLateFeeEnabled || flatPendingDue <= 0) return 0;
-
-  const lateFeeType = societySettings.late_fee_type || 'fixed'; 
-  const customRate = Number(societySettings.late_fee_amount || 0);
-
-  let calculatedLateFee = 0;
-  
-  if (lateFeeType === 'fixed') {
-    calculatedLateFee = customRate; 
-  } else if (lateFeeType === 'percentage') {
-    calculatedLateFee = (flatPendingDue * customRate) / 100; 
-  }
-
-  return Math.round(calculatedLateFee);
-}
 
 function showVisitorPage() {
   updateFloatingButtonsVisibility(false);
@@ -1405,7 +1388,7 @@ function renderMemberPersonalView() {
   let monthlyDueEntries = [];
   for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
     const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
-    const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-05`;
+    const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-10`;
     monthlyDueEntries.push({
       date: dueDate,
       type: 'monthly_due',
@@ -3233,12 +3216,32 @@ async function generateTaxInvoicePDF(receiptId) {
     theme: 'grid'
   });
 
+  // 🟢 डिजिटल सिग्नेचर इमेज जोड़ने का सुरक्षित कोड (Base64 conversion)
   if (societySettings.digital_signature_url) {
-    doc.text('Authorized Signatory', 160, doc.lastAutoTable.finalY + 25);
+    try {
+      const imgResponse = await fetch(societySettings.digital_signature_url);
+      const imgBlob = await imgResponse.blob();
+      const reader = new FileReader();
+      
+      await new Promise((resolve) => {
+        reader.onloadend = () => {
+          const base64data = reader.result;
+          doc.addImage(base64data, 'PNG', 150, doc.lastAutoTable.finalY + 8, 40, 15);
+          resolve();
+        };
+        reader.readAsDataURL(imgBlob);
+      });
+    } catch (e) {
+      console.log('Signature image load note:', e);
+    }
   }
+
+  doc.setFontSize(10);
+  doc.text('Authorized Signatory', 160, doc.lastAutoTable.finalY + 28);
 
   doc.save(`${isGstOn ? 'Tax_Invoice' : 'Receipt'}_${data.flat_no}_${data.receipt_no || 'REC'}.pdf`);
 }
+
 
 function generateMonthlySummary() {
   let monthInput = document.querySelector('#tabOverlay #summary-month-picker') || document.getElementById('summary-month-picker');
@@ -3786,21 +3789,36 @@ async function openTabOverlay(tabId) {
     tabId = 'about'; 
   }
 
-  // 🟢 यदि टैब community या notice है, तो सबसे पहले नोटिस और कम्युनिटी का डेटा लोड करें
+  // 🟢 कम्युनिटी टैब क्लिक होते ही तुरंत ओवरले खोलें और बैकग्राउंड में डेटा लोड करें ताकि व्हाइट स्क्रीन न आए
   if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
     tabId = 'community';
     markCommunityRead();
-    await fetchEvents();
-    await fetchFacilityData();
-    const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-    noticesData = data || [];
+    
+    // पहले तुरंत ओवरले दिखाएं ताकि यूजर को झटके से व्हाइट स्क्रीन न दिखे
+    let actualTabId = 'tab-community';
+    const target = document.getElementById(actualTabId);
+    if (target) {
+      const finalOverlay = createTabOverlay(tabId, target.innerHTML);
+      document.body.appendChild(finalOverlay);
+      document.body.style.overflow = 'hidden';
+      window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+    }
+
+    // अब बैकग्राउंड में डेटा लाकर रेंडर करें
+    Promise.all([
+      fetchEvents(),
+      fetchFacilityData(),
+      _supabase.from('notices').select('*').eq('society_name', currentSociety).then(({ data }) => { noticesData = data || []; })
+    ]).then(() => {
+      renderCommunity();
+    });
+    return;
   }
 
   if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
-  // 🟢 यह लाइन यहाँ जोड़नी है ताकि मोबाइल ओवरले खुलते ही BRS डेटा रेंडर हो जाए
   if (tabId === 'bank-reconciliation') {
     renderBankReconciliation();
   }
@@ -3816,12 +3834,6 @@ async function openTabOverlay(tabId) {
   if (tabId === 'polls') renderPolls();
   if (tabId === 'chairman-report') generateMonthlySummary(); 
   if (tabId === 'activity-logs') fetchActivityLogs(); 
-  
-  // 🟢 यदि कम्युनिटी टैब है, तो उसके अंदर के सभी सेक्शंस (नोटिस, इवेंट्स आदि) को रेंडर करें
-  if (tabId === 'community') {
-    markCommunityRead();
-    renderCommunity();
-  }
 
   if (tabId === 'meetings') renderMeetings();
   if (tabId === 'amc-tracker') renderAMCTracker();
