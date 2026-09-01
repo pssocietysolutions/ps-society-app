@@ -740,12 +740,12 @@ function renderVisitorList() {
         <div class="info">
           <h6>${v.name} <small class="text-muted">(${v.category})</small></h6>
           <small>Flat: ${v.flat_no} | ${v.society}</small><br>
-          <small>Mobile: ${v.mobile || 'N/A'}</small><br>
+          <small>Mobile: ${v.mobile || 'N/A'} | 🚗 Vehicle: <strong>${v.vehicle_number || 'N/A'}</strong></small><br>
           <small>In: ${v.in_time ? v.in_time.substring(0,5) : 'N/A'}</small> | ${statusBadge}
         </div>
         <div>${actionButtons}</div>
       </div>
-    `;
+    `;   
   }).join('');
 }
 
@@ -764,27 +764,35 @@ async function submitVisitor(event) {
   const society = document.getElementById('visitor-society').value;
   const name = document.getElementById('visitor-name').value.trim();
   const mobile = document.getElementById('visitor-mobile').value.trim();
+  const vehicleNumber = document.getElementById('visitor-vehicle').value.trim().toUpperCase(); // 🟢 गाड़ी नंबर यहाँ से मिलेगा
   const flat = document.getElementById('visitor-flat').value;
   const category = document.getElementById('visitor-category').value;
   const purpose = document.getElementById('visitor-purpose').value.trim();
+  
   if (!society || !name || !flat || !mobile) { alert('Please fill all required fields.'); return; }
-  const now = new Date(); const timeStr = now.toTimeString().substring(0,8);
+  
+  const now = new Date(); 
+  const timeStr = now.toTimeString().substring(0,8);
+  
   const newVisitor = { 
-  society, 
-  visit_date: now.toISOString().split('T')[0], 
-  name, 
-  mobile, 
-  flat_no: flat, 
-  category, 
-  purpose: purpose || '', 
-  in_time: timeStr, 
-  out_time: null, 
-  status: 'PENDING', // 👈 नया अप्रूवल स्टेटस
-  created_at: new Date().toISOString()
-};
+    society, 
+    visit_date: now.toISOString().split('T')[0], 
+    name, 
+    mobile, 
+    vehicle_number: vehicleNumber || 'N/A', // 🟢 डेटाबेस में सेव होगा
+    flat_no: flat, 
+    category, 
+    purpose: purpose || '', 
+    in_time: timeStr, 
+    out_time: null, 
+    status: 'PENDING',
+    created_at: new Date().toISOString()
+  };
+
   const { error } = await _supabase.from('visitors').insert([newVisitor]);
   if (error) { alert('Error: ' + error.message); return; }
-  alert('✅ Visitor entry recorded!');
+  
+  alert('✅ Visitor entry recorded with vehicle number!');
   bootstrap.Modal.getInstance(document.getElementById('visitorModal')).hide();
   document.getElementById('visitorForm').reset();
   loadTodayVisitors();
@@ -1585,6 +1593,10 @@ function switchTab(tabId, element) {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
+  if (tabId === 'master-dashboard') {
+  renderSuperAdminMasterDashboard();
+  }
+
   if (tabId === 'bank-reconciliation') {
     renderBankReconciliation();
   }
@@ -1854,6 +1866,142 @@ function renderNoticesCommunity() {
       </div>
     `;
   }).join('');
+}
+
+// ==================== SUPER-ADMIN MASTER DASHBOARD LOGIC ====================
+async function renderSuperAdminMasterDashboard() {
+  if (currentRole !== 'Admin') {
+    alert('⛔ Access Denied! Only Admin can view Master Dashboard.');
+    return;
+  }
+  
+  const container = document.getElementById('super-admin-master-container');
+  if (!container) return;
+
+  container.innerHTML = `<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="text-muted mt-2">Fetching master data across all active societies...</p></div>`;
+
+  try {
+    // 1. सभी एक्टिव सोसाइटियों को फेच करें
+    const { data: societiesList, error: socError } = await _supabase
+      .from('societies')
+      .select('*')
+      .eq('is_active', true);
+
+    if (socError || !societiesList || societiesList.length === 0) {
+      container.innerHTML = `<div class="alert alert-warning">No active societies found.</div>`;
+      return;
+    }
+
+    let masterRows = '';
+    let grandTotalCollection = 0;
+    let grandTotalPending = 0;
+    let grandTotalSubDue = 0;
+
+    // 2. हर सोसायटी का डेटा लूप चलाकर कलेक्ट करें
+    for (const soc of societiesList) {
+      const socName = soc.name;
+
+      // इस सोसायटी के मेंबर्स और पेमेंट्स एक साथ लाएं
+      const [{ data: members }, { data: payments }] = await Promise.all([
+        _supabase.from('members').select('*').eq('society_name', socName),
+        _supabase.from('maintenance_payments').select('*').eq('society_name', socName)
+      ]);
+
+      const socMembers = members || [];
+      const socPayments = payments || [];
+      
+      // कुल कलेक्शन निकालें
+      const totalCollected = socPayments.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+      grandTotalCollection += totalCollected;
+
+      // कुल पेंडिंग ड्यू निकालें
+      let socPending = 0;
+      socMembers.forEach(m => {
+        const rate = Number(m.monthly_rate || 600);
+        const opening = Number(m.opening_due || 0);
+        const dueTillDate = MONTHS_IN_FY_SO_FAR * rate;
+        const paid = socPayments
+          .filter(r => (r.flat_no || '').toUpperCase() === (m.flat_no || '').toUpperCase())
+          .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
+        
+        const flatPending = Math.max(0, opening + dueTillDate - paid);
+        socPending += flatPending;
+      });
+      grandTotalPending += socPending;
+
+      // आपकी एजेंसी का मंथली SaaS रेवेन्यू हिसाब
+      const housesCount = socMembers.length;
+      const subRatePerHouse = Number(soc.per_house_rate || 79); 
+      const monthlySubDue = housesCount * subRatePerHouse;
+      grandTotalSubDue += monthlySubDue;
+
+      masterRows += `
+        <tr>
+          <td><strong>${socName}</strong><br><small class="text-muted">${soc.address || '-'}</small></td>
+          <td><span class="badge bg-primary">${housesCount} Houses</span></td>
+          <td class="text-success fw-bold">₹ ${totalCollected.toLocaleString('en-IN')}</td>
+          <td class="text-danger fw-bold">₹ ${socPending.toLocaleString('en-IN')}</td>
+          <td><span class="badge bg-warning text-dark">${soc.subscription_plan || 'Gold'} (₹${subRatePerHouse}/h)</span></td>
+          <td class="text-primary fw-bold">₹ ${monthlySubDue.toLocaleString('en-IN')} /mo</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${socName}')">
+              <i class="fa-solid fa-arrow-right me-1"></i> Switch & Manage
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    // 3. पूरा मास्टर डैशबोर्ड रेंडर करें
+    container.innerHTML = `
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card p-3 border-0 shadow-sm rounded-4 bg-success-subtle">
+            <h6 class="text-success mb-1">Total Societies Collection</h6>
+            <h3 class="fw-bold mb-0 text-success">₹ ${grandTotalCollection.toLocaleString('en-IN')}</h3>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 border-0 shadow-sm rounded-4 bg-danger-subtle">
+            <h6 class="text-danger mb-1">Total Societies Pending Dues</h6>
+            <h3 class="fw-bold mb-0 text-danger">₹ ${grandTotalPending.toLocaleString('en-IN')}</h3>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 border-0 shadow-sm rounded-4 bg-primary-subtle">
+            <h6 class="text-primary mb-1">Your Monthly Agency Revenue</h6>
+            <h3 class="fw-bold mb-0 text-primary">₹ ${grandTotalSubDue.toLocaleString('en-IN')}</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm rounded-4 p-3 border">
+        <h5 class="fw-bold mb-3">🏢 All Managed Societies Overview</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Society Name</th>
+                <th>Total Flats</th>
+                <th>Total Collection</th>
+                <th>Total Pending</th>
+                <th>Subscription Plan</th>
+                <th>Your Revenue / Mo</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${masterRows}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+  } catch (err) {
+    console.error('Master dashboard error:', err);
+    container.innerHTML = `<div class="alert alert-danger">Error loading master dashboard: ${err.message}</div>`;
+  }
 }
 
 async function submitNotice(event) {
@@ -3669,6 +3817,7 @@ function renderGridCards() {
   if (!container) return;
   const role = currentRole || 'Member';
   let allCards = [
+    { id: 'master-dashboard', icon: 'fa-chart-pie', label: 'Master Dashboard', color: '#8b5cf6' },    
     { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', color: '#2563eb' },
     { id: 'activity-logs', icon: 'fa-list-check', label: 'Activity Logs', color: '#0ea5e9' },
     { id: 'members', icon: 'fa-users', label: 'Members', color: '#22c55e' },
@@ -3817,6 +3966,10 @@ async function openTabOverlay(tabId) {
 
   if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
+  }
+
+  if (tabId === 'master-dashboard') {
+  renderSuperAdminMasterDashboard();
   }
 
   if (tabId === 'bank-reconciliation') {
@@ -4150,7 +4303,21 @@ async function addNewSociety(event) {
   const openingBalanceVal = document.getElementById('society-opening-balance').value.trim() || '0';
   const visitorPassword = document.getElementById('society-visitor-password').value.trim() || '1234';
 
-  const newSoc = { name, address, phone, email, is_active: true };
+  // 🟢 यहाँ से यूजर द्वारा चुना गया प्लान और रेट अलग करें
+  const planVal = document.getElementById('society-plan-select').value; // जैसे "Platinum|149"
+  const [planName, planRate] = planVal.split('|');
+
+  // 🟢 अब इसे database object में पास करें
+  const newSoc = { 
+    name, 
+    address, 
+    phone, 
+    email, 
+    is_active: true,
+    subscription_plan: planName,       // 'Silver', 'Gold' या 'Platinum'
+    per_house_rate: Number(planRate)   // 49, 79 या 149
+  };
+
   const { error } = await _supabase.from('societies').insert([newSoc]);
   if (error) { alert('Error: ' + error.message); return; }
 
@@ -4163,10 +4330,11 @@ async function addNewSociety(event) {
     await _supabase.from('society_settings').upsert(setting, { onConflict: 'key,society_name' });
   }
 
-  alert(`✅ Society "${name}" added successfully with Opening Balance & Password!`);
+  alert(`✅ Society "${name}" added successfully with ${planName} Plan!`);
   bootstrap.Modal.getInstance(document.getElementById('addSocietyModal')).hide();
   document.getElementById('addSocietyForm').reset();
   loadSocietySwitcher();
+  renderSuperAdminMasterDashboard(); // मास्टर डैशबोर्ड तुरंत अपडेट हो जाएगा
 }
 
 function checkForNewNotifications() {

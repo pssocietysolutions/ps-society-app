@@ -438,6 +438,11 @@ button:hover .fa-whatsapp {
 </li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('deletion-requests', this)"><i class="fa-solid fa-trash-can me-2"></i> Deletion Requests</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('team', this)"><i class="fa-solid fa-people-group me-2"></i> Committee / Team</a></li>
+<li class="nav-item role-restricted admin-only">
+  <a class="nav-link" onclick="switchTab('master-dashboard', this)">
+    <i class="fa-solid fa-chart-pie me-2"></i> Master Dashboard
+  </a>
+</li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('manage-societies', this)"><i class="fa-solid fa-building me-2"></i> Manage Societies</a></li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('activity-logs', this)"><i class="fa-solid fa-list-check me-2"></i> Activity Logs</a></li>
         </ul>
@@ -467,6 +472,28 @@ button:hover .fa-whatsapp {
           </div>
           <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; flex: 1;"></div>
         </div>
+
+<!-- 👑 Super-Admin Master Dashboard Tab -->
+<div id="tab-master-dashboard" class="tab-content d-none">
+  <div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h3 class="fw-bold mb-1">👑 Super-Admin Master Dashboard</h3>
+        <p class="text-muted small mb-0">Manage all your housing societies, collections & revenue from one place.</p>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="renderSuperAdminMasterDashboard()">
+        <i class="fa-solid fa-rotate me-1"></i> Refresh Data
+      </button>
+    </div>
+    <!-- यहाँ जावास्क्रिप्ट से पूरा डेटा लोड होकर आएगा -->
+    <div id="super-admin-master-container">
+      <div class="text-center py-5">
+        <i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
+        <p class="text-muted mt-2">Loading Master Overview...</p>
+      </div>
+    </div>
+  </div>
+</div>
 
         <!-- TAB 1: DASHBOARD -->
         <div id="tab-dashboard" class="tab-content">
@@ -1599,6 +1626,10 @@ button:hover .fa-whatsapp {
           <div class="mb-3"><label class="form-label fw-semibold">Society</label><select id="visitor-society" class="form-select" required><option value="">-- Select --</option></select></div>
           <div class="mb-3"><label class="form-label fw-semibold">Visitor Name</label><input type="text" id="visitor-name" class="form-control" placeholder="Full Name" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Mobile Number</label><input type="tel" id="visitor-mobile" class="form-control" placeholder="9876543210" required></div>
+          <div class="mb-3">
+  <label class="form-label fw-semibold">Vehicle Number (गाड़ी नंबर)</label>
+  <input type="text" id="visitor-vehicle" class="form-control" placeholder="e.g. GJ01AB1234" style="text-transform: uppercase;">
+</div>
           <div class="mb-3"><label class="form-label fw-semibold">Flat No</label><select id="visitor-flat" class="form-select" required><option value="">-- Select Flat --</option></select></div>
           <div class="mb-3"><label class="form-label fw-semibold">Category</label><select id="visitor-category" class="form-select" required><option value="Delivery">Delivery</option><option value="Service Person">Service Person</option><option value="Guest">Guest</option><option value="Others">Others</option></select></div>
           <div class="mb-3"><label class="form-label fw-semibold">Purpose</label><input type="text" id="visitor-purpose" class="form-control" placeholder="Purpose of visit"></div>
@@ -1633,6 +1664,7 @@ button:hover .fa-whatsapp {
     </div>
   </div>
 </div>
+
 
 <!-- ==================== OVERLAYS ==================== -->
 <!-- Visitor Password Overlay -->
@@ -1744,6 +1776,17 @@ button:hover .fa-whatsapp {
           <div class="mb-3"><label class="form-label fw-semibold">FY Start Month</label><input type="text" id="society-fy-start" class="form-control" value="April 2026"></div>
           <div class="mb-3"><label class="form-label fw-semibold">Opening Bank Balance (₹)</label><input type="number" id="society-opening-balance" class="form-control" value="0"></div>
           <div class="mb-3">
+
+<!-- 🟢 Subscription Plan & Rate Dropdown -->
+<div class="mb-3">
+  <label class="form-label fw-semibold">Subscription Plan</label>
+  <select id="society-plan-select" class="form-select" required>
+    <option value="Silver|49">Silver - ₹49 / house (Digital Accounting)</option>
+    <option value="Gold|79" selected>Gold - ₹79 / house (Popular)</option>
+    <option value="Platinum|149">Platinum - ₹149 / house (Complete Operations)</option>
+  </select>
+</div>
+
             <label class="form-label fw-semibold">Visitor Password</label>
             <input type="text" id="society-visitor-password" class="form-control" placeholder="e.g. green123" required>
           </div>
