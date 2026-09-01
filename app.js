@@ -527,7 +527,7 @@ async function fetchSupabaseData() {
       { data: events },
       { data: facilities },
       { data: bookings },
-      { data: meets } // 👈 मीटिंग्स डेटा यहाँ जोड़ा गया
+      { data: meets }, // 👈 मीटिंग्स डेटा यहाँ जोड़ा गया
       { data: parking } // 👈 यहाँ पार्किंग डेटा जोड़ें
     ] = await Promise.all([
       _supabase.from('members').select('*').eq('society_name', currentSociety),
