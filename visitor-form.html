@@ -135,7 +135,7 @@
       <input type="tel" id="mobile" class="form-control" placeholder="9876543210" required>
     </div>
 
-    <!-- 🟢 नया जोड़ा गया: गाड़ी नंबर (Vehicle Number) फील्ड -->
+    <!-- 🟢 गाड़ी नंबर (Vehicle Number) फील्ड -->
     <div class="mb-3">
       <label class="form-label"><i class="fa-solid fa-car me-2" style="color:#f59e0b;"></i>Vehicle Number (गाड़ी नंबर)</label>
       <input type="text" id="vehicleNumber" class="form-control" placeholder="e.g. GJ01AB1234" style="text-transform: uppercase;">
@@ -263,6 +263,20 @@
         .select();
 
       if (error) throw error;
+
+      // 🟢 मेंबर को नोटिफिकेशन भेजने का ट्रिगर
+      try {
+        await _supabase.functions.invoke('send-visitor-notification', {
+          body: { 
+            society: society, 
+            flat_no: flat, 
+            visitor_name: name,
+            category: category 
+          }
+        });
+      } catch (notifErr) {
+        console.log('Push notification trigger note:', notifErr);
+      }
 
       showAlert('✅ Check-in Successful! Welcome to the society.', 'success');
       document.getElementById('visitorForm').reset();
