@@ -1569,7 +1569,6 @@ function switchTab(tabId, element) {
   document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => link.classList.remove('active'));
   if (element) element.classList.add('active');
 
-  // 🟢 नया जोड़ा गया कोड: जब भी डेस्कटॉप पर 'about' टैब खुले, उसके अंदर सारा डेटा रेंडर हो जाए
   if (tabId === 'about') {
     renderAboutTab();
   }
@@ -1599,25 +1598,20 @@ function switchTab(tabId, element) {
     updateBadge('visitor-badge', 0);
   }
 
-if (tabId === 'marketplace') {
+  if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
-if (tabId === 'bank-reconciliation') {
+  if (tabId === 'bank-reconciliation') {
     renderBankReconciliation();
   }
 
-  // 🟢 कम्युनिटी वाले इस पुराने ब्लॉक को इससे बदल दें:
-      // यहाँ से await fetchEvents() और fetchFacilityData() हटा दिए गए हैं 
-    // क्योंकि डेटा पहले ही fetchSupabaseData में लोड हो चुका है
+  if (tabId === 'parking') {
+    _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety).then(({ data }) => {
+      parkingData = data || [];
+      renderParking();
+    });
   }
-
-if (tabId === 'parking') {
-  _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety).then(({ data }) => {
-    parkingData = data || [];
-    renderParking();
-  });
-}
 
   if (tabId === 'polls') {
     const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
@@ -1626,7 +1620,7 @@ if (tabId === 'parking') {
     renderPolls();
   }
 
-if (tabId === 'meetings') {
+  if (tabId === 'meetings') {
     _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
       meetingsData = data || [];
       renderMeetings();
@@ -1647,7 +1641,7 @@ if (tabId === 'meetings') {
   if (tabId === 'chairman-report' || tabId === 'monthly-summary') {
     if (typeof generateMonthlySummary === 'function') {
       generateMonthlySummary();
-     }
+    }
   }
 
   if (tabId === 'proofs') {
@@ -1676,10 +1670,6 @@ if (tabId === 'meetings') {
   if (tabId === 'community') {
     markCommunityRead();
     renderCommunity();
-  }
-
-  if (tabId === 'marketplace') {
-    fetchMarketplaceData().then(renderMarketplace);
   }
 
   if (tabId === 'amc-tracker') renderAMCTracker();
@@ -3829,6 +3819,7 @@ async function openTabOverlay(tabId) {
   
   // 🟢 यदि कम्युनिटी टैब है, तो उसके अंदर के सभी सेक्शंस (नोटिस, इवेंट्स आदि) को रेंडर करें
   if (tabId === 'community') {
+    markCommunityRead();
     renderCommunity();
   }
 
