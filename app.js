@@ -516,7 +516,7 @@ async function fetchSupabaseData() {
   try {
     await _supabase.rpc('clean_old_activity_logs');
 
-    // 🟢 यहाँ society_meetings को भी तुरंत लोड होने वाले ग्रुप में जोड़ा गया है
+    // 🟢 यहाँ society_meetings और parking दोनों को तुरंत लोड होने वाले ग्रुप में सही से जोड़ दिया गया है
     const [
       { data: members },
       { data: maint },
@@ -527,8 +527,8 @@ async function fetchSupabaseData() {
       { data: events },
       { data: facilities },
       { data: bookings },
-      { data: meets }, // 👈 मीटिंग्स डेटा यहाँ जोड़ा गया
-      { data: parking } // 👈 यहाँ पार्किंग डेटा जोड़ें
+      { data: meets }, // 👈 मीटिंग्स डेटा 
+      { data: parking } // 👈 पार्किंग डेटा 
     ] = await Promise.all([
       _supabase.from('members').select('*').eq('society_name', currentSociety),
       _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
@@ -539,7 +539,8 @@ async function fetchSupabaseData() {
       _supabase.from('events').select('*').eq('society_name', currentSociety).order('date', { ascending: true }),
       _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
       _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true }),
-      _supabase.from('society_meetings').select('*').eq('society_name', currentSociety) // 👈 फेच क्वेरी
+      _supabase.from('society_meetings').select('*').eq('society_name', currentSociety), // 👈 फेच क्वेरी
+      _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety) // 👈 पार्किंग फेच क्वेरी
     ]);
 
     membersData = members || [];
@@ -550,8 +551,9 @@ async function fetchSupabaseData() {
     eventsData = events || [];
     facilitiesData = facilities || [];
     bookingsData = bookings || [];
-    meetingsData = meets || []; // 👈 यहाँ असाइन होगा
-    parkingData = parking || [];
+    meetingsData = meets || []; 
+    parkingData = parking || []; // 👈 यहाँ पार्किंग डेटा सही से असाइन होगा
+    
     societySettings = {};
     if (settings) {
       settings.forEach(s => { societySettings[s.key] = s.value; });
