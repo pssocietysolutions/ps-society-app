@@ -528,6 +528,7 @@ async function fetchSupabaseData() {
       { data: facilities },
       { data: bookings },
       { data: meets } // 👈 मीटिंग्स डेटा यहाँ जोड़ा गया
+      { data: parking } // 👈 यहाँ पार्किंग डेटा जोड़ें
     ] = await Promise.all([
       _supabase.from('members').select('*').eq('society_name', currentSociety),
       _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
@@ -550,7 +551,7 @@ async function fetchSupabaseData() {
     facilitiesData = facilities || [];
     bookingsData = bookings || [];
     meetingsData = meets || []; // 👈 यहाँ असाइन होगा
-    
+    parkingData = parking || [];
     societySettings = {};
     if (settings) {
       settings.forEach(s => { societySettings[s.key] = s.value; });
@@ -580,7 +581,7 @@ async function loadSecondaryData() {
       { data: polls },
       { data: notices },
       { data: meets },
-      { data: parking }, // 👈 पार्किंग डेटा यहाँ सही से है
+      { data: parking }, // 👈 1. यहाँ पार्किंग डेटा जोड़ें
       { data: amcs },
       { data: proofs },
       { data: jvs },
@@ -3809,10 +3810,9 @@ async function openTabOverlay(tabId) {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
-  if (tabId === 'parking') {
-    const { data } = await _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety);
-    parkingData = data || [];
-    renderParking();
+  // 🟢 यह लाइन यहाँ जोड़नी है ताकि मोबाइल ओवरले खुलते ही BRS डेटा रेंडर हो जाए
+  if (tabId === 'bank-reconciliation') {
+    renderBankReconciliation();
   }
 
   if (tabId === 'about') renderAboutTab();
