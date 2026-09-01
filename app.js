@@ -1600,6 +1600,10 @@ if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
+if (tabId === 'bank-reconciliation') {
+    renderBankReconciliation();
+  }
+
   if (tabId === 'community') {
     markCommunityRead();
     fetchEvents().then(() => {
@@ -2355,6 +2359,21 @@ function renderExpenses() {
 
 // 🟢 CA Audit & GST Summary Report Generator
 async function renderCAAuditReport() {
+  // 🟢 1. सबसे पहले एडवांस लायबिलिटी की गणना करें
+  let totalAdvanceLiability = 0;
+  membersData.forEach(m => {
+    const flatNo = (m.flat_no || '').trim().toUpperCase();
+    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+    const rate = Number(m.monthly_rate || 600);
+    const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
+    const openingDue = Number(m.opening_due || 0);
+    
+    const rawPending = openingDue + totalDueTillDate - flatPaid;
+    if (rawPending < 0) {
+      totalAdvanceLiability += Math.abs(rawPending); 
+    }
+  });
+
   const totalIncome = maintenanceData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
   const totalExp = expenseData.reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const totalAssets = assetData.reduce((sum, a) => sum + Number(a.cost || 0), 0);
@@ -2371,6 +2390,7 @@ async function renderCAAuditReport() {
       <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${totalAssets.toFixed(2)}</td><td>-</td></tr>
       <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${totalExp.toFixed(2)}</td><td>-</td></tr>
       <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${totalFDs.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Advance Maintenance Received (Liability)</td><td>Current Liability</td><td>-</td><td class="text-warning fw-bold">${totalAdvanceLiability.toFixed(2)}</td></tr>
       <tr><td>Opening Capital / Accumulated Surplus</td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${openingCapitalOrSurplus.toFixed(2)}</td></tr>
       <tr class="table-secondary fw-bold">
         <td colspan="2">GRAND TOTAL (MATCHED)</td>
@@ -2380,60 +2400,73 @@ async function renderCAAuditReport() {
     `;
   }
 
-  // 🟢 Fetch & Render GST Invoices Summary for CA
-  try {
-    const { data: invData, error } = await _supabase
-      .from('society_invoices')
-      .select('*')
-      .eq('society_name', currentSociety);
+ // 🟢 Fetch & Render GST Invoices Summary for CA (Only if GST is Enabled)
+  const gstTbody = document.getElementById('ca-gst-summary-rows');
+  const gstCardContainer = gstTbody?.closest('.card'); // GST वाली पूरी कार्ड बॉक्स
 
-    const gstTbody = document.getElementById('ca-gst-summary-rows');
-    if (!gstTbody) return;
+  const isGstOn = societySettings.enable_gst === true || societySettings.enable_gst === 'true';
 
-    if (error || !invData || invData.length === 0) {
-      gstTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No GST Invoices recorded for this society yet.</td></tr>`;
-      return;
+  if (!isGstOn) {
+    // अगर GST ऑफ है, तो नीचे वाली GST टेबल/कार्ड को छिपा दें
+    if (gstCardContainer) gstCardContainer.style.display = 'none';
+  } else {
+    // अगर GST ऑन है, तो टेबल दिखाएं और डेटा लोड करें
+    if (gstCardContainer) gstCardContainer.style.display = 'block';
+    
+    try {
+      const { data: invData, error } = await _supabase
+        .from('society_invoices')
+        .select('*')
+        .eq('society_name', currentSociety);
+
+      if (!gstTbody) return;
+
+      if (error || !invData || invData.length === 0) {
+        gstTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No GST Invoices recorded for this society yet.</td></tr>`;
+        return;
+      }
+
+      let totalBase = 0;
+      let totalCgst = 0;
+      let totalSgst = 0;
+      let totalInvoiceVal = 0;
+
+      invData.forEach(inv => {
+        totalBase += Number(inv.base_amount || 0);
+        totalCgst += Number(inv.cgst_amount || 0);
+        totalSgst += Number(inv.sgst_amount || 0);
+        totalInvoiceVal += Number(inv.total_amount || 0);
+      });
+
+      gstTbody.innerHTML = `
+        <tr>
+          <td><strong>Central Goods & Services Tax (CGST)</strong></td>
+          <td>9%</td>
+          <td>₹ ${totalBase.toFixed(2)}</td>
+          <td class="text-primary fw-bold">₹ ${totalCgst.toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td><strong>State Goods & Services Tax (SGST)</strong></td>
+          <td>9%</td>
+          <td>₹ ${totalBase.toFixed(2)}</td>
+          <td class="text-primary fw-bold">₹ ${totalSgst.toFixed(2)}</td>
+        </tr>
+        <tr class="table-primary fw-bold">
+          <td colspan="2">TOTAL GST OUTPUT LIABILITY (CGST + SGST)</td>
+          <td>₹ ${totalBase.toFixed(2)}</td>
+          <td class="text-success">₹ ${(totalCgst + totalSgst).toFixed(2)}</td>
+        </tr>
+        <tr class="table-secondary fw-bold">
+          <td colspan="2">TOTAL GROSS TAXABLE TURNOVER (Incl. GST)</td>
+          <td colspan="2" class="text-dark">₹ ${totalInvoiceVal.toFixed(2)}</td>
+        </tr>
+      `;
+    } catch (err) {
+      console.error('Error loading CA GST summary:', err);
     }
-
-    let totalBase = 0;
-    let totalCgst = 0;
-    let totalSgst = 0;
-    let totalInvoiceVal = 0;
-
-    invData.forEach(inv => {
-      totalBase += Number(inv.base_amount || 0);
-      totalCgst += Number(inv.cgst_amount || 0);
-      totalSgst += Number(inv.sgst_amount || 0);
-      totalInvoiceVal += Number(inv.total_amount || 0);
-    });
-
-    gstTbody.innerHTML = `
-      <tr>
-        <td><strong>Central Goods & Services Tax (CGST)</strong></td>
-        <td>9%</td>
-        <td>₹ ${totalBase.toFixed(2)}</td>
-        <td class="text-primary fw-bold">₹ ${totalCgst.toFixed(2)}</td>
-      </tr>
-      <tr>
-        <td><strong>State Goods & Services Tax (SGST)</strong></td>
-        <td>9%</td>
-        <td>₹ ${totalBase.toFixed(2)}</td>
-        <td class="text-primary fw-bold">₹ ${totalSgst.toFixed(2)}</td>
-      </tr>
-      <tr class="table-primary fw-bold">
-        <td colspan="2">TOTAL GST OUTPUT LIABILITY (CGST + SGST)</td>
-        <td>₹ ${totalBase.toFixed(2)}</td>
-        <td class="text-success">₹ ${(totalCgst + totalSgst).toFixed(2)}</td>
-      </tr>
-      <tr class="table-secondary fw-bold">
-        <td colspan="2">TOTAL GROSS TAXABLE TURNOVER (Incl. GST)</td>
-        <td colspan="2" class="text-dark">₹ ${totalInvoiceVal.toFixed(2)}</td>
-      </tr>
-    `;
-  } catch (err) {
-    console.error('Error loading CA GST summary:', err);
   }
-}
+} // 👈 यह ब्रैकेट renderCAAuditReport() को पूरी तरह बंद करता है
+
 
 function renderChairmanReport() {
   generateMonthlySummary();
@@ -2461,6 +2494,7 @@ function renderAssets() {
     </tr>
   `).join('');
 }
+
 
 function renderFDs() {
   const tbody = document.getElementById('fds-list');
@@ -2833,6 +2867,71 @@ async function resolveComplaint(index) {
   if (!complaint?.id) return;
   await _supabase.from('complaints').update({ status: 'Resolved', resolved_date: new Date().toISOString().split('T')[0], resolved_by: currentUser }).eq('id', complaint.id);
   fetchSupabaseData();
+}
+
+function renderBankReconciliation() {
+  const tbody = document.getElementById('brs-entries-list');
+  if (!tbody) return;
+
+  let softwareBalance = openingBalance;
+  let allEntries = [];
+
+  maintenanceData.forEach(r => {
+    const amt = Number(r.amount_paid || 0);
+    softwareBalance += amt;
+    allEntries.push({
+      date: r.payment_date || '-',
+      ref: r.receipt_no || 'REC',
+      head: `Maintenance - ${r.flat_no}`,
+      amount: amt,
+      type: 'Deposit (+)'
+    });
+  });
+
+  expenseData.forEach(e => {
+    const amt = Number(e.amount || 0);
+    softwareBalance -= amt;
+    allEntries.push({
+      date: e.expense_date || '-',
+      ref: e.voucher_no || 'VOU',
+      head: `${e.category} - ${e.paid_to}`,
+      amount: amt,
+      type: 'Withdrawal (-)'
+    });
+  });
+
+  document.getElementById('brs-software-balance').innerText = `₹${softwareBalance.toFixed(2)}`;
+
+  tbody.innerHTML = allEntries.map((item, idx) => `
+    <tr>
+      <td>${item.date}</td>
+      <td><b>${item.ref}</b></td>
+      <td>${item.head}</td>
+      <td class="fw-bold ${item.type.includes('Deposit') ? 'text-success' : 'text-danger'}">${item.amount}</td>
+      <td><span class="badge ${item.type.includes('Deposit') ? 'bg-success' : 'bg-danger'}">${item.type}</span></td>
+      <td>
+        <select class="form-select form-select-sm" onchange="calculateBRS()">
+          <option value="cleared">Cleared in Bank</option>
+          <option value="pending">Not Reflected Yet (Pending)</option>
+        </select>
+      </td>
+    </tr>
+  `).join('');
+
+  window.currentSoftwareBalance = softwareBalance;
+  calculateBRS();
+}
+
+function calculateBRS() {
+  const actualBankInput = parseFloat(document.getElementById('actual-bank-balance-input')?.value) || window.currentSoftwareBalance || 0;
+  const softwareBal = window.currentSoftwareBalance || 0;
+  const diff = actualBankInput - softwareBal;
+
+  const diffElem = document.getElementById('brs-difference');
+  if (diffElem) {
+    diffElem.innerText = `₹${diff.toFixed(2)}`;
+    diffElem.className = diff === 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
+  }
 }
 
 function renderPolls() {
@@ -3585,6 +3684,7 @@ function renderGridCards() {
     { id: 'visitor', icon: 'fa-user-plus', label: 'Visitor', color: '#8b5cf6' },
     { id: 'complaints', icon: 'fa-headset', label: 'Complaints', color: '#ec4899' },
     { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
+    { id: 'bank-reconciliation', icon: 'fa-scale-balanced', label: 'Bank BRS', color: '#0ea5e9' },
     { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
     { id: 'parking', icon: 'fa-square-parking', label: 'Parking', color: '#f59e0b' },
     { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
@@ -4113,9 +4213,11 @@ async function updateAllBadges() {
     }
 
   } catch (err) {
-    console.error('Badge update error:', err);
+      console.error('Error loading CA GST summary:', err);
+    }
   }
-}
+
+
 
 function updateBadge(elementId, count) {
   const badge = document.getElementById(elementId);

@@ -399,6 +399,11 @@ button:hover .fa-whatsapp {
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)"><i class="fa-solid fa-screwdriver-wrench me-2"></i> AMC Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)"><i class="fa-solid fa-building-columns me-2"></i> Tally Bank Book</a></li>
 <li class="nav-item role-restricted admin-only chairman-only">
+  <a class="nav-link" onclick="switchTab('bank-reconciliation', this)">
+    <i class="fa-solid fa-scale-balanced me-2"></i> Bank Reconciliation
+  </a>
+</li>
+<li class="nav-item role-restricted admin-only chairman-only">
   <a class="nav-link" onclick="switchTab('journal-voucher', this)">
     <i class="fa-solid fa-file-pen me-2"></i> Journal Voucher (JV)
   </a>
@@ -809,6 +814,60 @@ button:hover .fa-whatsapp {
         </thead>
         <tbody id="parking-list">
           <tr><td colspan="7" class="text-center text-muted">Loading parking records...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: BANK RECONCILIATION -->
+<div id="tab-bank-reconciliation" class="tab-content d-none">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold"><i class="fa-solid fa-scale-balanced text-primary me-2"></i> Bank Reconciliation Statement (BRS)</h3>
+    <button class="btn btn-outline-success no-print" onclick="exportTableToExcel('brs-table', 'Bank_Reconciliation')">
+      <i class="fa-solid fa-file-excel me-1"></i> Excel
+    </button>
+  </div>
+  
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card p-3 bg-white border-0 shadow-sm rounded-3">
+        <h6>Balance as per Software (Tally Book)</h6>
+        <h4 class="text-primary" id="brs-software-balance">₹0.00</h4>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 bg-white border-0 shadow-sm rounded-3">
+        <h6>Actual Bank Statement Balance</h6>
+        <div class="input-group mt-1">
+          <input type="number" id="actual-bank-balance-input" class="form-control" placeholder="Enter Passbook Balance" oninput="calculateBRS()">
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3 bg-white border-0 shadow-sm rounded-3">
+        <h6>Difference / Un-reconciled</h6>
+        <h4 class="text-danger" id="brs-difference">₹0.00</h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+    <h5 class="fw-bold text-dark mb-3">Reconciliation Checklist (Checks & Cleared Status)</h5>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle" id="brs-table">
+        <thead class="table-dark">
+          <tr>
+            <th>Date</th>
+            <th>Ref / Voucher No</th>
+            <th>Particulars (Head)</th>
+            <th>Amount (₹)</th>
+            <th>Type</th>
+            <th>Status in Passbook</th>
+          </tr>
+        </thead>
+        <tbody id="brs-entries-list">
+          <!-- JS से भरेगा -->
         </tbody>
       </table>
     </div>
