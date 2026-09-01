@@ -1607,11 +1607,9 @@ if (tabId === 'bank-reconciliation') {
     renderBankReconciliation();
   }
 
-  if (tabId === 'community') {
-    markCommunityRead();
-    fetchEvents().then(() => {
-      fetchFacilityData().then(renderCommunity);
-    });
+  // 🟢 कम्युनिटी वाले इस पुराने ब्लॉक को इससे बदल दें:
+      // यहाँ से await fetchEvents() और fetchFacilityData() हटा दिए गए हैं 
+    // क्योंकि डेटा पहले ही fetchSupabaseData में लोड हो चुका है
   }
 
 if (tabId === 'parking') {
@@ -2926,15 +2924,15 @@ function renderBankReconciliation() {
 }
 
 function calculateBRS() {
-  const actualBankInput = parseFloat(document.getElementById('actual-bank-balance-input')?.value) || window.currentSoftwareBalance || 0;
+  const inputElem = document.querySelector('#tabOverlay #actual-bank-balance-input') || document.getElementById('actual-bank-balance-input');
+  const actualBankInput = parseFloat(inputElem?.value) || window.currentSoftwareBalance || 0;
   const softwareBal = window.currentSoftwareBalance || 0;
   const diff = actualBankInput - softwareBal;
 
-  const diffElem = document.getElementById('brs-difference');
-  if (diffElem) {
+  document.querySelectorAll('#brs-difference').forEach(diffElem => {
     diffElem.innerText = `₹${diff.toFixed(2)}`;
     diffElem.className = diff === 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
-  }
+  });
 }
 
 function renderPolls() {
