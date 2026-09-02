@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-
-<!-- Firebase App SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<!-- Firebase Messaging SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+  <!-- Firebase App & Messaging SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PS Society Solutions - Management Portal</title>
 
-  <!-- PWA META -->
+  <!-- PWA META & LOGO -->
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#2563eb">
+  <meta name="theme-color" content="#ea580c">
 
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,89 +26,89 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
 
-    /* ========== LANDING PAGE ========== */
+    /* ========== LANDING PAGE (Original Black & Orange Theme) ========== */
     .landing-wrapper {
       min-height: 100vh;
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.85)), 
+      background: linear-gradient(135deg, #090d16 0%, #151c2e 100%), 
                   url('bg.jpeg') center/cover no-repeat;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
-      padding: 30px 20px;
+      padding: 25px 30px;
       text-align: center;
       color: #fff;
       position: relative;
     }
-    .landing-brand h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: 2px; }
-    .landing-brand p { font-size: 0.95rem; opacity: 0.8; margin-bottom: 0.5rem; }
-    
-    .landing-cards .card {
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-      border: none;
-      border-radius: 20px;
-      padding: 18px 15px;
-      transition: transform 0.3s, box-shadow 0.3s;
+
+    /* Top Navigation Links Style */
+    .top-nav-links {
+      display: flex;
+      gap: 30px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .top-nav-links a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: color 0.2s;
       cursor: pointer;
-      min-height: 120px;
-      max-width: 220px;
+    }
+    .top-nav-links a:hover, .top-nav-links a.active {
+      color: #ea580c;
+    }
+
+    /* WhatsApp Floating Container with "Connect Us" text */
+    .whatsapp-container {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      z-index: 1050;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      color: #1e293b;
-      margin: 0 auto;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      gap: 5px;
     }
-    .landing-cards .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    }
-    .landing-cards .card i { font-size: 2.2rem; color: #f59e0b; margin-bottom: 8px; }
-    .landing-cards .card h4 { font-size: 1rem; font-weight: 700; }
-    .landing-cards .card p { font-size: 0.8rem; margin-bottom: 0; opacity: 0.8; }
-
-    /* Top Action Buttons */
-    #enrollButtonContainer, #aboutButtonContainer {
-      position: fixed;
-      top: 15px;
-      z-index: 9999;
-      display: block;
-    }
-    #enrollButtonContainer { right: 20px; }
-    #aboutButtonContainer { left: 20px; }
-
-    #enrollButton, #aboutButton {
-      border-radius: 50px;
-      padding: 8px 20px;
-      background: linear-gradient(90deg, #f59e0b, #d97706);
+    .whatsapp-float {
+      background-color: #25d366;
       color: #fff;
-      border: none;
+      width: 60px;
+      height: 60px;
+      border-radius: 50px;
+      text-align: center;
+      font-size: 32px;
+      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: transform 0.3s ease;
+    }
+    .whatsapp-float:hover {
+      transform: scale(1.1);
+      color: #fff;
+    }
+    .whatsapp-label {
+      background: #0f172a;
+      color: #fff;
+      font-size: 11px;
       font-weight: 700;
-      font-size: 14px;
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
-      transition: 0.2s;
-    }
-    #enrollButton:hover, #aboutButton:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 28px rgba(245, 158, 11, 0.45);
-    }
-
-    .footer-copyright {
-      margin-top: auto;
-      padding-top: 20px;
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 0.85rem;
-      letter-spacing: 0.3px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 1px solid rgba(234, 88, 12, 0.4);
+      white-space: nowrap;
     }
 
     .login-wrapper {
       min-height: 100vh;
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.88)), 
+      background: linear-gradient(135deg, rgba(9, 13, 22, 0.92), rgba(21, 28, 46, 0.92)), 
                   url('bg.jpeg') center/cover no-repeat;
       display: flex;
       align-items: center;
@@ -122,216 +121,133 @@
       border-radius: 20px;
       width: 100%;
       max-width: 440px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      border: 1px solid rgba(234, 88, 12, 0.3);
     }
 
     .sidebar { 
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); 
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      background: linear-gradient(180deg, #090d16 0%, #151c2e 100%); 
     }
     @media (max-width: 767.98px) { .sidebar { min-height: auto; height: auto; position: static; } }
     .nav-link { cursor: pointer; color: #94a3b8; font-weight: 500; border-radius: 10px; margin-bottom: 6px; padding: 10px 14px; transition: all 0.2s ease; }
-    .nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #2563eb, #3b82f6) !important; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    .nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #ea580c, #f59e0b) !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
     .card-stat { border-radius: 16px; border: none; }
     
     .visitor-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: 0.2s;
+      background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
     }
-    .visitor-card.out { background: #f1f5f9; opacity: 0.7; }
     .visitor-card .info { flex: 1; }
     .visitor-card .info h6 { margin: 0; font-weight: 600; }
     .visitor-card .info small { color: #64748b; }
 
-    .landing-navbar {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 18px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      border-radius: 50px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      margin-bottom: 20px;
-    }
-    .brand-logo { font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; color: #fff; }
-    .logo-accent { color: #f59e0b; }
-    .nav-actions { display: flex; gap: 8px; }
-
-    .nav-btn {
-      border-radius: 30px;
-      padding: 7px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(90deg, #f59e0b, #d97706);
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .nav-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(245, 158, 11, 0.45);
-      color: #fff;
-    }
-
-    .hero-tagline { font-size: 0.8rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-    .hero-heading { font-size: 1.6rem; font-weight: 800; color: #fff; }
-    .hero-subtext { font-size: 0.85rem; color: #cbd5e1; }
-
-    .hero-card {
-      background: rgba(255, 255, 255, 0.96);
-      border-radius: 18px;
-      padding: 16px 14px;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.25s, box-shadow 0.25s;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      max-width: 240px;
-      margin: 0 auto;
-    }
-    .hero-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 14px 28px rgba(0,0,0,0.25);
-    }
-    .card-icon-wrapper {
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      margin: 0 auto 10px;
-    }
-    .visitor-icon { background: #eff6ff; color: #2563eb; }
-    .resident-icon { background: #fef3c7; color: #d97706; }
-    .hero-card h4 { font-size: 1rem; font-weight: 800; color: #0f172a; margin-bottom: 2px; }
-    .hero-card p { font-size: 0.75rem; color: #64748b; margin-bottom: 10px; }
-    .card-action-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #2563eb; }
-
-    .landing-footer { margin-top: auto; padding-top: 15px; font-size: 0.8rem; color: rgba(255,255,255,0.5); }
-    .footer-link { background: none; border: none; color: rgba(255,255,255,0.7); text-decoration: underline; cursor: pointer; }
-    .footer-sep { margin: 0 6px; color: rgba(255,255,255,0.3); }
-
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.7; }
-      100% { opacity: 1; }
-    }
-    .sos-live-banner { animation: pulse 1s infinite alternate; }
-
     @media print {
-  /* 1. पहले सब कुछ छिपाएँ */
-  body * { visibility: hidden !important; }
-  
-  /* 2. केवल वही टैब दिखाएं जो इस समय खुला (active) है */
-  .tab-content:not(.d-none), .tab-content:not(.d-none) * { 
-    visibility: visible !important; 
-  }
-  
-/* WhatsApp Icon Green Styling */
-.fa-whatsapp {
-  color: #25d366 !important;
-}
-button:hover .fa-whatsapp {
-  color: #ffffff !important; 
-}
+      body * { visibility: hidden !important; }
+      .tab-content:not(.d-none), .tab-content:not(.d-none) * { visibility: visible !important; }
+      .fa-whatsapp { color: #25d366 !important; }
+      button:hover .fa-whatsapp { color: #ffffff !important; }
+      .tab-content:not(.d-none) { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; }
+      .sidebar, .navbar, .btn, .no-print, .nav-actions, .modal { display: none !important; }
+      table { width: 100% !important; border-collapse: collapse !important; }
+      th, td { border: 1px solid #333 !important; padding: 6px !important; font-size: 10pt !important; }
+    }
 
-  /* 3. खुले हुए टैब को पेज पर सही से सेट करें */
-  .tab-content:not(.d-none) {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    display: block !important;
-  }
-  
-  /* 4. साइडबार, नेविगेशन, बटन्स और अनचाहे हिस्से हमेशा छिपाएँ */
-  .sidebar, .navbar, .btn, .no-print, .nav-actions, .modal { 
-    display: none !important; 
-  }
-  
-  /* 5. प्रिंट में टेबल की स्टाइलिंग साफ-सुथरी रखें */
-  table { width: 100% !important; border-collapse: collapse !important; }
-  th, td { border: 1px solid #333 !important; padding: 6px !important; font-size: 10pt !important; }
-}
-
-    @media (max-width: 768px) {
-      #sidebarMenu { display: none !important; }
-      .container-fluid .row { display: block !important; }
-      .tab-content { display: none !important; }
-      #visitor-section { padding: 15px !important; }
-      .grid-card-item { padding: 25px 10px !important; min-height: 100px; display: flex !important; flex-direction: column; justify-content: center; align-items: center; }
-      .grid-card-item i { font-size: 42px !important; margin-bottom: 12px !important; }
-      .grid-card-item span { font-size: 14px !important; font-weight: 500; }
-      #enrollButton, #aboutButton { font-size: 11px !important; padding: 5px 12px !important; }
-      #enrollButtonContainer { top: 10px; right: 10px; }
-      #aboutButtonContainer { top: 10px; left: 10px; }
+    @media (max-width: 992px) {
+      .top-nav-links { display: none !important; }
     }
   </style>
 </head>
 <body>
 
-<!-- ========== LANDING ========== -->
+<!-- ========== LANDING PAGE (Original Look) ========== -->
 <div id="landing-section" class="landing-wrapper">
-  <header class="landing-navbar">
-    <div class="brand-logo"><span class="logo-accent">PS</span> Society Solutions</div>
-    <div class="nav-actions">
-      <button class="nav-btn" onclick="openAboutPS()"><i class="fa-solid fa-circle-info me-1"></i> About</button>
-      <button class="nav-btn" onclick="openEnrollModal()"><i class="fa-solid fa-building-circle-check me-1"></i> Enroll</button>
+  
+  <!-- Top Navigation Bar -->
+  <header style="width: 100%; max-width: 1250px; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border-radius: 50px; border: 1px solid rgba(234, 88, 12, 0.3);">
+    
+    <!-- Brand Logo -->
+    <div style="font-size: 1.15rem; font-weight: 800; letter-spacing: 1px; color: #fff; display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="showLandingPage()">
+      <img src="icon-192.png" alt="Logo" style="width: 38px; height: 38px; object-fit: contain; border-radius: 8px;">
+      <span><span style="color: #ea580c;">PS</span> Society Solutions</span>
+    </div>
+
+    <!-- Center Menu Links -->
+    <ul class="top-nav-links">
+      <li><a href="#" class="active" onclick="showLandingPage()">Home</a></li>
+      <li><a href="#" onclick="openAboutPS()">About Us</a></li>
+      <li><a href="#" onclick="showLoginPage()">For a Demo</a></li>
+      <li><a href="#" onclick="openEnrollModal()">New Enroll</a></li>
+    </ul>
+    
+    <!-- Top Right Actions -->
+    <div class="nav-actions" style="display: flex; gap: 10px; align-items: center;">
+      <button onclick="showVisitorPage()" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer;">
+        <i class="fa-solid fa-door-open me-1 text-warning"></i> Visitor Desk
+      </button>
+      <button onclick="showLoginPage()" style="background: linear-gradient(90deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 30px; padding: 7px 20px; font-size: 13px; font-weight: 700; cursor: pointer;">
+        <i class="fa-solid fa-right-to-bracket me-1"></i> Login
+      </button>
     </div>
   </header>
 
-  <div class="container my-auto py-2">
-    <div class="hero-text text-center mb-3">
-      <p class="hero-tagline mb-1">Smart Society Management Engine</p>
-      <h2 class="hero-heading">Welcome to <span style="color: #f59e0b;">PS Society</span></h2>
-      <p class="hero-subtext mb-0">Choose your gateway to proceed</p>
-    </div>
+  <!-- Center Hero Section -->
+  <div class="container my-auto py-5" style="max-width: 1000px;">
+    <div class="row align-items-center justify-content-between g-4 text-start">
+      
+      <!-- Left Side Text & Download Brochure Button -->
+      <div class="col-lg-7 text-center text-lg-start">
+        <span class="badge mb-3 px-3 py-2 rounded-pill fw-semibold" style="letter-spacing: 1px; font-size: 12px; background: rgba(234, 88, 12, 0.15); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3);">
+          <i class="fa-solid fa-bolt me-1"></i> Smart Society Management Engine
+        </span>
+        <h1 class="display-5 fw-bold mb-3 text-white" style="line-height: 1.2;">
+          Digital Housing Society <span style="color: #ea580c;">Management Simplified</span>
+        </h1>
+        <p class="lead mb-4 text-secondary" style="color: #cbd5e1 !important; font-size: 1rem; line-height: 1.6;">
+          Simple • Transparent • Affordable. Digitalize your society's accounting, maintenance billing, member ledgers, and visitor tracking in a single click.
+        </p>
+        
+        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+          <a href="broucher.pdf" download class="btn fw-bold px-4 py-3 rounded-pill shadow-lg d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #ea580c, #f59e0b); border: none; color: #fff; font-size: 15px;">
+            <i class="fa-solid fa-file-arrow-down"></i> Download Brochure
+          </a>
+        </div>
+      </div>
 
-    <div class="row justify-content-center g-3 landing-cards mt-1">
-      <div class="col-6 col-md-4 col-lg-3">
-        <div class="hero-card" onclick="showVisitorPage()">
-          <div class="card-icon-wrapper visitor-icon"><i class="fa-solid fa-door-open"></i></div>
-          <h4>Visitor Desk</h4>
-          <p>Self Check-in & Pass</p>
-          <div class="card-action-btn"><span>Check-in</span><i class="fa-solid fa-arrow-right"></i></div>
+      <!-- Right Side Demoapp.jpeg Mockup Preview -->
+      <div class="col-lg-5 text-center">
+        <div style="background: #111827; border: 8px solid #374151; border-radius: 36px; padding: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-width: 300px; margin: 0 auto; position: relative;">
+          <div style="width: 90px; height: 16px; background: #374151; border-radius: 0 0 10px 10px; margin: 0 auto 10px auto;"></div>
+          <img src="Demoapp.jpeg" alt="App Dashboard Preview" style="width: 100%; height: auto; border-radius: 20px; display: block;">
         </div>
       </div>
-      <div class="col-6 col-md-4 col-lg-3">
-        <div class="hero-card" onclick="showLoginPage()">
-          <div class="card-icon-wrapper resident-icon"><i class="fa-solid fa-house-chimney-user"></i></div>
-          <h4>Resident & Admin</h4>
-          <p>Society Portal Login</p>
-          <div class="card-action-btn"><span>Sign In</span><i class="fa-solid fa-arrow-right"></i></div>
-        </div>
-      </div>
+
     </div>
   </div>
 
-  <footer class="landing-footer">
-    <button onclick="openPrivacyPolicy()" class="footer-link">Privacy Policy</button>
-    <span class="footer-sep">|</span>
-    <span class="footer-copy">All rights reserved by PS Society Solutions</span>
+  <!-- Footer -->
+  <footer class="landing-footer py-3 text-center" style="width: 100%; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+    <div class="d-flex justify-content-center align-items-center gap-3 mb-2 flex-wrap">
+      <button onclick="openAboutPS()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">About Us</button>
+      <span class="text-white-50">|</span>
+      <a href="https://www.instagram.com/pssocietysolutions/" target="_blank" style="color: #ea580c; text-decoration: none; font-weight: 600; font-size: 14px;">
+        <i class="fa-brands fa-instagram me-1"></i> Follow on Instagram
+      </a>
+      <span class="text-white-50">|</span>
+      <button onclick="openPrivacyPolicy()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">Privacy Policy</button>
+    </div>
+    <span class="text-white-50" style="font-size: 12px;">&copy; 2026 PS Society Solutions, Vadodara, Gujarat. All rights reserved.</span>
   </footer>
 </div>
 
-<!-- ========== VISITOR SECTION ========== -->
+<!-- Floating WhatsApp Button with "Connect Us" label -->
+<div class="whatsapp-container">
+  <span class="whatsapp-label">Connect Us</span>
+  <a href="https://wa.me/918866376056?text=Hi,%20I%20want%20to%20know%20more%20about%20PS%20Society%20Solutions." target="_blank" class="whatsapp-float" title="Chat with us on WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+</div>
+
+<!-- ========== VISITOR SECTION (unchanged) ========== -->
 <div id="visitor-section" class="container py-4" style="display:none; min-height:100vh; background: #f8fafc;">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <button id="visitorBackBtn" class="btn btn-outline-secondary" onclick="goBackFromVisitor()"><i class="fa-solid fa-arrow-left me-2"></i> Back</button>
@@ -341,7 +257,7 @@ button:hover .fa-whatsapp {
   <div id="visitorListContainer" class="mt-3"><div class="alert alert-info">Loading visitors...</div></div>
 </div>
 
-<!-- ========== LOGIN ========== -->
+<!-- ========== LOGIN (unchanged) ========== -->
 <div id="login-section" class="login-wrapper" style="display:none;">
   <div class="card p-4 p-md-5 glass-login-card">
     <div class="text-center mb-4">
@@ -365,7 +281,7 @@ button:hover .fa-whatsapp {
   </div>
 </div>
 
-<!-- ========== MAIN APP ========== -->
+<!-- ========== MAIN APP (unchanged – same as your old code) ========== -->
 <div id="app-section" class="d-none">
   <nav class="navbar navbar-dark bg-dark d-md-none px-3 sticky-top">
     <a class="navbar-brand fw-bold text-warning" href="#">PS Society</a>
@@ -1831,10 +1747,18 @@ button:hover .fa-whatsapp {
   </div>
 </div>
 
-<!-- ========== SCRIPTS ========== -->
+
+
+
+
+
+
+
+<!-- ========== SCRIPTS (unchanged) ========== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="app.js"></script>
+
 </body>
 </html>
