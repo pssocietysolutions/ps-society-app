@@ -29,110 +29,114 @@
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
 
-    /* ========== LANDING PAGE (Original Black & Orange Theme) ========== */
-    .landing-wrapper {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #090d16 0%, #151c2e 100%), 
-                  url('bg.jpeg') center/cover no-repeat;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 25px 30px;
-      text-align: center;
-      color: #fff;
-      position: relative;
-    }
+   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
 
-    /* Top Navigation Links Style */
-    .top-nav-links {
-      display: flex;
-      gap: 30px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .top-nav-links a {
-      color: #cbd5e1;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
-      transition: color 0.2s;
-      cursor: pointer;
-    }
-    .top-nav-links a:hover, .top-nav-links a.active {
-      color: #ea580c;
-    }
-
-    /* WhatsApp Floating Container with "Connect Us" text */
-    .whatsapp-container {
-      position: fixed;
-      bottom: 25px;
-      right: 25px;
-      z-index: 1050;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-    }
-    .whatsapp-float {
-      background-color: #25d366;
-      color: #fff;
-      width: 60px;
-      height: 60px;
-      border-radius: 50px;
-      text-align: center;
-      font-size: 32px;
-      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition: transform 0.3s ease;
-    }
-    .whatsapp-float:hover {
-      transform: scale(1.1);
-      color: #fff;
-    }
-    .whatsapp-label {
-      background: #0f172a;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      border: 1px solid rgba(234, 88, 12, 0.4);
-      white-space: nowrap;
-    }
-
-    .login-wrapper {
-      min-height: 100vh;
-      background: linear-gradient(135deg, rgba(9, 13, 22, 0.92), rgba(21, 28, 46, 0.92)), 
-                  url('bg.jpeg') center/cover no-repeat;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .glass-login-card {
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(14px);
-      border-radius: 20px;
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-      border: 1px solid rgba(234, 88, 12, 0.3);
-    }
-#mobileMenuOverlay {
-  background: rgba(15, 23, 42, 0.98) !important; /* Make background less transparent */
+/* ========== LANDING PAGE (Original Black & Orange Theme) ========== */
+.landing-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #090d16 0%, #151c2e 100%), 
+              url('bg.jpeg') center/cover no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  text-align: center;
+  color: #fff;
+  position: relative;
 }
 
+.top-nav-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.top-nav-links a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+.top-nav-links a:hover, .top-nav-links a.active {
+  color: #ea580c;
+}
+
+.whatsapp-container {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.whatsapp-float {
+  background-color: #25d366;
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  border-radius: 50px;
+  text-align: center;
+  font-size: 32px;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  color: #fff;
+}
+.whatsapp-label {
+  background: #0f172a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border: 1px solid rgba(234, 88, 12, 0.4);
+  white-space: nowrap;
+}
+
+.login-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(9, 13, 22, 0.92), rgba(21, 28, 46, 0.92)), 
+              url('bg.jpeg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.glass-login-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(234, 88, 12, 0.3);
+}
+
+/* 🟢 MOBILE GRID OVERLAY – Background */
+#mobileMenuOverlay {
+  background: rgba(15, 23, 42, 0.98) !important;
+}
+
+/* 🟢 MOBILE GRID CARDS – बड़े और गोल */
 .grid-card-item {
   background: rgba(255, 255, 255, 0.12) !important;
   backdrop-filter: blur(12px);
-  border-radius: 16px !important;
-  padding: 16px 8px;
+  border-radius: 18px !important;        /* थोड़ा गोल */
+  padding: 20px 10px !important;         /* बड़ा padding */
   text-align: center;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -140,32 +144,47 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 95px;
+  min-height: 130px !important;          /* ऊँचाई बढ़ाई */
   transition: 0.2s;
 }
-
+.grid-card-item i {
+  font-size: 36px !important;            /* आइकन बड़ा */
+  margin-bottom: 8px;
+  display: block;
+}
 .grid-card-item span {
-  font-size: 12px;
+  font-size: 14px !important;            /* टेक्स्ट बड़ा */
   font-weight: 600;
   color: #fff;
   margin-top: 6px;
   word-break: break-word;
 }
 
-/* Member Ledger Table – Mobile Friendly */
+/* 🟢 GRID CONTAINER – 2 कॉलम, ज्यादा गैप */
+#mobileMenuOverlay .grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);   /* 2 कॉलम – बड़े कार्ड */
+  gap: 14px;                              /* ज्यादा स्पेस */
+  padding: 10px 0 20px 0;
+  flex: 1;
+  align-content: start;
+  overflow-y: auto;
+}
+
+/* Member Ledger Table – Mobile Friendly (unchanged) */
 #member-ledger-table {
   width: 100%;
-  min-width: 600px;   /* table को सिकुड़ने से रोके */
+  min-width: 600px;
 }
 #member-ledger-table th,
 #member-ledger-table td {
-  white-space: nowrap;   /* text को एक line में रखे */
+  white-space: nowrap;
   padding: 6px 8px;
   font-size: 13px;
 }
 @media (max-width: 576px) {
   #member-ledger-table {
-    min-width: 500px;   /* छोटी स्क्रीन पर भी पढ़ने लायक */
+    min-width: 500px;
   }
   #member-ledger-table th,
   #member-ledger-table td {
@@ -174,109 +193,97 @@
   }
 }
 
-/* GRID CONTAINER – सही spacing और scroll */
-#mobileMenuOverlay .grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;                         /* आपने 08px लिखा, मैंने 8px कर दिया */
-  padding: 10px 0 20px 0;
-  flex: 1;
-  align-content: start;             /* ऊपर से शुरू */
-  overflow-y: auto;                /* ज़रूरत पड़ने पर scroll */
+/* Sidebar – unchanged */
+.sidebar { 
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  background: linear-gradient(180deg, #090d16 0%, #151c2e 100%); 
+}
+@media (max-width: 767.98px) { .sidebar { min-height: auto; height: auto; position: static; } }
+.nav-link { cursor: pointer; color: #94a3b8; font-weight: 500; border-radius: 10px; margin-bottom: 6px; padding: 10px 14px; transition: all 0.2s ease; }
+.nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #ea580c, #f59e0b) !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+.card-stat { border-radius: 16px; border: none; }
+
+/* Mobile Landing Page adjustments – unchanged */
+@media (max-width: 768px) {
+  .landing-wrapper {
+    padding: 20px 15px;
+    justify-content: flex-start;
+  }
+  .landing-navbar {
+    padding: 8px 14px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .brand-logo {
+    font-size: 1rem;
+    margin-right: auto;
+  }
+  .nav-actions {
+    gap: 6px;
+  }
+  .nav-btn {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+  .hero-heading {
+    font-size: 1.4rem;
+    line-height: 1.3;
+  }
+  .hero-subtext {
+    font-size: 0.9rem;
+  }
+  .hero-card {
+    max-width: 100%;
+    padding: 14px 12px;
+  }
+  .card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  .landing-footer {
+    margin-top: 20px;
+    padding-top: 12px;
+    font-size: 0.75rem;
+  }
+  .whatsapp-container {
+    bottom: 15px;
+    right: 15px;
+  }
+  .whatsapp-float {
+    width: 50px;
+    height: 50px;
+    font-size: 26px;
+  }
+  .whatsapp-label {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
 }
 
-    .sidebar { 
-      position: sticky; top: 0; height: 100vh; overflow-y: auto;
-      background: linear-gradient(180deg, #090d16 0%, #151c2e 100%); 
-    }
-    @media (max-width: 767.98px) { .sidebar { min-height: auto; height: auto; position: static; } }
-    .nav-link { cursor: pointer; color: #94a3b8; font-weight: 500; border-radius: 10px; margin-bottom: 6px; padding: 10px 14px; transition: all 0.2s ease; }
-    .nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #ea580c, #f59e0b) !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
-    .card-stat { border-radius: 16px; border: none; }
-    
-    .nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #ea580c, #f59e0b) !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
-    .card-stat { border-radius: 16px; border: none; }
+.visitor-card {
+  background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+}
+.visitor-card .info { flex: 1; }
+.visitor-card .info h6 { margin: 0; font-weight: 600; }
+.visitor-card .info small { color: #64748b; }
 
-    /* 👇 यहाँ नया media query डालें */
-    @media (max-width: 768px) {
-      .landing-wrapper {
-        padding: 20px 15px;
-        justify-content: flex-start;
-      }
-      .landing-navbar {
-        padding: 8px 14px;
-        margin-bottom: 15px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .brand-logo {
-        font-size: 1rem;
-        margin-right: auto;
-      }
-      .nav-actions {
-        gap: 6px;
-      }
-      .nav-btn {
-        font-size: 12px;
-        padding: 5px 12px;
-      }
-      .hero-heading {
-        font-size: 1.4rem;
-        line-height: 1.3;
-      }
-      .hero-subtext {
-        font-size: 0.9rem;
-      }
-      .hero-card {
-        max-width: 100%;
-        padding: 14px 12px;
-      }
-      .card-icon-wrapper {
-        width: 40px;
-        height: 40px;
-        font-size: 18px;
-      }
-      .landing-footer {
-        margin-top: 20px;
-        padding-top: 12px;
-        font-size: 0.75rem;
-      }
-      .whatsapp-container {
-        bottom: 15px;
-        right: 15px;
-      }
-      .whatsapp-float {
-        width: 50px;
-        height: 50px;
-        font-size: 26px;
-      }
-      .whatsapp-label {
-        font-size: 10px;
-        padding: 2px 6px;
-      }
-    }
+@media print {
+  body * { visibility: hidden !important; }
+  .tab-content:not(.d-none), .tab-content:not(.d-none) * { visibility: visible !important; }
+  .fa-whatsapp { color: #25d366 !important; }
+  button:hover .fa-whatsapp { color: #ffffff !important; }
+  .tab-content:not(.d-none) { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; }
+  .sidebar, .navbar, .btn, .no-print, .nav-actions, .modal { display: none !important; }
+  table { width: 100% !important; border-collapse: collapse !important; }
+  th, td { border: 1px solid #333 !important; padding: 6px !important; font-size: 10pt !important; }
+}
 
-    .visitor-card {
-      background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
-    }
-    .visitor-card .info { flex: 1; }
-    .visitor-card .info h6 { margin: 0; font-weight: 600; }
-    .visitor-card .info small { color: #64748b; }
+@media (max-width: 992px) {
+  .top-nav-links { display: none !important; }
+}
 
-    @media print {
-      body * { visibility: hidden !important; }
-      .tab-content:not(.d-none), .tab-content:not(.d-none) * { visibility: visible !important; }
-      .fa-whatsapp { color: #25d366 !important; }
-      button:hover .fa-whatsapp { color: #ffffff !important; }
-      .tab-content:not(.d-none) { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; }
-      .sidebar, .navbar, .btn, .no-print, .nav-actions, .modal { display: none !important; }
-      table { width: 100% !important; border-collapse: collapse !important; }
-      th, td { border: 1px solid #333 !important; padding: 6px !important; font-size: 10pt !important; }
-    }
-
-    @media (max-width: 992px) {
-      .top-nav-links { display: none !important; }
-    }
   </style>
 </head>
 <body>
@@ -339,7 +346,7 @@
       <div class="col-lg-5 text-center">
         <div style="background: #111827; border: 8px solid #374151; border-radius: 36px; padding: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-width: 300px; margin: 0 auto; position: relative;">
           <div style="width: 90px; height: 16px; background: #374151; border-radius: 0 0 10px 10px; margin: 0 auto 10px auto;"></div>
-          <img src="Demoapp.png" alt="App Dashboard Preview" style="width: 100%; height: auto; border-radius: 20px; display: block;">
+          <img src="Demoapp.jpeg" alt="App Dashboard Preview" style="width: 100%; height: auto; border-radius: 20px; display: block;">
         </div>
       </div>
 
@@ -1868,13 +1875,6 @@
     </div>
   </div>
 </div>
-
-
-
-
-
-
-
 
 <!-- ========== SCRIPTS (unchanged) ========== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
