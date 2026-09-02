@@ -492,6 +492,21 @@ function handleLogout() {
   document.getElementById('app-section').classList.add('d-none');
   const gridOverlay = document.getElementById('mobileMenuOverlay');
   if (gridOverlay) gridOverlay.style.display = 'none';
+  
+  // 🟢 Cleanup: सभी स्टक ओवरले और मॉडल बैकड्रॉप हटाएँ
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';   // scroll को enable करें
+  
+  const tabOverlay = document.getElementById('tabOverlay');
+  if (tabOverlay) tabOverlay.remove();
+  
+  // अन्य overlays को भी छिपाएँ
+  ['consentOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
   showLandingPage();
 }
 
@@ -2076,14 +2091,14 @@ async function logActivity(actionType, details) {
 }
 
 async function fetchActivityLogs() {
-  if (currentRole !== 'Admin') return;
+  // अब सभी roles (Admin, Chairman, SocietyAdmin) अपनी society के logs देख सकेंगे
   const { data, error } = await _supabase
     .from('activity_logs')
     .select('*')
     .eq('society_name', currentSociety)
     .order('created_at', { ascending: false })
     .limit(100);
-    
+  
   if (!error) {
     activityLogs = data || [];
     renderActivityLogs();
@@ -3023,6 +3038,14 @@ function renderBankReconciliation() {
 
   document.getElementById('brs-software-balance').innerText = `₹${softwareBalance.toFixed(2)}`;
 
+  // ✅ सिर्फ़ Chairman को disable करें
+  const balanceInput = document.getElementById('actual-bank-balance-input');
+  if (balanceInput) {
+    balanceInput.disabled = (currentRole === 'Chairman');
+  }
+
+  const isChairman = (currentRole === 'Chairman');
+
   tbody.innerHTML = allEntries.map((item, idx) => `
     <tr>
       <td>${item.date}</td>
@@ -3031,7 +3054,7 @@ function renderBankReconciliation() {
       <td class="fw-bold ${item.type.includes('Deposit') ? 'text-success' : 'text-danger'}">${item.amount}</td>
       <td><span class="badge ${item.type.includes('Deposit') ? 'bg-success' : 'bg-danger'}">${item.type}</span></td>
       <td>
-        <select class="form-select form-select-sm" onchange="calculateBRS()">
+        <select class="form-select form-select-sm" onchange="calculateBRS()" ${isChairman ? 'disabled' : ''}>
           <option value="cleared">Cleared in Bank</option>
           <option value="pending">Not Reflected Yet (Pending)</option>
         </select>
