@@ -2090,8 +2090,9 @@ async function logActivity(actionType, details) {
   }
 }
 
+// In app.js
 async function fetchActivityLogs() {
-  // अब सभी roles (Admin, Chairman, SocietyAdmin) अपनी society के logs देख सकेंगे
+  // Allow Admin, SocietyAdmin, and Chairman to view logs
   const { data, error } = await _supabase
     .from('activity_logs')
     .select('*')
