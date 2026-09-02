@@ -153,6 +153,28 @@
   word-break: break-word;          /* लंबा टेक्स्ट कटे नहीं */
 }
 
+/* Member Ledger Table – Mobile Friendly */
+#member-ledger-table {
+  width: 100%;
+  min-width: 600px;   /* table को सिकुड़ने से रोके */
+}
+#member-ledger-table th,
+#member-ledger-table td {
+  white-space: nowrap;   /* text को एक line में रखे */
+  padding: 6px 8px;
+  font-size: 13px;
+}
+@media (max-width: 576px) {
+  #member-ledger-table {
+    min-width: 500px;   /* छोटी स्क्रीन पर भी पढ़ने लायक */
+  }
+  #member-ledger-table th,
+  #member-ledger-table td {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+}
+
 /* GRID CONTAINER – सही spacing और scroll */
 #mobileMenuOverlay .grid-container {
   display: grid;

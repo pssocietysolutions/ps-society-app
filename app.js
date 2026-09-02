@@ -2107,7 +2107,7 @@ async function fetchActivityLogs() {
 
 function renderActivityLogs() {
   const tbody = document.getElementById('activity-logs-list');
-  if (!tbody || currentRole !== 'Admin') return;
+  if (!tbody) return;   // ✅ सिर्फ tbody की check रखें
   if (activityLogs.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No activity logs recorded yet.</td></tr>`;
     return;
