@@ -1,16 +1,16 @@
 // ============================================================
 // PS SOCIETY SOLUTIONS – COMBINED PWA + FIREBASE MESSAGING SW
-// GitHub Pages Sub‑path Version WITH OFFLINE SUPPORT
+// WITH OFFLINE SUPPORT (Sub‑path: /ps-society-app/)
 // ============================================================
 
 const BASE_PATH = '/ps-society-app/';
-const CACHE_VERSION = 'ps-society-v6';  // ✅ बदला हुआ version – force update
+const CACHE_VERSION = 'ps-society-v6';
 const CACHE_NAME = CACHE_VERSION;
 
 const APP_SHELL = [
     BASE_PATH,
     BASE_PATH + 'index.html',
-    BASE_PATH + 'offline.html',          // ✅ अब offline.html भी cache होगा
+    BASE_PATH + 'offline.html',          // ✅ Offline page cached
     BASE_PATH + 'manifest.json',
     BASE_PATH + 'app.js',
     BASE_PATH + 'icon-192.png',
@@ -22,12 +22,8 @@ const APP_SHELL = [
 // FIREBASE
 // ============================================================
 
-importScripts(
-    'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js'
-);
-importScripts(
-    'https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js'
-);
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.14.1/firebase-messaging-compat.js');
 
 firebase.initializeApp({
     apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVKk",
@@ -40,46 +36,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ============================================================
-// FIREBASE BACKGROUND NOTIFICATION
-// ============================================================
-
 messaging.onBackgroundMessage(payload => {
     console.log('[FCM] Background message:', payload);
-
-    const title =
-        payload.notification?.title ||
-        payload.data?.title ||
-        'PS Society Solutions';
-
-    const body =
-        payload.notification?.body ||
-        payload.data?.body ||
-        'You have a new notification.';
-
-    const icon =
-        payload.notification?.icon ||
-        BASE_PATH + 'icon-192.png';
-
-    self.registration.showNotification(title, {
-        body: body,
-        icon: icon,
-        badge: icon,
-        data: payload.data || {}
-    });
+    const title = payload.notification?.title || payload.data?.title || 'PS Society Solutions';
+    const body = payload.notification?.body || payload.data?.body || 'You have a new notification.';
+    const icon = payload.notification?.icon || BASE_PATH + 'icon-192.png';
+    self.registration.showNotification(title, { body, icon, badge: icon, data: payload.data || {} });
 });
-
-// ============================================================
-// NOTIFICATION CLICK
-// ============================================================
 
 self.addEventListener('notificationclick', function(event) {
     console.log('🔔 Notification clicked:', event.notification);
     event.notification.close();
-
     const data = event.notification.data || {};
     let urlToOpen = data.click_action || data.url || BASE_PATH;
-
     if (!urlToOpen.startsWith('http')) {
         const baseUrl = self.location.origin;
         if (urlToOpen.startsWith('/')) {
@@ -88,9 +57,6 @@ self.addEventListener('notificationclick', function(event) {
             urlToOpen = baseUrl + BASE_PATH + urlToOpen;
         }
     }
-
-    console.log('🔗 Opening URL:', urlToOpen);
-
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then(windowClients => {
@@ -107,7 +73,7 @@ self.addEventListener('notificationclick', function(event) {
 });
 
 // ============================================================
-// INSTALL – Cache App Shell including offline.html
+// INSTALL – Cache App Shell
 // ============================================================
 
 self.addEventListener('install', event => {
@@ -146,18 +112,16 @@ self.addEventListener('fetch', event => {
 
     const url = new URL(request.url);
 
-    // सिर्फ अपने Origin और Sub‑path की Requests को Intercept करें
+    // Only intercept same-origin + sub‑path requests
     if (url.origin !== self.location.origin) return;
     if (!url.pathname.startsWith(BASE_PATH)) return;
 
-    // ====== SPA NAVIGATION (Deep Links) ======
+    // ===== SPA NAVIGATION =====
     if (request.mode === 'navigate') {
         event.respondWith(
             fetch(request)
                 .then(response => {
-                    if (response.ok) {
-                        return response;
-                    }
+                    if (response.ok) return response;
                     console.warn('⚠️ Navigation got status:', response.status, '→ Falling back to index.html');
                     return caches.match(BASE_PATH + 'index.html');
                 })
@@ -169,13 +133,11 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // ====== Static Assets – Cache First ======
+    // ===== Static Assets – Cache First =====
     event.respondWith(
         caches.match(request)
             .then(cached => {
-                if (cached) {
-                    return cached;
-                }
+                if (cached) return cached;
                 return fetch(request)
                     .then(response => {
                         if (response.status === 200 && response.type === 'basic') {
@@ -186,7 +148,6 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
                     .catch(() => {
-                        // अगर कोई asset न मिले (जैसे image) तो 503 return करें
                         return new Response('Resource not available offline', { status: 503 });
                     });
             })
