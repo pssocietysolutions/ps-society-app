@@ -4,13 +4,13 @@
 // ============================================================
 
 const BASE_PATH = '/ps-society-app/';
-const CACHE_VERSION = 'ps-society-v5';
+const CACHE_VERSION = 'ps-society-v6';  // ✅ बदला हुआ version – force update
 const CACHE_NAME = CACHE_VERSION;
 
 const APP_SHELL = [
     BASE_PATH,
     BASE_PATH + 'index.html',
-    BASE_PATH + 'offline.html',          // ✅ Offline page added
+    BASE_PATH + 'offline.html',          // ✅ अब offline.html भी cache होगा
     BASE_PATH + 'manifest.json',
     BASE_PATH + 'app.js',
     BASE_PATH + 'icon-192.png',
@@ -186,8 +186,7 @@ self.addEventListener('fetch', event => {
                         return response;
                     })
                     .catch(() => {
-                        // 🟢 अगर कोई asset न मिले तो offline.html न दिखाएँ (क्योंकि यह navigation के लिए है)
-                        // बस undefined return करें – browser default error दिखाएगा
+                        // अगर कोई asset न मिले (जैसे image) तो 503 return करें
                         return new Response('Resource not available offline', { status: 503 });
                     });
             })
