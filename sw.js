@@ -1,19 +1,21 @@
 // ============================================================
 // PS SOCIETY SOLUTIONS – COMBINED PWA + FIREBASE MESSAGING SW
-// GitHub Pages Sub‑path Version
+// GitHub Pages Sub‑path Version WITH OFFLINE SUPPORT
 // ============================================================
 
 const BASE_PATH = '/ps-society-app/';
-const CACHE_VERSION = 'ps-society-v4';
+const CACHE_VERSION = 'ps-society-v5';
 const CACHE_NAME = CACHE_VERSION;
 
 const APP_SHELL = [
     BASE_PATH,
     BASE_PATH + 'index.html',
+    BASE_PATH + 'offline.html',          // ✅ Offline page added
     BASE_PATH + 'manifest.json',
     BASE_PATH + 'app.js',
     BASE_PATH + 'icon-192.png',
-    BASE_PATH + 'icon-512.png'
+    BASE_PATH + 'icon-512.png',
+    BASE_PATH + 'qr-payment.png'
 ];
 
 // ============================================================
@@ -68,7 +70,7 @@ messaging.onBackgroundMessage(payload => {
 });
 
 // ============================================================
-// NOTIFICATION CLICK – Dynamic URL (with sub‑path)
+// NOTIFICATION CLICK
 // ============================================================
 
 self.addEventListener('notificationclick', function(event) {
@@ -80,11 +82,9 @@ self.addEventListener('notificationclick', function(event) {
 
     if (!urlToOpen.startsWith('http')) {
         const baseUrl = self.location.origin;
-        // अगर URL / से शुरू होता है तो उसे वैसे ही जोड़ें (अब वह /ps-society-app/... है)
         if (urlToOpen.startsWith('/')) {
             urlToOpen = baseUrl + urlToOpen;
         } else {
-            // अगर Relative है तो BASE_PATH + urlToOpen
             urlToOpen = baseUrl + BASE_PATH + urlToOpen;
         }
     }
@@ -107,7 +107,7 @@ self.addEventListener('notificationclick', function(event) {
 });
 
 // ============================================================
-// INSTALL
+// INSTALL – Cache App Shell including offline.html
 // ============================================================
 
 self.addEventListener('install', event => {
@@ -119,7 +119,7 @@ self.addEventListener('install', event => {
 });
 
 // ============================================================
-// ACTIVATE
+// ACTIVATE – Clean old caches
 // ============================================================
 
 self.addEventListener('activate', event => {
@@ -137,7 +137,7 @@ self.addEventListener('activate', event => {
 });
 
 // ============================================================
-// FETCH – SPA Navigation Fallback (Sub‑path aware)
+// FETCH – SPA Navigation + Offline Fallback
 // ============================================================
 
 self.addEventListener('fetch', event => {
@@ -162,7 +162,8 @@ self.addEventListener('fetch', event => {
                     return caches.match(BASE_PATH + 'index.html');
                 })
                 .catch(() => {
-                    return caches.match(BASE_PATH + 'index.html');
+                    // 🟢 Offline: Show offline page
+                    return caches.match(BASE_PATH + 'offline.html');
                 })
         );
         return;
@@ -183,6 +184,11 @@ self.addEventListener('fetch', event => {
                                 .then(cache => cache.put(request, clone));
                         }
                         return response;
+                    })
+                    .catch(() => {
+                        // 🟢 अगर कोई asset न मिले तो offline.html न दिखाएँ (क्योंकि यह navigation के लिए है)
+                        // बस undefined return करें – browser default error दिखाएगा
+                        return new Response('Resource not available offline', { status: 503 });
                     });
             })
     );
