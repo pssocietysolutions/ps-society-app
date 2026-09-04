@@ -33,6 +33,7 @@ let allSocieties = [];
 let facilitiesData = [];
 let bookingsData = [];
 let eventsData = [];
+let societyRules = ''; // सोसायटी के नियम यहाँ स्टोर होंगे
 let amcContractsData = [];
 let deletionRequests = [];
 
@@ -57,6 +58,13 @@ function togglePasswordVisibility() {
     pwdInput.type = 'password';
     icon.classList.remove('fa-eye-slash');
     icon.classList.add('fa-eye');
+  }
+}
+
+function toggleTenantFormFields(val, mode = 'add') {
+  const directContainer = document.getElementById(mode === 'edit' ? 'edit-mem-tenant-dynamic-fields' : 'tenant-dynamic-fields');
+  if (directContainer) {
+    directContainer.style.display = (val === 'Yes') ? 'block' : 'none';
   }
 }
 
@@ -556,6 +564,9 @@ async function fetchSupabaseData() {
     if (settings) {
       settings.forEach(s => { societySettings[s.key] = s.value; });
     }
+// 🟢 यहाँ नया कोड जोड़ें:
+societyRules = societySettings.society_rules || 'आपकी सोसायटी के नियम अभी सेट नहीं किए गए हैं। कृपया Admin से संपर्क करें।';
+
     openingBalance = parseFloat(societySettings.opening_bank_balance) || 0;
 
     renderAllTables();
@@ -676,6 +687,160 @@ async function populateNoticeMemberSelect() {
       select.appendChild(opt);
     }
   });
+}
+
+// ==================== SOCIETY RULES (POPUP EDITOR) ====================
+
+const defaultRulesCategories = [
+  { title: "📌 General & Common Rules", content: "1. प्रत्येक निवासी को सोसाइटी के सभी नियमों का पालन करना अनिवार्य रहेगा।\n2. कॉमन एरिया में कचरा न फेंके।" },
+  { title: "🚗 Parking Rules", content: "1. वाहन केवल निर्धारित पार्किंग स्लॉट में ही पार्क करें।" },
+  { title: "🏊‍♂️ Club House & Amenities", content: "1. क्लब हाउस का उपयोग करने से पहले परमिशन लें।" },
+  { title: "🚨 Maintenance & Payments", content: "1. हर महीने की 10 तारीख तक मेंटेनेंस जमा कराना अनिवार्य है।" }
+];
+
+function renderRules() {
+  const container = document.getElementById('rulesCategoriesContainer');
+  if (!container) return;
+
+  const editBtn = document.getElementById('editRulesBtn');
+  if (editBtn) {
+    if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
+      editBtn.style.display = 'inline-block';
+    } else {
+      editBtn.style.display = 'none'; // Member केवल देख सकता है
+    }
+  }
+
+  let categories = defaultRulesCategories;
+  try {
+    if (societyRules && societyRules.trim() !== '') {
+      const parsed = JSON.parse(societyRules);
+      if (Array.isArray(parsed)) categories = parsed;
+    }
+  } catch (e) {
+    categories = [{ title: "📌 General Rules", content: societyRules }];
+  }
+
+  let html = '';
+  categories.forEach((cat) => {
+    const formattedContent = (cat.content || '').replace(/\n/g, '<br>');
+    html += `
+      <div class="col-md-6">
+        <div class="card p-4 bg-white shadow-sm rounded-4 border-0 h-100">
+          <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+            <i class="fa-solid fa-layer-group text-warning me-2"></i>${cat.title}
+          </h5>
+          <div style="white-space: pre-wrap; line-height: 1.8; color: #1e293b; font-size: 14px; font-family: inherit;">
+            ${formattedContent || '<span class="text-muted">कोई नियम दर्ज नहीं हैं।</span>'}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function openRulesEditor() {
+  if (currentRole !== 'Admin' && currentRole !== 'Chairman' && currentRole !== 'SocietyAdmin') {
+    alert('⛔ आपके पास नियम बदलने की अनुमति नहीं है।');
+    return;
+  }
+
+  let categories = defaultRulesCategories;
+  try {
+    if (societyRules && societyRules.trim() !== '') {
+      const parsed = JSON.parse(societyRules);
+      if (Array.isArray(parsed)) categories = parsed;
+    }
+  } catch (e) {
+    categories = [{ title: "📌 General Rules", content: societyRules }];
+  }
+
+  const editorContainer = document.getElementById('rulesEditorsContainer');
+  editorContainer.innerHTML = '';
+
+  categories.forEach((cat, index) => {
+    appendRuleCategoryRow(cat.title, cat.content, index);
+  });
+
+  // Bootstrap Modal खोलें
+  const myModal = new bootstrap.Modal(document.getElementById('rulesModal'));
+  myModal.show();
+}
+
+function appendRuleCategoryRow(title = '', content = '', index = Date.now()) {
+  const editorContainer = document.getElementById('rulesEditorsContainer');
+  const div = document.createElement('div');
+  div.className = 'card p-3 mb-3 border bg-white shadow-sm rounded-3 rule-category-row';
+  div.innerHTML = `
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <input type="text" class="form-control form-control-sm fw-bold rule-title-input w-75" placeholder="कैटेगरी का नाम (जैसे: Parking Rules)" value="${title}">
+      <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('.rule-category-row').remove()">
+        <i class="fa-solid fa-trash"></i> Delete
+      </button>
+    </div>
+    <textarea class="form-control rule-content-input" rows="4" placeholder="यहाँ नियम एक-एक करके लाइन से लिखें...">${content}</textarea>
+  `;
+  editorContainer.appendChild(div);
+}
+
+function addNewRuleCategoryField() {
+  appendRuleCategoryRow('📌 New Category', '');
+}
+
+async function saveRulesFromModal() {
+  const rows = document.querySelectorAll('.rule-category-row');
+  let newCategories = [];
+
+  rows.forEach(row => {
+    const title = row.querySelector('.rule-title-input').value.trim();
+    const content = row.querySelector('.rule-content-input').value.trim();
+    if (title) {
+      newCategories.push({ title, content });
+    }
+  });
+
+  if (newCategories.length === 0) {
+    alert('❌ कम से कम एक कैटेगरी होना जरूरी है।');
+    return;
+  }
+
+  const rulesJsonString = JSON.stringify(newCategories);
+
+  if (!currentSociety) {
+    alert('❌ सोसायटी सेलेक्ट नहीं है।');
+    return;
+  }
+
+  try {
+    const { error } = await _supabase
+      .from('society_settings')
+      .upsert({
+        key: 'society_rules',
+        value: rulesJsonString,
+        society_name: currentSociety
+      }, { onConflict: 'key,society_name' });
+
+    if (error) {
+      alert('❌ Rules Save करने में Error: ' + error.message);
+      return;
+    }
+
+    societyRules = rulesJsonString;
+    societySettings.society_rules = rulesJsonString;
+    alert('✅ Rules Successfully Updated!');
+
+    // Modal बंद करें
+    const modalEl = document.getElementById('rulesModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+
+    renderRules();
+  } catch (err) {
+    console.error('Save Rules Error:', err);
+    alert('❌ Something went wrong.');
+  }
 }
 
 function toggleMemberSelect(value) {
@@ -1579,6 +1744,10 @@ function switchTab(tabId, element) {
     renderAboutTab();
   }
 
+if (tabId === 'rules') {
+  renderRules();
+}
+
   if (tabId === 'visitor') {
     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
     document.body.classList.remove('modal-open');
@@ -1741,6 +1910,7 @@ function renderAllTables() {
   renderSOSContacts();
   renderDeletionRequests();
   renderPaymentProofs();
+  renderTenantAgreementWarnings(); // 👈 यहाँ यह नया फंक्शन जोड़ दें
   if (document.getElementById('tab-community') && !document.getElementById('tab-community').classList.contains('d-none')) {
     renderCommunity();
   }
@@ -2779,34 +2949,88 @@ function openEditMemberModal(id) {
   document.getElementById('edit-mem-flat').value = member.flat_no;
   document.getElementById('edit-mem-name').value = member.name || '';
   document.getElementById('edit-mem-phone').value = member.phone || '';
-  document.getElementById('edit-mem-status').value = member.status || 'Owner';
-  document.getElementById('edit-mem-rate').value = member.monthly_rate || 600;
-  document.getElementById('edit-mem-opening-due').value = member.opening_due || 0;
-
+  document.getElementById('edit-mem-is-tenant').value = member.is_tenant || 'No';
+  document.getElementById('edit-mem-tenant-name').value = member.tenant_name || '';
+  document.getElementById('edit-mem-tenant-phone').value = member.tenant_phone || '';
+  
+  toggleTenantFormFields(member.is_tenant || 'No', 'edit');
   new bootstrap.Modal(document.getElementById('editMemberModal')).show();
 }
 
 async function updateMember(event) {
   event.preventDefault();
   const id = document.getElementById('edit-mem-id').value;
-  const name = document.getElementById('edit-mem-name').value.trim();
-  const phone = document.getElementById('edit-mem-phone').value.trim();
-  const status = document.getElementById('edit-mem-status').value;
-  const monthly_rate = Number(document.getElementById('edit-mem-rate').value);
-  const opening_due = Number(document.getElementById('edit-mem-opening-due').value);
+  const is_tenant = document.getElementById('edit-mem-is-tenant').value;
+  
+  let updatePayload = {
+    name: document.getElementById('edit-mem-name').value.trim(),
+    phone: document.getElementById('edit-mem-phone').value.trim(),
+    is_tenant: is_tenant,
+    status: is_tenant === 'Yes' ? 'Tenant' : 'Owner',
+    tenant_name: is_tenant === 'Yes' ? document.getElementById('edit-mem-tenant-name').value.trim() : null,
+    tenant_phone: is_tenant === 'Yes' ? document.getElementById('edit-mem-tenant-phone').value.trim() : null,
+    monthly_rate: Number(document.getElementById('edit-mem-rate').value),
+    opening_due: Number(document.getElementById('edit-mem-opening-due').value)
+  };
 
-  const { error } = await _supabase.from('members').update({
-    name, phone, status, monthly_rate, opening_due
-  }).eq('id', id);
-
-  if (error) {
-    alert('❌ Error updating member: ' + error.message);
-    return;
+  const fileInput = document.getElementById('edit-mem-rent-agreement-file');
+  const file = fileInput?.files?.[0];
+  if (file) {
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${currentSociety}/agreement_${Date.now()}.${fileExt}`;
+    const { error: uploadError } = await _supabase.storage.from('notice_attachments').upload(filePath, file);
+    if (!uploadError) {
+      const { data: urlData } = _supabase.storage.from('notice_attachments').getPublicUrl(filePath);
+      updatePayload.rent_agreement_url = urlData?.publicUrl || null;
+    }
   }
 
-  alert('✅ Member details updated successfully!');
+  const { error } = await _supabase.from('members').update(updatePayload).eq('id', id);
+  if (error) { alert('❌ Error: ' + error.message); return; }
+
+  alert('✅ Member & Agreement details updated successfully!');
   bootstrap.Modal.getInstance(document.getElementById('editMemberModal')).hide();
   fetchSupabaseData();
+}
+
+function renderTenantAgreementWarnings() {
+  const containers = document.querySelectorAll('#tenant-warning-banner-container');
+  if (containers.length === 0) return;
+
+  // 🟢 चेक करें कि किस टेनेंट का एग्रीमेंट पेंडिंग है
+  const pendingAgreements = membersData.filter(m => 
+    (m.is_tenant === 'Yes' || m.status === 'Tenant') && 
+    (!m.rent_agreement_url || m.rent_agreement_url.trim() === '')
+  );
+
+  let htmlContent = '';
+
+  if (pendingAgreements.length > 0) {
+    if (currentRole === 'Member') {
+      const myPending = pendingAgreements.find(m => (m.flat_no || '').toUpperCase() === (currentUser || '').toUpperCase());
+      if (myPending) {
+        htmlContent = `
+          <div class="alert alert-danger fw-semibold d-flex align-items-center justify-content-between shadow-sm rounded-4 mb-3">
+            <div><i class="fa-solid fa-triangle-exclamation me-2"></i> आपकी रेंट एग्रीमेंट की कॉपी अभी तक सोसाइटी चेयरमैन को नहीं मिली है। कृपया जल्द सबमिट करवाएं।</div>
+          </div>
+        `;
+      }
+    } 
+    else if (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') {
+      const listHtml = pendingAgreements.map(m => `<li>Flat <b>${m.flat_no}</b> (Tenant: ${m.tenant_name || m.name || 'N/A'})</li>`).join('');
+      htmlContent = `
+        <div class="alert alert-danger shadow-sm rounded-4 mb-3">
+          <h6 class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-2"></i> Pending Rent Agreements Follow-up:</h6>
+          <ul class="mb-0 small">${listHtml}</ul>
+        </div>
+      `;
+    }
+  }
+
+  // 🟢 सभी कंटेनर्स में एक साथ रेंडर करें
+  containers.forEach(container => {
+    container.innerHTML = htmlContent;
+  });
 }
 
 function openAdminMemberLedger(flatNo) {
@@ -3533,20 +3757,39 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
 
 async function submitMember(event) {
   event.preventDefault();
+  const is_tenant = document.getElementById('mem-is-tenant').value;
+  let rent_agreement_url = null;
+
+  if (is_tenant === 'Yes') {
+    const fileInput = document.getElementById('mem-rent-agreement-file');
+    const file = fileInput?.files?.[0];
+    if (file) {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${currentSociety}/agreement_${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await _supabase.storage.from('notice_attachments').upload(filePath, file);
+      if (!uploadError) {
+        const { data: urlData } = _supabase.storage.from('notice_attachments').getPublicUrl(filePath);
+        rent_agreement_url = urlData?.publicUrl || null;
+      }
+    }
+  }
+
   const newMember = {
     flat_no: document.getElementById('mem-flat').value.toUpperCase(),
     name: document.getElementById('mem-name').value,
     phone: document.getElementById('mem-phone').value,
-    status: document.getElementById('mem-status').value,
+    status: is_tenant === 'Yes' ? 'Tenant' : 'Owner',
+    is_tenant: is_tenant,
+    tenant_name: document.getElementById('mem-tenant-name')?.value.trim() || null,
+    tenant_phone: document.getElementById('mem-tenant-phone')?.value.trim() || null,
+    rent_agreement_url: rent_agreement_url,
     monthly_rate: Number(document.getElementById('mem-rate').value),
     opening_due: Number(document.getElementById('mem-opening-due')?.value || 0),
     society_name: currentSociety
   };
   
   await _supabase.from('members').insert([newMember]);
-  await logActivity('ADD_MEMBER', `Added: ${newMember.flat_no}`);
   bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
-  
   await fetchSupabaseData(); 
   renderAllTables();
 }

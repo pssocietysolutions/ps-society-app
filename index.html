@@ -342,7 +342,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         </div>
       </div>
 
-      <!-- Right Side Demoapp.png Mockup Preview -->
+      <!-- Right Side Demoapp.jpeg Mockup Preview -->
       <div class="col-lg-5 text-center">
         <div style="background: #111827; border: 8px solid #374151; border-radius: 36px; padding: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-width: 300px; margin: 0 auto; position: relative;">
           <div style="width: 90px; height: 16px; background: #374151; border-radius: 0 0 10px 10px; margin: 0 auto 10px auto;"></div>
@@ -436,60 +436,64 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           </div>
         </div>
         <ul class="nav nav-pills flex-column mb-auto">
-
-          <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('members', this)"><i class="fa-solid fa-users me-2"></i> Members Directory</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('maintenance', this)"><i class="fa-solid fa-indian-rupee-sign me-2"></i> Maintenance Log <span id="maintenance-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('expenses', this)"><i class="fa-solid fa-receipt me-2"></i> Expense Ledger</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)"><i class="fa-solid fa-screwdriver-wrench me-2"></i> AMC Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)"><i class="fa-solid fa-building-columns me-2"></i> Tally Bank Book</a></li>
-<li class="nav-item role-restricted admin-only chairman-only">
-  <a class="nav-link" onclick="switchTab('bank-reconciliation', this)">
-    <i class="fa-solid fa-scale-balanced me-2"></i> Bank Reconciliation
-  </a>
-</li>
-<li class="nav-item role-restricted admin-only chairman-only">
-  <a class="nav-link" onclick="switchTab('journal-voucher', this)">
-    <i class="fa-solid fa-file-pen me-2"></i> Journal Voucher (JV)
-  </a>
-</li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('ca-audit', this)"><i class="fa-solid fa-calculator me-2"></i> CA Audit Report</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('chairman-report', this)"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Chairman Report</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('visitor', this)"><i class="fa-solid fa-user-plus me-2"></i> Visitor <span id="visitor-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('complaints', this)"><i class="fa-solid fa-headset me-2"></i> Complaints <span id="complaints-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('polls', this)"><i class="fa-solid fa-check-to-slot me-2"></i> Polls & Voting <span id="polls-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item" id="community-nav-item"><a class="nav-link" onclick="switchTab('community', this)"><i class="fa-solid fa-people-group me-2"></i> Community Hub <span id="community-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-<li class="nav-item role-restricted admin-only chairman-only">
-  <a class="nav-link" onclick="switchTab('meetings', this)">
-    <i class="fa-solid fa-book-open me-2"></i> Meeting Minutes (AGM)
-  </a>
-</li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('marketplace', this)"><i class="fa-solid fa-store me-2 text-warning"></i> Marketplace</a></li>
-<li class="nav-item">
-  <a class="nav-link" onclick="switchTab('parking', this)">
-    <i class="fa-solid fa-square-parking me-2 text-warning"></i> Parking & Vehicles <span id="parking-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span>
-  </a>
-</li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('bank-details', this)"><i class="fa-solid fa-qrcode me-2"></i> Society Bank / QR</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('sos-contacts', this)"><i class="fa-solid fa-truck-medical me-2 text-danger"></i> Emergency SOS</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('assets', this)"><i class="fa-solid fa-boxes-stacked me-2"></i> Asset Register</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('fds', this)"><i class="fa-solid fa-piggy-bank me-2"></i> FDs & Reserve</a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('proofs', this)"><i class="fa-solid fa-file-invoice me-2"></i> Payment Details <span id="proofs-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('settings', this)"><i class="fa-solid fa-gear me-2"></i> Settings</a></li>
-         <li class="nav-item">
-  <a class="nav-link" onclick="switchTab('about', this)">
-    <i class="fa-solid fa-circle-info me-2"></i> About PS
-  </a>
-</li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('deletion-requests', this)"><i class="fa-solid fa-trash-can me-2"></i> Deletion Requests</a></li>
-          <li class="nav-item"><a class="nav-link" onclick="switchTab('team', this)"><i class="fa-solid fa-people-group me-2"></i> Committee / Team</a></li>
-<li class="nav-item role-restricted admin-only">
-  <a class="nav-link" onclick="switchTab('master-dashboard', this)">
-    <i class="fa-solid fa-chart-pie me-2"></i> Master Dashboard
-  </a>
-</li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('manage-societies', this)"><i class="fa-solid fa-building me-2"></i> Manage Societies</a></li>
-          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('activity-logs', this)"><i class="fa-solid fa-list-check me-2"></i> Activity Logs</a></li>
+          <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-line me-2" style="color: #2563eb;"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('members', this)"><i class="fa-solid fa-users me-2" style="color: #22c55e;"></i> Members Directory</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('maintenance', this)"><i class="fa-solid fa-indian-rupee-sign me-2" style="color: #f59e0b;"></i> Maintenance Log <span id="maintenance-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('expenses', this)"><i class="fa-solid fa-receipt me-2" style="color: #ef4444;"></i> Expense Ledger</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)"><i class="fa-solid fa-screwdriver-wrench me-2" style="color: #f59e0b;"></i> AMC Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)"><i class="fa-solid fa-building-columns me-2" style="color: #8b5cf6;"></i> Tally Bank Book</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only">
+            <a class="nav-link" onclick="switchTab('bank-reconciliation', this)">
+              <i class="fa-solid fa-scale-balanced me-2" style="color: #0ea5e9;"></i> Bank Reconciliation
+            </a>
+          </li>
+          <li class="nav-item role-restricted admin-only chairman-only">
+            <a class="nav-link" onclick="switchTab('journal-voucher', this)">
+              <i class="fa-solid fa-file-pen me-2" style="color: #2563eb;"></i> Journal Voucher (JV)
+            </a>
+          </li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('ca-audit', this)"><i class="fa-solid fa-calculator me-2" style="color: #06b6d4;"></i> CA Audit Report</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('chairman-report', this)"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: #f59e0b;"></i> Chairman Report</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('visitor', this)"><i class="fa-solid fa-user-plus me-2" style="color: #8b5cf6;"></i> Visitor <span id="visitor-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('complaints', this)"><i class="fa-solid fa-headset me-2" style="color: #ec4899;"></i> Complaints <span id="complaints-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('polls', this)"><i class="fa-solid fa-check-to-slot me-2" style="color: #f97316;"></i> Polls & Voting <span id="polls-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item" id="community-nav-item"><a class="nav-link" onclick="switchTab('community', this)"><i class="fa-solid fa-people-group me-2" style="color: #14b8a6;"></i> Community Hub <span id="community-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only chairman-only">
+            <a class="nav-link" onclick="switchTab('meetings', this)">
+              <i class="fa-solid fa-book-open me-2" style="color: #2563eb;"></i> Meeting Minutes (AGM)
+            </a>
+          </li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('marketplace', this)"><i class="fa-solid fa-store me-2" style="color: #f59e0b;"></i> Marketplace</a></li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="switchTab('parking', this)">
+              <i class="fa-solid fa-square-parking me-2" style="color: #f59e0b;"></i> Parking & Vehicles <span id="parking-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span>
+            </a>
+          </li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('bank-details', this)"><i class="fa-solid fa-qrcode me-2" style="color: #2563eb;"></i> Society Bank / QR</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('sos-contacts', this)"><i class="fa-solid fa-truck-medical me-2" style="color: #ef4444;"></i> Emergency SOS</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('assets', this)"><i class="fa-solid fa-boxes-stacked me-2" style="color: #64748b;"></i> Asset Register</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('fds', this)"><i class="fa-solid fa-piggy-bank me-2" style="color: #8b5cf6;"></i> FDs & Reserve</a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('proofs', this)"><i class="fa-solid fa-file-invoice me-2" style="color: #3b82f6;"></i> Payment Details <span id="proofs-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('settings', this)"><i class="fa-solid fa-gear me-2" style="color: #475569;"></i> Settings</a></li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="switchTab('about', this)">
+              <i class="fa-solid fa-circle-info me-2" style="color: #0f172a;"></i> About PS
+            </a>
+          </li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('deletion-requests', this)"><i class="fa-solid fa-trash-can me-2" style="color: #ef4444;"></i> Deletion Requests</a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('team', this)"><i class="fa-solid fa-people-group me-2" style="color: #8b5cf6;"></i> Committee / Team</a></li>
+          <li class="nav-item role-restricted admin-only">
+            <a class="nav-link" onclick="switchTab('master-dashboard', this)">
+              <i class="fa-solid fa-chart-pie me-2" style="color: #8b5cf6;"></i> Master Dashboard
+            </a>
+          </li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('manage-societies', this)"><i class="fa-solid fa-building me-2" style="color: #2563eb;"></i> Manage Societies</a></li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="switchTab('rules', this)">
+              <i class="fa-solid fa-book me-2" style="color: #f59e0b;"></i> Society Rules
+            </a>
+          </li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('activity-logs', this)"><i class="fa-solid fa-list-check me-2" style="color: #0ea5e9;"></i> Activity Logs</a></li>
         </ul>
         <hr class="text-secondary">
         <button class="btn btn-outline-warning w-100 mb-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fa-solid fa-key me-2"></i> Change Password</button>
@@ -542,6 +546,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 
         <!-- TAB 1: DASHBOARD -->
         <div id="tab-dashboard" class="tab-content">
+        <div id="tenant-warning-banner-container" class="mb-3"></div>  
           <h3 class="fw-bold mb-3">Dashboard Overview</h3>
           <!-- 🎂 Feature 5: Birthday & Anniversary Wishes Container -->
           <div id="dashboard-celebrations-container"></div>
@@ -616,8 +621,34 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 
         <!-- TAB 2: MEMBERS -->
         <div id="tab-members" class="tab-content d-none">
-          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Member Directory</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('members-table-data', 'Member_Directory')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#memberModal">+ Add Member</button></div></div>
-          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="members-table-data"><thead class="table-light"><tr><th>Flat No</th><th>Owner Name</th><th>Phone Number</th><th>Status</th><th class="role-restricted admin-only chairman-only">Monthly Rate (₹)</th><th class="role-restricted admin-only chairman-only">Opening Due (₹)</th><th class="role-restricted admin-only chairman-only">FY Total Paid (₹)</th><th class="role-restricted admin-only chairman-only">FY Pending Due (₹)</th><th class="no-print admin-only chairman-only">Actions</th></tr></thead><tbody id="members-list"></tbody></table></div>
+          <!-- 🟢 यहाँ डैशबोर्ड वार्निंग बैनर का कंटेनर जोड़ा गया है ताकि डायरेक्ट्री में भी स्टेटस दिखे -->
+          <div id="tenant-warning-banner-container" class="mb-3"></div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="fw-bold">Member Directory</h3>
+            <div class="no-print">
+              <button class="btn btn-outline-success me-2" onclick="exportTableToExcel('members-table-data', 'Member_Directory')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button>
+              <button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#memberModal">+ Add Member</button>
+            </div>
+          </div>
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0">
+            <table class="table table-hover align-middle" id="members-table-data">
+              <thead class="table-light">
+                <tr>
+                  <th>Flat No</th>
+                  <th>Owner Name</th>
+                  <th>Phone Number</th>
+                  <th>Status / Tenant Details</th>
+                  <th class="role-restricted admin-only chairman-only">Monthly Rate (₹)</th>
+                  <th class="role-restricted admin-only chairman-only">Opening Due (₹)</th>
+                  <th class="role-restricted admin-only chairman-only">FY Total Paid (₹)</th>
+                  <th class="role-restricted admin-only chairman-only">FY Pending Due (₹)</th>
+                  <th class="no-print admin-only chairman-only">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="members-list"></tbody>
+            </table>
+          </div>
         </div>
 
         <!-- TAB 3: MAINTENANCE -->
@@ -995,6 +1026,20 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   </div>
   <div id="meetings-container" class="row g-3">
     <div class="col-12 text-center text-muted p-4">Loading meetings...</div>
+  </div>
+</div>
+
+<!-- TAB: SOCIETY RULES -->
+<div id="tab-rules" class="tab-content d-none">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold"><i class="fa-solid fa-book text-warning me-2"></i> Society Rules & Regulations</h3>
+    <button class="btn btn-sm btn-primary role-restricted admin-only chairman-only" id="editRulesBtn" onclick="openRulesEditor()">
+      <i class="fa-solid fa-pen me-1"></i> Edit Rules Categories
+    </button>
+  </div>
+  <!-- यहाँ अलग-अलग कैटेगरी के ब्लॉक्स रेंडर होंगे -->
+  <div id="rulesCategoriesContainer" class="row g-3">
+    <p class="text-muted">Loading rules...</p>
   </div>
 </div>
 
@@ -1420,6 +1465,33 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <div class="mb-3"><label class="form-label fw-semibold">Owner Name</label><input type="text" id="edit-mem-name" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="edit-mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="edit-mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
+
+          <!-- 🟢 Edit Member: Tenant Rented Dropdown -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Is this flat rented? (किराए पर है?)</label>
+            <select id="edit-mem-is-tenant" class="form-select" onchange="toggleTenantFormFields(this.value, 'edit')">
+              <option value="No">No (Owner Occupied)</option>
+              <option value="Yes">Yes (Rented to Tenant)</option>
+            </select>
+          </div>
+
+          <!-- 🟢 Edit Member: Dynamic Tenant Fields -->
+          <div id="edit-mem-tenant-dynamic-fields" style="display: none;" class="p-3 bg-light rounded-3 border mb-3">
+            <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-gear me-1"></i> Tenant & Agreement Details</h6>
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">Tenant Name</label>
+              <input type="text" id="edit-mem-tenant-name" class="form-control form-control-sm" placeholder="किरायेदार का नाम">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">Tenant Phone</label>
+              <input type="tel" id="edit-mem-tenant-phone" class="form-control form-control-sm" placeholder="किरायेदार का मोबाइल नंबर">
+            </div>
+            <div>
+              <label class="form-label small fw-semibold">Upload Rent Agreement (PDF / Image)</label>
+              <input type="file" id="edit-mem-rent-agreement-file" class="form-control form-control-sm" accept="image/*,.pdf">
+            </div>
+          </div>
+
           <div class="mb-3"><label class="form-label fw-semibold">Monthly Rate (₹)</label><input type="number" id="edit-mem-rate" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Opening Due (₹)</label><input type="number" id="edit-mem-opening-due" class="form-control" required></div>
           <button type="submit" class="btn btn-warning w-100 fw-bold py-2">Update Member Details</button>
@@ -1473,6 +1545,33 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <div class="mb-3"><label class="form-label fw-semibold">Owner Name</label><input type="text" id="mem-name" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
+          
+          <!-- 🟢 Add Member: Tenant Rented Dropdown -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Is this flat rented? (किराए पर है?)</label>
+            <select id="mem-is-tenant" class="form-select" onchange="toggleTenantFormFields(this.value, 'add')">
+              <option value="No" selected>No (Owner Occupied)</option>
+              <option value="Yes">Yes (Rented to Tenant)</option>
+            </select>
+          </div>
+
+          <!-- 🟢 Add Member: Dynamic Tenant Fields -->
+          <div id="tenant-dynamic-fields" style="display: none;" class="p-3 bg-light rounded-3 border mb-3">
+            <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-gear me-1"></i> Tenant & Agreement Details</h6>
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">Tenant Name</label>
+              <input type="text" id="mem-tenant-name" class="form-control form-control-sm" placeholder="किरायेदार का नाम">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small fw-semibold">Tenant Phone</label>
+              <input type="tel" id="mem-tenant-phone" class="form-control form-control-sm" placeholder="किरायेदार का मोबाइल नंबर">
+            </div>
+            <div>
+              <label class="form-label small fw-semibold">Upload Rent Agreement (PDF / Image)</label>
+              <input type="file" id="mem-rent-agreement-file" class="form-control form-control-sm" accept="image/*,.pdf">
+            </div>
+          </div>
+
           <div class="mb-3"><label class="form-label fw-semibold">Monthly Rate (₹)</label><input type="number" id="mem-rate" class="form-control" value="600" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Opening Due (₹)</label><input type="number" id="mem-opening-due" class="form-control" value="0"></div>
           <div class="row g-2 mb-3">
@@ -1705,6 +1804,31 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           </select></div>
           <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Add Member</button>
         </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SOCIETY RULES EDIT MODAL ==================== -->
+<div class="modal fade" id="rulesModal" tabindex="-1" aria-labelledby="rulesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold" id="rulesModalLabel"><i class="fa-solid fa-pen-to-square me-2"></i>Edit Society Rules & Categories</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body bg-light p-4">
+        <p class="text-muted small mb-3">यहाँ आप अलग-अलग कैटेगरी के टाइटल और उनके नियम सेट कर सकते हैं। हर कैटेगरी के लिए अलग बॉक्स का इस्तेमाल करें।</p>
+        <div id="rulesEditorsContainer">
+          <!-- Dynamic Textareas यहाँ लोड होंगे -->
+        </div>
+        <button type="button" class="btn btn-outline-success btn-sm mt-3 w-100" onclick="addNewRuleCategoryField()">
+          <i class="fa-solid fa-plus me-1"></i> Add New Category Box
+        </button>
+      </div>
+      <div class="modal-footer bg-white border-0">
+        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary rounded-pill px-4" onclick="saveRulesFromModal()">Save Rules</button>
       </div>
     </div>
   </div>
