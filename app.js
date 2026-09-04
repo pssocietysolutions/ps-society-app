@@ -4111,6 +4111,7 @@ function renderGridCards() {
     { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
+    { id: 'rules', icon: 'fa-book', label: 'Society Rules', color: '#f59e0b' }, // 👈 यहाँ यह नया कार्ड जोड़ दें
     { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
