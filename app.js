@@ -4231,6 +4231,11 @@ async function openTabOverlay(tabId) {
     return;
   }
 
+  if (tabId === 'rules') {
+    actualTabId = 'tab-rules';
+    renderRules(); // 👈 यह सुनिश्चित करेगा कि ओवरले खुलते ही रूल्स रेंडर हो जाएं
+  }
+  
   if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
   }
@@ -4252,6 +4257,7 @@ async function openTabOverlay(tabId) {
   }
 
   if (tabId === 'polls') renderPolls();
+  if (tabId === 'rules') renderRules(); // 👈 यहाँ जोड़ दें
   if (tabId === 'chairman-report') generateMonthlySummary(); 
   if (tabId === 'activity-logs') fetchActivityLogs(); 
 
