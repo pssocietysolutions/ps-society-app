@@ -4231,15 +4231,11 @@ async function openTabOverlay(tabId) {
     return;
   }
 
-  if (tabId === 'rules') {
-    actualTabId = 'tab-rules';
-    renderRules(); // 👈 यह सुनिश्चित करेगा कि ओवरले खुलते ही रूल्स रेंडर हो जाएं
-  }
-  
   if (tabId === 'marketplace') {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
+let actualTabId = `tab-${tabId}`;
   if (tabId === 'master-dashboard') {
   renderSuperAdminMasterDashboard();
   }
@@ -4250,7 +4246,12 @@ async function openTabOverlay(tabId) {
 
   if (tabId === 'about') renderAboutTab();
 
-  let actualTabId = `tab-${tabId}`;
+if (tabId === 'rules') {
+    actualTabId = 'tab-rules';
+    renderRules(); // 👈 यह सुनिश्चित करेगा कि ओवरले खुलते ही रूल्स रेंडर हो जाएं
+  }
+
+  
   if (tabId === 'journal-voucher') {
     actualTabId = 'tab-journal-voucher';
     renderJournalVouchers();
