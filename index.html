@@ -308,14 +308,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <li><a href="#" onclick="openEnrollModal()">New Enroll</a></li>
     </ul>
     
-    <!-- Top Right Actions -->
+    <!-- Top Right: Download Brochure Button -->
     <div class="nav-actions" style="display: flex; gap: 10px; align-items: center;">
-      <button onclick="showVisitorPage()" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer;">
-        <i class="fa-solid fa-door-open me-1 text-warning"></i> Visitor Desk
-      </button>
-      <button onclick="showLoginPage()" style="background: linear-gradient(90deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 30px; padding: 7px 20px; font-size: 13px; font-weight: 700; cursor: pointer;">
-        <i class="fa-solid fa-right-to-bracket me-1"></i> Login
-      </button>
+      <a href="broucher.pdf" download style="background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 30px; padding: 8px 22px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
+        <i class="fa-solid fa-file-arrow-down"></i> Download Brochure
+      </a>
     </div>
   </header>
 
@@ -323,7 +320,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   <div class="container my-auto py-5" style="max-width: 1000px;">
     <div class="row align-items-center justify-content-between g-4 text-start">
       
-      <!-- Left Side Text & Download Brochure Button -->
+      <!-- Left Side Text & Visitor/Login Buttons -->
       <div class="col-lg-7 text-center text-lg-start">
         <span class="badge mb-3 px-3 py-2 rounded-pill fw-semibold" style="letter-spacing: 1px; font-size: 12px; background: rgba(234, 88, 12, 0.15); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3);">
           <i class="fa-solid fa-bolt me-1"></i> Smart Society Management Engine
@@ -335,10 +332,14 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           Simple • Transparent • Affordable. Digitalize your society's accounting, maintenance billing, member ledgers, and visitor tracking in a single click.
         </p>
         
+        <!-- Visitor Desk & Login Buttons (जैसा इमेज में नीचे दिए गए हैं) -->
         <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
-          <a href="broucher.pdf" download class="btn fw-bold px-4 py-3 rounded-pill shadow-lg d-inline-flex align-items-center gap-2" style="background: linear-gradient(135deg, #ea580c, #f59e0b); border: none; color: #fff; font-size: 15px;">
-            <i class="fa-solid fa-file-arrow-down"></i> Download Brochure
-          </a>
+          <button onclick="showVisitorPage()" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-door-open text-warning"></i> Visitor Desk
+          </button>
+          <button onclick="showLoginPage()" style="background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 40px; padding: 12px 32px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
+            <i class="fa-solid fa-right-to-bracket"></i> Login
+          </button>
         </div>
       </div>
 
