@@ -522,11 +522,18 @@ async function loadSocietySwitcher() {
   });
 }
 
-// 🟢 FIX #3: Society switch पर सारा data (primary + secondary) reload हो
+// 🟢 FIX #4: Society switch पर खुला tabOverlay बंद करें, ताकि stale data न दिखे
 function switchSociety(societyName) {
   if (!societyName || societyName === currentSociety) return;
   if (!confirm(`Switch to "${societyName}"? Data will reload.`)) return;
-  
+
+  // 🟢 खुला overlay बंद करें
+  const existingOverlay = document.getElementById('tabOverlay');
+  if (existingOverlay) existingOverlay.remove();
+  const gridOverlay = document.getElementById('mobileMenuOverlay');
+  if (gridOverlay) gridOverlay.style.display = 'none';
+  document.body.style.overflow = '';
+
   clearAllData();
   currentSociety = societyName;
   localStorage.setItem('ps_user_society', societyName);
@@ -3566,10 +3573,12 @@ function generateReceiptPDF(type, id) {
   doc.save(`${type}-${id}.pdf`);
 }
 
+// 🟢 FIX #2: Settings form overlay से save करने पर सही input पढ़ें (scope by event.target)
 async function updateSocietySettings(event) {
   event.preventDefault();
-  
-  const sigFile = document.getElementById('settings-signature-file')?.files?.[0];
+  const form = event.target;
+
+  const sigFile = form.querySelector('#settings-signature-file')?.files?.[0];
   let sigUrl = societySettings.digital_signature_url || '';
 
   if (sigFile) {
@@ -3583,16 +3592,16 @@ async function updateSocietySettings(event) {
   }
 
   const settings = {
-    society_name: document.getElementById('settings-name').value,
-    society_address: document.getElementById('settings-address').value,
-    society_phone: document.getElementById('settings-phone').value,
-    society_email: document.getElementById('settings-email').value,
-    society_pan: document.getElementById('settings-pan').value,
-    enable_late_fee: document.getElementById('settings-enable-late-fee').value,
-    late_fee_type: document.getElementById('settings-late-fee-type').value,
-    late_fee_amount: document.getElementById('settings-late-fee-amount').value,
-    enable_gst: document.getElementById('settings-enable-gst').value,
-    society_gstin: document.getElementById('settings-society-gstin').value.trim(),
+    society_name: form.querySelector('#settings-name').value,
+    society_address: form.querySelector('#settings-address').value,
+    society_phone: form.querySelector('#settings-phone').value,
+    society_email: form.querySelector('#settings-email').value,
+    society_pan: form.querySelector('#settings-pan').value,
+    enable_late_fee: form.querySelector('#settings-enable-late-fee').value,
+    late_fee_type: form.querySelector('#settings-late-fee-type').value,
+    late_fee_amount: form.querySelector('#settings-late-fee-amount').value,
+    enable_gst: form.querySelector('#settings-enable-gst').value,
+    society_gstin: form.querySelector('#settings-society-gstin').value.trim(),
     digital_signature_url: sigUrl
   };
 
@@ -4136,21 +4145,40 @@ function exportTableToExcel(tableId, filename) {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
+// 🟢 FIX #1: Grid खोलने पर history push, बंद करने पर history back
 function toggleMobileMenu() {
   const overlay = document.getElementById('mobileMenuOverlay');
+  if (!overlay) return;
+
   if (overlay.style.display === 'flex') {
     overlay.style.display = 'none';
     document.body.style.overflow = '';
+    // 🟢 Back के लिए push की गई entry pop करें
+    if (window.history.state && window.history.state.mobileMenuOpen) {
+      window.history.back();
+    }
   } else {
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     renderGridCards();
+    // 🟢 History में entry push करें ताकि back दबाने पर menu बंद हो
+    window.history.pushState({ mobileMenuOpen: true }, "", window.location.href);
   }
 }
 
-function closeMobileMenu() {
-  document.getElementById('mobileMenuOverlay').style.display = 'none';
+// 🟢 FIX #1: skipHistoryBack flag — जब overlay खोल रहे हों तो grid की history को pop न करें
+function closeMobileMenu(skipHistoryBack = false) {
+  const overlay = document.getElementById('mobileMenuOverlay');
+  if (!overlay) return;
+
+  const wasOpen = overlay.style.display === 'flex';
+  overlay.style.display = 'none';
   document.body.style.overflow = '';
+
+  // 🟢 अगर skipHistoryBack true है, तो history.back() मत करो
+  if (!skipHistoryBack && wasOpen && window.history.state && window.history.state.mobileMenuOpen) {
+    window.history.back();
+  }
 }
 
 function updateMobileHeaderInfo() {
@@ -4310,8 +4338,9 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
+// 🟢 FIX #1: Overlay खोलने पर grid की history को pop नहीं करना (skipHistoryBack=true)
 async function openTabOverlay(tabId) {
-  closeMobileMenu();
+  closeMobileMenu(true);
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
   if (tabId === 'change-password') {
@@ -4416,10 +4445,12 @@ function createTabOverlay(tabId, content) {
   return overlay;
 }
 
+// 🟢 FIX #1: Back button (UI) पर overlay हटाकर replaceState — history.pop नहीं
 function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
+
   if (window.innerWidth <= 768) {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -4427,6 +4458,11 @@ function closeTabOverlay() {
       renderGridCards();
       document.body.style.overflow = 'hidden';
     }
+  }
+
+  // 🟢 overlay state को grid state से replace करें (history.pop के बजाय, जिससे race न हो)
+  if (window.history.state && window.history.state.overlayOpen) {
+    window.history.replaceState({ mobileMenuOpen: true }, "", window.location.href);
   }
 }
 
@@ -5113,48 +5149,57 @@ function handleDeepLink() {
     }, 100);
 }
 
-window.addEventListener('pageshow', function(event) {
-    if (event.persisted) {
-        handleDeepLink();
+// 🟢 FIX #1: Popstate handler — state के हिसाब से सही view दिखाएँ (no race)
+window.addEventListener('popstate', function(event) {
+  const state = event.state || {};
+  const tabOverlay = document.getElementById('tabOverlay');
+  const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+
+  // 1. कोई भी खुला Bootstrap modal हो → बंद करें
+  document.querySelectorAll('.modal.show').forEach(modal => {
+    const modalInstance = bootstrap.Modal.getInstance(modal);
+    if (modalInstance) modalInstance.hide();
+  });
+
+  // 2. Stuck backdrop cleanup
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+
+  // 3. State = grid → tabOverlay हटाओ, grid दिखाओ
+  if (state.mobileMenuOpen) {
+    if (tabOverlay) tabOverlay.remove();
+    if (window.innerWidth <= 768 && mobileMenuOverlay) {
+      mobileMenuOverlay.style.display = 'flex';
+      renderGridCards();
+      document.body.style.overflow = 'hidden';
     }
+    return;
+  }
+
+  // 4. State = overlay → कुछ न करें (shouldn't happen on back, but safety)
+  if (state.overlayOpen) {
+    return;
+  }
+
+  // 5. State = null/app level → सब बंद करें
+  if (tabOverlay) {
+    tabOverlay.remove();
+    // अगर mobile है तो grid दिखाओ (back एक level ऊपर जाना चाहिए)
+    if (window.innerWidth <= 768 && mobileMenuOverlay) {
+      mobileMenuOverlay.style.display = 'flex';
+      renderGridCards();
+      document.body.style.overflow = 'hidden';
+    }
+    return;
+  }
+
+  if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
+    mobileMenuOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+    return;
+  }
 });
-
-window.addEventListener('load', handleDeepLink);
-
-async function resolveSOSAlert(alertId) {
-  console.log('🛑 resolveSOSAlert called with ID:', alertId);
-  
-  // 1. DB update (only if ID is valid)
-  if (alertId !== undefined && alertId !== null) {
-    try {
-      await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
-    } catch (err) {
-      console.error('Error resolving SOS in DB:', err);
-    }
-  }
-
-  // 2. Stop siren
-  if (typeof sirenAudio !== 'undefined' && sirenAudio) {
-    sirenAudio.pause();
-    sirenAudio.currentTime = 0;
-  }
-  
-  // 3. Remove banner (ALWAYS, regardless of DB result)
-  const banner = document.getElementById('sosAlertBanner');
-  if (banner) banner.remove();
-  
-  // 4. Also resolve ALL active alerts as fallback
-  if (!alertId) {
-    try {
-      await _supabase.from('sos_alerts')
-        .update({ status: 'resolved' })
-        .eq('society_name', currentSociety)
-        .eq('status', 'active');
-    } catch (e) {
-      console.log('Fallback resolve note:', e);
-    }
-  }
-}
 
 function renderCelebrations() {
   const container = document.getElementById('dashboard-celebrations-container');
