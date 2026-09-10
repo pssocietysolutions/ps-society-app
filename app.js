@@ -33,7 +33,7 @@ let allSocieties = [];
 let facilitiesData = [];
 let bookingsData = [];
 let eventsData = [];
-let societyRules = '';
+let societyRules = ''; // सोसायटी के नियम यहाँ स्टोर होंगे
 let amcContractsData = [];
 let deletionRequests = [];
 
@@ -71,11 +71,12 @@ function toggleTenantFormFields(val, mode = 'add') {
 function showLandingPage() {
   document.getElementById('landing-section').style.display = 'flex';
   document.getElementById('visitor-section').style.display = 'none';
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'none';
+  document.getElementById('login-section').style.display = 'none';
   document.getElementById('app-section').classList.add('d-none');
   updateFloatingButtonsVisibility(true);
 }
+
+// ==================== DYNAMIC AUTO LATE FEE FUNCTION ====================
 
 function showVisitorPage() {
   updateFloatingButtonsVisibility(false);
@@ -94,27 +95,11 @@ function showVisitorPage() {
 
 function showLoginPage() {
   updateFloatingButtonsVisibility(false);
-
-  const visitorSec = document.getElementById('visitor-section');
-  if (visitorSec) visitorSec.style.display = 'none';
-
-  document.querySelectorAll('.modal.show').forEach(m => {
-    const inst = bootstrap.Modal.getInstance(m);
-    if (inst) inst.hide();
-  });
-
-  const loginModalEl = document.getElementById('loginModal');
-  if (loginModalEl) {
-    const oldInstance = bootstrap.Modal.getInstance(loginModalEl);
-    if (oldInstance) oldInstance.dispose();
-
-    const modal = new bootstrap.Modal(loginModalEl, {
-      backdrop: true,
-      keyboard: true,
-      focus: true
-    });
-    modal.show();
-  }
+  document.getElementById('landing-section').style.display = 'none';
+  document.getElementById('visitor-section').style.display = 'none';
+  document.getElementById('login-section').style.display = 'flex';
+  document.getElementById('app-section').classList.add('d-none');
+  loadSocietiesForDropdown('login-society');
 }
 
 function goBackFromVisitor() {
@@ -165,112 +150,67 @@ function goBackFromVisitor() {
 }
 
 async function handleLogin(event) {
-    event.preventDefault();
+  event.preventDefault();
+  const society = document.getElementById('login-society').value;
+  if (!society) { alert('❌ Please select a Society.'); return; }
+  
+  const flatInput = document.getElementById('login-email').value.trim().toUpperCase();
+  const password = document.getElementById('login-password').value.trim();
+  const selectedRole = document.getElementById('login-role').value;
+  const email = flatInput.toLowerCase() + '@ps.in';
+  
+  try {
+    const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
     
-    // 🟢 FIX #2: हर नए login पर पुराना data पूरी तरह clear करें
-    clearAllData();
-    
-    const rawInput = document.getElementById('loginIdInput').value;
-    const inputVal = rawInput.trim().toLowerCase().replace(/\s+/g, '');
-    const password = document.getElementById('loginPassword').value.trim();
-
-    if (!inputVal.includes('_')) {
-        alert("❌ कृपया सही फॉर्मेट में आईडी दर्ज करें (जैसे: a-101_demosociety)।");
-        return;
-    }
-
-    const fullEmail = inputVal + '@ps.in';
-
-    try {
-        const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
-            email: fullEmail,
-            password: password
-        });
-        
-        if (authError || !authData.user) {
-            alert('❌ Invalid credentials! Please check your ID and Password.');
-            return;
-        }
-        
-        const { data: userData, error: userError } = await _supabase
-            .from('user_master')
-            .select('*')
-            .eq('user_id', authData.user.id)
-            .single();
-        
-        if (userError || !userData) {
-            alert('❌ User not found in system.');
-            await _supabase.auth.signOut();
-            return;
-        }
-        
-        const user = userData;
-        
-        localStorage.setItem('ps_user_logged', 'true');
-        localStorage.setItem('ps_user_role', user.role);
-        localStorage.setItem('ps_user_id', user.flat_no);
-        
-        let targetSociety = user.society_name || currentSociety;
-        localStorage.setItem('ps_user_society', targetSociety);
-        currentSociety = targetSociety.trim();
-        
-        const modalEl = document.getElementById('loginModal');
-if (modalEl) {
-  const modalInstance = bootstrap.Modal.getInstance(modalEl) 
-                        || bootstrap.Modal.getOrCreateInstance(modalEl);
-  modalInstance.hide();
-}
-
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-
-        const landingSec = document.getElementById('landing-section');
-        if (landingSec) landingSec.style.display = 'none';
-        
-        const appSec = document.getElementById('app-section');
-        if (appSec) appSec.classList.remove('d-none');
-
-        alert("✅ Login Successful!");
-        applyUserSession(user.role, user.flat_no);
-
-    } catch (err) {
-        console.error('Login error:', err);
-        alert('❌ Something went wrong.');
-    }
-}
-
-function openForgotModal() {
-    const loginModalEl = document.getElementById('loginModal');
-    const loginModalInstance = bootstrap.Modal.getInstance(loginModalEl);
-    if (loginModalInstance) loginModalInstance.hide();
-
-    const forgotEl = document.getElementById('forgotModal');
-    const forgotModal = new bootstrap.Modal(forgotEl);
-    forgotModal.show();
-}
-
-function closeForgotModal() {
-    const forgotEl = document.getElementById('forgotModal');
-    const modalInstance = bootstrap.Modal.getInstance(forgotEl);
-    if (modalInstance) modalInstance.hide();
-}
-
-function sendPasswordRequest() {
-    const society = document.getElementById('forgotSociety').value.trim();
-    const flat = document.getElementById('forgotFlat').value.trim();
-    
-    if(!society || !flat) {
-        alert("कृपया सोसायटी का नाम और फ्लैट नंबर दर्ज करें।");
-        return;
+    if (authError || !authData.user) {
+      alert('❌ Invalid credentials! Please check your Login ID and Password.');
+      return;
     }
     
-    const adminPhone = "918866376056"; 
-    const message = `Hello Admin, I forgot my password. Please reset it for Society: ${society}, Flat/ID: ${flat}.`;
+    const { data: userData, error: userError } = await _supabase
+      .from('user_master')
+      .select('*')
+      .eq('user_id', authData.user.id)
+      .single();
     
-    const whatsappURL = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappURL, '_blank');
-    closeForgotModal();
+    if (userError || !userData) {
+      alert('❌ User not found in system. Please contact admin.');
+      await _supabase.auth.signOut();
+      return;
+    }
+    
+    const user = userData;
+    if (user.role.toLowerCase() !== selectedRole.toLowerCase()) {
+      alert(`⛔ Access Denied! Your role is "${user.role}".`);
+      await _supabase.auth.signOut();
+      return;
+    }
+    
+    if (user.role !== 'Admin' && user.society_name !== society) {
+      alert(`⛔ You are not authorized for "${society}".`);
+      await _supabase.auth.signOut();
+      return;
+    }
+    
+    localStorage.setItem('ps_user_logged', 'true');
+    localStorage.setItem('ps_user_role', user.role);
+    localStorage.setItem('ps_user_id', user.flat_no);
+    
+    let targetSociety = society;
+    if (user.role !== 'Admin') {
+      targetSociety = user.society_name || society;
+    }
+    localStorage.setItem('ps_user_society', targetSociety);
+    currentSociety = targetSociety.trim();
+    
+    applyUserSession(user.role, user.flat_no);
+  } catch (err) {
+    console.error('Login error:', err);
+    alert('❌ Something went wrong. Please try again.');
+  }
 }
 
 async function submitChangePassword(event) {
@@ -302,14 +242,28 @@ async function submitChangePassword(event) {
 function applyUserSession(role, email) {
   currentRole = role;
   currentUser = email.toUpperCase();
-  loadMainApp(role);
+  checkUserConsent(currentUser, () => {
+    loadMainApp(role);
+  });
 }
 
 async function checkUserConsent(flatNo, callback) {
   try {
-    callback();
+    const cleanFlat = (flatNo || '').trim();
+    const { data, error } = await _supabase
+      .from('user_master')
+      .select('consent_given')
+      .ilike('flat_no', cleanFlat)
+      .maybeSingle();
+
+    if (error || !data || data.consent_given !== true) {
+      showConsentPopup(cleanFlat, callback);
+    } else {
+      callback();
+    }
   } catch (err) {
-    callback();
+    console.error('Consent check error:', err);
+    showConsentPopup(flatNo, callback);
   }
 }
 
@@ -319,8 +273,7 @@ function showConsentPopup(flatNo, callback) {
 
   document.getElementById('app-section').classList.add('d-none');
   document.getElementById('landing-section').style.display = 'none';
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'none';
+  document.getElementById('login-section').style.display = 'none';
   document.getElementById('visitor-section').style.display = 'none';
   updateFloatingButtonsVisibility(false);
 
@@ -389,30 +342,12 @@ async function acceptConsent(flatNo) {
 
 function loadMainApp(role) {
   document.getElementById('landing-section').style.display = 'none';
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'none';
+  document.getElementById('login-section').style.display = 'none'; 
   
+  // 🟢 URL पैरामीटर सबसे ऊपर एक बार डिक्लेयर कर दिया
   const urlParams = new URLSearchParams(window.location.search);
   const activeTab = urlParams.get('tab');
-
-  // 🟢🟢🟢 AGGRESSIVE RESET — हर बार role बदलने पर sidebar को initial state में लाएँ
-  // <li> level पर सारी inline styles हटाएँ
-  document.querySelectorAll('#sidebarMenu li').forEach(li => {
-    li.style.display = '';
-    li.classList.remove('d-none');
-  });
   
-  // <a> level पर भी सब visible करें
-  document.querySelectorAll('#sidebarMenu .nav-link').forEach(el => {
-    el.style.display = '';
-    el.classList.remove('d-none');
-    const li = el.closest('li');
-    if (li) {
-      li.style.display = '';
-      li.classList.remove('d-none');
-    }
-  });
-
   if (activeTab === 'visitor') {
     showVisitorPage();
     return;
@@ -452,8 +387,6 @@ function loadMainApp(role) {
     adminStats.classList.remove('d-none'); memberStats.classList.add('d-none');
     document.querySelectorAll('.nav-link[onclick*="manage-societies"]').forEach(el => el.closest('li').style.display = 'none');
     document.querySelectorAll('.nav-link[onclick*="settings"]').forEach(el => el.closest('li').style.display = 'none');
-    document.querySelectorAll('.nav-link[onclick*="master-dashboard"]').forEach(el => el.closest('li').style.display = 'none');
-    document.querySelectorAll('.nav-link[onclick*="deletion-requests"]').forEach(el => el.closest('li').style.display = 'none');
     if (switcher) switcher.classList.add('d-none');
   } 
   else {
@@ -471,7 +404,10 @@ function loadMainApp(role) {
   if (window.innerWidth <= 768) {
     const sidebar = document.querySelector('#sidebarMenu');
     if (sidebar) sidebar.style.display = 'none';
+    
+    // 🟢 यहाँ दोबारा 'const' नहीं लिखा, सीधे 'urlParams' का इस्तेमाल किया
     const hasTabParam = urlParams.has('tab');
+
     if (!hasTabParam) {
       toggleMobileMenu();
     }
@@ -482,6 +418,7 @@ function loadMainApp(role) {
   
   clearAllData();
   
+  // 🟢 यहाँ भी दोबारा 'const' नहीं लिखा, ऊपर वाले 'activeTab' का इस्तेमाल कर लिया
   if (activeTab === 'marketplace') {
     fetchMarketplaceData().then(() => {
       fetchSupabaseData();
@@ -503,8 +440,6 @@ function loadMainApp(role) {
 
   setTimeout(requestNotificationPermission, 2000);
   listenForSOSAlerts();
-
-  setTimeout(() => loadSecondaryData(), 500);
 }
 
 async function loadSocietySwitcher() {
@@ -522,33 +457,16 @@ async function loadSocietySwitcher() {
   });
 }
 
-// 🟢 FIX #4: Society switch पर खुला tabOverlay बंद करें, ताकि stale data न दिखे
 function switchSociety(societyName) {
   if (!societyName || societyName === currentSociety) return;
   if (!confirm(`Switch to "${societyName}"? Data will reload.`)) return;
-
-  // 🟢 खुला overlay बंद करें
-  const existingOverlay = document.getElementById('tabOverlay');
-  if (existingOverlay) existingOverlay.remove();
-  const gridOverlay = document.getElementById('mobileMenuOverlay');
-  if (gridOverlay) gridOverlay.style.display = 'none';
-  document.body.style.overflow = '';
-
-  clearAllData();
   currentSociety = societyName;
   localStorage.setItem('ps_user_society', societyName);
-  
+  clearAllData();
   fetchSupabaseData();
-  // 🟢 Society switch पर secondary data भी load करें
-  setTimeout(() => loadSecondaryData(), 500);
-  
-  const sidebarName = document.getElementById('sidebar-society-name');
-  if (sidebarName) sidebarName.innerText = societyName;
-  
+  document.getElementById('sidebar-society-name').innerText = societyName;
   const dropdown = document.getElementById('switch-society-dropdown');
   if (dropdown) dropdown.value = societyName;
-  
-  updateMobileHeaderInfo();
 }
 
 function markAllAsRead() {
@@ -572,92 +490,64 @@ function markAllAsRead() {
   updateBadge('visitor-badge', 0);
 }
 
-// 🟢 FIX #1: Logout पर सारा in-memory data clear करें
 function handleLogout() {
   markAllAsRead();
   _supabase.auth.signOut();
-  
-  // 🟢 सारा localStorage साफ़ करें
   localStorage.removeItem('ps_user_logged');
   localStorage.removeItem('ps_user_role');
   localStorage.removeItem('ps_user_id');
   localStorage.removeItem('ps_user_society');
-  
-  // 🟢 सारा in-memory data साफ़ करें
-  clearAllData();
-  
-  // 🟢 Globals reset
-  currentRole = 'Member';
-  currentUser = '';
-  currentSociety = 'Demo Society';
-  
-  // 🟢 DOM cleanup
-  const appSection = document.getElementById('app-section');
-  if (appSection) appSection.classList.add('d-none');
-  
+  document.getElementById('app-section').classList.add('d-none');
   const gridOverlay = document.getElementById('mobileMenuOverlay');
   if (gridOverlay) gridOverlay.style.display = 'none';
   
+  // 🟢 Cleanup: सभी स्टक ओवरले और मॉडल बैकड्रॉप हटाएँ
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-  document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
   document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
+  document.body.style.overflow = '';   // scroll को enable करें
   
   const tabOverlay = document.getElementById('tabOverlay');
   if (tabOverlay) tabOverlay.remove();
   
+  // अन्य overlays को भी छिपाएँ
   ['consentOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  
-  // 🟢🟢🟢 FORCE FULL RELOAD with unique URL to bypass cache
-  // Timestamp add करने से browser को पक्का reload करना पड़ेगा
-  setTimeout(() => {
-    const baseUrl = window.location.origin + window.location.pathname;
-    window.location.replace(baseUrl + '?t=' + Date.now());
-  }, 100);
+
+  showLandingPage();
 }
 
 async function fetchSupabaseData() {
   try {
-    const safeQuery = async (query) => {
-      try {
-        const result = await query;
-        return result;
-      } catch (e) {
-        console.warn('Query failed, returning empty:', e?.message || e);
-        return { data: [] };
-      }
-    };
+    await _supabase.rpc('clean_old_activity_logs');
 
+    // 🟢 यहाँ society_meetings और parking दोनों को तुरंत लोड होने वाले ग्रुप में सही से जोड़ दिया गया है
     const [
-  { data: members },
-  { data: maint },
-  { data: expenses },
-  { data: settings },
-  { data: market },
-  { data: notices },
-  { data: events },
-  { data: facilities },
-  { data: bookings },
-  { data: meets },
-  { data: parking },
-  { data: bankEntries }
-] = await Promise.all([
-  safeQuery(_supabase.from('members').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('expenses').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('society_settings').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('notices').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('events').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('facilities').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('facility_bookings').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('society_meetings').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety)),
-  safeQuery(_supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: true }))
-]);
+      { data: members },
+      { data: maint },
+      { data: expenses },
+      { data: settings },
+      { data: market },
+      { data: notices },
+      { data: events },
+      { data: facilities },
+      { data: bookings },
+      { data: meets }, // 👈 मीटिंग्स डेटा 
+      { data: parking } // 👈 पार्किंग डेटा 
+    ] = await Promise.all([
+      _supabase.from('members').select('*').eq('society_name', currentSociety),
+      _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
+      _supabase.from('expenses').select('*').eq('society_name', currentSociety),
+      _supabase.from('society_settings').select('*').eq('society_name', currentSociety),
+      _supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false }),
+      _supabase.from('notices').select('*').eq('society_name', currentSociety),
+      _supabase.from('events').select('*').eq('society_name', currentSociety).order('date', { ascending: true }),
+      _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
+      _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true }),
+      _supabase.from('society_meetings').select('*').eq('society_name', currentSociety), // 👈 फेच क्वेरी
+      _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety) // 👈 पार्किंग फेच क्वेरी
+    ]);
 
     membersData = members || [];
     maintenanceData = maint || [];
@@ -668,23 +558,25 @@ async function fetchSupabaseData() {
     facilitiesData = facilities || [];
     bookingsData = bookings || [];
     meetingsData = meets || []; 
-    parkingData = parking || [];
-    customBankEntries = bankEntries || [];
+    parkingData = parking || []; // 👈 यहाँ पार्किंग डेटा सही से असाइन होगा
     
     societySettings = {};
     if (settings) {
       settings.forEach(s => { societySettings[s.key] = s.value; });
     }
+// 🟢 यहाँ नया कोड जोड़ें:
+societyRules = societySettings.society_rules || 'आपकी सोसायटी के नियम अभी सेट नहीं किए गए हैं। कृपया Admin से संपर्क करें।';
 
-    societyRules = societySettings.society_rules || 'नियम सेट नहीं हैं।';
     openingBalance = parseFloat(societySettings.opening_bank_balance) || 0;
 
     renderAllTables();
     renderMarketplace();
-    renderMeetings();
+    renderMeetings(); // 👈 तुरंत मीटिंग्स रेंडर करें
     updateAllBadges();
     renderNoticesCommunity();
     updateMobileHeaderInfo();
+
+    loadSecondaryData();
 
   } catch (err) {
     console.error('💥 Error in fetchSupabaseData:', err);
@@ -700,7 +592,7 @@ async function loadSecondaryData() {
       { data: polls },
       { data: notices },
       { data: meets },
-      { data: parking },
+      { data: parking }, // 👈 1. यहाँ पार्किंग डेटा जोड़ें
       { data: amcs },
       { data: proofs },
       { data: jvs },
@@ -713,7 +605,7 @@ async function loadSecondaryData() {
       _supabase.from('polls').select('*').eq('society_name', currentSociety),
       _supabase.from('notices').select('*').eq('society_name', currentSociety),
       _supabase.from('society_meetings').select('*').eq('society_name', currentSociety),
-      _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety),
+      _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety), // 👈 सही क्वेरी
       _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety),
       _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety),
       _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
@@ -727,13 +619,14 @@ async function loadSecondaryData() {
     pollsData = polls || [];
     noticesData = notices || [];
     meetingsData = meets || [];
-    parkingData = parking || [];
+    parkingData = parking || []; // 👈 यहाँ असाइन होगा
     amcContractsData = amcs || [];
     paymentProofs = proofs || [];
     journalVouchersData = jvs || [];
     teamData = team || [];
     deletionRequests = delReq || [];
 
+    // डेटा आने के बाद इनकी टेबल्स और डेटा को अपडेट करें
     renderJournalVouchers();
     if (currentRole === 'Admin') renderDeletionRequests();
     renderAllTables();
@@ -796,6 +689,8 @@ async function populateNoticeMemberSelect() {
   });
 }
 
+// ==================== SOCIETY RULES (POPUP EDITOR) ====================
+
 const defaultRulesCategories = [
   { title: "📌 General & Common Rules", content: "1. प्रत्येक निवासी को सोसाइटी के सभी नियमों का पालन करना अनिवार्य रहेगा।\n2. कॉमन एरिया में कचरा न फेंके।" },
   { title: "🚗 Parking Rules", content: "1. वाहन केवल निर्धारित पार्किंग स्लॉट में ही पार्क करें।" },
@@ -812,7 +707,7 @@ function renderRules() {
     if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
       editBtn.style.display = 'inline-block';
     } else {
-      editBtn.style.display = 'none';
+      editBtn.style.display = 'none'; // Member केवल देख सकता है
     }
   }
 
@@ -869,6 +764,7 @@ function openRulesEditor() {
     appendRuleCategoryRow(cat.title, cat.content, index);
   });
 
+  // Bootstrap Modal खोलें
   const myModal = new bootstrap.Modal(document.getElementById('rulesModal'));
   myModal.show();
 }
@@ -935,6 +831,7 @@ async function saveRulesFromModal() {
     societySettings.society_rules = rulesJsonString;
     alert('✅ Rules Successfully Updated!');
 
+    // Modal बंद करें
     const modalEl = document.getElementById('rulesModal');
     const modalInstance = bootstrap.Modal.getInstance(modalEl);
     if (modalInstance) modalInstance.hide();
@@ -1047,7 +944,7 @@ async function submitVisitor(event) {
   const society = document.getElementById('visitor-society').value;
   const name = document.getElementById('visitor-name').value.trim();
   const mobile = document.getElementById('visitor-mobile').value.trim();
-  const vehicleNumber = document.getElementById('visitor-vehicle').value.trim().toUpperCase();
+  const vehicleNumber = document.getElementById('visitor-vehicle').value.trim().toUpperCase(); // 🟢 गाड़ी नंबर यहाँ से मिलेगा
   const flat = document.getElementById('visitor-flat').value;
   const category = document.getElementById('visitor-category').value;
   const purpose = document.getElementById('visitor-purpose').value.trim();
@@ -1062,7 +959,7 @@ async function submitVisitor(event) {
     visit_date: now.toISOString().split('T')[0], 
     name, 
     mobile, 
-    vehicle_number: vehicleNumber || 'N/A',
+    vehicle_number: vehicleNumber || 'N/A', // 🟢 डेटाबेस में सेव होगा
     flat_no: flat, 
     category, 
     purpose: purpose || '', 
@@ -1152,6 +1049,7 @@ function renderParking() {
   const approvedList = parkingData.filter(p => p.status === 'Approved');
   const pendingList = parkingData.filter(p => p.status === 'Pending');
 
+  // 1. Approved List Render
   if (approvedList.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No approved vehicles registered yet.</td></tr>`;
   } else {
@@ -1171,6 +1069,7 @@ function renderParking() {
     `).join('');
   }
 
+  // 2. Pending List Render (For Admin/Chairman)
   if (pendingSection && pendingTbody) {
     if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
       pendingSection.classList.remove('d-none');
@@ -1196,6 +1095,7 @@ function renderParking() {
     }
   }
 
+  // Update Badge
   const pendingCount = pendingList.length;
   updateBadge('parking-badge', pendingCount > 0 ? pendingCount : 0);
 }
@@ -1255,6 +1155,7 @@ async function submitParkingVehicle(event) {
   fetchSupabaseData();
 }
 
+// 🟢 30 सेकंड ऑटो-अप्रूवल चेक करने का लूप या फंक्शन
 async function checkAndAutoApproveVisitors() {
   if (!currentSociety) return;
   const { data: pendingVisitors } = await _supabase
@@ -1268,6 +1169,7 @@ async function checkAndAutoApproveVisitors() {
   const now = new Date().getTime();
   for (const v of pendingVisitors) {
     const createdAt = new Date(v.created_at || v.visit_date).getTime();
+    // यदि 30 सेकंड (30000 मिलीसेकंड) से ज्यादा हो गए हैं
     if (now - createdAt > 30000) {
       await _supabase.from('visitors').update({ status: 'APPROVED' }).eq('id', v.id);
       loadTodayVisitors();
@@ -1275,6 +1177,7 @@ async function checkAndAutoApproveVisitors() {
   }
 }
 
+// हर 5 सेकंड में ऑटो-अप्रूवल चेक करें
 setInterval(checkAndAutoApproveVisitors, 5000);
 
 async function approveParking(id, status) {
@@ -1437,6 +1340,7 @@ function renderSOSContacts() {
   `).join('');
 }
 
+// ==================== FIREBASE PUSH NOTIFICATION SETUP ====================
 const firebaseConfig = {
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
   authDomain: "ps-society-solutions.firebaseapp.com",
@@ -1555,7 +1459,7 @@ function renderPaymentProofs() {
             <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${p.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
             <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
           ` : '<span class="text-muted">-</span>'}
-          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') && memberPhone ? `
+          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone ? `
             <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>
           ` : ''}
         </td>
@@ -1648,6 +1552,7 @@ async function submitPaymentDetails(event) {
   fetchSupabaseData();
 }
 
+// ==================== MEMBER CENTRAL VIEW & LEDGER ====================
 function renderMemberPersonalView() {
   if (currentRole !== 'Member') return;
   const userFlat = (currentUser || '').trim().toUpperCase();
@@ -1768,6 +1673,7 @@ function renderMemberPersonalView() {
     </tr>
   `).join('');
 
+  // 🟢 यहीं के यहीं पेमेंट हिस्ट्री वाला फंक्शन भी कॉल कर दिया गया है
   renderMyPaymentHistory();
 }
 
@@ -1787,12 +1693,7 @@ function renderTallyBankBook() {
     totalMoneyOut += amt;
     bankEntries.push({ date: e.expense_date || '2026-05-01', ref: e.voucher_no || 'VOU-001', head: `${e.category} - ${e.paid_to}`, type: 'Payment Voucher', deposit: 0, withdraw: amt, source: 'expense', id: e.id });
   });
-  customBankEntries.forEach(cb => { 
-  cb.source = 'custom'; 
-  bankEntries.push(cb); 
-  totalMoneyIn += Number(cb.deposit || 0); 
-  totalMoneyOut += Number(cb.withdraw || 0); 
-});
+  customBankEntries.forEach(cb => { bankEntries.push(cb); totalMoneyIn += cb.deposit; totalMoneyOut += cb.withdraw; });
   bankEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
   tbody.innerHTML = bankEntries.map((entry, idx) => {
     if (entry.ref !== 'OPENING-BAL') runningBalance += (entry.deposit - entry.withdraw);
@@ -1807,7 +1708,7 @@ function renderTallyBankBook() {
         <td class="text-danger fw-bold">${entry.withdraw > 0 ? entry.withdraw : '-'}</td>
         <td class="fw-bold text-primary">${runningBalance.toFixed(2)}</td>
         <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
-          ${entry.source ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteBankEntry('${entry.source}', ${entry.id})"><i class="fa-solid fa-trash"></i></button>` : '-'}
+          ${isDeletable ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteBankEntry(${idx})"><i class="fa-solid fa-trash"></i></button>` : '-'}
         </td>
       </tr>
     `;
@@ -1818,18 +1719,17 @@ function renderTallyBankBook() {
   document.getElementById('tally-opening-balance').innerText = openingBalance.toFixed(2);
 }
 
-async function deleteBankEntry(source, id) {
+async function deleteBankEntry(index) {
   if (!confirm('⚠️ Delete this entry permanently?')) return;
-  
-  if (source === 'maintenance') {
-    await deleteMaintenance(id);
-  } else if (source === 'expense') {
-    await deleteExpense(id);
-  } else if (source === 'custom') {
-    const { error } = await _supabase.from('bank_entries').delete().eq('id', id);
-    if (error) { alert('❌ Error: ' + error.message); return; }
-    fetchSupabaseData();
-  }
+  let bankEntries = [{ ref: 'OPENING-BAL', source: null, id: null }];
+  maintenanceData.forEach(r => { bankEntries.push({ ref: r.receipt_no || 'REC-001', source: 'maintenance', id: r.id }); });
+  expenseData.forEach(e => { bankEntries.push({ ref: e.voucher_no || 'VOU-001', source: 'expense', id: e.id }); });
+  customBankEntries.forEach(cb => { bankEntries.push({ ref: cb.ref, source: 'custom', id: null }); });
+  const entry = bankEntries[index];
+  if (!entry) return;
+  if (entry.source === 'maintenance') { await deleteMaintenance(entry.id); } 
+  else if (entry.source === 'expense') { await deleteExpense(entry.id); } 
+  else if (entry.source === 'custom') { const cIdx = customBankEntries.findIndex(cb => cb.ref === entry.ref); if (cIdx !== -1) { customBankEntries.splice(cIdx, 1); renderAllTables(); } }
 }
 
 function switchTab(tabId, element) {
@@ -1844,9 +1744,9 @@ function switchTab(tabId, element) {
     renderAboutTab();
   }
 
-  if (tabId === 'rules') {
-    renderRules();
-  }
+if (tabId === 'rules') {
+  renderRules();
+}
 
   if (tabId === 'visitor') {
     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
@@ -1878,7 +1778,7 @@ function switchTab(tabId, element) {
   }
 
   if (tabId === 'master-dashboard') {
-    renderSuperAdminMasterDashboard();
+  renderSuperAdminMasterDashboard();
   }
 
   if (tabId === 'bank-reconciliation') {
@@ -1954,10 +1854,6 @@ function switchTab(tabId, element) {
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
   if (tabId === 'sos-contacts') renderSOSContacts();
-
-  if (tabId === 'settings') {
-    loadSettingsToForm();
-  }
 }
 
 async function submitMeetingMinutes(event) {
@@ -1994,7 +1890,6 @@ async function submitMeetingMinutes(event) {
 }
 
 function renderAllTables() {
-  renderCelebrations();
   renderMembers();
   renderMaintenance();
   renderExpenses();
@@ -2015,7 +1910,7 @@ function renderAllTables() {
   renderSOSContacts();
   renderDeletionRequests();
   renderPaymentProofs();
-  renderTenantAgreementWarnings();
+  renderTenantAgreementWarnings(); // 👈 यहाँ यह नया फंक्शन जोड़ दें
   if (document.getElementById('tab-community') && !document.getElementById('tab-community').classList.contains('d-none')) {
     renderCommunity();
   }
@@ -2049,64 +1944,6 @@ function exportMonthlySummaryPDF() {
     }
   });
   doc.save(`Monthly_Summary_${month}.pdf`);
-}
-
-function exportCAAuditExcel() {
-  exportTableToExcel('ca-gst-summary-table', 'CA_Audit_GST_Summary');
-}
-
-function exportCAAuditPDF() {
-  if (typeof window.jspdf === 'undefined') return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const societyName = societySettings.society_name || currentSociety;
-  
-  doc.setFontSize(16);
-  doc.text(societyName, 105, 15, { align: 'center' });
-  doc.setFontSize(12);
-  doc.text('CA Audit Report — GST Summary', 105, 23, { align: 'center' });
-  doc.setFontSize(10);
-  doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 105, 29, { align: 'center' });
-  
-  doc.autoTable({
-    html: '#ca-gst-summary-table',
-    startY: 35,
-    theme: 'grid',
-    didParseCell: function(data) {
-      if (data.section === 'body') {
-        data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim());
-      }
-    }
-  });
-  doc.save(`CA_Audit_${currentSociety}_${Date.now()}.pdf`);
-}
-
-// 🟢 FIX #7: Overlay के अंदर वाले inputs भी भरें (querySelectorAll use करके)
-function loadSettingsToForm() {
-  const s = societySettings || {};
-  
-  const setVal = (id, val) => {
-    document.querySelectorAll(`#${id}`).forEach(el => {
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
-        el.value = val;
-      }
-    });
-  };
-  
-  setVal('settings-name', s.society_name || currentSociety || '');
-  setVal('settings-phone', s.society_phone || '');
-  setVal('settings-address', s.society_address || '');
-  setVal('settings-email', s.society_email || '');
-  setVal('settings-pan', s.society_pan || '');
-  setVal('settings-enable-late-fee', s.enable_late_fee || 'false');
-  setVal('settings-late-fee-type', s.late_fee_type || 'fixed');
-  setVal('settings-late-fee-amount', s.late_fee_amount || '');
-  setVal('settings-enable-gst', s.enable_gst || 'false');
-  setVal('settings-society-gstin', s.society_gstin || '');
-  
-  if (typeof toggleGSTFields === 'function') {
-    toggleGSTFields(s.enable_gst || 'false');
-  }
 }
 
 function renderCommunity() {
@@ -2153,16 +1990,21 @@ function renderNoticesCommunity() {
     return;
   }
 
+  // 🟢 सुरक्षित फ़िल्टरिंग लॉजिक
   const visibleNotices = noticesData.filter(n => {
+    // अगर यूजर Admin, Chairman, या SocietyAdmin है, तो उसे सारे नोटिस दिखेंगे
     if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') return true;
     
+    // अगर target_members खाली है या 'all' है, तो यह सबके लिए है
     if (!n.target_members || n.target_members.length === 0) return true;
     
+    // यदि target_members एक स्ट्रिंग है (कभी-कभी डेटाबेस में JSON स्ट्रिंग आ जाती है), तो उसे एरे बनाएं
     let targets = n.target_members;
     if (typeof targets === 'string') {
       try { targets = JSON.parse(targets); } catch (e) { targets = []; }
     }
 
+    // अगर टारगेट एरे में वर्तमान यूजर (या फ्लैट नंबर) शामिल है
     if (Array.isArray(targets) && targets.length > 0) {
       return targets.map(t => t.toUpperCase()).includes((currentUser || '').toUpperCase());
     }
@@ -2178,6 +2020,7 @@ function renderNoticesCommunity() {
   container.innerHTML = visibleNotices.map(n => {
     const priorityColor = n.priority === 'High' ? 'danger' : (n.priority === 'Medium' ? 'warning' : 'secondary');
     
+    // टारगेट्ज़ को सेफली दिखाने के लिए
     let targets = n.target_members;
     if (typeof targets === 'string') {
       try { targets = JSON.parse(targets); } catch (e) { targets = []; }
@@ -2210,12 +2053,14 @@ function renderNoticesCommunity() {
   }).join('');
 }
 
+// ==================== SUPER-ADMIN MASTER DASHBOARD LOGIC ====================
 async function renderSuperAdminMasterDashboard() {
   if (currentRole !== 'Admin') {
     alert('⛔ Access Denied! Only Admin can view Master Dashboard.');
     return;
   }
   
+  // 🟢 डेस्कटॉप और मोबाइल दोनों के कंटेनर्स को टारगेट करें
   const container = document.getElementById('super-admin-master-container');
   if (!container) return;
 
@@ -2332,6 +2177,7 @@ async function renderSuperAdminMasterDashboard() {
       </div>
     `;
 
+    // 🟢 दोनों जगह (डैशबोर्ड टैब और मोबाइल ओवरले के अंदर अगर खुला हो) पर डेटा रेंडर करें
     document.querySelectorAll('#super-admin-master-container').forEach(el => {
       el.innerHTML = htmlContent;
     });
@@ -2414,8 +2260,9 @@ async function logActivity(actionType, details) {
   }
 }
 
-// 🟢 FIX #6: Only Admin and SocietyAdmin can view logs
+// In app.js
 async function fetchActivityLogs() {
+  // Allow Admin, SocietyAdmin, and Chairman to view logs
   const { data, error } = await _supabase
     .from('activity_logs')
     .select('*')
@@ -2431,7 +2278,7 @@ async function fetchActivityLogs() {
 
 function renderActivityLogs() {
   const tbody = document.getElementById('activity-logs-list');
-  if (!tbody) return;
+  if (!tbody) return;   // ✅ सिर्फ tbody की check रखें
   if (activityLogs.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No activity logs recorded yet.</td></tr>`;
     return;
@@ -2817,7 +2664,9 @@ function renderExpenses() {
   document.getElementById('dash-expenses').innerText = total;
 }
 
+// 🟢 CA Audit & GST Summary Report Generator
 async function renderCAAuditReport() {
+  // 🟢 1. सबसे पहले एडवांस लायबिलिटी की गणना करें
   let totalAdvanceLiability = 0;
   membersData.forEach(m => {
     const flatNo = (m.flat_no || '').trim().toUpperCase();
@@ -2858,14 +2707,17 @@ async function renderCAAuditReport() {
     `;
   }
 
+ // 🟢 Fetch & Render GST Invoices Summary for CA (Only if GST is Enabled)
   const gstTbody = document.getElementById('ca-gst-summary-rows');
-  const gstCardContainer = gstTbody?.closest('.card');
+  const gstCardContainer = gstTbody?.closest('.card'); // GST वाली पूरी कार्ड बॉक्स
 
   const isGstOn = societySettings.enable_gst === true || societySettings.enable_gst === 'true';
 
   if (!isGstOn) {
+    // अगर GST ऑफ है, तो नीचे वाली GST टेबल/कार्ड को छिपा दें
     if (gstCardContainer) gstCardContainer.style.display = 'none';
   } else {
+    // अगर GST ऑन है, तो टेबल दिखाएं और डेटा लोड करें
     if (gstCardContainer) gstCardContainer.style.display = 'block';
     
     try {
@@ -2920,7 +2772,8 @@ async function renderCAAuditReport() {
       console.error('Error loading CA GST summary:', err);
     }
   }
-}
+} // 👈 यह ब्रैकेट renderCAAuditReport() को पूरी तरह बंद करता है
+
 
 function renderChairmanReport() {
   generateMonthlySummary();
@@ -2949,6 +2802,7 @@ function renderAssets() {
   `).join('');
 }
 
+
 function renderFDs() {
   const tbody = document.getElementById('fds-list');
   if (!tbody) return;
@@ -2971,6 +2825,7 @@ function renderFDs() {
   `).join('');
 }
 
+// 🟢 सुधरा हुआ और सुरक्षित फंक्शन (डेटा न होने पर सीधे Supabase से फ्लैट्स लोड करेगा)
 async function populateComplaintFlatDropdown() {
   const select = document.getElementById('cmp-flat');
   if (!select) return;
@@ -2983,6 +2838,7 @@ async function populateComplaintFlatDropdown() {
     return;
   }
 
+  // अगर membersData खाली है, तो तुरंत डेटाबेस से फेच करें
   if (!membersData || membersData.length === 0) {
     const { data } = await _supabase
       .from('members')
@@ -3039,6 +2895,7 @@ function renderComplaints() {
   }).join('');
 }
 
+// 🟢 Complaint Modal खुलते ही फ्लैट्स की लिस्ट लोड करने का फंक्शन
 function openComplaintModal() {
   populateComplaintFlatDropdown();
   const modalEl = document.getElementById('complaintModal');
@@ -3137,9 +2994,10 @@ async function updateMember(event) {
 }
 
 function renderTenantAgreementWarnings() {
-  const containers = document.querySelectorAll('[id^="tenant-warning-banner-container"]');
+  const containers = document.querySelectorAll('#tenant-warning-banner-container');
   if (containers.length === 0) return;
 
+  // 🟢 चेक करें कि किस टेनेंट का एग्रीमेंट पेंडिंग है
   const pendingAgreements = membersData.filter(m => 
     (m.is_tenant === 'Yes' || m.status === 'Tenant') && 
     (!m.rent_agreement_url || m.rent_agreement_url.trim() === '')
@@ -3169,6 +3027,7 @@ function renderTenantAgreementWarnings() {
     }
   }
 
+  // 🟢 सभी कंटेनर्स में एक साथ रेंडर करें
   containers.forEach(container => {
     container.innerHTML = htmlContent;
   });
@@ -3287,6 +3146,39 @@ function openAdminMemberLedger(flatNo) {
   new bootstrap.Modal(document.getElementById('adminMemberLedgerModal')).show();
 }
 
+async function submitMeetingMinutes(event) {
+  event.preventDefault();
+  const title = document.getElementById('meet-title').value.trim();
+  const date = document.getElementById('meet-date').value;
+  const type = document.getElementById('meet-type').value;
+  const venue = document.getElementById('meet-venue').value.trim();
+  const attendees = document.getElementById('meet-attendees').value.trim();
+  const content = document.getElementById('meet-content').value.trim();
+
+  const newMeeting = {
+    society_name: currentSociety,
+    meeting_title: title,
+    meeting_date: date,
+    meeting_type: type,
+    venue: venue || 'Society Clubhouse',
+    attendees: attendees || 'All Members',
+    minutes_content: content,
+    created_by: currentUser,
+    created_at: new Date().toISOString()
+  };
+
+  const { error } = await _supabase.from('society_meetings').insert([newMeeting]);
+  if (error) {
+    alert('❌ Error saving meeting: ' + error.message);
+    return;
+  }
+
+  alert('✅ Meeting Minutes Recorded Successfully!');
+  bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
+  document.getElementById('meetingForm').reset();
+  fetchSupabaseData();
+}
+
 function renderMeetings() {
   const container = document.getElementById('meetings-container');
   if (!container) return;
@@ -3371,6 +3263,7 @@ function renderBankReconciliation() {
 
   document.getElementById('brs-software-balance').innerText = `₹${softwareBalance.toFixed(2)}`;
 
+  // ✅ सिर्फ़ Chairman को disable करें
   const balanceInput = document.getElementById('actual-bank-balance-input');
   if (balanceInput) {
     balanceInput.disabled = (currentRole === 'Chairman');
@@ -3573,12 +3466,11 @@ function generateReceiptPDF(type, id) {
   doc.save(`${type}-${id}.pdf`);
 }
 
-// 🟢 FIX #2: Settings form overlay से save करने पर सही input पढ़ें (scope by event.target)
+// 🟢 Single, Unified & Safe Society Settings Update
 async function updateSocietySettings(event) {
   event.preventDefault();
-  const form = event.target;
-
-  const sigFile = form.querySelector('#settings-signature-file')?.files?.[0];
+  
+  const sigFile = document.getElementById('settings-signature-file')?.files?.[0];
   let sigUrl = societySettings.digital_signature_url || '';
 
   if (sigFile) {
@@ -3592,16 +3484,16 @@ async function updateSocietySettings(event) {
   }
 
   const settings = {
-    society_name: form.querySelector('#settings-name').value,
-    society_address: form.querySelector('#settings-address').value,
-    society_phone: form.querySelector('#settings-phone').value,
-    society_email: form.querySelector('#settings-email').value,
-    society_pan: form.querySelector('#settings-pan').value,
-    enable_late_fee: form.querySelector('#settings-enable-late-fee').value,
-    late_fee_type: form.querySelector('#settings-late-fee-type').value,
-    late_fee_amount: form.querySelector('#settings-late-fee-amount').value,
-    enable_gst: form.querySelector('#settings-enable-gst').value,
-    society_gstin: form.querySelector('#settings-society-gstin').value.trim(),
+    society_name: document.getElementById('settings-name').value,
+    society_address: document.getElementById('settings-address').value,
+    society_phone: document.getElementById('settings-phone').value,
+    society_email: document.getElementById('settings-email').value,
+    society_pan: document.getElementById('settings-pan').value,
+    enable_late_fee: document.getElementById('settings-enable-late-fee').value,
+    late_fee_type: document.getElementById('settings-late-fee-type').value,
+    late_fee_amount: document.getElementById('settings-late-fee-amount').value,
+    enable_gst: document.getElementById('settings-enable-gst').value, // 👈 अब यह सुरक्षित रूप से सेव होगा
+    society_gstin: document.getElementById('settings-society-gstin').value.trim(), // 👈 GSTIN सुरक्षित रहेगा
     digital_signature_url: sigUrl
   };
 
@@ -3613,24 +3505,29 @@ async function updateSocietySettings(event) {
   fetchSupabaseData();
 }
 
+// 🟢 Toggle GST Input Box based on Dropdown
 function toggleGSTFields(val) {
-  document.querySelectorAll('#gstin-input-container').forEach(container => {
+  const container = document.getElementById('gstin-input-container');
+  if (container) {
     container.style.display = val === 'true' ? 'block' : 'none';
-  });
+  }
 }
 
+// 🟢 Load GST Settings into UI
 function loadGSTSettingsToUI() {
   const isGstEnabled = societySettings.enable_gst || 'false';
-  document.querySelectorAll('#settings-enable-gst').forEach(el => {
-    el.value = isGstEnabled;
-  });
-  toggleGSTFields(isGstEnabled);
-  
-  document.querySelectorAll('#settings-society-gstin').forEach(el => {
-    el.value = societySettings.society_gstin || '';
-  });
+  const gstinField = document.getElementById('settings-enable-gst');
+  if (gstinField) {
+    gstinField.value = isGstEnabled;
+    toggleGSTFields(isGstEnabled);
+  }
+  const gstinInput = document.getElementById('settings-society-gstin');
+  if (gstinInput) {
+    gstinInput.value = societySettings.society_gstin || '';
+  }
 }
 
+// 🟢 Smart GST-Aware Invoice & Receipt Generator (Fixed & Clean)
 async function generateTaxInvoicePDF(receiptId) {
   if (typeof window.jspdf === 'undefined') return;
   const data = maintenanceData.find(r => r.id === receiptId);
@@ -3667,6 +3564,7 @@ async function generateTaxInvoicePDF(receiptId) {
   ];
 
   if (isGstOn) {
+    // Inclusive GST Calculation (₹2000 के अंदर ही 18% GST शामिल है)
     baseAmount = totalPaid / 1.18; 
     const totalTax = totalPaid - baseAmount;
     cgst = totalTax / 2;
@@ -3680,6 +3578,7 @@ async function generateTaxInvoicePDF(receiptId) {
       ['Total Invoice Amount (Incl. GST)', `Rs. ${finalTotal.toFixed(2)}`]
     );
 
+    // 🟢 डेटाबेस की `society_invoices` टेबल में रिकॉर्ड सिंक करना
     try {
       await _supabase.from('society_invoices').upsert([{
         society_name: currentSociety,
@@ -3712,6 +3611,7 @@ async function generateTaxInvoicePDF(receiptId) {
     theme: 'grid'
   });
 
+  // 🟢 डिजिटल सिग्नेचर इमेज जोड़ने का सुरक्षित कोड (Base64 conversion)
   if (societySettings.digital_signature_url) {
     try {
       const imgResponse = await fetch(societySettings.digital_signature_url);
@@ -3736,6 +3636,7 @@ async function generateTaxInvoicePDF(receiptId) {
 
   doc.save(`${isGstOn ? 'Tax_Invoice' : 'Receipt'}_${data.flat_no}_${data.receipt_no || 'REC'}.pdf`);
 }
+
 
 function generateMonthlySummary() {
   let monthInput = document.querySelector('#tabOverlay #summary-month-picker') || document.getElementById('summary-month-picker');
@@ -3847,6 +3748,7 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
     </tr>
   `;
 
+  // 🟢 यहाँ हमने .querySelectorAll का इस्तेमाल किया है ताकि मोबाइल और डेस्कटॉप दोनों जगह की टेबल एक साथ अपडेट हो जाएं
   const tbodies = document.querySelectorAll('#monthly-summary-rows');
   tbodies.forEach(tbody => {
     tbody.innerHTML = html;
@@ -4035,28 +3937,20 @@ async function submitExpense(event) {
   fetchSupabaseData();
 }
 
-async function submitBankEntry(event) {
+function submitBankEntry(event) {
   event.preventDefault();
   const type = document.getElementById('bank-form-type').value;
   const amt = Number(document.getElementById('bank-form-amount').value);
-  
-  const newEntry = {
-    society_name: currentSociety,
+  customBankEntries.push({
     date: document.getElementById('bank-form-date').value,
     ref: document.getElementById('bank-form-ref').value,
     head: document.getElementById('bank-form-head').value,
     type: type === 'deposit' ? 'Bank Deposit' : 'Withdrawal',
     deposit: type === 'deposit' ? amt : 0,
     withdraw: type === 'withdraw' ? amt : 0
-  };
-  
-  const { error } = await _supabase.from('bank_entries').insert([newEntry]);
-  if (error) { alert('❌ Error: ' + error.message); return; }
-  
-  alert('✅ Bank entry saved permanently!');
+  });
+  renderAllTables();
   bootstrap.Modal.getInstance(document.getElementById('bankModal')).hide();
-  document.getElementById('bankModal').querySelector('form').reset();
-  fetchSupabaseData();
 }
 
 function openEnrollModal() {
@@ -4145,40 +4039,21 @@ function exportTableToExcel(tableId, filename) {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
-// 🟢 FIX #1: Grid खोलने पर history push, बंद करने पर history back
 function toggleMobileMenu() {
   const overlay = document.getElementById('mobileMenuOverlay');
-  if (!overlay) return;
-
   if (overlay.style.display === 'flex') {
     overlay.style.display = 'none';
     document.body.style.overflow = '';
-    // 🟢 Back के लिए push की गई entry pop करें
-    if (window.history.state && window.history.state.mobileMenuOpen) {
-      window.history.back();
-    }
   } else {
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     renderGridCards();
-    // 🟢 History में entry push करें ताकि back दबाने पर menu बंद हो
-    window.history.pushState({ mobileMenuOpen: true }, "", window.location.href);
   }
 }
 
-// 🟢 FIX #1: skipHistoryBack flag — जब overlay खोल रहे हों तो grid की history को pop न करें
-function closeMobileMenu(skipHistoryBack = false) {
-  const overlay = document.getElementById('mobileMenuOverlay');
-  if (!overlay) return;
-
-  const wasOpen = overlay.style.display === 'flex';
-  overlay.style.display = 'none';
+function closeMobileMenu() {
+  document.getElementById('mobileMenuOverlay').style.display = 'none';
   document.body.style.overflow = '';
-
-  // 🟢 अगर skipHistoryBack true है, तो history.back() मत करो
-  if (!skipHistoryBack && wasOpen && window.history.state && window.history.state.mobileMenuOpen) {
-    window.history.back();
-  }
 }
 
 function updateMobileHeaderInfo() {
@@ -4236,31 +4111,15 @@ function renderGridCards() {
     { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
     { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
-    { id: 'rules', icon: 'fa-book', label: 'Society Rules', color: '#f59e0b' },
-    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' },
-    { id: 'change-password', icon: 'fa-key', label: 'Change Password', color: '#f59e0b' }
+    { id: 'rules', icon: 'fa-book', label: 'Society Rules', color: '#f59e0b' }, // 👈 यहाँ यह नया कार्ड जोड़ दें
+    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' }
   ];
 
   if (role === 'Member') {
-    const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'rules', 'about', 'team', 'change-password'];
+    const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'rules', 'about', 'team'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
-  } else if (role === 'Chairman') {
-    allCards = allCards.filter(c => 
-      c.id !== 'settings' && 
-      c.id !== 'manage-societies' && 
-      c.id !== 'deletion-requests' &&
-      c.id !== 'master-dashboard' &&
-      c.id !== 'activity-logs' &&
-      c.id !== 'proofs'
-    );
-  } else if (role === 'SocietyAdmin') {
-    // 🟢 FIX #4: SocietyAdmin से master-dashboard और deletion-requests भी हटाए
-    allCards = allCards.filter(c => 
-      c.id !== 'settings' && 
-      c.id !== 'manage-societies' &&
-      c.id !== 'master-dashboard' &&
-      c.id !== 'deletion-requests'
-    );
+  } else if (role === 'Chairman' || role === 'SocietyAdmin') {
+    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests');
   }
 
   allCards.sort((a, b) => {
@@ -4338,25 +4197,20 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
-// 🟢 FIX #1: Overlay खोलने पर grid की history को pop नहीं करना (skipHistoryBack=true)
 async function openTabOverlay(tabId) {
-  closeMobileMenu(true);
+  closeMobileMenu();
   if (tabId === 'visitor') { showVisitorPage(); return; }
-
-  if (tabId === 'change-password') {
-    const modalEl = document.getElementById('changePasswordModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
-    return;
-  }
 
   if (tabId === 'terms' || tabId === 'privacy') {
     tabId = 'about'; 
   }
 
+  // 🟢 कम्युनिटी टैब क्लिक होते ही तुरंत ओवरले खोलें और बैकग्राउंड में डेटा लोड करें ताकि व्हाइट स्क्रीन न आए
   if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
     tabId = 'community';
     markCommunityRead();
     
+    // पहले तुरंत ओवरले दिखाएं ताकि यूजर को झटके से व्हाइट स्क्रीन न दिखे
     let actualTabId = 'tab-community';
     const target = document.getElementById(actualTabId);
     if (target) {
@@ -4366,6 +4220,7 @@ async function openTabOverlay(tabId) {
       window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
     }
 
+    // अब बैकग्राउंड में डेटा लाकर रेंडर करें
     Promise.all([
       fetchEvents(),
       fetchFacilityData(),
@@ -4380,9 +4235,9 @@ async function openTabOverlay(tabId) {
     fetchMarketplaceData().then(renderMarketplace);
   }
 
-  let actualTabId = `tab-${tabId}`;
+let actualTabId = `tab-${tabId}`;
   if (tabId === 'master-dashboard') {
-    renderSuperAdminMasterDashboard();
+  renderSuperAdminMasterDashboard();
   }
 
   if (tabId === 'bank-reconciliation') {
@@ -4391,17 +4246,19 @@ async function openTabOverlay(tabId) {
 
   if (tabId === 'about') renderAboutTab();
 
-  if (tabId === 'rules') {
+if (tabId === 'rules') {
     actualTabId = 'tab-rules';
-    renderRules();
+    renderRules(); // 👈 यह सुनिश्चित करेगा कि ओवरले खुलते ही रूल्स रेंडर हो जाएं
   }
 
+  
   if (tabId === 'journal-voucher') {
     actualTabId = 'tab-journal-voucher';
     renderJournalVouchers();
   }
 
   if (tabId === 'polls') renderPolls();
+  if (tabId === 'rules') renderRules(); // 👈 यहाँ जोड़ दें
   if (tabId === 'chairman-report') generateMonthlySummary(); 
   if (tabId === 'activity-logs') fetchActivityLogs(); 
 
@@ -4419,11 +4276,6 @@ async function openTabOverlay(tabId) {
   const finalOverlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(finalOverlay);
   document.body.style.overflow = 'hidden';
-
-  // 🟢 FIX #7: Overlay DOM में आने के बाद Settings form fill करें
-  if (tabId === 'settings') {
-    loadSettingsToForm();
-  }
 
   window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
 }
@@ -4445,12 +4297,10 @@ function createTabOverlay(tabId, content) {
   return overlay;
 }
 
-// 🟢 FIX #1: Back button (UI) पर overlay हटाकर replaceState — history.pop नहीं
 function closeTabOverlay() {
   const overlay = document.getElementById('tabOverlay');
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
-
   if (window.innerWidth <= 768) {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -4458,11 +4308,6 @@ function closeTabOverlay() {
       renderGridCards();
       document.body.style.overflow = 'hidden';
     }
-  }
-
-  // 🟢 overlay state को grid state से replace करें (history.pop के बजाय, जिससे race न हो)
-  if (window.history.state && window.history.state.overlayOpen) {
-    window.history.replaceState({ mobileMenuOpen: true }, "", window.location.href);
   }
 }
 
@@ -4586,6 +4431,7 @@ function renderAboutTab() {
     body.innerHTML = `
       <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left; line-height: 1.7;">
         
+        <!-- 1. About / Main Branding Section -->
         <div class="text-center mb-4 pb-3 border-bottom">
           <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> Society Solutions</h3>
           <p class="text-primary fw-semibold small mb-0">Smart Society Management Engine • Simple • Transparent • Affordable</p>
@@ -4635,6 +4481,7 @@ function renderAboutTab() {
 
         <hr class="my-4">
 
+        <!-- 2. Terms of Service Section -->
         <h4 class="fw-bold text-dark mb-2">📜 Terms of Service</h4>
         <p class="text-muted small">Effective Date: August 2026 • Last Updated: August 2026</p>
         
@@ -4670,6 +4517,7 @@ function renderAboutTab() {
 
         <hr class="my-4">
 
+        <!-- 3. Privacy Policy Section -->
         <h4 class="fw-bold text-dark mb-2">🛡️ Privacy Policy</h4>
         <p class="text-muted small">Effective Date: August 2026 • Compliant with Digital Personal Data Protection (DPDP) Act 2023</p>
         
@@ -4729,17 +4577,19 @@ async function addNewSociety(event) {
   const openingBalanceVal = document.getElementById('society-opening-balance').value.trim() || '0';
   const visitorPassword = document.getElementById('society-visitor-password').value.trim() || '1234';
 
-  const planVal = document.getElementById('society-plan-select').value;
+  // 🟢 यहाँ से यूजर द्वारा चुना गया प्लान और रेट अलग करें
+  const planVal = document.getElementById('society-plan-select').value; // जैसे "Platinum|149"
   const [planName, planRate] = planVal.split('|');
 
+  // 🟢 अब इसे database object में पास करें
   const newSoc = { 
     name, 
     address, 
     phone, 
     email, 
     is_active: true,
-    subscription_plan: planName,
-    per_house_rate: Number(planRate)
+    subscription_plan: planName,       // 'Silver', 'Gold' या 'Platinum'
+    per_house_rate: Number(planRate)   // 49, 79 या 149
   };
 
   const { error } = await _supabase.from('societies').insert([newSoc]);
@@ -4758,7 +4608,7 @@ async function addNewSociety(event) {
   bootstrap.Modal.getInstance(document.getElementById('addSocietyModal')).hide();
   document.getElementById('addSocietyForm').reset();
   loadSocietySwitcher();
-  renderSuperAdminMasterDashboard();
+  renderSuperAdminMasterDashboard(); // मास्टर डैशबोर्ड तुरंत अपडेट हो जाएगा
 }
 
 function checkForNewNotifications() {
@@ -4811,6 +4661,8 @@ async function updateAllBadges() {
       console.error('Error loading CA GST summary:', err);
     }
   }
+
+
 
 function updateBadge(elementId, count) {
   const badge = document.getElementById(elementId);
@@ -4980,58 +4832,24 @@ function showSOSBanner(alertData) {
     background: rgba(220, 38, 38, 0.95); z-index: 999999;
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     color: white; text-align: center; padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif;
-    pointer-events: auto;
+    animation: pulse 0.8s infinite alternate;
   `;
   banner.innerHTML = `
     <div style="font-size: 80px; margin-bottom: 20px;"><i class="fa-solid fa-triangle-exclamation fa-beat"></i></div>
     <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">🚨 EMERGENCY SOS ALERT! 🚨</h1>
     <h3 style="font-weight: 700; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 50px;">
-      Type: ${alertData.alert_type || 'Unknown'} | Flat: ${alertData.flat_no || 'Unknown'}
+      Type: ${alertData.alert_type} | Flat: ${alertData.flat_no}
     </h3>
     <p style="font-size: 1.1rem; margin-bottom: 30px; max-width: 500px;">
       इमरजेंसी अलर्ट ट्रिगर किया गया है! कृपया तुरंत सहायता भेजें या एक्शन लें।
     </p>
-    <button type="button" id="stopSirenBtn" style="
-      background: #fff; color: #dc2626; border: none;
-      padding: 15px 40px; font-size: 18px; font-weight: 800;
-      border-radius: 50px; cursor: pointer;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      pointer-events: auto !important;
-      touch-action: manipulation;
-      position: relative;
-      z-index: 10;
-      -webkit-tap-highlight-color: rgba(0,0,0,0.1);
-    ">
+    <button onclick="resolveSOSAlert(${alertData.id})" style="background: #fff; color: #dc2626; border: none; padding: 15px 40px; font-size: 18px; font-weight: 800; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
       <i class="fa-solid fa-check-circle me-2"></i> Acknowledge & Stop Siren
     </button>
   `;
   document.body.appendChild(banner);
-
-  // 🟢 FIX: JS से event listener attach करें (mobile पर 100% reliable)
-  setTimeout(() => {
-    const stopBtn = document.getElementById('stopSirenBtn');
-    if (stopBtn) {
-      const handleStop = function(e) {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-        console.log('🛑 Stop Siren clicked! ID:', alertData.id);
-        resolveSOSAlert(alertData.id);
-      };
-      
-      // Both click and touchend for maximum reliability on mobile
-      stopBtn.addEventListener('click', handleStop);
-      stopBtn.addEventListener('touchend', handleStop, { passive: false });
-      
-      // Extra safety: pointerdown as well
-      stopBtn.addEventListener('pointerdown', function(e) {
-        e.preventDefault();
-      });
-    }
-  }, 100);
-
-  // Siren + vibration
+  
+  // 🟢 सायरन प्ले करने की कोशिश
   try {
     sirenAudio.loop = true;
     sirenAudio.play().catch(e => {
@@ -5042,6 +4860,7 @@ function showSOSBanner(alertData) {
     console.log("Siren error:", err);
   }
 
+  // 🟢 मोबाइल वाइब्रेशन (लगातार वाइब्रेट होगा जब तक एकनॉलेज न किया जाए)
   if ("vibrate" in navigator) {
     try {
       navigator.vibrate([500, 250, 500, 250, 500, 250, 1000]);
@@ -5052,23 +4871,18 @@ function showSOSBanner(alertData) {
 }
 
 function listenForSOSAlerts() {
+  // 🟢 सोसायटी के नाम से स्पेस और स्पेशल कैरेक्टर्स हटाकर एक साफ चैनल नाम बनाएं
   const cleanSocietyName = (currentSociety || 'default').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
   const channelName = `sos-realtime-${cleanSocietyName}`;
 
+  // यदि पहले से कोई चैनल जुड़ा है तो उसे अनसब्सक्राइब करें ताकि डुप्लीकेट कनेक्शन न बनें
   try {
-    const allChannels = _supabase.getChannels();
-    allChannels.forEach(ch => {
-      if (ch.topic && ch.topic.includes('sos-realtime-')) {
-        _supabase.removeChannel(ch);
-      }
-    });
+    _supabase.removeAllChannels();
   } catch (e) {
-    console.log('SOS channel cleanup note:', e);
+    console.log(e);
   }
 
-  const channel = _supabase.channel(channelName);
-
-  channel
+  _supabase.channel(channelName)
     .on('postgres_changes', { 
       event: 'INSERT', 
       schema: 'public', 
@@ -5076,19 +4890,14 @@ function listenForSOSAlerts() {
     }, (payload) => {
       console.log('🚨 SOS Alert Received via Realtime:', payload.new);
       if (payload.new && payload.new.status === 'active') {
+        // सुनिश्चित करें कि यह उसी सोसायटी का अलर्ट है
         if ((payload.new.society_name || '').trim().toLowerCase() === (currentSociety || '').trim().toLowerCase()) {
           showSOSBanner(payload.new);
         }
       }
     })
     .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ SOS Realtime: Connected successfully');
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        console.log('⚠️ SOS Realtime status:', status);
-      } else {
-        console.log('SOS Realtime Subscription Status:', status);
-      }
+      console.log('SOS Realtime Subscription Status:', status);
     });
 }
 
@@ -5110,8 +4919,10 @@ function handleDeepLink() {
             if (gridOverlay) gridOverlay.style.display = 'none';
             if (typeof closeMobileMenu === 'function') closeMobileMenu();
 
+            // 🟢 केवल उसी टैब का डेटा फेच करें जिसकी डिमाड है (Slow loading fix)
             try {
                 if (tab === 'community') {
+                    // सिर्फ नोटिस और इवेंट्स लाएं, बाकी भारी डेटा रोकें
                     const [{ data: notices }, { data: events }] = await Promise.all([
                         _supabase.from('notices').select('*').eq('society_name', currentSociety),
                         _supabase.from('events').select('*').eq('society_name', currentSociety)
@@ -5134,6 +4945,7 @@ function handleDeepLink() {
                 console.error('Fast deep link fetch error:', err);
             }
 
+            // UIतुरंत खोलें बिना पूरी सोसाइटी का भारी डेटा लोड किए
             const isMobile = window.innerWidth <= 768;
             if (isMobile) {
                 openTabOverlay(tab);
@@ -5142,62 +4954,68 @@ function handleDeepLink() {
                 if (link) switchTab(tab, link);
             }
 
+            // 🟢 बाकी का बचा हुआ भारी डेटा background me aaram se load hone dein
             setTimeout(() => {
                 fetchSupabaseData();
             }, 1000);
         }
-    }, 100);
+    }, 100); // 400ms delay ko hata kar 100ms kar diya taಕಿ turant khule
 }
 
-// 🟢 FIX #1: Popstate handler — state के हिसाब से सही view दिखाएँ (no race)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        handleDeepLink();
+    }
+});
+
+window.addEventListener('load', handleDeepLink);
+
+async function resolveSOSAlert(alertId) {
+  try {
+    await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
+  } catch (err) {
+    console.error('Error resolving SOS:', err);
+  }
+  
+  if (typeof sirenAudio !== 'undefined' && sirenAudio) {
+    sirenAudio.pause();
+    sirenAudio.currentTime = 0;
+  }
+  
+  const banner = document.getElementById('sosAlertBanner');
+  if (banner) banner.remove();
+}
+
+// 🟢 PWA और मोबाइल का नेटिव बैक बटन हैंडलर (अपडेटेड)
 window.addEventListener('popstate', function(event) {
-  const state = event.state || {};
   const tabOverlay = document.getElementById('tabOverlay');
   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-
-  // 1. कोई भी खुला Bootstrap modal हो → बंद करें
+  
+  // 1. अगर कोई भी बूटस्ट्रैप मॉडल (पॉप-अप) खुला है, तो पहले उसे बंद करें
   document.querySelectorAll('.modal.show').forEach(modal => {
     const modalInstance = bootstrap.Modal.getInstance(modal);
-    if (modalInstance) modalInstance.hide();
+    if (modalInstance) {
+      modalInstance.hide();
+    }
   });
 
-  // 2. Stuck backdrop cleanup
+  // 2. स्क्रीन पर बचे हुए किसी भी मॉडल बैकड्रॉप या स्टक ओवरले को साफ़ करें
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
 
-  // 3. State = grid → tabOverlay हटाओ, grid दिखाओ
-  if (state.mobileMenuOpen) {
-    if (tabOverlay) tabOverlay.remove();
-    if (window.innerWidth <= 768 && mobileMenuOverlay) {
-      mobileMenuOverlay.style.display = 'flex';
-      renderGridCards();
-      document.body.style.overflow = 'hidden';
-    }
-    return;
-  }
-
-  // 4. State = overlay → कुछ न करें (shouldn't happen on back, but safety)
-  if (state.overlayOpen) {
-    return;
-  }
-
-  // 5. State = null/app level → सब बंद करें
   if (tabOverlay) {
+    // अगर कोई अंदर का टैब खुला है, तो बैक दबाने पर वह बंद होकर ग्रिड पर आ जाएगा
     tabOverlay.remove();
-    // अगर mobile है तो grid दिखाओ (back एक level ऊपर जाना चाहिए)
+    
     if (window.innerWidth <= 768 && mobileMenuOverlay) {
       mobileMenuOverlay.style.display = 'flex';
       renderGridCards();
       document.body.style.overflow = 'hidden';
     }
-    return;
-  }
-
-  if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
-    mobileMenuOverlay.style.display = 'none';
-    document.body.style.overflow = '';
-    return;
+  } else if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
+    // अगर मोबाइल ग्रिड मेनू खुला है, तो वह बंद हो जाएगा
+    closeMobileMenu();
   }
 });
 
@@ -5302,27 +5120,6 @@ function calculateLateFee(flatPendingDue, monthlyRate) {
   }
 
   return Math.round(calculatedLateFee);
-}
-
-function forceResetScreen() {
-  const activeModals = document.querySelectorAll('.modal.show');
-  if (activeModals.length > 0) return;
-
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-
-  const overlays = [
-    'tabOverlay', 'consentOverlay', 'mobileMenuOverlay',
-    'visitorPasswordOverlay', 'aboutPSOverlay',
-    'privacyPolicyOverlay', 'termsOfServiceOverlay'
-  ];
-  overlays.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-
-  document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
-  document.body.style.pointerEvents = 'auto';
 }
 
 function clearStuckOverlays() {
