@@ -135,8 +135,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 .grid-card-item {
   background: rgba(255, 255, 255, 0.12) !important;
   backdrop-filter: blur(12px);
-  border-radius: 18px !important;        /* थोड़ा गोल */
-  padding: 20px 10px !important;         /* बड़ा padding */
+  border-radius: 18px !important;
+  padding: 20px 10px !important;
   text-align: center;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -144,16 +144,16 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 130px !important;          /* ऊँचाई बढ़ाई */
+  min-height: 130px !important;
   transition: 0.2s;
 }
 .grid-card-item i {
-  font-size: 36px !important;            /* आइकन बड़ा */
+  font-size: 36px !important;
   margin-bottom: 8px;
   display: block;
 }
 .grid-card-item span {
-  font-size: 14px !important;            /* टेक्स्ट बड़ा */
+  font-size: 14px !important;
   font-weight: 600;
   color: #fff;
   margin-top: 6px;
@@ -163,15 +163,15 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 /* 🟢 GRID CONTAINER – 2 कॉलम, ज्यादा गैप */
 #mobileMenuOverlay .grid-container {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);   /* 2 कॉलम – बड़े कार्ड */
-  gap: 14px;                              /* ज्यादा स्पेस */
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
   padding: 10px 0 20px 0;
   flex: 1;
   align-content: start;
   overflow-y: auto;
 }
 
-/* Member Ledger Table – Mobile Friendly (unchanged) */
+/* Member Ledger Table – Mobile Friendly */
 #member-ledger-table {
   width: 100%;
   min-width: 600px;
@@ -183,17 +183,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   font-size: 13px;
 }
 @media (max-width: 576px) {
-  #member-ledger-table {
-    min-width: 500px;
-  }
+  #member-ledger-table { min-width: 500px; }
   #member-ledger-table th,
-  #member-ledger-table td {
-    font-size: 12px;
-    padding: 4px 6px;
-  }
+  #member-ledger-table td { font-size: 12px; padding: 4px 6px; }
 }
 
-/* Sidebar – unchanged */
+/* Sidebar */
 .sidebar { 
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
   background: linear-gradient(180deg, #090d16 0%, #151c2e 100%); 
@@ -203,63 +198,20 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 .nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #ea580c, #f59e0b) !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
 .card-stat { border-radius: 16px; border: none; }
 
-/* Mobile Landing Page adjustments – unchanged */
 @media (max-width: 768px) {
-  .landing-wrapper {
-    padding: 20px 15px;
-    justify-content: flex-start;
-  }
-  .landing-navbar {
-    padding: 8px 14px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .brand-logo {
-    font-size: 1rem;
-    margin-right: auto;
-  }
-  .nav-actions {
-    gap: 6px;
-  }
-  .nav-btn {
-    font-size: 12px;
-    padding: 5px 12px;
-  }
-  .hero-heading {
-    font-size: 1.4rem;
-    line-height: 1.3;
-  }
-  .hero-subtext {
-    font-size: 0.9rem;
-  }
-  .hero-card {
-    max-width: 100%;
-    padding: 14px 12px;
-  }
-  .card-icon-wrapper {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
-  }
-  .landing-footer {
-    margin-top: 20px;
-    padding-top: 12px;
-    font-size: 0.75rem;
-  }
-  .whatsapp-container {
-    bottom: 15px;
-    right: 15px;
-  }
-  .whatsapp-float {
-    width: 50px;
-    height: 50px;
-    font-size: 26px;
-  }
-  .whatsapp-label {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
+  .landing-wrapper { padding: 20px 15px; justify-content: flex-start; }
+  .landing-navbar { padding: 8px 14px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+  .brand-logo { font-size: 1rem; margin-right: auto; }
+  .nav-actions { gap: 6px; }
+  .nav-btn { font-size: 12px; padding: 5px 12px; }
+  .hero-heading { font-size: 1.4rem; line-height: 1.3; }
+  .hero-subtext { font-size: 0.9rem; }
+  .hero-card { max-width: 100%; padding: 14px 12px; }
+  .card-icon-wrapper { width: 40px; height: 40px; font-size: 18px; }
+  .landing-footer { margin-top: 20px; padding-top: 12px; font-size: 0.75rem; }
+  .whatsapp-container { bottom: 15px; right: 15px; }
+  .whatsapp-float { width: 50px; height: 50px; font-size: 26px; }
+  .whatsapp-label { font-size: 10px; padding: 2px 6px; }
 }
 
 .visitor-card {
@@ -283,24 +235,20 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 @media (max-width: 992px) {
   .top-nav-links { display: none !important; }
 }
-
   </style>
 </head>
 <body>
 
-<!-- ========== LANDING PAGE (Original Look) ========== -->
+<!-- ========== LANDING PAGE ========== -->
 <div id="landing-section" class="landing-wrapper">
   
-  <!-- Top Navigation Bar -->
   <header style="width: 100%; max-width: 1250px; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border-radius: 50px; border: 1px solid rgba(234, 88, 12, 0.3);">
     
-    <!-- Brand Logo -->
     <div style="font-size: 1.15rem; font-weight: 800; letter-spacing: 1px; color: #fff; display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="showLandingPage()">
       <img src="icon-192.png" alt="Logo" style="width: 38px; height: 38px; object-fit: contain; border-radius: 8px;">
       <span><span style="color: #ea580c;">PS</span> Society Solutions</span>
     </div>
 
-    <!-- Center Menu Links -->
     <ul class="top-nav-links">
       <li><a href="#" class="active" onclick="showLandingPage()">Home</a></li>
       <li><a href="#" onclick="openAboutPS()">About Us</a></li>
@@ -308,7 +256,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <li><a href="#" onclick="openEnrollModal()">New Enroll</a></li>
     </ul>
     
-    <!-- Top Right: Download Brochure Button -->
     <div class="nav-actions" style="display: flex; gap: 10px; align-items: center;">
       <a href="broucher.pdf" download style="background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 30px; padding: 8px 22px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
         <i class="fa-solid fa-file-arrow-down"></i> Download Brochure
@@ -316,11 +263,9 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </div>
   </header>
 
-  <!-- Center Hero Section -->
   <div class="container my-auto py-5" style="max-width: 1000px;">
     <div class="row align-items-center justify-content-between g-4 text-start">
       
-      <!-- Left Side Text & Visitor/Login Buttons -->
       <div class="col-lg-7 text-center text-lg-start">
         <span class="badge mb-3 px-3 py-2 rounded-pill fw-semibold" style="letter-spacing: 1px; font-size: 12px; background: rgba(234, 88, 12, 0.15); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3);">
           <i class="fa-solid fa-bolt me-1"></i> Smart Society Management Engine
@@ -332,7 +277,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           Simple • Transparent • Affordable. Digitalize your society's accounting, maintenance billing, member ledgers, and visitor tracking in a single click.
         </p>
         
-        <!-- Visitor Desk & Login Buttons (जैसा इमेज में नीचे दिए गए हैं) -->
         <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
           <button onclick="showVisitorPage()" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-door-open text-warning"></i> Visitor Desk
@@ -343,7 +287,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         </div>
       </div>
 
-      <!-- Right Side Demoapp.jpeg Mockup Preview -->
       <div class="col-lg-5 text-center">
         <div style="background: #111827; border: 8px solid #374151; border-radius: 36px; padding: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-width: 300px; margin: 0 auto; position: relative;">
           <div style="width: 90px; height: 16px; background: #374151; border-radius: 0 0 10px 10px; margin: 0 auto 10px auto;"></div>
@@ -354,7 +297,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="landing-footer py-3 text-center" style="width: 100%; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
     <div class="d-flex justify-content-center align-items-center gap-3 mb-2 flex-wrap">
       <button onclick="openAboutPS()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">About Us</button>
@@ -369,7 +311,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   </footer>
 </div>
 
-<!-- Floating WhatsApp Button with "Connect Us" label -->
+<!-- Floating WhatsApp Button -->
 <div class="whatsapp-container">
   <span class="whatsapp-label">Connect Us</span>
   <a href="https://wa.me/918866376056?text=Hi,%20I%20want%20to%20know%20more%20about%20PS%20Society%20Solutions." target="_blank" class="whatsapp-float" title="Chat with us on WhatsApp">
@@ -377,7 +319,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   </a>
 </div>
 
-<!-- ========== VISITOR SECTION (unchanged) ========== -->
+<!-- ========== VISITOR SECTION ========== -->
 <div id="visitor-section" class="container py-4" style="display:none; min-height:100vh; background: #f8fafc;">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <button id="visitorBackBtn" class="btn btn-outline-secondary" onclick="goBackFromVisitor()"><i class="fa-solid fa-arrow-left me-2"></i> Back</button>
@@ -387,7 +329,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   <div id="visitorListContainer" class="mt-3"><div class="alert alert-info">Loading visitors...</div></div>
 </div>
 
-<!-- ========== LOGIN (unchanged) ========== -->
+<!-- ========== LOGIN ========== -->
 <div id="login-section" class="login-wrapper" style="display:none;">
   <div class="card p-4 p-md-5 glass-login-card">
     <div class="text-center mb-4">
@@ -411,7 +353,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   </div>
 </div>
 
-<!-- ========== MAIN APP (unchanged – same as your old code) ========== -->
+<!-- ========== MAIN APP ========== -->
 <div id="app-section" class="d-none">
   <nav class="navbar navbar-dark bg-dark d-md-none px-3 sticky-top">
     <a class="navbar-brand fw-bold text-warning" href="#">PS Society</a>
@@ -443,57 +385,29 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('expenses', this)"><i class="fa-solid fa-receipt me-2" style="color: #ef4444;"></i> Expense Ledger</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)"><i class="fa-solid fa-screwdriver-wrench me-2" style="color: #f59e0b;"></i> AMC Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)"><i class="fa-solid fa-building-columns me-2" style="color: #8b5cf6;"></i> Tally Bank Book</a></li>
-          <li class="nav-item role-restricted admin-only chairman-only">
-            <a class="nav-link" onclick="switchTab('bank-reconciliation', this)">
-              <i class="fa-solid fa-scale-balanced me-2" style="color: #0ea5e9;"></i> Bank Reconciliation
-            </a>
-          </li>
-          <li class="nav-item role-restricted admin-only chairman-only">
-            <a class="nav-link" onclick="switchTab('journal-voucher', this)">
-              <i class="fa-solid fa-file-pen me-2" style="color: #2563eb;"></i> Journal Voucher (JV)
-            </a>
-          </li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('bank-reconciliation', this)"><i class="fa-solid fa-scale-balanced me-2" style="color: #0ea5e9;"></i> Bank Reconciliation</a></li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('journal-voucher', this)"><i class="fa-solid fa-file-pen me-2" style="color: #2563eb;"></i> Journal Voucher (JV)</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('ca-audit', this)"><i class="fa-solid fa-calculator me-2" style="color: #06b6d4;"></i> CA Audit Report</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('chairman-report', this)"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: #f59e0b;"></i> Chairman Report</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('visitor', this)"><i class="fa-solid fa-user-plus me-2" style="color: #8b5cf6;"></i> Visitor <span id="visitor-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('complaints', this)"><i class="fa-solid fa-headset me-2" style="color: #ec4899;"></i> Complaints <span id="complaints-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('polls', this)"><i class="fa-solid fa-check-to-slot me-2" style="color: #f97316;"></i> Polls & Voting <span id="polls-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item" id="community-nav-item"><a class="nav-link" onclick="switchTab('community', this)"><i class="fa-solid fa-people-group me-2" style="color: #14b8a6;"></i> Community Hub <span id="community-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
-          <li class="nav-item role-restricted admin-only chairman-only">
-            <a class="nav-link" onclick="switchTab('meetings', this)">
-              <i class="fa-solid fa-book-open me-2" style="color: #2563eb;"></i> Meeting Minutes (AGM)
-            </a>
-          </li>
+          <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('meetings', this)"><i class="fa-solid fa-book-open me-2" style="color: #2563eb;"></i> Meeting Minutes (AGM)</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('marketplace', this)"><i class="fa-solid fa-store me-2" style="color: #f59e0b;"></i> Marketplace</a></li>
-          <li class="nav-item">
-            <a class="nav-link" onclick="switchTab('parking', this)">
-              <i class="fa-solid fa-square-parking me-2" style="color: #f59e0b;"></i> Parking & Vehicles <span id="parking-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span>
-            </a>
-          </li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('parking', this)"><i class="fa-solid fa-square-parking me-2" style="color: #f59e0b;"></i> Parking & Vehicles <span id="parking-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('bank-details', this)"><i class="fa-solid fa-qrcode me-2" style="color: #2563eb;"></i> Society Bank / QR</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('sos-contacts', this)"><i class="fa-solid fa-truck-medical me-2" style="color: #ef4444;"></i> Emergency SOS</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('assets', this)"><i class="fa-solid fa-boxes-stacked me-2" style="color: #64748b;"></i> Asset Register</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('fds', this)"><i class="fa-solid fa-piggy-bank me-2" style="color: #8b5cf6;"></i> FDs & Reserve</a></li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('proofs', this)"><i class="fa-solid fa-file-invoice me-2" style="color: #3b82f6;"></i> Payment Details <span id="proofs-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('settings', this)"><i class="fa-solid fa-gear me-2" style="color: #475569;"></i> Settings</a></li>
-          <li class="nav-item">
-            <a class="nav-link" onclick="switchTab('about', this)">
-              <i class="fa-solid fa-circle-info me-2" style="color: #0f172a;"></i> About PS
-            </a>
-          </li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('about', this)"><i class="fa-solid fa-circle-info me-2" style="color: #0f172a;"></i> About PS</a></li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('deletion-requests', this)"><i class="fa-solid fa-trash-can me-2" style="color: #ef4444;"></i> Deletion Requests</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('team', this)"><i class="fa-solid fa-people-group me-2" style="color: #8b5cf6;"></i> Committee / Team</a></li>
-          <li class="nav-item role-restricted admin-only">
-            <a class="nav-link" onclick="switchTab('master-dashboard', this)">
-              <i class="fa-solid fa-chart-pie me-2" style="color: #8b5cf6;"></i> Master Dashboard
-            </a>
-          </li>
+          <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('master-dashboard', this)"><i class="fa-solid fa-chart-pie me-2" style="color: #8b5cf6;"></i> Master Dashboard</a></li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('manage-societies', this)"><i class="fa-solid fa-building me-2" style="color: #2563eb;"></i> Manage Societies</a></li>
-          <li class="nav-item">
-            <a class="nav-link" onclick="switchTab('rules', this)">
-              <i class="fa-solid fa-book me-2" style="color: #f59e0b;"></i> Society Rules
-            </a>
-          </li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('rules', this)"><i class="fa-solid fa-book me-2" style="color: #f59e0b;"></i> Society Rules</a></li>
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('activity-logs', this)"><i class="fa-solid fa-list-check me-2" style="color: #0ea5e9;"></i> Activity Logs</a></li>
         </ul>
         <hr class="text-secondary">
@@ -535,7 +449,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         <i class="fa-solid fa-rotate me-1"></i> Refresh Data
       </button>
     </div>
-    <!-- यहाँ जावास्क्रिप्ट से पूरा डेटा लोड होकर आएगा -->
     <div id="super-admin-master-container">
       <div class="text-center py-5">
         <i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
@@ -549,7 +462,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         <div id="tab-dashboard" class="tab-content">
         <div id="tenant-warning-banner-container" class="mb-3"></div>  
           <h3 class="fw-bold mb-3">Dashboard Overview</h3>
-          <!-- 🎂 Feature 5: Birthday & Anniversary Wishes Container -->
           <div id="dashboard-celebrations-container"></div>
 
           <div id="admin-dashboard-stats" class="row g-3 mb-4">
@@ -563,13 +475,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             </div>
           </div>
          <div id="member-dashboard-stats" class="d-none">
-            <!-- 1. सबसे ऊपर पेंडिंग और टोटल पेड कार्ड्स आ गए -->
             <div class="row g-3 mb-4 mt-2">
               <div class="col-12 col-md-6"><div class="card card-stat bg-danger text-white p-4 shadow-sm"><h6>My Flat Pending Outstanding</h6><h2 id="my-flat-pending">₹0</h2></div></div>
               <div class="col-12 col-md-6"><div class="card card-stat bg-success text-white p-4 shadow-sm"><h6>Total Paid Dues Till Date</h6><h2 id="my-flat-paid">₹0</h2></div></div>
             </div>
 
-            <!-- 2. इसके नीचे अब मेंबर लेजर (स्टेटमेंट) आ गया -->
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mt-3">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-lines me-2 text-primary"></i> My Complete Member Ledger (Statement)</h5>
@@ -612,6 +522,29 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             </div>
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mb-4"><h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-credit-card me-2"></i> Submit Payment Receipt Details</h5><button class="btn btn-success fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal"><i class="fa-solid fa-upload me-2"></i> Pay & Upload Receipt Details</button></div>
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0"><h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-history me-2"></i> My Payment History</h5><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Receipt No</th><th>Date</th><th>Amount Paid</th><th>Mode</th></tr></thead><tbody id="my-payment-history-list"></tbody></table></div></div>
+
+            <!-- 🟢 NEW: My Payment Submissions (Receipts Status) -->
+            <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mt-3" id="myPaymentSubmissionsCard">
+              <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-upload me-2 text-primary"></i> My Payment Submissions (Receipts Status)</h5>
+              <p class="text-muted small mb-3">आपके द्वारा submit किए गए payment receipts का status — Pending / Verified / Rejected</p>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Date</th>
+                      <th>Amount (₹)</th>
+                      <th>UTR / Ref No</th>
+                      <th>Status</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody id="my-payment-submissions-list">
+                    <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mt-3 role-restricted member-only" id="deletionRequestCard">
               <h5 class="fw-bold text-danger mb-2"><i class="fa-solid fa-trash-can me-2"></i>Request Data Deletion</h5>
               <p class="text-muted small">If you want to delete all your personal data from our system, click the button below. Admin will review and process your request.</p>
@@ -622,9 +555,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 
         <!-- TAB 2: MEMBERS -->
         <div id="tab-members" class="tab-content d-none">
-          <!-- 🟢 यहाँ डैशबोर्ड वार्निंग बैनर का कंटेनर जोड़ा गया है ताकि डायरेक्ट्री में भी स्टेटस दिखे -->
           <div id="tenant-warning-banner-container" class="mb-3"></div>
-
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold">Member Directory</h3>
             <div class="no-print">
@@ -676,7 +607,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <div class="row g-3 mb-4"><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Opening Bank Balance</h6><h4 class="text-dark" id="tally-opening-balance">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Total Money In (Debit)</h6><h4 class="text-success" id="tally-tot-in">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Total Money Out (Credit)</h6><h4 class="text-danger" id="tally-tot-out">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Closing Passbook Balance</h6><h4 class="text-primary" id="tally-calc-balance">₹0.00</h4></div></div></div>
           <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="tally-bank-table"><thead class="table-dark"><tr><th>Date</th><th>Ref No</th><th>Account Head</th><th>Type</th><th>Deposit</th><th>Withdrawal</th><th>Balance</th><th class="no-print admin-only">Actions</th></tr></thead><tbody id="tally-bank-entries"></tbody></table></div>
         </div>
-<!-- TAB: JOURNAL VOUCHER (ADJUSTMENT ENTRIES) -->
+
+<!-- TAB: JOURNAL VOUCHER -->
 <div id="tab-journal-voucher" class="tab-content d-none">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold"><i class="fa-solid fa-file-pen text-primary me-2"></i> Manual Journal Vouchers (Adjustments)</h3>
@@ -703,6 +635,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </table>
   </div>
 </div>
+
 <!-- Journal Voucher Modal -->
 <div class="modal fade" id="journalModal" tabindex="-1">
   <div class="modal-dialog border-0 shadow-lg">
@@ -760,7 +693,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             </div>
           </div>
 
-          <!-- 🟢 1. ऊपर Trial Balance वाली मुख्य टेबल -->
           <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
             <div class="table-responsive">
               <table class="table table-bordered align-middle">
@@ -772,14 +704,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
                     <th>Credit Balance</th>
                   </tr>
                 </thead>
-                <tbody id="ca-trial-balance-rows">
-                  <!-- JavaScript से डेटा यहाँ भरेगा -->
-                </tbody>
+                <tbody id="ca-trial-balance-rows"></tbody>
               </table>
             </div>
           </div>
 
-          <!-- 🟢 2. नीचे GST & Tax Summary वाली टेबल -->
           <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i>GST & Tax Audit Summary (From Invoices)</h5>
@@ -795,14 +724,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
                     <th>Total Tax Amount (₹)</th>
                   </tr>
                 </thead>
-                <tbody id="ca-gst-summary-rows">
-                  <!-- Data -->
-                </tbody>
+                <tbody id="ca-gst-summary-rows"></tbody>
               </table>
             </div>
           </div>
-
-        </div> <!-- /tab-ca-audit का अंत -->
+        </div>
 
         <!-- TAB 8: CHAIRMAN REPORT -->
         <div id="tab-chairman-report" class="tab-content d-none">
@@ -878,7 +804,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </button>
   </div>
 
-  <!-- Pending Approvals Section (Admin/Chairman Only) -->
   <div id="pending-parking-section" class="card border-0 shadow-sm rounded-4 p-3 mb-4 role-restricted admin-only chairman-only d-none">
     <h5 class="fw-bold text-danger mb-3"><i class="fa-solid fa-clock-rotate-left me-2"></i> Pending Vehicle Approvals</h5>
     <div class="table-responsive">
@@ -900,7 +825,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </div>
   </div>
 
-  <!-- Approved Vehicles Directory -->
   <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
     <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-car me-2 text-primary"></i> Approved Vehicles & Parking Slots</h5>
     <div class="table-responsive">
@@ -970,9 +894,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             <th>Status in Passbook</th>
           </tr>
         </thead>
-        <tbody id="brs-entries-list">
-          <!-- JS से भरेगा -->
-        </tbody>
+        <tbody id="brs-entries-list"></tbody>
       </table>
     </div>
   </div>
@@ -1017,7 +939,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             <div id="all-bookings-container" class="mt-2"></div>
           </div>
         </div>
-<!-- TAB: MEETING MINUTES (AGM) -->
+
+<!-- TAB: MEETING MINUTES -->
 <div id="tab-meetings" class="tab-content d-none">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold"><i class="fa-solid fa-book-open text-primary me-2"></i> Society Meeting Minutes (AGM / Committee)</h3>
@@ -1038,13 +961,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <i class="fa-solid fa-pen me-1"></i> Edit Rules Categories
     </button>
   </div>
-  <!-- यहाँ अलग-अलग कैटेगरी के ब्लॉक्स रेंडर होंगे -->
   <div id="rulesCategoriesContainer" class="row g-3">
     <p class="text-muted">Loading rules...</p>
   </div>
 </div>
 
-<!-- 🟢 सिर्फ एक सिंगल 'About PS' टैब कंटेंट -->
+<!-- About PS -->
 <div id="tab-about" class="tab-content d-none">
   <div class="card p-4 bg-white shadow-sm rounded-4 border-0">
     <div id="aboutTabBody"></div>
@@ -1062,34 +984,16 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <div class="modal-body p-4">
         <form onsubmit="submitMeetingMinutes(event)" id="meetingForm">
           <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Meeting Title / Subject</label>
-              <input type="text" id="meet-title" class="form-control" placeholder="e.g. Annual General Meeting 2026" required>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Meeting Date</label>
-              <input type="date" id="meet-date" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label fw-semibold">Meeting Type</label>
-              <select id="meet-type" class="form-select" required>
+            <div class="col-md-6"><label class="form-label fw-semibold">Meeting Title / Subject</label><input type="text" id="meet-title" class="form-control" placeholder="e.g. Annual General Meeting 2026" required></div>
+            <div class="col-md-3"><label class="form-label fw-semibold">Meeting Date</label><input type="date" id="meet-date" class="form-control" required></div>
+            <div class="col-md-3"><label class="form-label fw-semibold">Meeting Type</label><select id="meet-type" class="form-select" required>
                 <option value="AGM">AGM (वार्षिक आम सभा)</option>
                 <option value="Managing Committee">Managing Committee (कमेटी मीटिंग)</option>
                 <option value="Special Meeting">Special Meeting (विशेष बैठक)</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Venue / Location</label>
-              <input type="text" id="meet-venue" class="form-control" placeholder="e.g. Society Clubhouse">
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Attendees (उपस्थित सदस्य)</label>
-              <input type="text" id="meet-attendees" class="form-control" placeholder="e.g. Chairman, Secretary & 15 Members">
-            </div>
-            <div class="col-12">
-              <label class="form-label fw-semibold">Minutes of Meeting (चर्चा और प्रस्ताव / Decisions)</label>
-              <textarea id="meet-content" class="form-control" rows="5" placeholder="विस्तृत विवरण लिखें कि बैठक में क्या-क्या निर्णय लिए गए..." required></textarea>
-            </div>
+              </select></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Venue / Location</label><input type="text" id="meet-venue" class="form-control" placeholder="e.g. Society Clubhouse"></div>
+            <div class="col-md-6"><label class="form-label fw-semibold">Attendees (उपस्थित सदस्य)</label><input type="text" id="meet-attendees" class="form-control" placeholder="e.g. Chairman, Secretary & 15 Members"></div>
+            <div class="col-12"><label class="form-label fw-semibold">Minutes of Meeting (चर्चा और प्रस्ताव / Decisions)</label><textarea id="meet-content" class="form-control" rows="5" placeholder="विस्तृत विवरण लिखें कि बैठक में क्या-क्या निर्णय लिए गए..." required></textarea></div>
           </div>
           <button type="submit" class="btn btn-primary w-100 fw-bold py-2.5 mt-4">Save & Publish Meeting Minutes</button>
         </form>
@@ -1212,7 +1116,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         <div class="col-md-6"><label class="form-label fw-semibold">Email</label><input type="email" id="settings-email" class="form-control"></div>
         <div class="col-md-6"><label class="form-label fw-semibold">PAN / GST</label><input type="text" id="settings-pan" class="form-control"></div>
 
-        <!-- 🟢 Digital Signature Upload Setting -->
 <div class="col-md-12 mt-3 border-top pt-3">
   <label class="form-label fw-semibold text-primary"><i class="fa-solid fa-signature me-2"></i> Authority Digital Signature (for PDFs & Receipts)</label>
   <div class="row align-items-center">
@@ -1226,7 +1129,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   </div>
 </div>
 
-<!-- 🟢 GST Configuration Section (अगर सोसायटी GST के दायरे में आती है) -->
 <div class="col-md-12 mt-3 border-top pt-3">
   <label class="form-label fw-semibold text-primary"><i class="fa-solid fa-file-invoice-dollar me-2"></i> GST & Tax Compliance (India / Gujarat CHS Rules)</label>
   <div class="row g-3">
@@ -1245,7 +1147,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   <small class="text-muted mt-2 d-block">Note: As per Income Tax Act, residential housing societies follow the 'Principle of Mutuality', meaning maintenance contributions from members are tax-exempt. GST (18%) only applies if turnover exceeds ₹20 Lakhs and individual maintenance > ₹7,500/month.</small>
 </div>
 
-        <!-- 🟢 Late Fee Settings (Form के अंदर जोड़ा गया) -->
         <div class="col-md-6">
           <label class="form-label fw-semibold">Enable Auto Late Fee / Interest</label>
           <select id="settings-enable-late-fee" class="form-select">
@@ -1270,6 +1171,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </form>
   </div>
 </div>
+
         <!-- TAB 19: DELETION REQUESTS -->
         <div id="tab-deletion-requests" class="tab-content d-none">
           <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-trash-can text-danger me-2"></i>Deletion Requests</h3></div>
@@ -1425,7 +1327,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             <div class="col-md-6"><label class="form-label fw-semibold">Voucher No</label><input type="text" id="exp-form-no" class="form-control" placeholder="V-DEMO-011"></div>
             <div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="exp-form-date" class="form-control" required></div>
             
-            <!-- 🟢 Chart of Accounts (Expense Head Grouping) Dropdown -->
             <div class="col-md-6">
               <label class="form-label fw-semibold">Expense Head Group</label>
               <select id="exp-form-category" class="form-select" required>
@@ -1467,7 +1368,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="edit-mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="edit-mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
 
-          <!-- 🟢 Edit Member: Tenant Rented Dropdown -->
           <div class="mb-3">
             <label class="form-label fw-semibold">Is this flat rented? (किराए पर है?)</label>
             <select id="edit-mem-is-tenant" class="form-select" onchange="toggleTenantFormFields(this.value, 'edit')">
@@ -1476,7 +1376,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             </select>
           </div>
 
-          <!-- 🟢 Edit Member: Dynamic Tenant Fields -->
           <div id="edit-mem-tenant-dynamic-fields" style="display: none;" class="p-3 bg-light rounded-3 border mb-3">
             <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-gear me-1"></i> Tenant & Agreement Details</h6>
             <div class="mb-2">
@@ -1547,7 +1446,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
           
-          <!-- 🟢 Add Member: Tenant Rented Dropdown -->
           <div class="mb-3">
             <label class="form-label fw-semibold">Is this flat rented? (किराए पर है?)</label>
             <select id="mem-is-tenant" class="form-select" onchange="toggleTenantFormFields(this.value, 'add')">
@@ -1556,7 +1454,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             </select>
           </div>
 
-          <!-- 🟢 Add Member: Dynamic Tenant Fields -->
           <div id="tenant-dynamic-fields" style="display: none;" class="p-3 bg-light rounded-3 border mb-3">
             <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-gear me-1"></i> Tenant & Agreement Details</h6>
             <div class="mb-2">
@@ -1820,9 +1717,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       </div>
       <div class="modal-body bg-light p-4">
         <p class="text-muted small mb-3">यहाँ आप अलग-अलग कैटेगरी के टाइटल और उनके नियम सेट कर सकते हैं। हर कैटेगरी के लिए अलग बॉक्स का इस्तेमाल करें।</p>
-        <div id="rulesEditorsContainer">
-          <!-- Dynamic Textareas यहाँ लोड होंगे -->
-        </div>
+        <div id="rulesEditorsContainer"></div>
         <button type="button" class="btn btn-outline-success btn-sm mt-3 w-100" onclick="addNewRuleCategoryField()">
           <i class="fa-solid fa-plus me-1"></i> Add New Category Box
         </button>
@@ -1834,7 +1729,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </div>
   </div>
 </div>
-
 
 <!-- ==================== OVERLAYS ==================== -->
 <!-- Visitor Password Overlay -->
@@ -1947,7 +1841,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <div class="mb-3"><label class="form-label fw-semibold">Opening Bank Balance (₹)</label><input type="number" id="society-opening-balance" class="form-control" value="0"></div>
           <div class="mb-3">
 
-<!-- 🟢 Subscription Plan & Rate Dropdown -->
 <div class="mb-3">
   <label class="form-label fw-semibold">Subscription Plan</label>
   <select id="society-plan-select" class="form-select" required>
@@ -2001,7 +1894,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   </div>
 </div>
 
-<!-- ========== SCRIPTS (unchanged) ========== -->
+<!-- ========== SCRIPTS ========== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>

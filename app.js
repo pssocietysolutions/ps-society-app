@@ -37,6 +37,8 @@ let societyRules = '';
 let amcContractsData = [];
 let deletionRequests = [];
 
+let __deepLinkLock = false;   // 🟢 Popstate protection during deep-link
+let __userClosedOverlay = false;   // 🟢 User ने खुद overlay बंद किया या नहीं
 let notificationBadgeCount = 0;
 let communityBadgeCount = 0;
 
@@ -94,30 +96,23 @@ function showVisitorPage() {
 
 function showLoginPage() {
   updateFloatingButtonsVisibility(false);
-
-  // Visitor section छिपाएँ
   const visitorSec = document.getElementById('visitor-section');
   if (visitorSec) visitorSec.style.display = 'none';
 
-  // खुले हुए modals बंद करें
   document.querySelectorAll('.modal.show').forEach(m => {
     const inst = bootstrap.Modal.getInstance(m);
     if (inst) inst.hide();
   });
 
-  // Landing छिपाएँ, App छिपाएँ
   const landing = document.getElementById('landing-section');
   if (landing) landing.style.display = 'none';
 
   const appSec = document.getElementById('app-section');
   if (appSec) appSec.classList.add('d-none');
 
-  // 🟢 असली login section दिखाएँ
   const loginSec = document.getElementById('login-section');
   if (loginSec) {
     loginSec.style.display = 'flex';
-
-    // Society dropdown populate करें (अगर खाली हो)
     const sel = document.getElementById('login-society');
     if (sel && sel.options.length <= 1) {
       loadSocietiesForDropdown('login-society');
@@ -185,11 +180,8 @@ async function handleLogin(event) {
     return;
   }
 
-  // Login ID बनाएँ
   let loginId = rawInput.toLowerCase().replace(/\s+/g, '');
 
-  // अगर यूजर ने पूरा ID (जैसे a-101_demosociety) नहीं दिया,
-  // तो society dropdown से जोड़कर बनाएँ
   if (!loginId.includes('_')) {
     if (!societyVal) {
       alert('❌ कृपया Society सेलेक्ट करें।');
@@ -234,7 +226,6 @@ async function handleLogin(event) {
     localStorage.setItem('ps_user_society', targetSociety);
     currentSociety = targetSociety.trim();
 
-    // Login section छिपाएँ, App दिखाएँ
     const loginSec = document.getElementById('login-section');
     if (loginSec) loginSec.style.display = 'none';
 
@@ -412,14 +403,11 @@ function loadMainApp(role) {
   const urlParams = new URLSearchParams(window.location.search);
   const activeTab = urlParams.get('tab');
 
-  // 🟢🟢🟢 AGGRESSIVE RESET — हर बार role बदलने पर sidebar को initial state में लाएँ
-  // <li> level पर सारी inline styles हटाएँ
   document.querySelectorAll('#sidebarMenu li').forEach(li => {
     li.style.display = '';
     li.classList.remove('d-none');
   });
   
-  // <a> level पर भी सब visible करें
   document.querySelectorAll('#sidebarMenu .nav-link').forEach(el => {
     el.style.display = '';
     el.classList.remove('d-none');
@@ -539,7 +527,6 @@ async function loadSocietySwitcher() {
   });
 }
 
-// 🟢 FIX #3: Society switch पर सारा data (primary + secondary) reload हो
 function switchSociety(societyName) {
   if (!societyName || societyName === currentSociety) return;
   if (!confirm(`Switch to "${societyName}"? Data will reload.`)) return;
@@ -549,7 +536,6 @@ function switchSociety(societyName) {
   localStorage.setItem('ps_user_society', societyName);
   
   fetchSupabaseData();
-  // 🟢 Society switch पर secondary data भी load करें
   setTimeout(() => loadSecondaryData(), 500);
   
   const sidebarName = document.getElementById('sidebar-society-name');
@@ -582,26 +568,21 @@ function markAllAsRead() {
   updateBadge('visitor-badge', 0);
 }
 
-// 🟢 FIX #1: Logout पर सारा in-memory data clear करें
 function handleLogout() {
   markAllAsRead();
   _supabase.auth.signOut();
   
-  // 🟢 सारा localStorage साफ़ करें
   localStorage.removeItem('ps_user_logged');
   localStorage.removeItem('ps_user_role');
   localStorage.removeItem('ps_user_id');
   localStorage.removeItem('ps_user_society');
   
-  // 🟢 सारा in-memory data साफ़ करें
   clearAllData();
   
-  // 🟢 Globals reset
   currentRole = 'Member';
   currentUser = '';
   currentSociety = 'Demo Society';
   
-  // 🟢 DOM cleanup
   const appSection = document.getElementById('app-section');
   if (appSection) appSection.classList.add('d-none');
   
@@ -621,8 +602,6 @@ function handleLogout() {
     if (el) el.style.display = 'none';
   });
   
-  // 🟢🟢🟢 FORCE FULL RELOAD with unique URL to bypass cache
-  // Timestamp add करने से browser को पक्का reload करना पड़ेगा
   setTimeout(() => {
     const baseUrl = window.location.origin + window.location.pathname;
     window.location.replace(baseUrl + '?t=' + Date.now());
@@ -981,7 +960,6 @@ async function loadTodayVisitors() {
   const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
 
   try {
-    // 🟢 केवल तारीख और सोसायटी के आधार पर डेटा लाएं (फ्लैट फिल्टर क्लाइंट-साइड करेंगे ताकि मिसमैच न हो)
     let query = _supabase
       .from('visitors')
       .select('*')
@@ -997,7 +975,6 @@ async function loadTodayVisitors() {
     
     let allVisitors = data || [];
 
-    // 🟢 यदि यूजर Member है, तो फ्लैट को केस-इनसेंसिटिव तरीके से फिल्टर करें
     const isLogged = localStorage.getItem('ps_user_logged') === 'true';
     if (isLogged && currentRole === 'Member' && activeUser) {
       visitors = allVisitors.filter(v => (v.flat_no || '').trim().toUpperCase() === activeUser);
@@ -1068,7 +1045,6 @@ async function updateVisitorStatus(id, newStatus) {
 
 async function submitVisitor(event) {
   event.preventDefault();
-  // 🟢 सुनिश्चित करें कि ड्रॉपडाउन या ग्लोबल currentSociety में से सही सोसायटी ली जाए
   const society = document.getElementById('visitor-society').value || currentSociety;
   const name = document.getElementById('visitor-name').value.trim();
   const mobile = document.getElementById('visitor-mobile').value.trim();
@@ -1129,7 +1105,6 @@ async function markVisitorOut(id) {
 
 function updateVisitorBadge() {
   const lastSeen = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
-  // 🟢 PENDING और IN दोनों को काउंट करें ताकि नोटिफिकेशन बैज सही संख्या दिखाए
   const count = visitors.filter(v => (v.status === 'PENDING' || v.status === 'IN') && (v.id || 0) > lastSeen).length;
   updateBadge('visitor-badge', count);
 }
@@ -1596,6 +1571,7 @@ function renderPaymentProofs() {
   }).join('');
 }
 
+// 🟢 FIXED: Proof record stays + Member gets notification
 async function verifyProof(id, status) {
   if (!confirm(`Are you sure you want to mark this proof as ${status}?`)) return;
   const proof = paymentProofs.find(p => p.id === id);
@@ -1617,18 +1593,27 @@ async function verifyProof(id, status) {
       
       await _supabase.from('maintenance_payments').insert([newReceipt]);
 
-      if (proof.image_url) {
-        const filePath = proof.image_url.split('/payment_proofs/')[1];
-        if (filePath) {
-          await _supabase.storage.from('payment_proofs').remove([decodeURIComponent(filePath)]);
-        }
-      }
+      // 🟢 Record delete नहीं करेंगे — status के साथ रखेंगे ताकि member देख सके
+      await _supabase.from('payment_proofs').update({ 
+        status: 'Verified',
+        verified_at: new Date().toISOString(),
+        verified_by: currentUser
+      }).eq('id', id);
 
-      await _supabase.from('payment_proofs').delete().eq('id', id);
-      alert('✅ Payment verify हो गया और Storage साफ़ कर दी गई!');
+      // 🟢 Member को notification notice भेजें
+      await sendProofNotificationToMember(proof.flat_no, Number(proof.amount), 'Verified', proof.society_name || currentSociety);
+      
+      alert('✅ Payment verified & member ko notification bhej diya gaya!');
     } else {
-      await _supabase.from('payment_proofs').update({ status: status }).eq('id', id);
-      alert('❌ Proof Rejected!');
+      await _supabase.from('payment_proofs').update({ 
+        status: 'Rejected',
+        verified_at: new Date().toISOString(),
+        verified_by: currentUser
+      }).eq('id', id);
+
+      await sendProofNotificationToMember(proof.flat_no, Number(proof.amount), 'Rejected', proof.society_name || currentSociety);
+      
+      alert('❌ Proof Rejected & member ko notification bhej diya gaya!');
     }
     
     fetchSupabaseData();
@@ -1801,6 +1786,7 @@ function renderMemberPersonalView() {
   `).join('');
 
   renderMyPaymentHistory();
+  renderMyPaymentSubmissions();
 }
 
 function renderTallyBankBook() {
@@ -1990,6 +1976,201 @@ function switchTab(tabId, element) {
   if (tabId === 'settings') {
     loadSettingsToForm();
   }
+
+  // 🟢 Auto-refresh data on tab click (lightweight)
+  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details'].includes(tabId)) {
+    refreshTabData(tabId);
+  }
+}
+
+// ============================================================
+// 🟢 NEW FUNCTION: Lightweight tab data refresh
+// ============================================================
+async function refreshTabData(tabId) {
+  if (!currentSociety) return;
+  try {
+    switch(tabId) {
+      case 'dashboard':
+      case 'members': {
+        const { data } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
+        if (data) membersData = data;
+        renderMembers();
+        if (tabId === 'dashboard') {
+          const [{ data: mnt }, { data: exp }] = await Promise.all([
+            _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
+            _supabase.from('expenses').select('*').eq('society_name', currentSociety)
+          ]);
+          if (mnt) maintenanceData = mnt;
+          if (exp) expenseData = exp;
+          renderMaintenance();
+          renderExpenses();
+          renderMemberPersonalView();
+          renderMyPaymentHistory();
+          renderMyPaymentSubmissions();
+        }
+        break;
+      }
+      case 'maintenance': {
+        const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
+        if (data) maintenanceData = data;
+        renderMaintenance();
+        renderMemberPersonalView();
+        renderMyPaymentHistory();
+        break;
+      }
+      case 'expenses': {
+        const { data } = await _supabase.from('expenses').select('*').eq('society_name', currentSociety);
+        if (data) expenseData = data;
+        renderExpenses();
+        break;
+      }
+      case 'polls': {
+        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
+        if (data) pollsData = data;
+        renderPolls();
+        break;
+      }
+      case 'complaints': {
+        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
+        if (data) complaintData = data;
+        renderComplaints();
+        break;
+      }
+      case 'proofs': {
+        const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
+        if (data) paymentProofs = data;
+        renderPaymentProofs();
+        renderMyPaymentSubmissions();
+        break;
+      }
+      case 'amc-tracker': {
+        const { data } = await _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety);
+        if (data) amcContractsData = data;
+        renderAMCTracker();
+        break;
+      }
+      case 'assets': {
+        const { data } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
+        if (data) assetData = data;
+        renderAssets();
+        break;
+      }
+      case 'fds': {
+        const { data } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
+        if (data) fdData = data;
+        renderFDs();
+        break;
+      }
+      case 'team': {
+        const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
+        if (data) teamData = data;
+        renderTeam();
+        renderSOSContacts();
+        break;
+      }
+      case 'journal-voucher': {
+        const { data } = await _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
+        if (data) journalVouchersData = data;
+        renderJournalVouchers();
+        break;
+      }
+      case 'deletion-requests': {
+        await loadDeletionRequests();
+        renderDeletionRequests();
+        break;
+      }
+      case 'sos-contacts': {
+        const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
+        if (data) teamData = data;
+        renderSOSContacts();
+        break;
+      }
+      case 'bank-details': {
+        const { data } = await _supabase.from('society_settings').select('*').eq('society_name', currentSociety);
+        if (data) {
+          societySettings = {};
+          data.forEach(s => { societySettings[s.key] = s.value; });
+        }
+        renderBankDetails();
+        break;
+      }
+    }
+  } catch(e) {
+    console.log('refreshTabData error for', tabId, e);
+  }
+}
+
+// ============================================================
+// 🟢 NEW FUNCTION: Send proof status notification to member
+// ============================================================
+async function sendProofNotificationToMember(flatNo, amount, status, societyName) {
+  try {
+    const title = status === 'Verified' ? '✅ Payment Verified' : '❌ Payment Rejected';
+    const content = status === 'Verified'
+      ? `Dear Member, aapka ₹${amount} ka payment society admin dwara VERIFY kar diya gaya hai. Thank you!`
+      : `Dear Member, aapka ₹${amount} ka payment REJECT ho gaya hai. Kripya admin se sampark karein ya sahi receipt dobara submit karein.`;
+
+    await _supabase.from('notices').insert([{
+      society_name: societyName,
+      title: title,
+      content: content,
+      date: new Date().toISOString().split('T')[0],
+      author: currentUser || 'Admin',
+      priority: status === 'Verified' ? 'Low' : 'High',
+      target_members: [flatNo],
+      attachment_url: null
+    }]);
+  } catch (e) {
+    console.log('Member notification error:', e);
+  }
+}
+
+// ============================================================
+// 🟢 NEW FUNCTION: Render member's payment submissions with status
+// ============================================================
+function renderMyPaymentSubmissions() {
+  const tbody = document.getElementById('my-payment-submissions-list');
+  const card = document.getElementById('myPaymentSubmissionsCard');
+  if (!tbody) return;
+
+  if (currentRole !== 'Member') {
+    if (card) card.style.display = 'none';
+    return;
+  }
+  if (card) card.style.display = 'block';
+
+  const userFlat = (currentUser || '').trim().toUpperCase();
+  const myProofs = paymentProofs.filter(p => (p.flat_no || '').trim().toUpperCase() === userFlat);
+
+  if (myProofs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No payment submissions yet.</td></tr>`;
+    return;
+  }
+
+  myProofs.sort((a, b) => new Date(b.submitted_at || b.payment_date) - new Date(a.submitted_at || a.payment_date));
+
+  tbody.innerHTML = myProofs.map(p => {
+    let statusBadge = '<span class="badge bg-warning text-dark">⏳ Pending</span>';
+    let remarks = '<small class="text-muted">Awaiting admin review</small>';
+
+    if (p.status === 'Verified') {
+      statusBadge = '<span class="badge bg-success">✅ Verified</span>';
+      remarks = p.verified_at ? `<small class="text-success">Verified on ${new Date(p.verified_at).toLocaleDateString()}</small>` : '<small class="text-success">Verified</small>';
+    } else if (p.status === 'Rejected') {
+      statusBadge = '<span class="badge bg-danger">❌ Rejected</span>';
+      remarks = '<small class="text-danger">Please contact admin</small>';
+    }
+
+    return `
+      <tr>
+        <td>${p.payment_date || '-'}</td>
+        <td class="fw-bold">${p.amount || 0}</td>
+        <td>${p.utr || '-'}</td>
+        <td>${statusBadge}</td>
+        <td>${remarks}</td>
+      </tr>
+    `;
+  }).join('');
 }
 
 async function submitMeetingMinutes(event) {
@@ -2042,6 +2223,7 @@ function renderAllTables() {
   renderTeam();
   renderMemberPersonalView();
   renderMyPaymentHistory();
+  renderMyPaymentSubmissions();   // 🟢 NEW
   renderBankDetails();
   renderAMCTracker();
   renderSOSContacts();
@@ -2113,7 +2295,6 @@ function exportCAAuditPDF() {
   doc.save(`CA_Audit_${currentSociety}_${Date.now()}.pdf`);
 }
 
-// 🟢 FIX #7: Overlay के अंदर वाले inputs भी भरें (querySelectorAll use करके)
 function loadSettingsToForm() {
   const s = societySettings || {};
   
@@ -2446,7 +2627,6 @@ async function logActivity(actionType, details) {
   }
 }
 
-// 🟢 FIX #6: Only Admin and SocietyAdmin can view logs
 async function fetchActivityLogs() {
   const { data, error } = await _supabase
     .from('activity_logs')
@@ -4269,7 +4449,6 @@ function renderGridCards() {
       c.id !== 'proofs'
     );
   } else if (role === 'SocietyAdmin') {
-    // 🟢 FIX #4: SocietyAdmin से master-dashboard और deletion-requests भी हटाए
     allCards = allCards.filter(c => 
       c.id !== 'settings' && 
       c.id !== 'manage-societies' &&
@@ -4353,7 +4532,7 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
-async function openTabOverlay(tabId) {
+async function openTabOverlay(tabId, skipHistory = false) {
   closeMobileMenu();
   if (tabId === 'visitor') { showVisitorPage(); return; }
 
@@ -4377,7 +4556,9 @@ async function openTabOverlay(tabId) {
       const finalOverlay = createTabOverlay(tabId, target.innerHTML);
       document.body.appendChild(finalOverlay);
       document.body.style.overflow = 'hidden';
-      window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+      if (!skipHistory) {
+        window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+      }
     }
 
     Promise.all([
@@ -4427,6 +4608,11 @@ async function openTabOverlay(tabId) {
   if (tabId === 'marketplace') renderMarketplace();
   if (tabId === 'manage-societies') loadSocietiesList();
 
+  // 🟢 Auto-refresh data before opening overlay
+  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details'].includes(tabId)) {
+    try { await refreshTabData(tabId); } catch(e) { console.log(e); }
+  }
+
   const target = document.getElementById(actualTabId);
   if (!target) return;
 
@@ -4434,12 +4620,14 @@ async function openTabOverlay(tabId) {
   document.body.appendChild(finalOverlay);
   document.body.style.overflow = 'hidden';
 
-  // 🟢 FIX #7: Overlay DOM में आने के बाद Settings form fill करें
   if (tabId === 'settings') {
     loadSettingsToForm();
   }
 
-  window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+  // 🟢 Deep-link के time history push skip करें
+  if (!skipHistory) {
+    window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+  }
 }
 
 function createTabOverlay(tabId, content) {
@@ -4473,7 +4661,6 @@ function closeTabOverlay() {
     }
   }
 
-  // 🟢 इस 'if' कंडीशन को अब फंक्शन के अंदर सही से सेट कर दिया गया है
   if (window.history.state && window.history.state.overlayOpen) {
     window.history.back();
   }
@@ -4983,7 +5170,6 @@ async function triggerSOS(alertType) {
 }
 
 function showSOSBanner(alertData) {
-  // पहले से कोई पुराना बैनर हो तो हटाएं
   const existingBanner = document.getElementById('sosAlertBanner');
   if (existingBanner) existingBanner.remove();
 
@@ -5022,7 +5208,6 @@ function showSOSBanner(alertData) {
   
   document.body.appendChild(banner);
 
-  // 🟢 क्लिक और टच इवेंट को तुरंत और सुरक्षित तरीके से जोड़ें
   const stopBtn = document.getElementById('stopSirenBtn');
   if (stopBtn) {
     const handleStop = (e) => {
@@ -5116,61 +5301,124 @@ function listenForSOSAlerts() {
     });
 }
 
+// 🟢 FIXED: Deep link with retry logic + polls support
+// 🟢 UPGRADED: Deep link with polls, section-scroll, and robust retry
 function handleDeepLink() {
-    setTimeout(async () => {
-        const params = new URLSearchParams(window.location.search);
-        let tab = params.get('tab');
+  const params = new URLSearchParams(window.location.search);
+  let tab = params.get('tab');
+  const section = params.get('section');
 
-        if (tab === 'notice' || tab === 'notices') {
-            tab = 'community';
+  if (!tab && !section) return;
+  if (tab === 'notice' || tab === 'notices') tab = 'community';
+  if (!tab) tab = 'dashboard';
+
+  let attempts = 0;
+  const MAX_ATTEMPTS = 50;
+  __userClosedOverlay = false;
+
+  const tryOpen = async () => {
+    attempts++;
+
+    const loggedIn = localStorage.getItem('ps_user_logged') === 'true';
+    if (!loggedIn) { if (attempts < MAX_ATTEMPTS) return setTimeout(tryOpen, 300); return; }
+
+    const storedSociety = localStorage.getItem('ps_user_society');
+    if (storedSociety && currentSociety !== storedSociety) currentSociety = storedSociety;
+    if (!currentSociety) { if (attempts < MAX_ATTEMPTS) return setTimeout(tryOpen, 300); return; }
+
+    const appSection = document.getElementById('app-section');
+    if (!appSection || appSection.classList.contains('d-none')) {
+      if (attempts < MAX_ATTEMPTS) return setTimeout(tryOpen, 300);
+      return;
+    }
+
+    // Preload target data
+    try {
+      if (tab === 'polls') {
+        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
+        pollsData = data || [];
+        renderPolls();
+      } else if (tab === 'community') {
+        const [{ data: n }, { data: e }] = await Promise.all([
+          _supabase.from('notices').select('*').eq('society_name', currentSociety),
+          _supabase.from('events').select('*').eq('society_name', currentSociety)
+        ]);
+        noticesData = n || []; eventsData = e || [];
+        renderCommunity();
+      } else if (tab === 'dashboard') {
+        const [{ data: proofs }, { data: mnt }] = await Promise.all([
+          _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety),
+          _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety)
+        ]);
+        if (proofs) paymentProofs = proofs;
+        if (mnt) maintenanceData = mnt;
+        renderMyPaymentSubmissions();
+        renderMemberPersonalView();
+      } else if (tab === 'marketplace') {
+        await fetchMarketplaceData(); renderMarketplace();
+      } else if (tab === 'complaints') {
+        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
+        complaintData = data || []; renderComplaints();
+      } else if (tab === 'proofs') {
+        const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
+        paymentProofs = data || []; renderPaymentProofs();
+      }
+    } catch (err) { console.error('[DeepLink] fetch error:', err); }
+
+    if (typeof clearStuckOverlays === 'function') clearStuckOverlays();
+    const gridOverlay = document.getElementById('mobileMenuOverlay');
+    if (gridOverlay) gridOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+
+    if (tab === 'visitor') { showVisitorPage(); return; }
+
+    // 🟢 STRONG LOCK for 15 seconds
+    __deepLinkLock = true;
+    setTimeout(() => {
+      __deepLinkLock = false;
+      console.log('[DeepLink] Lock released');
+    }, 15000);
+
+    console.log('[DeepLink] Opening tab:', tab);
+
+    // Open overlay WITHOUT pushing history
+    if (window.innerWidth <= 768) {
+      openTabOverlay(tab, true);
+    } else {
+      const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
+      if (link) switchTab(tab, link);
+    }
+
+    // 🟢 WATCHDOG: अगर overlay गायब हो जाए तो दोबारा खोलो
+    let watchdogTick = 0;
+    const watchdog = setInterval(() => {
+      watchdogTick++;
+      if (watchdogTick > 35 || __userClosedOverlay === true) {
+        clearInterval(watchdog);
+        console.log('[DeepLink] Watchdog stopped. Reason:', __userClosedOverlay ? 'user closed' : 'timeout');
+        return;
+      }
+      const ov = document.getElementById('tabOverlay');
+      if (!ov && window.innerWidth <= 768) {
+        console.log('[DeepLink] ⚠️ Overlay missing! Re-opening...');
+        openTabOverlay(tab, true);
+      }
+    }, 400);
+
+    if (section) {
+      setTimeout(() => {
+        const el = document.getElementById(section);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          el.style.transition = 'box-shadow 0.3s';
+          el.style.boxShadow = '0 0 0 3px #f59e0b';
+          setTimeout(() => { el.style.boxShadow = ''; }, 2500);
         }
+      }, 600);
+    }
+  };
 
-        if (tab) {
-            if (typeof clearStuckOverlays === 'function') {
-                clearStuckOverlays();
-            }
-
-            const gridOverlay = document.getElementById('mobileMenuOverlay');
-            if (gridOverlay) gridOverlay.style.display = 'none';
-            if (typeof closeMobileMenu === 'function') closeMobileMenu();
-
-            try {
-                if (tab === 'community') {
-                    const [{ data: notices }, { data: events }] = await Promise.all([
-                        _supabase.from('notices').select('*').eq('society_name', currentSociety),
-                        _supabase.from('events').select('*').eq('society_name', currentSociety)
-                    ]);
-                    noticesData = notices || [];
-                    eventsData = events || [];
-                    renderNoticesCommunity();
-                } else if (tab === 'visitor') {
-                    showVisitorPage();
-                    return;
-                } else if (tab === 'marketplace') {
-                    await fetchMarketplaceData();
-                    renderMarketplace();
-                } else if (tab === 'complaints') {
-                    const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-                    complaintData = data || [];
-                    renderComplaints();
-                }
-            } catch (err) {
-                console.error('Fast deep link fetch error:', err);
-            }
-
-            const isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                openTabOverlay(tab);
-            } else {
-                const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
-                if (link) switchTab(tab, link);
-            }
-
-            setTimeout(() => {
-                fetchSupabaseData();
-            }, 1000);
-        }
-    }, 100);
+  setTimeout(tryOpen, 700);
 }
 
 function toggleMobileMenu() {
@@ -5195,6 +5443,7 @@ function closeMobileMenu() {
 }
 
 function closeTabOverlay() {
+  __userClosedOverlay = true;   // 🟢 Mark as user-initiated
   const overlay = document.getElementById('tabOverlay');
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
@@ -5213,17 +5462,20 @@ function closeTabOverlay() {
   }
 }
 
-// 🟢 मोडल खुलने पर हिस्ट्री में स्टेट जोड़ें (इसे function के बाहर रखें)
 document.addEventListener('show.bs.modal', function (event) {
   window.history.pushState({ modalOpen: true }, "", window.location.href);
 });
 
-// 🟢 सुधरा हुआ और टच-फ्रेंडली ग्लोबल पॉपस्टेट (Popstate) हैंडलर (इसे function के बाहर रखें)
 window.addEventListener('popstate', function(event) {
+  // 🟢 Deep-link opening के time popstate ignore करें
+  if (__deepLinkLock === true) {
+    console.log('[DeepLink] popstate ignored during lock');
+    return;
+  }
+
   const tabOverlay = document.getElementById('tabOverlay');
   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
 
-  // 1. अगर कोई खुला हुआ Bootstrap modal है, तो उसे बंद करें
   const openModal = document.querySelector('.modal.show');
   if (openModal) {
     const modalInstance = bootstrap.Modal.getInstance(openModal);
@@ -5235,7 +5487,6 @@ window.addEventListener('popstate', function(event) {
     return;
   }
 
-  // 2. अगर Tab Overlay खुला है, तो उसे हटाकर वापस ग्रिड मेनू दिखाएं
   if (tabOverlay) {
     tabOverlay.remove();
     document.body.style.overflow = '';
