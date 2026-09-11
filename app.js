@@ -37,8 +37,8 @@ let societyRules = '';
 let amcContractsData = [];
 let deletionRequests = [];
 
-let __deepLinkLock = false;   // 🟢 Popstate protection during deep-link
-let __userClosedOverlay = false;   // 🟢 User ने खुद overlay बंद किया या नहीं
+let __deepLinkLock = false;
+let __userClosedOverlay = false;
 let notificationBadgeCount = 0;
 let communityBadgeCount = 0;
 
@@ -681,7 +681,8 @@ async function loadSecondaryData() {
       { data: proofs },
       { data: jvs },
       { data: team },
-      { data: delReq }
+      { data: delReq },
+      { data: bankEnt }
     ] = await Promise.all([
       _supabase.from('assets').select('*').eq('society_name', currentSociety),
       _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety),
@@ -694,7 +695,8 @@ async function loadSecondaryData() {
       _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety),
       _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
       _supabase.from('team').select('*').eq('society_name', currentSociety),
-      _supabase.from('deletion_requests').select('*').eq('society_name', currentSociety).order('requested_at', { ascending: false })
+      _supabase.from('deletion_requests').select('*').eq('society_name', currentSociety).order('requested_at', { ascending: false }),
+      _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false })
     ]);
 
     assetData = assets || [];
@@ -709,6 +711,7 @@ async function loadSecondaryData() {
     journalVouchersData = jvs || [];
     teamData = team || [];
     deletionRequests = delReq || [];
+    customBankEntries = bankEnt || [];
 
     renderJournalVouchers();
     if (currentRole === 'Admin') renderDeletionRequests();
@@ -1571,7 +1574,6 @@ function renderPaymentProofs() {
   }).join('');
 }
 
-// 🟢 FIXED: Proof record stays + Member gets notification
 async function verifyProof(id, status) {
   if (!confirm(`Are you sure you want to mark this proof as ${status}?`)) return;
   const proof = paymentProofs.find(p => p.id === id);
@@ -1593,14 +1595,12 @@ async function verifyProof(id, status) {
       
       await _supabase.from('maintenance_payments').insert([newReceipt]);
 
-      // 🟢 Record delete नहीं करेंगे — status के साथ रखेंगे ताकि member देख सके
       await _supabase.from('payment_proofs').update({ 
         status: 'Verified',
         verified_at: new Date().toISOString(),
         verified_by: currentUser
       }).eq('id', id);
 
-      // 🟢 Member को notification notice भेजें
       await sendProofNotificationToMember(proof.flat_no, Number(proof.amount), 'Verified', proof.society_name || currentSociety);
       
       alert('✅ Payment verified & member ko notification bhej diya gaya!');
@@ -1847,6 +1847,7 @@ async function deleteBankEntry(source, id) {
     const { error } = await _supabase.from('bank_entries').delete().eq('id', id);
     if (error) { alert('❌ Error: ' + error.message); return; }
     fetchSupabaseData();
+    setTimeout(() => loadSecondaryData(), 500);
   }
 }
 
@@ -1977,15 +1978,11 @@ function switchTab(tabId, element) {
     loadSettingsToForm();
   }
 
-  // 🟢 Auto-refresh data on tab click (lightweight)
-  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details'].includes(tabId)) {
+  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
     refreshTabData(tabId);
   }
 }
 
-// ============================================================
-// 🟢 NEW FUNCTION: Lightweight tab data refresh
-// ============================================================
 async function refreshTabData(tabId) {
   if (!currentSociety) return;
   try {
@@ -2094,15 +2091,24 @@ async function refreshTabData(tabId) {
         renderBankDetails();
         break;
       }
+      case 'tally-bank': {
+        const [{ data: bankEnt }, { data: mnt }, { data: exp }] = await Promise.all([
+          _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
+          _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
+          _supabase.from('expenses').select('*').eq('society_name', currentSociety)
+        ]);
+        if (bankEnt) customBankEntries = bankEnt;
+        if (mnt) maintenanceData = mnt;
+        if (exp) expenseData = exp;
+        renderTallyBankBook();
+        break;
+      }
     }
   } catch(e) {
     console.log('refreshTabData error for', tabId, e);
   }
 }
 
-// ============================================================
-// 🟢 NEW FUNCTION: Send proof status notification to member
-// ============================================================
 async function sendProofNotificationToMember(flatNo, amount, status, societyName) {
   try {
     const title = status === 'Verified' ? '✅ Payment Verified' : '❌ Payment Rejected';
@@ -2118,16 +2124,14 @@ async function sendProofNotificationToMember(flatNo, amount, status, societyName
       author: currentUser || 'Admin',
       priority: status === 'Verified' ? 'Low' : 'High',
       target_members: [flatNo],
-      attachment_url: null
+      attachment_url: null,
+      deep_link: '/?tab=dashboard&section=myPaymentSubmissionsCard'
     }]);
   } catch (e) {
     console.log('Member notification error:', e);
   }
 }
 
-// ============================================================
-// 🟢 NEW FUNCTION: Render member's payment submissions with status
-// ============================================================
 function renderMyPaymentSubmissions() {
   const tbody = document.getElementById('my-payment-submissions-list');
   const card = document.getElementById('myPaymentSubmissionsCard');
@@ -2200,7 +2204,21 @@ async function submitMeetingMinutes(event) {
     return;
   }
 
-  alert('✅ Meeting Minutes Recorded Successfully!');
+  try {
+    await _supabase.from('notices').insert([{
+      society_name: currentSociety,
+      title: `📋 New ${type} Recorded`,
+      content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
+      date: new Date().toISOString().split('T')[0],
+      author: currentUser || 'Admin',
+      priority: type === 'AGM' ? 'High' : 'Medium',
+      target_members: [],
+      attachment_url: null,
+      deep_link: '/?tab=meetings'
+    }]);
+  } catch (e) { console.log('Meeting notification error:', e); }
+
+  alert('✅ Meeting Minutes Recorded & Members Notified!');
   bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
   document.getElementById('meetingForm').reset();
   fetchSupabaseData();
@@ -2223,7 +2241,7 @@ function renderAllTables() {
   renderTeam();
   renderMemberPersonalView();
   renderMyPaymentHistory();
-  renderMyPaymentSubmissions();   // 🟢 NEW
+  renderMyPaymentSubmissions();
   renderBankDetails();
   renderAMCTracker();
   renderSOSContacts();
@@ -4266,7 +4284,8 @@ async function submitBankEntry(event) {
   alert('✅ Bank entry saved permanently!');
   bootstrap.Modal.getInstance(document.getElementById('bankModal')).hide();
   document.getElementById('bankModal').querySelector('form').reset();
-  fetchSupabaseData();
+  await fetchSupabaseData();
+  setTimeout(() => loadSecondaryData(), 500);
 }
 
 function openEnrollModal() {
@@ -4549,9 +4568,21 @@ async function openTabOverlay(tabId, skipHistory = false) {
   if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
     tabId = 'community';
     markCommunityRead();
-    
-    let actualTabId = 'tab-community';
-    const target = document.getElementById(actualTabId);
+
+    try {
+      const [{ data: fData }, { data: bData }, { data: nData }, { data: eData }] = await Promise.all([
+        _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
+        _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true }),
+        _supabase.from('notices').select('*').eq('society_name', currentSociety),
+        _supabase.from('events').select('*').eq('society_name', currentSociety).order('date', { ascending: true })
+      ]);
+      facilitiesData = fData || [];
+      bookingsData = bData || [];
+      noticesData = nData || [];
+      eventsData = eData || [];
+    } catch (e) { console.log('[Community] fetch error:', e); }
+
+    const target = document.getElementById('tab-community');
     if (target) {
       const finalOverlay = createTabOverlay(tabId, target.innerHTML);
       document.body.appendChild(finalOverlay);
@@ -4561,13 +4592,7 @@ async function openTabOverlay(tabId, skipHistory = false) {
       }
     }
 
-    Promise.all([
-      fetchEvents(),
-      fetchFacilityData(),
-      _supabase.from('notices').select('*').eq('society_name', currentSociety).then(({ data }) => { noticesData = data || []; })
-    ]).then(() => {
-      renderCommunity();
-    });
+    renderCommunity();
     return;
   }
 
@@ -4608,8 +4633,7 @@ async function openTabOverlay(tabId, skipHistory = false) {
   if (tabId === 'marketplace') renderMarketplace();
   if (tabId === 'manage-societies') loadSocietiesList();
 
-  // 🟢 Auto-refresh data before opening overlay
-  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details'].includes(tabId)) {
+  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
     try { await refreshTabData(tabId); } catch(e) { console.log(e); }
   }
 
@@ -4624,7 +4648,6 @@ async function openTabOverlay(tabId, skipHistory = false) {
     loadSettingsToForm();
   }
 
-  // 🟢 Deep-link के time history push skip करें
   if (!skipHistory) {
     window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
   }
@@ -4648,6 +4671,7 @@ function createTabOverlay(tabId, content) {
 }
 
 function closeTabOverlay() {
+  __userClosedOverlay = true;
   const overlay = document.getElementById('tabOverlay');
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
@@ -5301,8 +5325,6 @@ function listenForSOSAlerts() {
     });
 }
 
-// 🟢 FIXED: Deep link with retry logic + polls support
-// 🟢 UPGRADED: Deep link with polls, section-scroll, and robust retry
 function handleDeepLink() {
   const params = new URLSearchParams(window.location.search);
   let tab = params.get('tab');
@@ -5311,6 +5333,10 @@ function handleDeepLink() {
   if (!tab && !section) return;
   if (tab === 'notice' || tab === 'notices') tab = 'community';
   if (!tab) tab = 'dashboard';
+
+  if (section === 'myPaymentSubmissionsCard') {
+    tab = 'dashboard';
+  }
 
   let attempts = 0;
   const MAX_ATTEMPTS = 50;
@@ -5332,7 +5358,6 @@ function handleDeepLink() {
       return;
     }
 
-    // Preload target data
     try {
       if (tab === 'polls') {
         const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
@@ -5362,6 +5387,9 @@ function handleDeepLink() {
       } else if (tab === 'proofs') {
         const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
         paymentProofs = data || []; renderPaymentProofs();
+      } else if (tab === 'meetings') {
+        const { data } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety);
+        meetingsData = data || []; renderMeetings();
       }
     } catch (err) { console.error('[DeepLink] fetch error:', err); }
 
@@ -5372,7 +5400,6 @@ function handleDeepLink() {
 
     if (tab === 'visitor') { showVisitorPage(); return; }
 
-    // 🟢 STRONG LOCK for 15 seconds
     __deepLinkLock = true;
     setTimeout(() => {
       __deepLinkLock = false;
@@ -5381,7 +5408,6 @@ function handleDeepLink() {
 
     console.log('[DeepLink] Opening tab:', tab);
 
-    // Open overlay WITHOUT pushing history
     if (window.innerWidth <= 768) {
       openTabOverlay(tab, true);
     } else {
@@ -5389,7 +5415,6 @@ function handleDeepLink() {
       if (link) switchTab(tab, link);
     }
 
-    // 🟢 WATCHDOG: अगर overlay गायब हो जाए तो दोबारा खोलो
     let watchdogTick = 0;
     const watchdog = setInterval(() => {
       watchdogTick++;
@@ -5406,15 +5431,23 @@ function handleDeepLink() {
     }, 400);
 
     if (section) {
-      setTimeout(() => {
+      setTimeout(async () => {
+        if (section === 'myPaymentSubmissionsCard') {
+          try {
+            const { data: proofs } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
+            if (proofs) paymentProofs = proofs;
+            renderMyPaymentSubmissions();
+          } catch (e) { console.log(e); }
+        }
+        
         const el = document.getElementById(section);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           el.style.transition = 'box-shadow 0.3s';
-          el.style.boxShadow = '0 0 0 3px #f59e0b';
-          setTimeout(() => { el.style.boxShadow = ''; }, 2500);
+          el.style.boxShadow = '0 0 0 4px #f59e0b';
+          setTimeout(() => { el.style.boxShadow = ''; }, 3000);
         }
-      }, 600);
+      }, 800);
     }
   };
 
@@ -5443,7 +5476,7 @@ function closeMobileMenu() {
 }
 
 function closeTabOverlay() {
-  __userClosedOverlay = true;   // 🟢 Mark as user-initiated
+  __userClosedOverlay = true;
   const overlay = document.getElementById('tabOverlay');
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
@@ -5467,7 +5500,6 @@ document.addEventListener('show.bs.modal', function (event) {
 });
 
 window.addEventListener('popstate', function(event) {
-  // 🟢 Deep-link opening के time popstate ignore करें
   if (__deepLinkLock === true) {
     console.log('[DeepLink] popstate ignored during lock');
     return;
