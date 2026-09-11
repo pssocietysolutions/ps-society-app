@@ -1,17 +1,8 @@
-// ==================== firebase-messaging-sw.js ====================
+// firebase-messaging-sw.js
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 console.log("🔥 Service Worker Loaded Successfully!");
-
-// 🟢 नया कोड तुरंत एक्टिवेट करने के लिए (पुरानी कैश हट जाएगी)
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
-});
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
@@ -25,11 +16,11 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Background Message Handler
+// ✅ Background Message Handler (सिर्फ एक बार)
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // 🟢 1. अगर Firebase ने पहले ही नोटिफिकेशन दिखा दिया है, तो दोबारा न दिखाएं (डबल बंद)
+  // 🟢 अगर Firebase ने पहले ही नोटिफिकेशन भेज दिया है, तो दोबारा न दिखाएं (डबल और background update रुक जाएगा)
   if (payload.notification) {
     return;
   }
@@ -37,18 +28,15 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.data?.title || 'PS Society';
   const notificationBody = payload.data?.body || 'New update';
 
-  // 🟢 2. 'return' लगाना अनिवार्य है ताकि Chrome को प्रॉमिस मिले और वो 'updated in background' न दिखाए
-  return self.registration.showNotification(notificationTitle, {
+  self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    tag: payload.data?.tag || 'ps-society-alert', // डुप्लीकेट रोक देगा
-    renotify: true,
     data: payload.data || {}
   });
 });
 
-// ✅ Notification Click Handler (सीधे Dashboard ले जाने के लिए)
+// ✅ Notification Click Handler
+// ✅ Notification Click Handler (Smart Tab Redirection)
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
@@ -56,9 +44,10 @@ self.addEventListener('notificationclick', function(event) {
   const title = (event.notification.title || '').toLowerCase();
   const body = (event.notification.body || '').toLowerCase();
 
+  // 1. पहले deep_link चेक करें, फिर click_action, फिर url
   let urlToOpen = data.deep_link || data.click_action || data.url || '';
 
-  // अगर पेमेंट वेरिफ़िकेशन / रिजेक्शन है तो सीधे Dashboard पर ले जाएं
+  // 🎯 2. अगर पेमेंट से जुड़ा नोटिफिकेशन है तो जबरन Dashboard पर भेजें
   if (
     title.includes('payment') || 
     title.includes('verified') || 
@@ -67,14 +56,18 @@ self.addEventListener('notificationclick', function(event) {
     body.includes('verify')
   ) {
     urlToOpen = '/?tab=dashboard&section=myPaymentSubmissionsCard';
-  } else if (!urlToOpen || urlToOpen === '/') {
+  } 
+  // अगर कोई URL नहीं मिला तो डिफ़ॉल्ट Dashboard
+  else if (!urlToOpen || urlToOpen === '/') {
     urlToOpen = '/?tab=dashboard';
   }
 
+  // पूरा यूआरएल बनाएं
   if (!urlToOpen.startsWith('http')) {
     urlToOpen = self.location.origin + urlToOpen;
   }
 
+  // 3. विंडो ओपन या फोकस करें
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
