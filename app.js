@@ -1448,56 +1448,66 @@ function sendBulkWhatsAppReminder() {
 }
 
 function renderPaymentProofs() {
-  const container = document.getElementById('proofs-container');
-  if (!container) return;
-  
+  // ✅ FIX: Query all instances (original + mobile overlay clone)
+  const containers = document.querySelectorAll('#proofs-container');
+  if (containers.length === 0) return;
+
+  let html = '';
+  let pendingText = '0 Pending';
+
   if (paymentProofs.length === 0) {
-    container.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No payment details submitted yet.</td></tr>`;
-    const pendingCount = document.getElementById('pending-proof-count');
-    if (pendingCount) pendingCount.innerText = '0 Pending';
-    return;
+    html = `<tr><td colspan="6" class="text-center text-muted">No payment details submitted yet.</td></tr>`;
+  } else {
+    const pending = paymentProofs.filter(p => p.status === 'Pending').length;
+    pendingText = `${pending} Pending`;
+
+    html = paymentProofs.map(p => {
+      const member = membersData.find(m => (m.flat_no || '').toUpperCase() === (p.flat_no || '').toUpperCase());
+      const memberPhone = member?.phone || '';
+      const hasImage = p.image_url && p.image_url.trim() !== '';
+      const isPending = p.status === 'Pending';
+      const statusBadge = isPending
+        ? '<span class="badge bg-warning text-dark">Pending</span>'
+        : (p.status === 'Verified' ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-danger">Rejected</span>');
+
+      return `
+        <tr>
+          <td><b>${p.flat_no}</b></td>
+          <td>${p.amount}</td>
+          <td>${p.payment_date}</td>
+          <td>${statusBadge}</td>
+          <td>${hasImage ? `<img src="${p.image_url}" alt="Proof" style="height:45px; width:45px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${p.image_url}','_blank')">` : '<span class="text-muted">-</span>'}</td>
+          <td class="no-print">
+            ${isPending && (currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+              <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${p.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
+              <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
+            ` : '<span class="text-muted">-</span>'}
+            ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') && memberPhone ? `
+              <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>
+            ` : ''}
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
 
-  const pending = paymentProofs.filter(p => p.status === 'Pending').length;
-  const pendingCount = document.getElementById('pending-proof-count');
-  if (pendingCount) pendingCount.innerText = `${pending} Pending`;
+  // ✅ Update ALL containers (original + overlay clone)
+  containers.forEach(container => { container.innerHTML = html; });
 
-  container.innerHTML = paymentProofs.map(p => {
-    const member = membersData.find(m => (m.flat_no || '').toUpperCase() === (p.flat_no || '').toUpperCase());
-    const memberPhone = member?.phone || '';
-    const hasImage = p.image_url && p.image_url.trim() !== '';
-    const isPending = p.status === 'Pending';
-    const statusBadge = isPending 
-      ? '<span class="badge bg-warning text-dark">Pending</span>' 
-      : (p.status === 'Verified' ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-danger">Rejected</span>');
-
-    return `
-      <tr>
-        <td><b>${p.flat_no}</b></td>
-        <td>${p.amount}</td>
-        <td>${p.payment_date}</td>
-        <td>${statusBadge}</td>
-        <td>${hasImage ? `<img src="${p.image_url}" alt="Proof" style="height:45px; width:45px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${p.image_url}','_blank')">` : '<span class="text-muted">-</span>'}</td>
-        <td class="no-print">
-          ${isPending && (currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
-            <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${p.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
-            <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
-          ` : '<span class="text-muted">-</span>'}
-          ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') && memberPhone ? `
-            <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>
-          ` : ''}
-        </td>
-      </tr>
-    `;
-  }).join('');
+  // ✅ Update ALL pending count badges
+  document.querySelectorAll('#pending-proof-count').forEach(el => {
+    el.innerText = pendingText;
+  });
 }
 
+// ==================== VERIFY PROOF (with image auto-delete + UI fix) ====================
 async function verifyProof(id, status) {
   if (!confirm(`Are you sure you want to mark this proof as ${status}?`)) return;
   const proof = paymentProofs.find(p => p.id === id);
   if (!proof) return;
 
   try {
+    // ✅ If Verified → create maintenance receipt
     if (status === 'Verified') {
       const paymentDate = new Date(proof.payment_date);
       const newReceipt = {
@@ -1510,45 +1520,78 @@ async function verifyProof(id, status) {
         remarks: `Auto-verified from UTR: ${proof.utr || 'N/A'}`,
         society_name: proof.society_name || currentSociety
       };
-
       await _supabase.from('maintenance_payments').insert([newReceipt]);
-
-      await _supabase.from('payment_proofs').update({
-        status: 'Verified',
-        verified_at: new Date().toISOString(),
-        verified_by: currentUser
-      }).eq('id', id);
-
-      await sendProofNotificationToMember(proof.flat_no, Number(proof.amount), 'Verified', proof.society_name || currentSociety);
-
-      alert('✅ Payment verified & member ko notification bhej diya gaya!');
-    } else {
-      await _supabase.from('payment_proofs').update({
-        status: 'Rejected',
-        verified_at: new Date().toISOString(),
-        verified_by: currentUser
-      }).eq('id', id);
-
-      await sendProofNotificationToMember(proof.flat_no, Number(proof.amount), 'Rejected', proof.society_name || currentSociety);
-
-      alert('❌ Proof Rejected & member ko notification bhej diya gaya!');
     }
 
-    // ✅ FIXED: Properly refresh proofs so action buttons update
+    // ✅ Prepare update payload
+    let updatePayload = {
+      status: status,
+      verified_at: new Date().toISOString(),
+      verified_by: currentUser
+    };
+
+    // ✅ NEW: Auto-delete receipt image from storage (for BOTH Verified & Rejected)
+    if (proof.image_url && proof.image_url.trim() !== '') {
+      try {
+        // Extract file path from public URL
+        // Format: https://xxx.supabase.co/storage/v1/object/public/payment_proofs/SOCIETY/proof_xxx.jpg
+        const urlParts = proof.image_url.split('/payment_proofs/');
+        if (urlParts.length > 1) {
+          const filePath = decodeURIComponent(urlParts[1]);
+          const { error: delErr } = await _supabase.storage
+            .from('payment_proofs')
+            .remove([filePath]);
+
+          if (delErr) {
+            console.warn('[Verify] Image delete failed:', delErr.message);
+          } else {
+            console.log('[Verify] Image deleted from storage:', filePath);
+          }
+        }
+        updatePayload.image_url = null; // Clear DB reference
+      } catch (imgErr) {
+        console.warn('[Verify] Image cleanup error:', imgErr);
+      }
+    }
+
+    // ✅ Update the proof record
+    const { error: updErr } = await _supabase
+      .from('payment_proofs')
+      .update(updatePayload)
+      .eq('id', id);
+
+    if (updErr) {
+      alert('❌ DB update failed: ' + updErr.message);
+      return;
+    }
+
+    // ✅ Send notification to member
+    await sendProofNotificationToMember(
+      proof.flat_no,
+      Number(proof.amount),
+      status,
+      proof.society_name || currentSociety
+    );
+
+    alert(status === 'Verified'
+      ? '✅ Payment verified! Image auto-deleted & member notified.'
+      : '❌ Proof rejected! Image auto-deleted & member notified.'
+    );
+
+    // ✅ Refresh fresh data from DB
     const { data: freshProofs } = await _supabase
       .from('payment_proofs')
       .select('*')
       .eq('society_name', currentSociety);
     if (freshProofs) paymentProofs = freshProofs;
 
-    // Refresh maintenance/payments related data
     const { data: freshMaint } = await _supabase
       .from('maintenance_payments')
       .select('*')
       .eq('society_name', currentSociety);
     if (freshMaint) maintenanceData = freshMaint;
 
-    // Re-render everything
+    // ✅ Re-render — updates BOTH desktop original + mobile overlay clone
     renderPaymentProofs();
     renderMyPaymentSubmissions();
     renderMaintenance();
@@ -1557,9 +1600,12 @@ async function verifyProof(id, status) {
 
   } catch (err) {
     alert('❌ Error: ' + err.message);
+    console.error('verifyProof error:', err);
   }
 }
 
+
+// ==================== SUBMIT PAYMENT DETAILS (with proper admin notify) ====================
 async function submitPaymentDetails(event) {
   event.preventDefault();
   const paymentDate = document.getElementById('pay-form-date').value;
@@ -1575,50 +1621,81 @@ async function submitPaymentDetails(event) {
   if (file) {
     const fileExt = file.name.split('.').pop();
     const filePath = `${currentSociety}/proof_${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await _supabase.storage.from('payment_proofs').upload(filePath, file);
+    const { error: uploadError } = await _supabase.storage
+      .from('payment_proofs')
+      .upload(filePath, file);
     if (!uploadError) {
-      const { data: urlData } = _supabase.storage.from('payment_proofs').getPublicUrl(filePath);
+      const { data: urlData } = _supabase.storage
+        .from('payment_proofs')
+        .getPublicUrl(filePath);
       imageUrl = urlData?.publicUrl || null;
     }
   }
 
   const newProof = {
-    flat_no: currentUser, payment_date: paymentDate, amount: parseFloat(amount),
-    mode, bank, utr, app: app || '', notes: notes || '',
-    image_url: imageUrl, status: 'Pending',
-    submitted_at: new Date().toISOString(), society_name: currentSociety
+    flat_no: currentUser,
+    payment_date: paymentDate,
+    amount: parseFloat(amount),
+    mode, bank, utr,
+    app: app || '',
+    notes: notes || '',
+    image_url: imageUrl,
+    status: 'Pending',
+    submitted_at: new Date().toISOString(),
+    society_name: currentSociety
   };
 
   const { error } = await _supabase.from('payment_proofs').insert([newProof]);
   if (error) { alert('❌ Error: ' + error.message); return; }
 
-  // ✅ FIXED: Notify Admin / SocietyAdmin / Chairman
+  // ✅ FIXED: Query real admin/societyadmin/chairman users & notify them
   try {
-    await _supabase.from('notices').insert([{
-      society_name: currentSociety,
-      title: `💰 New Payment Proof from Flat ${currentUser}`,
-      content: `Flat ${currentUser} ने ₹${amount} का payment proof submit किया है। UTR: ${utr}. कृपया verify करें।`,
-      date: new Date().toISOString().split('T')[0],
-      author: currentUser,
-      priority: 'High',
-      target_members: ['ADMIN_MARKER'], // admin को दिखेगा, members को नहीं
-      attachment_url: null,
-      deep_link: '/?tab=proofs'
-    }]);
-  } catch (notifyErr) {
-    // Fallback if deep_link column missing
-    try {
-      await _supabase.from('notices').insert([{
+    const { data: adminUsers, error: adminErr } = await _supabase
+      .from('user_master')
+      .select('flat_no, role')
+      .eq('society_name', currentSociety)
+      .in('role', ['Admin', 'SocietyAdmin', 'Chairman']);
+
+    if (adminErr) console.warn('[PaymentProof] Admin query error:', adminErr.message);
+
+    const adminFlats = (adminUsers || [])
+      .map(u => (u.flat_no || '').trim().toUpperCase())
+      .filter(Boolean);
+
+    console.log('[PaymentProof] Admin flats to notify:', adminFlats);
+
+    if (adminFlats.length > 0) {
+      const noticePayload = {
         society_name: currentSociety,
         title: `💰 New Payment Proof from Flat ${currentUser}`,
-        content: `Flat ${currentUser} ने ₹${amount} का payment proof submit किया है। कृपया verify करें।`,
+        content: `Flat ${currentUser} ने ₹${amount} का payment proof submit किया है। UTR: ${utr}. कृपया verify करें।`,
         date: new Date().toISOString().split('T')[0],
         author: currentUser,
         priority: 'High',
-        target_members: ['ADMIN_MARKER'],
-        attachment_url: null
-      }]);
-    } catch(e) { console.log('Admin notify fallback err:', e); }
+        target_members: adminFlats,
+        attachment_url: null,
+        deep_link: '/?tab=proofs'
+      };
+
+      const { error: noticeErr } = await _supabase.from('notices').insert([noticePayload]);
+
+      if (noticeErr) {
+        console.warn('[PaymentProof] First insert failed, retry without deep_link:', noticeErr.message);
+        delete noticePayload.deep_link;
+        const { error: noticeErr2 } = await _supabase.from('notices').insert([noticePayload]);
+        if (noticeErr2) {
+          console.error('[PaymentProof] Fallback insert also failed:', noticeErr2.message);
+        } else {
+          console.log('[PaymentProof] Inserted WITHOUT deep_link');
+        }
+      } else {
+        console.log('[PaymentProof] Admin notice inserted for:', adminFlats);
+      }
+    } else {
+      console.warn('[PaymentProof] No admin users found for society:', currentSociety);
+    }
+  } catch (notifyErr) {
+    console.error('[PaymentProof] Admin notify error:', notifyErr);
   }
 
   alert('✅ Submitted successfully! Admin will verify soon.');
@@ -1627,6 +1704,8 @@ async function submitPaymentDetails(event) {
   fetchSupabaseData();
 }
 
+
+// ==================== REALTIME SUBSCRIPTION ====================
 // ✅ NEW: Realtime subscription for payment proofs
 let __proofRealtimeChannel = null;
 
