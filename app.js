@@ -5155,12 +5155,17 @@ function closeTabOverlay() {
     }
   }
 
- // 🟢 मोडल खुलने पर हिस्ट्री में स्टेट जोड़ें ताकि बैक बटन से मोडल बंद हो सके
+  if (window.history.state && window.history.state.overlayOpen) {
+    window.history.back();
+  }
+}
+
+// 🟢 मोडल खुलने पर हिस्ट्री में स्टेट जोड़ें (इसे function के बाहर रखें)
 document.addEventListener('show.bs.modal', function (event) {
   window.history.pushState({ modalOpen: true }, "", window.location.href);
 });
 
-// 🟢 सुधरा हुआ ग्लोबल पॉपस्टेट (Popstate) हैंडलर
+// 🟢 सुधरा हुआ और टच-फ्रेंडली ग्लोबल पॉपस्टेट (Popstate) हैंडलर (इसे function के बाहर रखें)
 window.addEventListener('popstate', function(event) {
   const tabOverlay = document.getElementById('tabOverlay');
   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
@@ -5173,25 +5178,20 @@ window.addEventListener('popstate', function(event) {
     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
+    document.body.style.pointerEvents = 'auto';
     return;
   }
 
   // 2. अगर Tab Overlay खुला है, तो उसे हटाकर वापस ग्रिड मेनू दिखाएं
   if (tabOverlay) {
     tabOverlay.remove();
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = 'auto';
     if (window.innerWidth <= 768 && mobileMenuOverlay) {
       mobileMenuOverlay.style.display = 'flex';
       renderGridCards();
       document.body.style.overflow = 'hidden';
     }
-    return;
-  }
-// 3. अगर मोबाइल पर डैशबोर्ड खुला है और ग्रिड बंद है, तो बैक दबाने पर ऐप से बाहर होने के बजाय ग्रिड मेनू खुले
-  if (window.innerWidth <= 768 && mobileMenuOverlay && mobileMenuOverlay.style.display !== 'flex') {
-    window.history.pushState({ menuOpen: true }, "", window.location.href);
-    mobileMenuOverlay.style.display = 'flex';
-    renderGridCards();
-    document.body.style.overflow = 'hidden';
     return;
   }
 });
