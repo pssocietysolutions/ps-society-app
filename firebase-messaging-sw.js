@@ -16,50 +16,40 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// firebase-messaging-sw.js में यह कोड अपडेट करें
-
+// ✅ Background Message Handler (सिर्फ एक बार)
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
+  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
   const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
   const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
-  
-  const clickAction = payload.data?.click_action || '';
-  let targetTab = 'dashboard';
-
-  // 🟢 URL (click_action) से खुद 'tab' पैरामीटर निकालें (जैसे ?tab=polls)
-  if (clickAction.includes('tab=')) {
-    const match = clickAction.match(/tab=([^&]+)/);
-    if (match && match[1]) {
-      targetTab = match[1];
-    }
-  }
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: '/icon-192.png',
-    data: { ...payload.data, tab: targetTab, click_action: clickAction }
+    data: payload.data || {}
   });
 });
 
+// ✅ Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
   const data = event.notification.data || {};
-  
-  // 🟢 FIX: अगर डेटा में tab दिया है तो उसी टैब का URL बनाएं, वरना डिफ़ॉल्ट होम
-  let relativePath = data.tab ? `/?tab=${data.tab}` : (data.click_action || data.url || '/');
-  const urlToOpen = new URL(relativePath, self.location.origin).href;
+  let urlToOpen = data.click_action || data.url || '/';
+
+  if (!urlToOpen.startsWith('http')) {
+    const baseUrl = self.location.origin;
+    urlToOpen = baseUrl + urlToOpen;
+  }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.focus();
-            client.navigate(urlToOpen);
-            return;
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
           }
         }
         if (clients.openWindow) {
