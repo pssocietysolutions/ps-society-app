@@ -1503,26 +1503,73 @@ messaging.onMessage((payload) => {
 });
 
 async function requestNotificationPermission() {
-  if (window._swRegistered) return;
-  window._swRegistered = true;
-
   try {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
-      await navigator.serviceWorker.ready;
-      
-      const token = await messaging.getToken({
-        vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
-        serviceWorkerRegistration: registration
-      });
+    // 1. Permission status check
+    if (Notification.permission === 'denied') {
+      console.warn('🔕 Notification permission is DENIED. User must enable from browser settings.');
+      return;
+    }
 
-      if (token) {
-        await saveFCMTokenToSupabase(token);
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.log('⏭️ Notification permission not granted:', permission);
+      return;
+    }
+
+    // 2. Register SW (idempotent)
+    let registration = await navigator.serviceWorker.getRegistration('./');
+    if (!registration) {
+      registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+        scope: './'
+      });
+    }
+    await navigator.serviceWorker.ready;
+
+    // 3. Get token
+    const token = await messaging.getToken({
+      vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
+      serviceWorkerRegistration: registration
+    });
+
+    if (!token) {
+      console.warn('⚠️ No FCM token received. Check VAPID key & Firebase console settings.');
+      return;
+    }
+
+    console.log('✅ FCM Token:', token);
+    await saveFCMTokenToSupabase(token);
+
+    // 4. Token refresh listener (important!)
+    messaging.onTokenRefresh(async (newToken) => {
+      console.log('🔄 FCM Token refreshed:', newToken);
+      await saveFCMTokenToSupabase(newToken);
+    });
+
+  } catch (err) {
+    console.error('❌ Notification setup error:', err);
+  }
+}
+
+async function saveFCMTokenToSupabase(token) {
+  if (!currentUser || !currentSociety || !token) return;
+  try {
+    // 🟢 एक flat के multiple devices support करने के लिए unique key: token
+    const { error } = await _supabase.from('fcm_tokens').upsert([
+      {
+        society_name: currentSociety,
+        flat_no: currentUser,
+        token: token,
+        updated_at: new Date().toISOString()
       }
+    ], { onConflict: 'token' });
+
+    if (error) {
+      console.error('❌ Token save error:', error.message);
+    } else {
+      console.log('✅ FCM token saved to Supabase');
     }
   } catch (err) {
-    console.error('Error in notification setup:', err);
+    console.error('Token save exception:', err);
   }
 }
 
