@@ -167,7 +167,6 @@ function goBackFromVisitor() {
 async function handleLogin(event) {
     event.preventDefault();
     
-    // 🟢 FIX #2: हर नए login पर पुराना data पूरी तरह clear करें
     clearAllData();
     
     const rawInput = document.getElementById('loginIdInput').value;
@@ -215,11 +214,10 @@ async function handleLogin(event) {
         currentSociety = targetSociety.trim();
         
         const modalEl = document.getElementById('loginModal');
-if (modalEl) {
-  const modalInstance = bootstrap.Modal.getInstance(modalEl) 
-                        || bootstrap.Modal.getOrCreateInstance(modalEl);
-  modalInstance.hide();
-}
+        if (modalEl) {
+          const modalInstance = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+          modalInstance.hide();
+        }
 
         document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
         document.body.classList.remove('modal-open');
@@ -231,8 +229,9 @@ if (modalEl) {
         const appSec = document.getElementById('app-section');
         if (appSec) appSec.classList.remove('d-none');
 
-        alert("✅ Login Successful!");
+        // 🟢 alert को सबसे अंत में रखा ताकि व्हाइट स्क्रीन या रेंडरिंग में रुकावट न आए
         applyUserSession(user.role, user.flat_no);
+        alert("✅ Login Successful!");
 
     } catch (err) {
         console.error('Login error:', err);
@@ -4420,12 +4419,12 @@ function closeTabOverlay() {
       document.body.style.overflow = 'hidden';
     }
   }
-}
 
-  // 🟢 History pop करें ताकि अगली बार back दबाने पर app बंद न हो
+  // 🟢 इस 'if' कंडीशन को अब फंक्शन के अंदर सही से सेट कर दिया गया है
   if (window.history.state && window.history.state.overlayOpen) {
     window.history.back();
   }
+}
 
 function openTermsOfService() {
   const overlay = document.getElementById('termsOfServiceOverlay');
