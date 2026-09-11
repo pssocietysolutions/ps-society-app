@@ -1,6 +1,7 @@
 // firebase-messaging-sw.js
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
+
 console.log("🔥 Service Worker Loaded Successfully!");
 
 firebase.initializeApp({
@@ -39,7 +40,7 @@ self.addEventListener('notificationclick', function(event) {
   let urlToOpen = data.click_action || data.url || '/';
 
   if (!urlToOpen.startsWith('http')) {
-   const baseUrl = self.location.origin;
+    const baseUrl = self.location.origin;
     urlToOpen = baseUrl + urlToOpen;
   }
 
