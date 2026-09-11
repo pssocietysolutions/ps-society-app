@@ -956,8 +956,6 @@ async function loadSocietiesForDropdown(selectId) {
 async function loadTodayVisitors() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
-  
-  // 🟢 तुरंत लोडिंग मैसेज दिखाएं ताकि पता रहे कि फेचिंग चल रही है
   container.innerHTML = `<div class="alert alert-info">⏳ Loading visitors...</div>`;
   
   const today = new Date().toISOString().split('T')[0];
@@ -965,6 +963,7 @@ async function loadTodayVisitors() {
   const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
 
   try {
+    // 🟢 केवल तारीख और सोसायटी के आधार पर डेटा लाएं (फ्लैट फिल्टर क्लाइंट-साइड करेंगे ताकि मिसमैच न हो)
     let query = _supabase
       .from('visitors')
       .select('*')
@@ -972,24 +971,28 @@ async function loadTodayVisitors() {
       .ilike('society', activeSociety)
       .order('in_time', { ascending: false });
 
-    const isLogged = localStorage.getItem('ps_user_logged') === 'true';
-    if (isLogged && currentRole === 'Member' && activeUser) {
-      query = query.eq('flat_no', activeUser);
-    }
-
     const { data, error } = await query;
     if (error) { 
       container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`; 
       return; 
     }
     
-    visitors = data || [];
+    let allVisitors = data || [];
+
+    // 🟢 यदि यूजर Member है, तो फ्लैट को केस-इनसेंसिटिव तरीके से फिल्टर करें
+    const isLogged = localStorage.getItem('ps_user_logged') === 'true';
+    if (isLogged && currentRole === 'Member' && activeUser) {
+      visitors = allVisitors.filter(v => (v.flat_no || '').trim().toUpperCase() === activeUser);
+    } else {
+      visitors = allVisitors;
+    }
+
     renderVisitorList();
     updateVisitorBadge();
 
   } catch (err) {
     console.error('Visitor fetch exception:', err);
-    container.innerHTML = `<div class="alert alert-danger">❌ Failed to load visitors. Please check your connection.</div>`;
+    container.innerHTML = `<div class="alert alert-danger">❌ Failed to load visitors.</div>`;
   }
 }
 
@@ -1108,8 +1111,9 @@ async function markVisitorOut(id) {
 
 function updateVisitorBadge() {
   const lastSeen = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
-  const inCount = visitors.filter(v => v.status === 'IN' && (v.id || 0) > lastSeen).length;
-  updateBadge('visitor-badge', inCount);
+  // 🟢 PENDING और IN दोनों को काउंट करें ताकि नोटिफिकेशन बैज सही संख्या दिखाए
+  const count = visitors.filter(v => (v.status === 'PENDING' || v.status === 'IN') && (v.id || 0) > lastSeen).length;
+  updateBadge('visitor-badge', count);
 }
 
 function renderAMCTracker() {
