@@ -4351,31 +4351,27 @@ async function openTabOverlay(tabId, skipHistory = false) {
 
   if (tabId === 'terms' || tabId === 'privacy') { tabId = 'about'; }
 
-  // ✅ NEW: Show overlay IMMEDIATELY with loading spinner (kills dashboard flash)
+  // ✅ INSTANT: Show overlay with already-rendered content (no loading spinner, no flash)
   const existingOverlay = document.getElementById('tabOverlay');
   if (existingOverlay) existingOverlay.remove();
 
-  const loadingOverlay = document.createElement('div');
-  loadingOverlay.id = 'tabOverlay';
-  loadingOverlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;';
-  loadingOverlay.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <button onclick="closeTabOverlay()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
-      <span style="color: #f59e0b; font-weight: 600;">${tabId.toUpperCase()}</span>
-      <span style="width: 50px;"></span>
-    </div>
-    <div style="flex: 1; margin-top: 15px; background: #fff; border-radius: 16px; padding: 40px 20px; color: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-      <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: #2563eb;"></i>
-      <p style="margin-top: 15px; color: #64748b; font-weight: 500;">Loading ${tabId}...</p>
-    </div>
-  `;
-  document.body.appendChild(loadingOverlay);
+  let actualTabId = `tab-${tabId}`;
+  if (tabId === 'rules') actualTabId = 'tab-rules';
+  if (tabId === 'journal-voucher') actualTabId = 'tab-journal-voucher';
+
+  const target = document.getElementById(actualTabId);
+  if (!target) return;
+
+  // Show overlay IMMEDIATELY with existing content
+  const immediateOverlay = createTabOverlay(tabId, target.innerHTML);
+  document.body.appendChild(immediateOverlay);
   document.body.style.overflow = 'hidden';
+
   if (!skipHistory) {
     window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
   }
 
-  // ✅ Now fetch data in background
+  // ✅ THEN refresh data in background and update overlay content quietly
   try {
     if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
       tabId = 'community';
@@ -4394,24 +4390,19 @@ async function openTabOverlay(tabId, skipHistory = false) {
 
       renderCommunity();
 
-      const target = document.getElementById('tab-community');
-      if (target) {
-        const finalOverlay = createTabOverlay(tabId, target.innerHTML);
-        const old = document.getElementById('tabOverlay');
-        if (old) old.remove();
-        document.body.appendChild(finalOverlay);
-      }
+      const newTarget = document.getElementById('tab-community');
+      const contentDiv = document.querySelector('#tabOverlay #tabOverlayContent');
+      if (newTarget && contentDiv) contentDiv.innerHTML = newTarget.innerHTML;
       return;
     }
 
     if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
-    let actualTabId = `tab-${tabId}`;
     if (tabId === 'master-dashboard') { await renderSuperAdminMasterDashboard(); }
     if (tabId === 'bank-reconciliation') { renderBankReconciliation(); }
     if (tabId === 'about') renderAboutTab();
-    if (tabId === 'rules') { actualTabId = 'tab-rules'; renderRules(); }
-    if (tabId === 'journal-voucher') { actualTabId = 'tab-journal-voucher'; renderJournalVouchers(); }
+    if (tabId === 'rules') { renderRules(); }
+    if (tabId === 'journal-voucher') { renderJournalVouchers(); }
     if (tabId === 'polls') renderPolls();
     if (tabId === 'chairman-report') generateMonthlySummary();
     if (tabId === 'activity-logs') fetchActivityLogs();
@@ -4427,27 +4418,18 @@ async function openTabOverlay(tabId, skipHistory = false) {
       await refreshTabData(tabId);
     }
 
-    const target = document.getElementById(actualTabId);
-    if (!target) {
-      const old = document.getElementById('tabOverlay');
-      if (old) old.remove();
-      return;
-    }
-
-    const finalOverlay = createTabOverlay(tabId, target.innerHTML);
-    const old = document.getElementById('tabOverlay');
-    if (old) old.remove();
-    document.body.appendChild(finalOverlay);
-
     if (tabId === 'settings') { loadSettingsToForm(); }
+
+    // ✅ Quietly update overlay content with fresh data
+    const newTarget = document.getElementById(actualTabId);
+    const contentDiv = document.querySelector('#tabOverlay #tabOverlayContent');
+    if (newTarget && contentDiv) {
+      contentDiv.innerHTML = newTarget.innerHTML;
+      if (tabId === 'settings') loadSettingsToForm();
+    }
 
   } catch (e) {
     console.log('[OpenTabOverlay] error:', e);
-    // Fallback: show generic error
-    const old = document.getElementById('tabOverlay');
-    if (old) {
-      old.innerHTML = old.innerHTML.replace('Loading ' + tabId + '...', '⚠️ Failed to load ' + tabId + '. Please try again.');
-    }
   }
 }
 
