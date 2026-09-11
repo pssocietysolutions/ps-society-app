@@ -957,13 +957,26 @@ async function loadTodayVisitors() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
   const today = new Date().toISOString().split('T')[0];
-  let query = _supabase.from('visitors').select('*').eq('visit_date', today).eq('society', currentSociety).order('in_time', { ascending: false });
+  
+  // 🟢 वर्तमान सोसायटी को ट्रिम करके क्वेरी चलाएं ताकि स्पेस या केस का फर्क न पड़े
+  let query = _supabase
+    .from('visitors')
+    .select('*')
+    .eq('visit_date', today)
+    .ilike('society', (currentSociety || '').trim())
+    .order('in_time', { ascending: false });
+
   const isLogged = localStorage.getItem('ps_user_logged') === 'true';
   if (isLogged && currentRole === 'Member') {
-    query = query.eq('flat_no', currentUser);
+    query = query.eq('flat_no', (currentUser || '').trim().toUpperCase());
   }
+
   const { data, error } = await query;
-  if (error) { container.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`; return; }
+  if (error) { 
+    container.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`; 
+    return; 
+  }
+  
   visitors = data || [];
   renderVisitorList();
   updateVisitorBadge();
@@ -1023,7 +1036,8 @@ async function updateVisitorStatus(id, newStatus) {
 
 async function submitVisitor(event) {
   event.preventDefault();
-  const society = document.getElementById('visitor-society').value;
+  // 🟢 सुनिश्चित करें कि ड्रॉपडाउन या ग्लोबल currentSociety में से सही सोसायटी ली जाए
+  const society = document.getElementById('visitor-society').value || currentSociety;
   const name = document.getElementById('visitor-name').value.trim();
   const mobile = document.getElementById('visitor-mobile').value.trim();
   const vehicleNumber = document.getElementById('visitor-vehicle').value.trim().toUpperCase();
@@ -1031,18 +1045,21 @@ async function submitVisitor(event) {
   const category = document.getElementById('visitor-category').value;
   const purpose = document.getElementById('visitor-purpose').value.trim();
   
-  if (!society || !name || !flat || !mobile) { alert('Please fill all required fields.'); return; }
+  if (!society || !name || !flat || !mobile) { 
+    alert('Please fill all required fields.'); 
+    return; 
+  }
   
   const now = new Date(); 
   const timeStr = now.toTimeString().substring(0,8);
   
   const newVisitor = { 
-    society, 
+    society: society.trim(), 
     visit_date: now.toISOString().split('T')[0], 
     name, 
     mobile, 
     vehicle_number: vehicleNumber || 'N/A',
-    flat_no: flat, 
+    flat_no: flat.trim().toUpperCase(), 
     category, 
     purpose: purpose || '', 
     in_time: timeStr, 
@@ -1052,9 +1069,12 @@ async function submitVisitor(event) {
   };
 
   const { error } = await _supabase.from('visitors').insert([newVisitor]);
-  if (error) { alert('Error: ' + error.message); return; }
+  if (error) { 
+    alert('Error: ' + error.message); 
+    return; 
+  }
   
-  alert('✅ Visitor entry recorded with vehicle number!');
+  alert('✅ Visitor entry recorded successfully!');
   bootstrap.Modal.getInstance(document.getElementById('visitorModal')).hide();
   document.getElementById('visitorForm').reset();
   loadTodayVisitors();
