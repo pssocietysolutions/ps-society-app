@@ -498,7 +498,7 @@ function loadMainApp(role) {
 
   setTimeout(requestNotificationPermission, 2000);
   listenForSOSAlerts();
-  setupRealtimeSubscriptions();  // ✅ NEW
+  setupRealtimeSubscriptions();
   setTimeout(() => loadSecondaryData(), 500);
 }
 
@@ -527,7 +527,7 @@ function switchSociety(societyName) {
   
   fetchSupabaseData();
   setTimeout(() => loadSecondaryData(), 500);
-  setupRealtimeSubscriptions();  // ✅ NEW
+  setupRealtimeSubscriptions();
 
   const sidebarName = document.getElementById('sidebar-society-name');
   if (sidebarName) sidebarName.innerText = societyName;
@@ -580,10 +580,10 @@ function handleLogout() {
   const gridOverlay = document.getElementById('mobileMenuOverlay');
   if (gridOverlay) gridOverlay.style.display = 'none';
   
-if (__proofRealtimeChannel) {
-  try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
-  __proofRealtimeChannel = null;
-}
+  if (__proofRealtimeChannel) {
+    try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
+    __proofRealtimeChannel = null;
+  }
 
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
@@ -1404,7 +1404,10 @@ async function requestNotificationPermission() {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+      const registration = await navigator.serviceWorker.register(
+        '/ps-society-app/firebase-messaging-sw.js',
+        { scope: '/ps-society-app/' }
+      );
       await navigator.serviceWorker.ready;
       
       const token = await messaging.getToken({
@@ -1423,7 +1426,7 @@ async function saveFCMTokenToSupabase(token) {
     const payload = { 
       society_name: currentSociety, 
       flat_no: currentUser, 
-      role: currentRole, // 👈 Role जोड़ें (Admin / Member / Chairman)
+      role: currentRole,
       token: token,
       updated_at: new Date().toISOString()
     };
@@ -1459,7 +1462,6 @@ function sendBulkWhatsAppReminder() {
 }
 
 function renderPaymentProofs() {
-  // ✅ FIX: Query all instances (original + mobile overlay clone)
   const containers = document.querySelectorAll('#proofs-container');
   if (containers.length === 0) return;
 
@@ -1502,23 +1504,19 @@ function renderPaymentProofs() {
     }).join('');
   }
 
-  // ✅ Update ALL containers (original + overlay clone)
   containers.forEach(container => { container.innerHTML = html; });
 
-  // ✅ Update ALL pending count badges
   document.querySelectorAll('#pending-proof-count').forEach(el => {
     el.innerText = pendingText;
   });
 }
 
-// ==================== VERIFY PROOF (with image auto-delete + UI fix) ====================
 async function verifyProof(id, status) {
   if (!confirm(`Are you sure you want to mark this proof as ${status}?`)) return;
   const proof = paymentProofs.find(p => p.id === id);
   if (!proof) return;
 
   try {
-    // ✅ If Verified → create maintenance receipt
     if (status === 'Verified') {
       const paymentDate = new Date(proof.payment_date);
       const newReceipt = {
@@ -1534,18 +1532,14 @@ async function verifyProof(id, status) {
       await _supabase.from('maintenance_payments').insert([newReceipt]);
     }
 
-    // ✅ Prepare update payload
     let updatePayload = {
       status: status,
       verified_at: new Date().toISOString(),
       verified_by: currentUser
     };
 
-    // ✅ NEW: Auto-delete receipt image from storage (for BOTH Verified & Rejected)
     if (proof.image_url && proof.image_url.trim() !== '') {
       try {
-        // Extract file path from public URL
-        // Format: https://xxx.supabase.co/storage/v1/object/public/payment_proofs/SOCIETY/proof_xxx.jpg
         const urlParts = proof.image_url.split('/payment_proofs/');
         if (urlParts.length > 1) {
           const filePath = decodeURIComponent(urlParts[1]);
@@ -1559,13 +1553,12 @@ async function verifyProof(id, status) {
             console.log('[Verify] Image deleted from storage:', filePath);
           }
         }
-        updatePayload.image_url = null; // Clear DB reference
+        updatePayload.image_url = null;
       } catch (imgErr) {
         console.warn('[Verify] Image cleanup error:', imgErr);
       }
     }
 
-    // ✅ Update the proof record
     const { error: updErr } = await _supabase
       .from('payment_proofs')
       .update(updatePayload)
@@ -1576,7 +1569,6 @@ async function verifyProof(id, status) {
       return;
     }
 
-    // ✅ Send notification to member
     await sendProofNotificationToMember(
       proof.flat_no,
       Number(proof.amount),
@@ -1589,7 +1581,6 @@ async function verifyProof(id, status) {
       : '❌ Proof rejected! Image auto-deleted & member notified.'
     );
 
-    // ✅ Refresh fresh data from DB
     const { data: freshProofs } = await _supabase
       .from('payment_proofs')
       .select('*')
@@ -1602,7 +1593,6 @@ async function verifyProof(id, status) {
       .eq('society_name', currentSociety);
     if (freshMaint) maintenanceData = freshMaint;
 
-    // ✅ Re-render — updates BOTH desktop original + mobile overlay clone
     renderPaymentProofs();
     renderMyPaymentSubmissions();
     renderMaintenance();
@@ -1615,8 +1605,6 @@ async function verifyProof(id, status) {
   }
 }
 
-
-// ==================== SUBMIT PAYMENT DETAILS (with proper admin notify) ====================
 async function submitPaymentDetails(event) {
   event.preventDefault();
   const paymentDate = document.getElementById('pay-form-date').value;
@@ -1659,7 +1647,6 @@ async function submitPaymentDetails(event) {
   const { error } = await _supabase.from('payment_proofs').insert([newProof]);
   if (error) { alert('❌ Error: ' + error.message); return; }
 
-  // ✅ FIXED: Notify admins with clear flat + name in body
   try {
     const { data: adminUsers, error: adminErr } = await _supabase
       .from('user_master')
@@ -1719,12 +1706,9 @@ async function submitPaymentDetails(event) {
   fetchSupabaseData();
 }
 
-// ==================== REALTIME SUBSCRIPTION ====================
-// ✅ NEW: Realtime subscription for payment proofs
 let __proofRealtimeChannel = null;
 
 function setupRealtimeSubscriptions() {
-  // Cleanup old channel
   if (__proofRealtimeChannel) {
     try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
     __proofRealtimeChannel = null;
@@ -1743,41 +1727,37 @@ function setupRealtimeSubscriptions() {
       async (payload) => {
         console.log('[Realtime] payment_proofs event:', payload.eventType);
 
-        // Reload proofs from DB
         const { data } = await _supabase
           .from('payment_proofs')
           .select('*')
           .eq('society_name', currentSociety);
         paymentProofs = data || [];
 
-        // Re-render
         renderPaymentProofs();
         renderMyPaymentSubmissions();
         updateAllBadges();
 
-        // Admin/Chairman → desktop notification on new proof
-        // setupRealtimeSubscriptions के अंदर लाइन 700 के पास:
-if (
-  payload.eventType === 'INSERT' &&
-  (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')
-) {
-  try {
-    if (Notification.permission === 'granted') {
-      // 🟢 Desktop और Android Mobile दोनों पर 100% काम करने वाला कोड
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.showNotification('💰 New Payment Proof Submitted', {
-            body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`,
-            icon: '/icon-192.png',
-            badge: '/icon-192.png',
-            tag: `proof-${payload.new.id}`, // डुप्लीकेट नहीं बनेगा
-            renotify: true
-          });
-        });
-      }
-    }
-  } catch (e) { console.log('Notify err:', e); }
-}
+        if (
+          payload.eventType === 'INSERT' &&
+          (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')
+        ) {
+          try {
+            if (Notification.permission === 'granted') {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(reg => {
+                  reg.showNotification('💰 New Payment Proof Submitted', {
+                    body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`,
+                    icon: '/ps-society-app/icon-192.png',
+                    badge: '/ps-society-app/icon-192.png',
+                    tag: `proof-${payload.new.id}`,
+                    renotify: true,
+                    data: { url: '/ps-society-app/?tab=proofs' }
+                  });
+                });
+              }
+            }
+          } catch (e) { console.log('Notify err:', e); }
+        }
       }
     )
     .subscribe((status) => {
@@ -2142,7 +2122,6 @@ async function sendProofNotificationToMember(flatNo, amount, status, societyName
         deep_link: '/?tab=dashboard&section=myPaymentSubmissionsCard'
       }]);
     } catch (colErr) {
-      // Fallback if deep_link column doesn't exist
       await _supabase.from('notices').insert([{
         society_name: societyName, title, content,
         date: new Date().toISOString().split('T')[0],
@@ -2222,7 +2201,6 @@ async function submitMeetingMinutes(event) {
   const { error } = await _supabase.from('society_meetings').insert([newMeeting]);
   if (error) { alert('❌ Error saving meeting: ' + error.message); return; }
 
-  // ✅ FIXED: Robust notice insert with proper error logging
   const noticeData = {
     society_name: currentSociety,
     title: `📋 New ${type} Recorded`,
@@ -2234,18 +2212,15 @@ async function submitMeetingMinutes(event) {
     attachment_url: null
   };
 
-  // Try with deep_link first
   const { error: noticeErr1 } = await _supabase
     .from('notices')
     .insert([{ ...noticeData, deep_link: '/?tab=meetings' }]);
 
   if (noticeErr1) {
     console.warn('[Meeting Notice] First insert failed:', noticeErr1.message);
-    // Fallback without deep_link
     const { error: noticeErr2 } = await _supabase.from('notices').insert([noticeData]);
     if (noticeErr2) {
       console.error('[Meeting Notice] Fallback also failed:', noticeErr2.message);
-      // Abort but still keep meeting saved
       alert('⚠️ Meeting saved but notification notice failed: ' + noticeErr2.message);
     } else {
       console.log('[Meeting Notice] Inserted WITHOUT deep_link (run SQL to add column)');
@@ -2397,7 +2372,6 @@ function renderEventsCommunity() {
   `).join('');
 }
 
-// 🟢 FIXED: Notices with deep_link (system notifications) are hidden from Community Hub
 function renderNoticesCommunity() {
   const container = document.getElementById('notices-community-container');
   if (!container) return;
@@ -2407,10 +2381,8 @@ function renderNoticesCommunity() {
   }
 
   const visibleNotices = noticesData.filter(n => {
-    // Primary filter: hide notices with deep_link (system notifications)
     if (n.deep_link && String(n.deep_link).trim() !== '') return false;
 
-    // ✅ NEW: Backup filter by title pattern (for cases where deep_link column missing)
     const systemTitlePatterns = [
       'Payment Verified',
       'Payment Rejected',
@@ -2761,7 +2733,6 @@ async function openBookingModal(facilityId) {
   new bootstrap.Modal(document.getElementById('bookingModal')).show();
 }
 
-// 🟢 FIXED: Populate facility dropdown when opening "New Booking" modal
 async function resetBookingForm() {
   const form = document.getElementById('bookingForm');
   if (form) form.reset();
@@ -3671,8 +3642,6 @@ async function submitPoll(event) {
   const { error } = await _supabase.from('polls').insert([newPoll]);
   if (error) { alert('❌ Error creating poll: ' + error.message); return; }
 
-  // ✅ Notification automatically जाएगा — polls table पर trigger लगा है
-
   bootstrap.Modal.getInstance(document.getElementById('pollModal')).hide();
   document.getElementById('pollModal').querySelector('form').reset();
   fetchSupabaseData();
@@ -4093,7 +4062,6 @@ async function submitExpense(event) {
   fetchSupabaseData();
 }
 
-// 🟢 FIXED: Bank entry saves + reloads both sources
 async function submitBankEntry(event) {
   event.preventDefault();
   const type = document.getElementById('bank-form-type').value;
@@ -4334,7 +4302,6 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
-// 🟢 FIXED: Community data loaded BEFORE creating overlay
 async function openTabOverlay(tabId, skipHistory = false) {
   closeMobileMenu();
   if (tabId === 'visitor') { showVisitorPage(); return; }
@@ -4347,7 +4314,6 @@ async function openTabOverlay(tabId, skipHistory = false) {
 
   if (tabId === 'terms' || tabId === 'privacy') { tabId = 'about'; }
 
-  // ✅ INSTANT: Show overlay with already-rendered content (no loading spinner, no flash)
   const existingOverlay = document.getElementById('tabOverlay');
   if (existingOverlay) existingOverlay.remove();
 
@@ -4358,7 +4324,6 @@ async function openTabOverlay(tabId, skipHistory = false) {
   const target = document.getElementById(actualTabId);
   if (!target) return;
 
-  // Show overlay IMMEDIATELY with existing content
   const immediateOverlay = createTabOverlay(tabId, target.innerHTML);
   document.body.appendChild(immediateOverlay);
   document.body.style.overflow = 'hidden';
@@ -4367,7 +4332,6 @@ async function openTabOverlay(tabId, skipHistory = false) {
     window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
   }
 
-  // ✅ THEN refresh data in background and update overlay content quietly
   try {
     if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
       tabId = 'community';
@@ -4416,7 +4380,6 @@ async function openTabOverlay(tabId, skipHistory = false) {
 
     if (tabId === 'settings') { loadSettingsToForm(); }
 
-    // ✅ Quietly update overlay content with fresh data
     const newTarget = document.getElementById(actualTabId);
     const contentDiv = document.querySelector('#tabOverlay #tabOverlayContent');
     if (newTarget && contentDiv) {
@@ -4916,7 +4879,6 @@ function listenForSOSAlerts() {
     });
 }
 
-// 🟢 FIXED: Robust deep link with retry, section scroll, watchdog
 function handleDeepLink() {
   const params = new URLSearchParams(window.location.search);
   let tab = params.get('tab');
