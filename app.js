@@ -314,11 +314,7 @@ function applyUserSession(role, email) {
 }
 
 async function checkUserConsent(flatNo, callback) {
-  try {
-    callback();
-  } catch (err) {
-    callback();
-  }
+  try { callback(); } catch (err) { callback(); }
 }
 
 function showConsentPopup(flatNo, callback) {
@@ -386,10 +382,7 @@ async function acceptConsent(flatNo) {
     .update({ consent_given: true, consent_date: new Date().toISOString() })
     .eq('flat_no', flatNo);
 
-  if (error) {
-    alert('❌ Failed to save consent.');
-    return;
-  }
+  if (error) { alert('❌ Failed to save consent.'); return; }
   const overlay = document.getElementById('consentOverlay');
   if (overlay) overlay.remove();
   loadMainApp(currentRole);
@@ -488,14 +481,10 @@ function loadMainApp(role) {
   clearAllData();
   
   if (activeTab === 'marketplace') {
-    fetchMarketplaceData().then(() => {
-      fetchSupabaseData();
-    });
+    fetchMarketplaceData().then(() => { fetchSupabaseData(); });
   } else if (activeTab === 'community') {
     fetchEvents().then(() => {
-      fetchFacilityData().then(() => {
-        fetchSupabaseData();
-      });
+      fetchFacilityData().then(() => { fetchSupabaseData(); });
     });
   } else if (activeTab === 'meetings') {
     _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
@@ -508,7 +497,6 @@ function loadMainApp(role) {
 
   setTimeout(requestNotificationPermission, 2000);
   listenForSOSAlerts();
-
   setTimeout(() => loadSecondaryData(), 500);
 }
 
@@ -751,15 +739,10 @@ function clearAllData() {
 async function populateNoticeMemberSelect() {
   const select = document.getElementById('notice-target-members');
   if (!select) return;
-  
   select.innerHTML = '<option value="">⏳ Loading members...</option>';
 
   if (!membersData || membersData.length === 0) {
-    const { data } = await _supabase
-      .from('members')
-      .select('flat_no, name')
-      .eq('society_name', currentSociety)
-      .order('flat_no');
+    const { data } = await _supabase.from('members').select('flat_no, name').eq('society_name', currentSociety).order('flat_no');
     membersData = data || [];
   }
 
@@ -879,9 +862,7 @@ async function saveRulesFromModal() {
   rows.forEach(row => {
     const title = row.querySelector('.rule-title-input').value.trim();
     const content = row.querySelector('.rule-content-input').value.trim();
-    if (title) {
-      newCategories.push({ title, content });
-    }
+    if (title) { newCategories.push({ title, content }); }
   });
 
   if (newCategories.length === 0) {
@@ -899,11 +880,7 @@ async function saveRulesFromModal() {
   try {
     const { error } = await _supabase
       .from('society_settings')
-      .upsert({
-        key: 'society_rules',
-        value: rulesJsonString,
-        society_name: currentSociety
-      }, { onConflict: 'key,society_name' });
+      .upsert({ key: 'society_rules', value: rulesJsonString, society_name: currentSociety }, { onConflict: 'key,society_name' });
 
     if (error) {
       alert('❌ Rules Save करने में Error: ' + error.message);
@@ -963,31 +940,20 @@ async function loadTodayVisitors() {
   const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
 
   try {
-    let query = _supabase
-      .from('visitors')
-      .select('*')
-      .eq('visit_date', today)
-      .ilike('society', activeSociety)
-      .order('in_time', { ascending: false });
+    let query = _supabase.from('visitors').select('*').eq('visit_date', today).ilike('society', activeSociety).order('in_time', { ascending: false });
 
     const { data, error } = await query;
-    if (error) { 
-      container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`; 
-      return; 
-    }
+    if (error) { container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`; return; }
     
     let allVisitors = data || [];
-
     const isLogged = localStorage.getItem('ps_user_logged') === 'true';
     if (isLogged && currentRole === 'Member' && activeUser) {
       visitors = allVisitors.filter(v => (v.flat_no || '').trim().toUpperCase() === activeUser);
     } else {
       visitors = allVisitors;
     }
-
     renderVisitorList();
     updateVisitorBadge();
-
   } catch (err) {
     console.error('Visitor fetch exception:', err);
     container.innerHTML = `<div class="alert alert-danger">❌ Failed to load visitors.</div>`;
@@ -1038,12 +1004,8 @@ function renderVisitorList() {
 
 async function updateVisitorStatus(id, newStatus) {
   const { error } = await _supabase.from('visitors').update({ status: newStatus }).eq('id', id);
-  if (error) {
-    alert('❌ Error: ' + error.message);
-  } else {
-    alert(`✅ Visitor ${newStatus.toLowerCase()} successfully!`);
-    loadTodayVisitors();
-  }
+  if (error) { alert('❌ Error: ' + error.message); }
+  else { alert(`✅ Visitor ${newStatus.toLowerCase()} successfully!`); loadTodayVisitors(); }
 }
 
 async function submitVisitor(event) {
@@ -1056,10 +1018,7 @@ async function submitVisitor(event) {
   const category = document.getElementById('visitor-category').value;
   const purpose = document.getElementById('visitor-purpose').value.trim();
   
-  if (!society || !name || !flat || !mobile) { 
-    alert('Please fill all required fields.'); 
-    return; 
-  }
+  if (!society || !name || !flat || !mobile) { alert('Please fill all required fields.'); return; }
   
   const now = new Date(); 
   const timeStr = now.toTimeString().substring(0,8);
@@ -1067,8 +1026,7 @@ async function submitVisitor(event) {
   const newVisitor = { 
     society: society.trim(), 
     visit_date: now.toISOString().split('T')[0], 
-    name, 
-    mobile, 
+    name, mobile, 
     vehicle_number: vehicleNumber || 'N/A',
     flat_no: flat.trim().toUpperCase(), 
     category, 
@@ -1080,10 +1038,7 @@ async function submitVisitor(event) {
   };
 
   const { error } = await _supabase.from('visitors').insert([newVisitor]);
-  if (error) { 
-    alert('Error: ' + error.message); 
-    return; 
-  }
+  if (error) { alert('Error: ' + error.message); return; }
   
   alert('✅ Visitor entry recorded successfully!');
   bootstrap.Modal.getInstance(document.getElementById('visitorModal')).hide();
@@ -1098,10 +1053,7 @@ async function markVisitorOut(id) {
     const { error } = await _supabase.from('visitors').update({ out_time: timeStr, status: 'OUT' }).eq('id', id);
     if (error) { alert('Error: ' + error.message); return; }
     const vIndex = visitors.findIndex(v => v.id === id);
-    if (vIndex !== -1) {
-      visitors[vIndex].status = 'OUT';
-      visitors[vIndex].out_time = timeStr;
-    }
+    if (vIndex !== -1) { visitors[vIndex].status = 'OUT'; visitors[vIndex].out_time = timeStr; }
     renderVisitorList();
   } catch (err) { alert('❌ Error: ' + err.message); }
 }
@@ -1244,21 +1196,14 @@ async function submitParkingVehicle(event) {
 
   const newVehicle = {
     society_name: currentSociety,
-    flat_no: flatNo,
-    vehicle_type: vehicleType,
-    vehicle_number: vehicleNumber,
-    slot_number: slotNumber,
-    owner_name: ownerName,
-    remarks: remarks,
+    flat_no: flatNo, vehicle_type: vehicleType, vehicle_number: vehicleNumber,
+    slot_number: slotNumber, owner_name: ownerName, remarks: remarks,
     status: initialStatus,
     submitted_at: new Date().toISOString()
   };
 
   const { error } = await _supabase.from('parking_vehicles').insert([newVehicle]);
-  if (error) {
-    alert('❌ Error: ' + error.message);
-    return;
-  }
+  if (error) { alert('❌ Error: ' + error.message); return; }
 
   alert(isMember ? '✅ Vehicle submitted for admin approval!' : '✅ Vehicle registered & approved successfully!');
   bootstrap.Modal.getInstance(document.getElementById('parkingModal')).hide();
@@ -1267,11 +1212,7 @@ async function submitParkingVehicle(event) {
 
 async function checkAndAutoApproveVisitors() {
   if (!currentSociety) return;
-  const { data: pendingVisitors } = await _supabase
-    .from('visitors')
-    .select('*')
-    .eq('society', currentSociety)
-    .eq('status', 'PENDING');
+  const { data: pendingVisitors } = await _supabase.from('visitors').select('*').eq('society', currentSociety).eq('status', 'PENDING');
 
   if (!pendingVisitors) return;
 
@@ -1290,12 +1231,8 @@ setInterval(checkAndAutoApproveVisitors, 5000);
 async function approveParking(id, status) {
   if (!confirm(`Are you sure you want to ${status.toLowerCase()} this vehicle?`)) return;
   const { error } = await _supabase.from('parking_vehicles').update({ status: status }).eq('id', id);
-  if (error) {
-    alert('❌ Error: ' + error.message);
-  } else {
-    alert(`✅ Vehicle ${status} successfully!`);
-    fetchSupabaseData();
-  }
+  if (error) { alert('❌ Error: ' + error.message); }
+  else { alert(`✅ Vehicle ${status} successfully!`); fetchSupabaseData(); }
 }
 
 async function deleteParking(id) {
@@ -1307,23 +1244,15 @@ async function deleteParking(id) {
 
 async function submitAMCContract(event) {
   event.preventDefault();
-  const service = document.getElementById('amc-service').value.trim();
-  const vendor = document.getElementById('amc-vendor').value.trim();
-  const person = document.getElementById('amc-person').value.trim();
-  const phone = document.getElementById('amc-phone').value.trim();
-  const start = document.getElementById('amc-start').value;
-  const expiry = document.getElementById('amc-expiry').value;
-  const cost = Number(document.getElementById('amc-cost').value || 0);
-
   const newAMC = {
     society_name: currentSociety,
-    service_type: service,
-    vendor_name: vendor,
-    contact_person: person,
-    phone: phone,
-    start_date: start,
-    expiry_date: expiry,
-    cost: cost,
+    service_type: document.getElementById('amc-service').value.trim(),
+    vendor_name: document.getElementById('amc-vendor').value.trim(),
+    contact_person: document.getElementById('amc-person').value.trim(),
+    phone: document.getElementById('amc-phone').value.trim(),
+    start_date: document.getElementById('amc-start').value,
+    expiry_date: document.getElementById('amc-expiry').value,
+    cost: Number(document.getElementById('amc-cost').value || 0),
     status: 'Active'
   };
 
@@ -1366,7 +1295,6 @@ function renderBankDetails() {
   if (document.getElementById('edit-bank-acc-no')) document.getElementById('edit-bank-acc-no').value = accNo;
   if (document.getElementById('edit-bank-ifsc')) document.getElementById('edit-bank-ifsc').value = ifsc;
   if (document.getElementById('edit-bank-upi')) document.getElementById('edit-bank-upi').value = upiId;
-  
   if (document.getElementById('edit-opening-balance')) document.getElementById('edit-opening-balance').value = openBalVal;
 }
 
@@ -1381,7 +1309,6 @@ async function saveBankDetailsAndQR(event) {
   const accNo = document.getElementById('edit-bank-acc-no').value.trim();
   const ifsc = document.getElementById('edit-bank-ifsc').value.trim();
   const upiId = document.getElementById('edit-bank-upi').value.trim();
-  
   const openingBal = parseFloat(document.getElementById('edit-opening-balance')?.value) || 0;
 
   const fileInput = document.getElementById('edit-bank-qr-file');
@@ -1457,10 +1384,7 @@ const firebaseConfig = {
   measurementId: "G-8CZMXHWK5M"
 };
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const messaging = firebase.messaging();
 
 messaging.onMessage((payload) => {
@@ -1480,24 +1404,16 @@ async function requestNotificationPermission() {
         serviceWorkerRegistration: registration
       });
 
-      if (token) {
-        await saveFCMTokenToSupabase(token);
-      }
+      if (token) { await saveFCMTokenToSupabase(token); }
     }
-  } catch (err) {
-    console.error('Error in notification setup:', err);
-  }
+  } catch (err) { console.error('Error in notification setup:', err); }
 }
 
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
   try {
-    await _supabase.from('fcm_tokens').upsert([
-      { society_name: currentSociety, flat_no: currentUser, token: token }
-    ], { onConflict: 'token' });
-  } catch (err) {
-    console.error('Error saving FCM token to Supabase:', err);
-  }
+    await _supabase.from('fcm_tokens').upsert([{ society_name: currentSociety, flat_no: currentUser, token: token }], { onConflict: 'token' });
+  } catch (err) { console.error('Error saving FCM token:', err); }
 }
 
 function sendWhatsAppReminder(phone, message) {
@@ -1515,10 +1431,7 @@ function sendBulkWhatsAppReminder() {
     const totalDue = MONTHS_IN_FY_SO_FAR * rate;
     return (Number(m.opening_due || 0) + totalDue - flatPaid) > 0;
   });
-  if (pendingMembers.length === 0) {
-    alert('✅ No pending dues! All members are up to date.');
-    return;
-  }
+  if (pendingMembers.length === 0) { alert('✅ No pending dues! All members are up to date.'); return; }
   if (!confirm(`📢 Send reminders to ${pendingMembers.length} members with pending dues?`)) return;
   pendingMembers.forEach((m, index) => {
     if (!m.phone) return;
@@ -1557,9 +1470,7 @@ function renderPaymentProofs() {
         <td>${p.amount}</td>
         <td>${p.payment_date}</td>
         <td>${statusBadge}</td>
-        <td>
-          ${hasImage ? `<img src="${p.image_url}" alt="Proof" style="height:45px; width:45px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${p.image_url}','_blank')">` : '<span class="text-muted">-</span>'}
-        </td>
+        <td>${hasImage ? `<img src="${p.image_url}" alt="Proof" style="height:45px; width:45px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${p.image_url}','_blank')">` : '<span class="text-muted">-</span>'}</td>
         <td class="no-print">
           ${isPending && (currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
             <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${p.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
@@ -1617,9 +1528,7 @@ async function verifyProof(id, status) {
     }
     
     fetchSupabaseData();
-  } catch (err) { 
-    alert('❌ Error: ' + err.message); 
-  }
+  } catch (err) { alert('❌ Error: ' + err.message); }
 }
 
 async function submitPaymentDetails(event) {
@@ -1645,16 +1554,10 @@ async function submitPaymentDetails(event) {
   }
 
   const newProof = {
-    flat_no: currentUser,
-    payment_date: paymentDate,
-    amount: parseFloat(amount),
-    mode, bank, utr,
-    app: app || '',
-    notes: notes || '',
-    image_url: imageUrl,
-    status: 'Pending',
-    submitted_at: new Date().toISOString(),
-    society_name: currentSociety
+    flat_no: currentUser, payment_date: paymentDate, amount: parseFloat(amount),
+    mode, bank, utr, app: app || '', notes: notes || '',
+    image_url: imageUrl, status: 'Pending',
+    submitted_at: new Date().toISOString(), society_name: currentSociety
   };
 
   const { error } = await _supabase.from('payment_proofs').insert([newProof]);
@@ -1689,12 +1592,7 @@ function renderMemberPersonalView() {
   for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
     const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
     const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-10`;
-    monthlyDueEntries.push({
-      date: dueDate,
-      type: 'monthly_due',
-      particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`,
-      amount: rate
-    });
+    monthlyDueEntries.push({ date: dueDate, type: 'monthly_due', particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`, amount: rate });
     currentIterDate.setMonth(currentIterDate.getMonth() + 1);
   }
 
@@ -1709,45 +1607,21 @@ function renderMemberPersonalView() {
     if (item.type === 'due') {
       const d = item.data;
       runningBalance += d.amount;
-      ledgerRows.push({
-        date: d.date,
-        particulars: d.particulars,
-        debit: d.amount,
-        credit: 0,
-        balance: runningBalance
-      });
+      ledgerRows.push({ date: d.date, particulars: d.particulars, debit: d.amount, credit: 0, balance: runningBalance });
     } else if (item.type === 'receipt') {
       const r = item.data;
       const amt = Number(r.amount_paid || 0);
       runningBalance -= amt; 
-      ledgerRows.push({
-        date: r.payment_date || '-',
-        particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`,
-        debit: 0,
-        credit: amt,
-        balance: runningBalance
-      });
+      ledgerRows.push({ date: r.payment_date || '-', particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`, debit: 0, credit: amt, balance: runningBalance });
     } else if (item.type === 'jv') {
       const jv = item.data;
       const amt = Number(jv.amount || 0);
       if (jv.type === 'Debit') {
         runningBalance += amt;
-        ledgerRows.push({
-          date: jv.date || '-',
-          particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`,
-          debit: amt,
-          credit: 0,
-          balance: runningBalance
-        });
+        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`, debit: amt, credit: 0, balance: runningBalance });
       } else {
         runningBalance -= amt;
-        ledgerRows.push({
-          date: jv.date || '-',
-          particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`,
-          debit: 0,
-          credit: amt,
-          balance: runningBalance
-        });
+        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`, debit: 0, credit: amt, balance: runningBalance });
       }
     }
   });
@@ -1756,13 +1630,7 @@ function renderMemberPersonalView() {
   const lateFee = calculateLateFee(finalPendingBeforeLateFee, rate);
   if (lateFee > 0) {
     runningBalance += lateFee;
-    ledgerRows.push({
-      date: new Date().toISOString().split('T')[0],
-      particulars: `Auto Late Fee / Interest Penalty`,
-      debit: lateFee,
-      credit: 0,
-      balance: runningBalance
-    });
+    ledgerRows.push({ date: new Date().toISOString().split('T')[0], particulars: `Auto Late Fee / Interest Penalty`, debit: lateFee, credit: 0, balance: runningBalance });
   }
 
   const myTotalPaid = myFlatData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
@@ -1795,6 +1663,7 @@ function renderTallyBankBook() {
   let runningBalance = openingBalance;
   let totalMoneyIn = 0, totalMoneyOut = 0;
   let bankEntries = [{ date: '2026-04-01', ref: 'OPENING-BAL', head: 'Opening Bank Balance', type: 'Receipt', deposit: openingBalance, withdraw: 0, source: null, id: null }];
+  
   maintenanceData.forEach(r => {
     const amt = Number(r.amount_paid || 0);
     totalMoneyIn += amt;
@@ -1806,15 +1675,15 @@ function renderTallyBankBook() {
     bankEntries.push({ date: e.expense_date || '2026-05-01', ref: e.voucher_no || 'VOU-001', head: `${e.category} - ${e.paid_to}`, type: 'Payment Voucher', deposit: 0, withdraw: amt, source: 'expense', id: e.id });
   });
   customBankEntries.forEach(cb => { 
-  cb.source = 'custom'; 
-  bankEntries.push(cb); 
-  totalMoneyIn += Number(cb.deposit || 0); 
-  totalMoneyOut += Number(cb.withdraw || 0); 
-});
+    cb.source = 'custom'; 
+    bankEntries.push(cb); 
+    totalMoneyIn += Number(cb.deposit || 0); 
+    totalMoneyOut += Number(cb.withdraw || 0); 
+  });
+  
   bankEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
   tbody.innerHTML = bankEntries.map((entry, idx) => {
     if (entry.ref !== 'OPENING-BAL') runningBalance += (entry.deposit - entry.withdraw);
-    const isDeletable = entry.source || (entry.ref && entry.ref !== 'OPENING-BAL');
     return `
       <tr>
         <td>${entry.date}</td>
@@ -1838,12 +1707,9 @@ function renderTallyBankBook() {
 
 async function deleteBankEntry(source, id) {
   if (!confirm('⚠️ Delete this entry permanently?')) return;
-  
-  if (source === 'maintenance') {
-    await deleteMaintenance(id);
-  } else if (source === 'expense') {
-    await deleteExpense(id);
-  } else if (source === 'custom') {
+  if (source === 'maintenance') { await deleteMaintenance(id); }
+  else if (source === 'expense') { await deleteExpense(id); }
+  else if (source === 'custom') {
     const { error } = await _supabase.from('bank_entries').delete().eq('id', id);
     if (error) { alert('❌ Error: ' + error.message); return; }
     fetchSupabaseData();
@@ -1859,13 +1725,8 @@ function switchTab(tabId, element) {
   document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => link.classList.remove('active'));
   if (element) element.classList.add('active');
 
-  if (tabId === 'about') {
-    renderAboutTab();
-  }
-
-  if (tabId === 'rules') {
-    renderRules();
-  }
+  if (tabId === 'about') renderAboutTab();
+  if (tabId === 'rules') renderRules();
 
   if (tabId === 'visitor') {
     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
@@ -1873,11 +1734,7 @@ function switchTab(tabId, element) {
     document.body.style.overflow = '';
 
     const visitorSection = document.getElementById('visitor-section');
-    if (visitorSection) {
-      visitorSection.style.display = 'block';
-      visitorSection.style.minHeight = '100vh';
-      visitorSection.style.background = '#f8fafc';
-    }
+    if (visitorSection) { visitorSection.style.display = 'block'; visitorSection.style.minHeight = '100vh'; visitorSection.style.background = '#f8fafc'; }
 
     const appSection = document.getElementById('app-section');
     if (appSection) appSection.classList.add('d-none');
@@ -1886,23 +1743,13 @@ function switchTab(tabId, element) {
     if (backBtn) backBtn.onclick = goBackFromVisitor;
 
     loadTodayVisitors();
-    if (visitors.length > 0) {
-      localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString());
-    }
+    if (visitors.length > 0) { localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString()); }
     updateBadge('visitor-badge', 0);
   }
 
-  if (tabId === 'marketplace') {
-    fetchMarketplaceData().then(renderMarketplace);
-  }
-
-  if (tabId === 'master-dashboard') {
-    renderSuperAdminMasterDashboard();
-  }
-
-  if (tabId === 'bank-reconciliation') {
-    renderBankReconciliation();
-  }
+  if (tabId === 'marketplace') { fetchMarketplaceData().then(renderMarketplace); }
+  if (tabId === 'master-dashboard') { renderSuperAdminMasterDashboard(); }
+  if (tabId === 'bank-reconciliation') { renderBankReconciliation(); }
 
   if (tabId === 'parking') {
     _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety).then(({ data }) => {
@@ -1925,58 +1772,35 @@ function switchTab(tabId, element) {
     });
   }
 
-  if (tabId === 'activity-logs') {
-    fetchActivityLogs();
-  }
+  if (tabId === 'activity-logs') { fetchActivityLogs(); }
 
   if (tabId === 'maintenance') {
-    if (maintenanceData.length > 0) {
-      localStorage.setItem('ps_last_seen_maintenance', Math.max(...maintenanceData.map(r => r.id || 0)).toString());
-    }
+    if (maintenanceData.length > 0) { localStorage.setItem('ps_last_seen_maintenance', Math.max(...maintenanceData.map(r => r.id || 0)).toString()); }
     updateBadge('maintenance-badge', 0);
   }
 
   if (tabId === 'chairman-report' || tabId === 'monthly-summary') {
-    if (typeof generateMonthlySummary === 'function') {
-      generateMonthlySummary();
-    }
+    if (typeof generateMonthlySummary === 'function') { generateMonthlySummary(); }
   }
 
   if (tabId === 'proofs') {
-    if (paymentProofs.length > 0) {
-      localStorage.setItem('ps_last_seen_proofs', Math.max(...paymentProofs.map(p => p.id || 0)).toString());
-    }
+    if (paymentProofs.length > 0) { localStorage.setItem('ps_last_seen_proofs', Math.max(...paymentProofs.map(p => p.id || 0)).toString()); }
     updateBadge('proofs-badge', 0);
     renderPaymentProofs();
   }
 
   if (tabId === 'complaints') {
-    if (complaintData.length > 0) {
-      localStorage.setItem('ps_last_seen_complaints', Math.max(...complaintData.map(c => c.id || 0)).toString());
-    }
+    if (complaintData.length > 0) { localStorage.setItem('ps_last_seen_complaints', Math.max(...complaintData.map(c => c.id || 0)).toString()); }
     updateBadge('complaints-badge', 0);
   }
 
-  if (tabId === 'manage-societies') {
-    loadSocietiesList();
-  }
-
-  if (tabId === 'deletion-requests') {
-    renderDeletionRequests();
-  }
-
-  if (tabId === 'community') {
-    markCommunityRead();
-    renderCommunity();
-  }
-
+  if (tabId === 'manage-societies') { loadSocietiesList(); }
+  if (tabId === 'deletion-requests') { renderDeletionRequests(); }
+  if (tabId === 'community') { markCommunityRead(); renderCommunity(); }
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
   if (tabId === 'sos-contacts') renderSOSContacts();
-
-  if (tabId === 'settings') {
-    loadSettingsToForm();
-  }
+  if (tabId === 'settings') { loadSettingsToForm(); }
 
   if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
     refreshTabData(tabId);
@@ -1999,88 +1823,66 @@ async function refreshTabData(tabId) {
           ]);
           if (mnt) maintenanceData = mnt;
           if (exp) expenseData = exp;
-          renderMaintenance();
-          renderExpenses();
-          renderMemberPersonalView();
-          renderMyPaymentHistory();
-          renderMyPaymentSubmissions();
+          renderMaintenance(); renderExpenses(); renderMemberPersonalView(); renderMyPaymentHistory(); renderMyPaymentSubmissions();
         }
         break;
       }
       case 'maintenance': {
         const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
         if (data) maintenanceData = data;
-        renderMaintenance();
-        renderMemberPersonalView();
-        renderMyPaymentHistory();
+        renderMaintenance(); renderMemberPersonalView(); renderMyPaymentHistory();
         break;
       }
       case 'expenses': {
         const { data } = await _supabase.from('expenses').select('*').eq('society_name', currentSociety);
         if (data) expenseData = data;
-        renderExpenses();
-        break;
+        renderExpenses(); break;
       }
       case 'polls': {
         const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
         if (data) pollsData = data;
-        renderPolls();
-        break;
+        renderPolls(); break;
       }
       case 'complaints': {
         const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
         if (data) complaintData = data;
-        renderComplaints();
-        break;
+        renderComplaints(); break;
       }
       case 'proofs': {
         const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
         if (data) paymentProofs = data;
-        renderPaymentProofs();
-        renderMyPaymentSubmissions();
-        break;
+        renderPaymentProofs(); renderMyPaymentSubmissions(); break;
       }
       case 'amc-tracker': {
         const { data } = await _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety);
         if (data) amcContractsData = data;
-        renderAMCTracker();
-        break;
+        renderAMCTracker(); break;
       }
       case 'assets': {
         const { data } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
         if (data) assetData = data;
-        renderAssets();
-        break;
+        renderAssets(); break;
       }
       case 'fds': {
         const { data } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
         if (data) fdData = data;
-        renderFDs();
-        break;
+        renderFDs(); break;
       }
       case 'team': {
         const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
         if (data) teamData = data;
-        renderTeam();
-        renderSOSContacts();
-        break;
+        renderTeam(); renderSOSContacts(); break;
       }
       case 'journal-voucher': {
         const { data } = await _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
         if (data) journalVouchersData = data;
-        renderJournalVouchers();
-        break;
+        renderJournalVouchers(); break;
       }
-      case 'deletion-requests': {
-        await loadDeletionRequests();
-        renderDeletionRequests();
-        break;
-      }
+      case 'deletion-requests': { await loadDeletionRequests(); renderDeletionRequests(); break; }
       case 'sos-contacts': {
         const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
         if (data) teamData = data;
-        renderSOSContacts();
-        break;
+        renderSOSContacts(); break;
       }
       case 'bank-details': {
         const { data } = await _supabase.from('society_settings').select('*').eq('society_name', currentSociety);
@@ -2088,8 +1890,7 @@ async function refreshTabData(tabId) {
           societySettings = {};
           data.forEach(s => { societySettings[s.key] = s.value; });
         }
-        renderBankDetails();
-        break;
+        renderBankDetails(); break;
       }
       case 'tally-bank': {
         const [{ data: bankEnt }, { data: mnt }, { data: exp }] = await Promise.all([
@@ -2100,13 +1901,10 @@ async function refreshTabData(tabId) {
         if (bankEnt) customBankEntries = bankEnt;
         if (mnt) maintenanceData = mnt;
         if (exp) expenseData = exp;
-        renderTallyBankBook();
-        break;
+        renderTallyBankBook(); break;
       }
     }
-  } catch(e) {
-    console.log('refreshTabData error for', tabId, e);
-  }
+  } catch(e) { console.log('refreshTabData error for', tabId, e); }
 }
 
 async function sendProofNotificationToMember(flatNo, amount, status, societyName) {
@@ -2116,20 +1914,28 @@ async function sendProofNotificationToMember(flatNo, amount, status, societyName
       ? `Dear Member, aapka ₹${amount} ka payment society admin dwara VERIFY kar diya gaya hai. Thank you!`
       : `Dear Member, aapka ₹${amount} ka payment REJECT ho gaya hai. Kripya admin se sampark karein ya sahi receipt dobara submit karein.`;
 
-    await _supabase.from('notices').insert([{
-      society_name: societyName,
-      title: title,
-      content: content,
-      date: new Date().toISOString().split('T')[0],
-      author: currentUser || 'Admin',
-      priority: status === 'Verified' ? 'Low' : 'High',
-      target_members: [flatNo],
-      attachment_url: null,
-      deep_link: '/?tab=dashboard&section=myPaymentSubmissionsCard'
-    }]);
-  } catch (e) {
-    console.log('Member notification error:', e);
-  }
+    try {
+      await _supabase.from('notices').insert([{
+        society_name: societyName, title, content,
+        date: new Date().toISOString().split('T')[0],
+        author: currentUser || 'Admin',
+        priority: status === 'Verified' ? 'Low' : 'High',
+        target_members: [flatNo],
+        attachment_url: null,
+        deep_link: '/?tab=dashboard&section=myPaymentSubmissionsCard'
+      }]);
+    } catch (colErr) {
+      // Fallback if deep_link column doesn't exist
+      await _supabase.from('notices').insert([{
+        society_name: societyName, title, content,
+        date: new Date().toISOString().split('T')[0],
+        author: currentUser || 'Admin',
+        priority: status === 'Verified' ? 'Low' : 'High',
+        target_members: [flatNo],
+        attachment_url: null
+      }]);
+    }
+  } catch (e) { console.log('Member notification error:', e); }
 }
 
 function renderMyPaymentSubmissions() {
@@ -2188,9 +1994,7 @@ async function submitMeetingMinutes(event) {
 
   const newMeeting = {
     society_name: currentSociety,
-    meeting_title: title,
-    meeting_date: date,
-    meeting_type: type,
+    meeting_title: title, meeting_date: date, meeting_type: type,
     venue: venue || 'Society Clubhouse',
     attendees: attendees || 'All Members',
     minutes_content: content,
@@ -2199,23 +2003,33 @@ async function submitMeetingMinutes(event) {
   };
 
   const { error } = await _supabase.from('society_meetings').insert([newMeeting]);
-  if (error) {
-    alert('❌ Error saving meeting: ' + error.message);
-    return;
-  }
+  if (error) { alert('❌ Error saving meeting: ' + error.message); return; }
 
   try {
-    await _supabase.from('notices').insert([{
-      society_name: currentSociety,
-      title: `📋 New ${type} Recorded`,
-      content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
-      date: new Date().toISOString().split('T')[0],
-      author: currentUser || 'Admin',
-      priority: type === 'AGM' ? 'High' : 'Medium',
-      target_members: [],
-      attachment_url: null,
-      deep_link: '/?tab=meetings'
-    }]);
+    try {
+      await _supabase.from('notices').insert([{
+        society_name: currentSociety,
+        title: `📋 New ${type} Recorded`,
+        content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
+        date: new Date().toISOString().split('T')[0],
+        author: currentUser || 'Admin',
+        priority: type === 'AGM' ? 'High' : 'Medium',
+        target_members: [],
+        attachment_url: null,
+        deep_link: '/?tab=meetings'
+      }]);
+    } catch (colErr) {
+      await _supabase.from('notices').insert([{
+        society_name: currentSociety,
+        title: `📋 New ${type} Recorded`,
+        content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
+        date: new Date().toISOString().split('T')[0],
+        author: currentUser || 'Admin',
+        priority: type === 'AGM' ? 'High' : 'Medium',
+        target_members: [],
+        attachment_url: null
+      }]);
+    }
   } catch (e) { console.log('Meeting notification error:', e); }
 
   alert('✅ Meeting Minutes Recorded & Members Notified!');
@@ -2271,21 +2085,15 @@ function exportMonthlySummaryPDF() {
   doc.text(`Monthly Financial Statement - ${month}`, 105, 23, { align: 'center' });
   
   doc.autoTable({ 
-    html: '#monthly-summary-table', 
-    startY: 30,
-    theme: 'grid',
+    html: '#monthly-summary-table', startY: 30, theme: 'grid',
     didParseCell: function(data) {
-      if (data.section === 'body') {
-        data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim());
-      }
+      if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
     }
   });
   doc.save(`Monthly_Summary_${month}.pdf`);
 }
 
-function exportCAAuditExcel() {
-  exportTableToExcel('ca-gst-summary-table', 'CA_Audit_GST_Summary');
-}
+function exportCAAuditExcel() { exportTableToExcel('ca-gst-summary-table', 'CA_Audit_GST_Summary'); }
 
 function exportCAAuditPDF() {
   if (typeof window.jspdf === 'undefined') return;
@@ -2301,13 +2109,9 @@ function exportCAAuditPDF() {
   doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 105, 29, { align: 'center' });
   
   doc.autoTable({
-    html: '#ca-gst-summary-table',
-    startY: 35,
-    theme: 'grid',
+    html: '#ca-gst-summary-table', startY: 35, theme: 'grid',
     didParseCell: function(data) {
-      if (data.section === 'body') {
-        data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim());
-      }
+      if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
     }
   });
   doc.save(`CA_Audit_${currentSociety}_${Date.now()}.pdf`);
@@ -2315,12 +2119,9 @@ function exportCAAuditPDF() {
 
 function loadSettingsToForm() {
   const s = societySettings || {};
-  
   const setVal = (id, val) => {
     document.querySelectorAll(`#${id}`).forEach(el => {
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) {
-        el.value = val;
-      }
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) { el.value = val; }
     });
   };
   
@@ -2335,9 +2136,7 @@ function loadSettingsToForm() {
   setVal('settings-enable-gst', s.enable_gst || 'false');
   setVal('settings-society-gstin', s.society_gstin || '');
   
-  if (typeof toggleGSTFields === 'function') {
-    toggleGSTFields(s.enable_gst || 'false');
-  }
+  if (typeof toggleGSTFields === 'function') { toggleGSTFields(s.enable_gst || 'false'); }
 }
 
 function renderCommunity() {
@@ -2376,6 +2175,7 @@ function renderEventsCommunity() {
   `).join('');
 }
 
+// 🟢 FIXED: Notices with deep_link (system notifications) are hidden from Community Hub
 function renderNoticesCommunity() {
   const container = document.getElementById('notices-community-container');
   if (!container) return;
@@ -2385,6 +2185,10 @@ function renderNoticesCommunity() {
   }
 
   const visibleNotices = noticesData.filter(n => {
+    // 🟢 Hide system-generated notices (with deep_link) from Community Hub
+    // They are meant for notifications only, not for Community Hub display
+    if (n.deep_link && String(n.deep_link).trim() !== '') return false;
+
     if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') return true;
     
     if (!n.target_members || n.target_members.length === 0) return true;
@@ -2453,10 +2257,7 @@ async function renderSuperAdminMasterDashboard() {
   container.innerHTML = `<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="text-muted mt-2">Fetching master data across all active societies...</p></div>`;
 
   try {
-    const { data: societiesList, error: socError } = await _supabase
-      .from('societies')
-      .select('*')
-      .eq('is_active', true);
+    const { data: societiesList, error: socError } = await _supabase.from('societies').select('*').eq('is_active', true);
 
     if (socError || !societiesList || societiesList.length === 0) {
       container.innerHTML = `<div class="alert alert-warning">No active societies found.</div>`;
@@ -2470,7 +2271,6 @@ async function renderSuperAdminMasterDashboard() {
 
     for (const soc of societiesList) {
       const socName = soc.name;
-
       const [{ data: members }, { data: payments }] = await Promise.all([
         _supabase.from('members').select('*').eq('society_name', socName),
         _supabase.from('maintenance_payments').select('*').eq('society_name', socName)
@@ -2487,10 +2287,7 @@ async function renderSuperAdminMasterDashboard() {
         const rate = Number(m.monthly_rate || 600);
         const opening = Number(m.opening_due || 0);
         const dueTillDate = MONTHS_IN_FY_SO_FAR * rate;
-        const paid = socPayments
-          .filter(r => (r.flat_no || '').toUpperCase() === (m.flat_no || '').toUpperCase())
-          .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
-        
+        const paid = socPayments.filter(r => (r.flat_no || '').toUpperCase() === (m.flat_no || '').toUpperCase()).reduce((s, r) => s + Number(r.amount_paid || 0), 0);
         const flatPending = Math.max(0, opening + dueTillDate - paid);
         socPending += flatPending;
       });
@@ -2509,64 +2306,31 @@ async function renderSuperAdminMasterDashboard() {
           <td class="text-danger fw-bold">₹ ${socPending.toLocaleString('en-IN')}</td>
           <td><span class="badge bg-warning text-dark">${soc.subscription_plan || 'Gold'} (₹${subRatePerHouse}/h)</span></td>
           <td class="text-primary fw-bold">₹ ${monthlySubDue.toLocaleString('en-IN')} /mo</td>
-          <td>
-            <button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${socName}')">
-              <i class="fa-solid fa-arrow-right me-1"></i> Switch & Manage
-            </button>
-          </td>
+          <td><button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${socName}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch & Manage</button></td>
         </tr>
       `;
     }
 
     const htmlContent = `
       <div class="row g-3 mb-4">
-        <div class="col-md-4">
-          <div class="card p-3 border-0 shadow-sm rounded-4 bg-success-subtle">
-            <h6 class="text-success mb-1">Total Societies Collection</h6>
-            <h3 class="fw-bold mb-0 text-success">₹ ${grandTotalCollection.toLocaleString('en-IN')}</h3>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card p-3 border-0 shadow-sm rounded-4 bg-danger-subtle">
-            <h6 class="text-danger mb-1">Total Societies Pending Dues</h6>
-            <h3 class="fw-bold mb-0 text-danger">₹ ${grandTotalPending.toLocaleString('en-IN')}</h3>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card p-3 border-0 shadow-sm rounded-4 bg-primary-subtle">
-            <h6 class="text-primary mb-1">Your Monthly Agency Revenue</h6>
-            <h3 class="fw-bold mb-0 text-primary">₹ ${grandTotalSubDue.toLocaleString('en-IN')}</h3>
-          </div>
-        </div>
+        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-success-subtle"><h6 class="text-success mb-1">Total Societies Collection</h6><h3 class="fw-bold mb-0 text-success">₹ ${grandTotalCollection.toLocaleString('en-IN')}</h3></div></div>
+        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-danger-subtle"><h6 class="text-danger mb-1">Total Societies Pending Dues</h6><h3 class="fw-bold mb-0 text-danger">₹ ${grandTotalPending.toLocaleString('en-IN')}</h3></div></div>
+        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-primary-subtle"><h6 class="text-primary mb-1">Your Monthly Agency Revenue</h6><h3 class="fw-bold mb-0 text-primary">₹ ${grandTotalSubDue.toLocaleString('en-IN')}</h3></div></div>
       </div>
-
       <div class="card border-0 shadow-sm rounded-4 p-3 border">
         <h5 class="fw-bold mb-3">🏢 All Managed Societies Overview</h5>
         <div class="table-responsive">
           <table class="table table-hover align-middle">
             <thead class="table-light">
-              <tr>
-                <th>Society Name</th>
-                <th>Total Flats</th>
-                <th>Total Collection</th>
-                <th>Total Pending</th>
-                <th>Subscription Plan</th>
-                <th>Your Revenue / Mo</th>
-                <th>Action</th>
-              </tr>
+              <tr><th>Society Name</th><th>Total Flats</th><th>Total Collection</th><th>Total Pending</th><th>Subscription Plan</th><th>Your Revenue / Mo</th><th>Action</th></tr>
             </thead>
-            <tbody>
-              ${masterRows}
-            </tbody>
+            <tbody>${masterRows}</tbody>
           </table>
         </div>
       </div>
     `;
 
-    document.querySelectorAll('#super-admin-master-container').forEach(el => {
-      el.innerHTML = htmlContent;
-    });
-
+    document.querySelectorAll('#super-admin-master-container').forEach(el => { el.innerHTML = htmlContent; });
   } catch (err) {
     console.error('Master dashboard error:', err);
     container.innerHTML = `<div class="alert alert-danger">Error loading master dashboard: ${err.message}</div>`;
@@ -2635,28 +2399,16 @@ async function logActivity(actionType, details) {
       society_name: currentSociety,
       user_flat: currentUser || 'SYSTEM',
       user_role: currentRole || 'Admin',
-      action_type: actionType,
-      details: details,
+      action_type: actionType, details: details,
       created_at: new Date().toISOString()
     };
     await _supabase.from('activity_logs').insert([newLog]);
-  } catch (err) {
-    console.error('Failed to write activity log:', err);
-  }
+  } catch (err) { console.error('Failed to write activity log:', err); }
 }
 
 async function fetchActivityLogs() {
-  const { data, error } = await _supabase
-    .from('activity_logs')
-    .select('*')
-    .eq('society_name', currentSociety)
-    .order('created_at', { ascending: false })
-    .limit(100);
-  
-  if (!error) {
-    activityLogs = data || [];
-    renderActivityLogs();
-  }
+  const { data, error } = await _supabase.from('activity_logs').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false }).limit(100);
+  if (!error) { activityLogs = data || []; renderActivityLogs(); }
 }
 
 function renderActivityLogs() {
@@ -2683,7 +2435,7 @@ function renderActivityLogs() {
 function renderFacilitiesCommunity() {
   const container = document.getElementById('facilities-community-container');
   if (!container) return;
-  if (facilitiesData.length === 0) {
+  if (!facilitiesData || facilitiesData.length === 0) {
     container.innerHTML = `<div class="col-12 text-muted text-center">No facilities available for booking.</div>`;
     return;
   }
@@ -2776,9 +2528,24 @@ async function openBookingModal(facilityId) {
   new bootstrap.Modal(document.getElementById('bookingModal')).show();
 }
 
-function resetBookingForm() {
+// 🟢 FIXED: Populate facility dropdown when opening "New Booking" modal
+async function resetBookingForm() {
   const form = document.getElementById('bookingForm');
   if (form) form.reset();
+
+  try {
+    await fetchFacilityData();
+    const select = document.getElementById('book-facility');
+    if (select) {
+      if (facilitiesData.length === 0) {
+        select.innerHTML = '<option value="">⚠️ No facilities available. Contact Admin.</option>';
+      } else {
+        select.innerHTML = facilitiesData.map(f => 
+          `<option value="${f.id}">${f.name}${f.fee ? ' — ₹' + f.fee : ''}</option>`
+        ).join('');
+      }
+    }
+  } catch (e) { console.log('Facility dropdown error:', e); }
 }
 
 async function submitBooking(event) {
@@ -3055,11 +2822,8 @@ async function renderCAAuditReport() {
     const rate = Number(m.monthly_rate || 600);
     const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
     const openingDue = Number(m.opening_due || 0);
-    
     const rawPending = openingDue + totalDueTillDate - flatPaid;
-    if (rawPending < 0) {
-      totalAdvanceLiability += Math.abs(rawPending); 
-    }
+    if (rawPending < 0) { totalAdvanceLiability += Math.abs(rawPending); }
   });
 
   const totalIncome = maintenanceData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
@@ -3090,32 +2854,21 @@ async function renderCAAuditReport() {
 
   const gstTbody = document.getElementById('ca-gst-summary-rows');
   const gstCardContainer = gstTbody?.closest('.card');
-
   const isGstOn = societySettings.enable_gst === true || societySettings.enable_gst === 'true';
 
   if (!isGstOn) {
     if (gstCardContainer) gstCardContainer.style.display = 'none';
   } else {
     if (gstCardContainer) gstCardContainer.style.display = 'block';
-    
     try {
-      const { data: invData, error } = await _supabase
-        .from('society_invoices')
-        .select('*')
-        .eq('society_name', currentSociety);
-
+      const { data: invData, error } = await _supabase.from('society_invoices').select('*').eq('society_name', currentSociety);
       if (!gstTbody) return;
-
       if (error || !invData || invData.length === 0) {
         gstTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No GST Invoices recorded for this society yet.</td></tr>`;
         return;
       }
 
-      let totalBase = 0;
-      let totalCgst = 0;
-      let totalSgst = 0;
-      let totalInvoiceVal = 0;
-
+      let totalBase = 0, totalCgst = 0, totalSgst = 0, totalInvoiceVal = 0;
       invData.forEach(inv => {
         totalBase += Number(inv.base_amount || 0);
         totalCgst += Number(inv.cgst_amount || 0);
@@ -3124,37 +2877,16 @@ async function renderCAAuditReport() {
       });
 
       gstTbody.innerHTML = `
-        <tr>
-          <td><strong>Central Goods & Services Tax (CGST)</strong></td>
-          <td>9%</td>
-          <td>₹ ${totalBase.toFixed(2)}</td>
-          <td class="text-primary fw-bold">₹ ${totalCgst.toFixed(2)}</td>
-        </tr>
-        <tr>
-          <td><strong>State Goods & Services Tax (SGST)</strong></td>
-          <td>9%</td>
-          <td>₹ ${totalBase.toFixed(2)}</td>
-          <td class="text-primary fw-bold">₹ ${totalSgst.toFixed(2)}</td>
-        </tr>
-        <tr class="table-primary fw-bold">
-          <td colspan="2">TOTAL GST OUTPUT LIABILITY (CGST + SGST)</td>
-          <td>₹ ${totalBase.toFixed(2)}</td>
-          <td class="text-success">₹ ${(totalCgst + totalSgst).toFixed(2)}</td>
-        </tr>
-        <tr class="table-secondary fw-bold">
-          <td colspan="2">TOTAL GROSS TAXABLE TURNOVER (Incl. GST)</td>
-          <td colspan="2" class="text-dark">₹ ${totalInvoiceVal.toFixed(2)}</td>
-        </tr>
+        <tr><td><strong>Central Goods & Services Tax (CGST)</strong></td><td>9%</td><td>₹ ${totalBase.toFixed(2)}</td><td class="text-primary fw-bold">₹ ${totalCgst.toFixed(2)}</td></tr>
+        <tr><td><strong>State Goods & Services Tax (SGST)</strong></td><td>9%</td><td>₹ ${totalBase.toFixed(2)}</td><td class="text-primary fw-bold">₹ ${totalSgst.toFixed(2)}</td></tr>
+        <tr class="table-primary fw-bold"><td colspan="2">TOTAL GST OUTPUT LIABILITY (CGST + SGST)</td><td>₹ ${totalBase.toFixed(2)}</td><td class="text-success">₹ ${(totalCgst + totalSgst).toFixed(2)}</td></tr>
+        <tr class="table-secondary fw-bold"><td colspan="2">TOTAL GROSS TAXABLE TURNOVER (Incl. GST)</td><td colspan="2" class="text-dark">₹ ${totalInvoiceVal.toFixed(2)}</td></tr>
       `;
-    } catch (err) {
-      console.error('Error loading CA GST summary:', err);
-    }
+    } catch (err) { console.error('Error loading CA GST summary:', err); }
   }
 }
 
-function renderChairmanReport() {
-  generateMonthlySummary();
-}
+function renderChairmanReport() { generateMonthlySummary(); }
 
 function renderAssets() {
   const tbody = document.getElementById('assets-list');
@@ -3204,7 +2936,6 @@ function renderFDs() {
 async function populateComplaintFlatDropdown() {
   const select = document.getElementById('cmp-flat');
   if (!select) return;
-  
   select.innerHTML = '<option value="">⏳ Loading flats...</option>';
 
   if (currentRole === 'Member') {
@@ -3214,11 +2945,7 @@ async function populateComplaintFlatDropdown() {
   }
 
   if (!membersData || membersData.length === 0) {
-    const { data } = await _supabase
-      .from('members')
-      .select('flat_no, name')
-      .eq('society_name', currentSociety)
-      .order('flat_no');
+    const { data } = await _supabase.from('members').select('flat_no, name').eq('society_name', currentSociety).order('flat_no');
     membersData = data || [];
   }
 
@@ -3272,9 +2999,7 @@ function renderComplaints() {
 function openComplaintModal() {
   populateComplaintFlatDropdown();
   const modalEl = document.getElementById('complaintModal');
-  if (modalEl) {
-    new bootstrap.Modal(modalEl).show();
-  }
+  if (modalEl) { new bootstrap.Modal(modalEl).show(); }
 }
 
 async function submitComplaint(event) {
@@ -3297,15 +3022,11 @@ async function submitComplaint(event) {
   }
 
   const newComplaint = {
-    flat_no: flat,
-    phone: phone,
-    category: category,
-    description: desc,
+    flat_no: flat, phone: phone, category: category, description: desc,
     status: 'Pending',
     complaint_date: new Date().toISOString().split('T')[0],
     created_at: new Date().toISOString(),
-    society_name: currentSociety,
-    image_url: imageUrl
+    society_name: currentSociety, image_url: imageUrl
   };
 
   await _supabase.from('complaints').insert([newComplaint]);
@@ -3399,9 +3120,7 @@ function renderTenantAgreementWarnings() {
     }
   }
 
-  containers.forEach(container => {
-    container.innerHTML = htmlContent;
-  });
+  containers.forEach(container => { container.innerHTML = htmlContent; });
 }
 
 function openAdminMemberLedger(flatNo) {
@@ -3428,12 +3147,7 @@ function openAdminMemberLedger(flatNo) {
   for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
     const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
     const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-05`;
-    monthlyDueEntries.push({
-      date: dueDate,
-      type: 'monthly_due',
-      particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`,
-      amount: rate
-    });
+    monthlyDueEntries.push({ date: dueDate, type: 'monthly_due', particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`, amount: rate });
     currentIterDate.setMonth(currentIterDate.getMonth() + 1);
   }
 
@@ -3448,45 +3162,21 @@ function openAdminMemberLedger(flatNo) {
     if (item.type === 'due') {
       const d = item.data;
       runningBalance += d.amount;
-      ledgerRows.push({
-        date: d.date,
-        particulars: d.particulars,
-        debit: d.amount,
-        credit: 0,
-        balance: runningBalance
-      });
+      ledgerRows.push({ date: d.date, particulars: d.particulars, debit: d.amount, credit: 0, balance: runningBalance });
     } else if (item.type === 'receipt') {
       const r = item.data;
       const amt = Number(r.amount_paid || 0);
       runningBalance -= amt; 
-      ledgerRows.push({
-        date: r.payment_date || '-',
-        particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`,
-        debit: 0,
-        credit: amt,
-        balance: runningBalance
-      });
+      ledgerRows.push({ date: r.payment_date || '-', particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`, debit: 0, credit: amt, balance: runningBalance });
     } else if (item.type === 'jv') {
       const jv = item.data;
       const amt = Number(jv.amount || 0);
       if (jv.type === 'Debit') {
         runningBalance += amt;
-        ledgerRows.push({
-          date: jv.date || '-',
-          particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`,
-          debit: amt,
-          credit: 0,
-          balance: runningBalance
-        });
+        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`, debit: amt, credit: 0, balance: runningBalance });
       } else {
         runningBalance -= amt;
-        ledgerRows.push({
-          date: jv.date || '-',
-          particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`,
-          debit: 0,
-          credit: amt,
-          balance: runningBalance
-        });
+        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`, debit: 0, credit: amt, balance: runningBalance });
       }
     }
   });
@@ -3495,13 +3185,7 @@ function openAdminMemberLedger(flatNo) {
   const lateFee = calculateLateFee(finalPendingBeforeLateFee, rate);
   if (lateFee > 0) {
     runningBalance += lateFee;
-    ledgerRows.push({
-      date: new Date().toISOString().split('T')[0],
-      particulars: `Auto Late Fee / Interest Penalty`,
-      debit: lateFee,
-      credit: 0,
-      balance: runningBalance
-    });
+    ledgerRows.push({ date: new Date().toISOString().split('T')[0], particulars: `Auto Late Fee / Interest Penalty`, debit: lateFee, credit: 0, balance: runningBalance });
   }
 
   ledgerContainer.innerHTML = ledgerRows.map(row => `
@@ -3578,33 +3262,19 @@ function renderBankReconciliation() {
   maintenanceData.forEach(r => {
     const amt = Number(r.amount_paid || 0);
     softwareBalance += amt;
-    allEntries.push({
-      date: r.payment_date || '-',
-      ref: r.receipt_no || 'REC',
-      head: `Maintenance - ${r.flat_no}`,
-      amount: amt,
-      type: 'Deposit (+)'
-    });
+    allEntries.push({ date: r.payment_date || '-', ref: r.receipt_no || 'REC', head: `Maintenance - ${r.flat_no}`, amount: amt, type: 'Deposit (+)' });
   });
 
   expenseData.forEach(e => {
     const amt = Number(e.amount || 0);
     softwareBalance -= amt;
-    allEntries.push({
-      date: e.expense_date || '-',
-      ref: e.voucher_no || 'VOU',
-      head: `${e.category} - ${e.paid_to}`,
-      amount: amt,
-      type: 'Withdrawal (-)'
-    });
+    allEntries.push({ date: e.expense_date || '-', ref: e.voucher_no || 'VOU', head: `${e.category} - ${e.paid_to}`, amount: amt, type: 'Withdrawal (-)' });
   });
 
   document.getElementById('brs-software-balance').innerText = `₹${softwareBalance.toFixed(2)}`;
 
   const balanceInput = document.getElementById('actual-bank-balance-input');
-  if (balanceInput) {
-    balanceInput.disabled = (currentRole === 'Chairman');
-  }
+  if (balanceInput) { balanceInput.disabled = (currentRole === 'Chairman'); }
 
   const isChairman = (currentRole === 'Chairman');
 
@@ -3661,12 +3331,7 @@ function renderPolls() {
               const percent = totalVotes === 0 ? 0 : Math.round((votes[i] / totalVotes) * 100);
               return `
                 <div class="d-flex align-items-center gap-2 mb-1">
-                  <input type="radio" 
-                         name="poll_radio_${p.id}" 
-                         value="${i}" 
-                         onchange="handlePollVote(${p.id}, ${i})"
-                         ${hasVoted ? 'disabled' : ''} 
-                         ${hasVoted && p.voter_choices && p.voter_choices[currentUser] === i ? 'checked' : ''}>
+                  <input type="radio" name="poll_radio_${p.id}" value="${i}" onchange="handlePollVote(${p.id}, ${i})" ${hasVoted ? 'disabled' : ''} ${hasVoted && p.voter_choices && p.voter_choices[currentUser] === i ? 'checked' : ''}>
                   <span style="flex:1;">${opt}</span>
                   <span class="badge bg-secondary">${votes[i]} votes</span>
                 </div>
@@ -3694,9 +3359,7 @@ function renderPolls() {
 
 function handlePollVote(pollId, optIndex) {
   const pollIdx = pollsData.findIndex(p => p.id == pollId);
-  if (pollIdx !== -1) {
-    votePoll(pollIdx, optIndex);
-  }
+  if (pollIdx !== -1) { votePoll(pollIdx, optIndex); }
 }
 
 async function votePoll(pollIndex, optIndex) {
@@ -3726,9 +3389,7 @@ async function votePoll(pollIndex, optIndex) {
     await fetchPollsData();
     renderPolls();
     alert('✅ आपका वोट दर्ज कर लिया गया!');
-  } catch (err) {
-    alert('❌ Error saving vote.');
-  }
+  } catch (err) { alert('❌ Error saving vote.'); }
 }
 
 async function withdrawVote(pollIndex) {
@@ -3737,18 +3398,13 @@ async function withdrawVote(pollIndex) {
   if (!confirm('⚠️ क्या आप अपना वोट वापस लेना चाहते हैं?')) return;
   
   const choiceIndex = poll.voter_choices ? poll.voter_choices[currentUser] : undefined;
-  if (choiceIndex !== undefined) {
-    poll.votes[choiceIndex] = Math.max(0, (poll.votes[choiceIndex] || 1) - 1);
-  }
+  if (choiceIndex !== undefined) { poll.votes[choiceIndex] = Math.max(0, (poll.votes[choiceIndex] || 1) - 1); }
   poll.voters = (poll.voters || []).filter(v => v !== currentUser);
   if (poll.voter_choices) delete poll.voter_choices[currentUser];
 
   const { error } = await _supabase.from('polls').update({ votes: poll.votes, voters: poll.voters, voter_choices: poll.voter_choices }).eq('id', poll.id);
   if (error) alert('Error: ' + error.message);
-  else {
-    alert('✅ वोट वापस ले लिया गया!');
-    fetchPollsData().then(renderPolls);
-  }
+  else { alert('✅ वोट वापस ले लिया गया!'); fetchPollsData().then(renderPolls); }
 }
 
 async function deletePoll(index) {
@@ -3771,11 +3427,9 @@ async function submitPoll(event) {
   if (opts.length < 2) { alert('❌ Please add at least 2 options.'); return; }
 
   const newPoll = {
-    question: question,
-    options: opts,
+    question: question, options: opts,
     votes: new Array(opts.length).fill(0),
-    voters: [],
-    voter_choices: {},
+    voters: [], voter_choices: {},
     created_by: currentUser,
     created_at: new Date().toISOString(),
     society_name: currentSociety
@@ -3849,14 +3503,9 @@ function toggleGSTFields(val) {
 
 function loadGSTSettingsToUI() {
   const isGstEnabled = societySettings.enable_gst || 'false';
-  document.querySelectorAll('#settings-enable-gst').forEach(el => {
-    el.value = isGstEnabled;
-  });
+  document.querySelectorAll('#settings-enable-gst').forEach(el => { el.value = isGstEnabled; });
   toggleGSTFields(isGstEnabled);
-  
-  document.querySelectorAll('#settings-society-gstin').forEach(el => {
-    el.value = societySettings.society_gstin || '';
-  });
+  document.querySelectorAll('#settings-society-gstin').forEach(el => { el.value = societySettings.society_gstin || ''; });
 }
 
 async function generateTaxInvoicePDF(receiptId) {
@@ -3867,25 +3516,18 @@ async function generateTaxInvoicePDF(receiptId) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF('p', 'mm', 'a4');
   const societyName = societySettings.society_name || currentSociety;
-  
   const isGstOn = societySettings.enable_gst === true || societySettings.enable_gst === 'true';
   const societyGstin = societySettings.society_gstin || '24AAAAA0000A1Z5';
 
   doc.setFontSize(16);
   doc.text(societyName, 105, 15, { align: 'center' });
-  
   doc.setFontSize(12);
   doc.text(isGstOn ? 'TAX INVOICE (GST 18%)' : 'MAINTENANCE RECEIPT', 105, 23, { align: 'center' });
 
-  if (isGstOn) {
-    doc.setFontSize(10);
-    doc.text(`Society GSTIN: ${societyGstin}`, 14, 30);
-  }
+  if (isGstOn) { doc.setFontSize(10); doc.text(`Society GSTIN: ${societyGstin}`, 14, 30); }
 
   const totalPaid = Number(data.amount_paid || 0);
-  let baseAmount = totalPaid;
-  let cgst = 0, sgst = 0;
-  let finalTotal = totalPaid;
+  let baseAmount = totalPaid, cgst = 0, sgst = 0, finalTotal = totalPaid;
 
   let tableRows = [
     ['Receipt / Invoice No', data.receipt_no || '-'],
@@ -3910,42 +3552,24 @@ async function generateTaxInvoicePDF(receiptId) {
 
     try {
       await _supabase.from('society_invoices').upsert([{
-        society_name: currentSociety,
-        invoice_no: data.receipt_no || `INV-${Date.now()}`,
-        invoice_date: data.payment_date,
-        flat_no: data.flat_no,
-        base_amount: Number(baseAmount.toFixed(2)),
-        cgst_rate: 9,
-        sgst_rate: 9,
-        cgst_amount: Number(cgst.toFixed(2)),
-        sgst_amount: Number(sgst.toFixed(2)),
-        total_amount: finalTotal,
-        is_gst_applicable: true,
-        gstin: societyGstin
+        society_name: currentSociety, invoice_no: data.receipt_no || `INV-${Date.now()}`,
+        invoice_date: data.payment_date, flat_no: data.flat_no,
+        base_amount: Number(baseAmount.toFixed(2)), cgst_rate: 9, sgst_rate: 9,
+        cgst_amount: Number(cgst.toFixed(2)), sgst_amount: Number(sgst.toFixed(2)),
+        total_amount: finalTotal, is_gst_applicable: true, gstin: societyGstin
       }], { onConflict: 'society_name,invoice_no' });
-    } catch (e) {
-      console.log('Invoice table sync note:', e);
-    }
-
+    } catch (e) { console.log('Invoice table sync note:', e); }
   } else {
-    tableRows.push(
-      ['Total Amount Paid', `Rs. ${finalTotal.toFixed(2)}`]
-    );
+    tableRows.push(['Total Amount Paid', `Rs. ${finalTotal.toFixed(2)}`]);
   }
 
-  doc.autoTable({
-    startY: isGstOn ? 35 : 30,
-    head: [['Description', 'Details']],
-    body: tableRows,
-    theme: 'grid'
-  });
+  doc.autoTable({ startY: isGstOn ? 35 : 30, head: [['Description', 'Details']], body: tableRows, theme: 'grid' });
 
   if (societySettings.digital_signature_url) {
     try {
       const imgResponse = await fetch(societySettings.digital_signature_url);
       const imgBlob = await imgResponse.blob();
       const reader = new FileReader();
-      
       await new Promise((resolve) => {
         reader.onloadend = () => {
           const base64data = reader.result;
@@ -3954,14 +3578,11 @@ async function generateTaxInvoicePDF(receiptId) {
         };
         reader.readAsDataURL(imgBlob);
       });
-    } catch (e) {
-      console.log('Signature image load note:', e);
-    }
+    } catch (e) { console.log('Signature image load note:', e); }
   }
 
   doc.setFontSize(10);
   doc.text('Authorized Signatory', 160, doc.lastAutoTable.finalY + 28);
-
   doc.save(`${isGstOn ? 'Tax_Invoice' : 'Receipt'}_${data.flat_no}_${data.receipt_no || 'REC'}.pdf`);
 }
 
@@ -3978,11 +3599,7 @@ function generateMonthlySummary() {
   const monthCollections = maintenanceData.filter(r => {
     if (!r.payment_date) return false;
     const d = new Date(r.payment_date);
-    if (!isNaN(d.getTime())) {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      return `${yyyy}-${mm}` === selectedMonth;
-    }
+    if (!isNaN(d.getTime())) { const yyyy = d.getFullYear(); const mm = String(d.getMonth() + 1).padStart(2, '0'); return `${yyyy}-${mm}` === selectedMonth; }
     return (r.payment_date || '').startsWith(selectedMonth);
   });
   const totalCollected = monthCollections.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
@@ -3990,11 +3607,7 @@ function generateMonthlySummary() {
   const monthExpenses = expenseData.filter(e => {
     if (!e.expense_date) return false;
     const d = new Date(e.expense_date);
-    if (!isNaN(d.getTime())) {
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      return `${yyyy}-${mm}` === selectedMonth;
-    }
+    if (!isNaN(d.getTime())) { const yyyy = d.getFullYear(); const mm = String(d.getMonth() + 1).padStart(2, '0'); return `${yyyy}-${mm}` === selectedMonth; }
     return (e.expense_date || '').startsWith(selectedMonth);
   });
   const totalExpenses = monthExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
@@ -4006,8 +3619,7 @@ function generateMonthlySummary() {
     const flatNo = (m.flat_no || '').trim().toUpperCase();
     const rate = Number(m.monthly_rate || 600);
     const openingDue = Number(m.opening_due || 0);
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo)
-                                     .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const totalDue = openingDue + (MONTHS_IN_FY_SO_FAR * rate);
     if (totalDue - flatPaid > 0) defaulterCount++;
   });
@@ -4025,21 +3637,14 @@ function generateMonthlySummary() {
 
 function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, net) {
   const expCategories = {
-    'Administrative Expenses': 0,
-    'Utility Expenses': 0,
-    'Repairs & Maintenance': 0,
-    'Staff & Salary': 0,
-    'Statutory & Legal': 0,
-    'Other Expenses': 0
+    'Administrative Expenses': 0, 'Utility Expenses': 0, 'Repairs & Maintenance': 0,
+    'Staff & Salary': 0, 'Statutory & Legal': 0, 'Other Expenses': 0
   };
 
   expenses.forEach(e => {
     const cat = e.category || 'Other Expenses';
-    if (expCategories[cat] !== undefined) {
-      expCategories[cat] += Number(e.amount || 0);
-    } else {
-      expCategories['Other Expenses'] += Number(e.amount || 0);
-    }
+    if (expCategories[cat] !== undefined) { expCategories[cat] += Number(e.amount || 0); }
+    else { expCategories['Other Expenses'] += Number(e.amount || 0); }
   });
 
   let html = `
@@ -4076,9 +3681,7 @@ function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, n
   `;
 
   const tbodies = document.querySelectorAll('#monthly-summary-rows');
-  tbodies.forEach(tbody => {
-    tbody.innerHTML = html;
-  });
+  tbodies.forEach(tbody => { tbody.innerHTML = html; });
 }
 
 async function submitMember(event) {
@@ -4141,29 +3744,19 @@ async function submitFD(event) {
 
 async function submitJournalVoucher(event) {
   event.preventDefault();
-  const jvNo = document.getElementById('jv-no').value.trim();
-  const date = document.getElementById('jv-date').value;
-  const flat = document.getElementById('jv-flat').value.trim().toUpperCase();
-  const type = document.getElementById('jv-type').value;
-  const amount = Number(document.getElementById('jv-amount').value);
-  const reason = document.getElementById('jv-reason').value.trim();
-
   const newJV = {
     society_name: currentSociety,
-    jv_no: jvNo,
-    date: date,
-    flat_no: flat,
-    type: type,
-    amount: amount,
-    reason: reason,
+    jv_no: document.getElementById('jv-no').value.trim(),
+    date: document.getElementById('jv-date').value,
+    flat_no: document.getElementById('jv-flat').value.trim().toUpperCase(),
+    type: document.getElementById('jv-type').value,
+    amount: Number(document.getElementById('jv-amount').value),
+    reason: document.getElementById('jv-reason').value.trim(),
     created_at: new Date().toISOString()
   };
 
   const { error } = await _supabase.from('journal_vouchers').insert([newJV]);
-  if (error) {
-    alert('❌ Error saving JV: ' + error.message);
-    return;
-  }
+  if (error) { alert('❌ Error saving JV: ' + error.message); return; }
 
   alert('✅ Journal Voucher Posted Successfully!');
   bootstrap.Modal.getInstance(document.getElementById('journalModal')).hide();
@@ -4263,6 +3856,7 @@ async function submitExpense(event) {
   fetchSupabaseData();
 }
 
+// 🟢 FIXED: Bank entry saves + reloads both sources
 async function submitBankEntry(event) {
   event.preventDefault();
   const type = document.getElementById('bank-form-type').value;
@@ -4288,9 +3882,7 @@ async function submitBankEntry(event) {
   setTimeout(() => loadSecondaryData(), 500);
 }
 
-function openEnrollModal() {
-  new bootstrap.Modal(document.getElementById('enrollModal')).show();
-}
+function openEnrollModal() { new bootstrap.Modal(document.getElementById('enrollModal')).show(); }
 
 async function submitEnroll(event) {
   event.preventDefault();
@@ -4366,10 +3958,7 @@ async function deleteTeamMember(id) {
 function exportTableToExcel(tableId, filename) {
   const table = document.getElementById(tableId);
   const tableClone = table.cloneNode(true);
-  tableClone.querySelectorAll('td').forEach(td => {
-    td.innerText = td.innerText.replace(/[₹Rs\.]/g, '').trim();
-  });
-  
+  tableClone.querySelectorAll('td').forEach(td => { td.innerText = td.innerText.replace(/[₹Rs\.]/g, '').trim(); });
   const wb = XLSX.utils.table_to_book(tableClone, { sheet: "Sheet1", raw: true });
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
@@ -4377,15 +3966,8 @@ function exportTableToExcel(tableId, filename) {
 function toggleMobileMenu() {
   const overlay = document.getElementById('mobileMenuOverlay');
   if (!overlay) return;
-
-  if (overlay.style.display === 'flex') {
-    closeMobileMenu();
-  } else {
-    overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    renderGridCards();
-    window.history.pushState({ mobileMenuOpen: true }, "", window.location.href);
-  }
+  if (overlay.style.display === 'flex') { closeMobileMenu(); }
+  else { overlay.style.display = 'flex'; document.body.style.overflow = 'hidden'; renderGridCards(); window.history.pushState({ mobileMenuOpen: true }, "", window.location.href); }
 }
 
 function closeMobileMenu() {
@@ -4398,17 +3980,11 @@ function closeMobileMenu() {
 function updateMobileHeaderInfo() {
   const socElem = document.getElementById('mobile-society-name');
   const userElem = document.getElementById('mobile-user-details');
-  
-  if (socElem) {
-    socElem.innerText = societySettings.society_name || currentSociety || 'PS Society';
-  }
-
+  if (socElem) { socElem.innerText = societySettings.society_name || currentSociety || 'PS Society'; }
   if (userElem) {
-    if (currentRole === 'Admin' || currentRole === 'SocietyAdmin') {
-      userElem.innerText = `👑 ${currentRole} (${currentUser})`;
-    } else if (currentRole === 'Chairman') {
-      userElem.innerText = `🎖️ Chairman (${currentUser})`;
-    } else {
+    if (currentRole === 'Admin' || currentRole === 'SocietyAdmin') { userElem.innerText = `👑 ${currentRole} (${currentUser})`; }
+    else if (currentRole === 'Chairman') { userElem.innerText = `🎖️ Chairman (${currentUser})`; }
+    else {
       const member = membersData.find(m => (m.flat_no || '').toUpperCase() === currentUser.toUpperCase());
       const memberName = member && member.name ? member.name : '';
       userElem.innerText = memberName ? `🏠 ${currentUser} - ${memberName}` : `🏠 ${currentUser}`;
@@ -4459,21 +4035,9 @@ function renderGridCards() {
     const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'rules', 'about', 'team', 'change-password'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman') {
-    allCards = allCards.filter(c => 
-      c.id !== 'settings' && 
-      c.id !== 'manage-societies' && 
-      c.id !== 'deletion-requests' &&
-      c.id !== 'master-dashboard' &&
-      c.id !== 'activity-logs' &&
-      c.id !== 'proofs'
-    );
+    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests' && c.id !== 'master-dashboard' && c.id !== 'activity-logs' && c.id !== 'proofs');
   } else if (role === 'SocietyAdmin') {
-    allCards = allCards.filter(c => 
-      c.id !== 'settings' && 
-      c.id !== 'manage-societies' &&
-      c.id !== 'master-dashboard' &&
-      c.id !== 'deletion-requests'
-    );
+    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'master-dashboard' && c.id !== 'deletion-requests');
   }
 
   allCards.sort((a, b) => {
@@ -4506,27 +4070,9 @@ function openAboutPS() {
 
       <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">🏷️ Subscription Plans (Per House / Month)</h6>
       <div class="row g-2 mb-3 text-center">
-        <div class="col-4">
-          <div class="p-2 border rounded-3 bg-light">
-            <span class="badge bg-secondary mb-1">SILVER</span>
-            <h5 class="fw-bold mb-0 text-dark">49</h5>
-            <small class="text-muted" style="font-size: 10px;">Digital Accounting</small>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="p-2 border border-warning rounded-3 bg-warning-subtle">
-            <span class="badge bg-warning text-dark mb-1">GOLD (Popular)</span>
-            <h5 class="fw-bold mb-0 text-dark">79</h5>
-            <small class="text-muted" style="font-size: 10px;">Accounting + Visits</small>
-          </div>
-        </div>
-        <div class="col-4">
-          <div class="p-2 border border-primary rounded-3 bg-primary-subtle">
-            <span class="badge bg-primary mb-1">PLATINUM</span>
-            <h5 class="fw-bold mb-0 text-dark">149</h5>
-            <small class="text-muted" style="font-size: 10px;">Complete Operations</small>
-          </div>
-        </div>
+        <div class="col-4"><div class="p-2 border rounded-3 bg-light"><span class="badge bg-secondary mb-1">SILVER</span><h5 class="fw-bold mb-0 text-dark">49</h5><small class="text-muted" style="font-size: 10px;">Digital Accounting</small></div></div>
+        <div class="col-4"><div class="p-2 border border-warning rounded-3 bg-warning-subtle"><span class="badge bg-warning text-dark mb-1">GOLD (Popular)</span><h5 class="fw-bold mb-0 text-dark">79</h5><small class="text-muted" style="font-size: 10px;">Accounting + Visits</small></div></div>
+        <div class="col-4"><div class="p-2 border border-primary rounded-3 bg-primary-subtle"><span class="badge bg-primary mb-1">PLATINUM</span><h5 class="fw-bold mb-0 text-dark">149</h5><small class="text-muted" style="font-size: 10px;">Complete Operations</small></div></div>
       </div>
 
       <h6 class="fw-bold text-dark border-bottom pb-2 mb-2">✨ What Your Society Gets</h6>
@@ -4551,6 +4097,7 @@ function openAboutPS() {
   document.body.style.overflow = 'hidden';
 }
 
+// 🟢 FIXED: Community data loaded BEFORE creating overlay
 async function openTabOverlay(tabId, skipHistory = false) {
   closeMobileMenu();
   if (tabId === 'visitor') { showVisitorPage(); return; }
@@ -4561,9 +4108,7 @@ async function openTabOverlay(tabId, skipHistory = false) {
     return;
   }
 
-  if (tabId === 'terms' || tabId === 'privacy') {
-    tabId = 'about'; 
-  }
+  if (tabId === 'terms' || tabId === 'privacy') { tabId = 'about'; }
 
   if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
     tabId = 'community';
@@ -4580,51 +4125,35 @@ async function openTabOverlay(tabId, skipHistory = false) {
       bookingsData = bData || [];
       noticesData = nData || [];
       eventsData = eData || [];
-    } catch (e) { console.log('[Community] fetch error:', e); }
 
-    const target = document.getElementById('tab-community');
-    if (target) {
-      const finalOverlay = createTabOverlay(tabId, target.innerHTML);
-      document.body.appendChild(finalOverlay);
-      document.body.style.overflow = 'hidden';
-      if (!skipHistory) {
-        window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+      // 🟢 FIRST render into hidden tab-community
+      renderCommunity();
+
+      // 🟢 THEN clone into overlay
+      const target = document.getElementById('tab-community');
+      if (target) {
+        const finalOverlay = createTabOverlay(tabId, target.innerHTML);
+        document.body.appendChild(finalOverlay);
+        document.body.style.overflow = 'hidden';
+        if (!skipHistory) {
+          window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+        }
       }
-    }
-
-    renderCommunity();
+    } catch (e) { console.log('[Community] fetch error:', e); }
     return;
   }
 
-  if (tabId === 'marketplace') {
-    fetchMarketplaceData().then(renderMarketplace);
-  }
+  if (tabId === 'marketplace') { fetchMarketplaceData().then(renderMarketplace); }
 
   let actualTabId = `tab-${tabId}`;
-  if (tabId === 'master-dashboard') {
-    renderSuperAdminMasterDashboard();
-  }
-
-  if (tabId === 'bank-reconciliation') {
-    renderBankReconciliation();
-  }
-
+  if (tabId === 'master-dashboard') { renderSuperAdminMasterDashboard(); }
+  if (tabId === 'bank-reconciliation') { renderBankReconciliation(); }
   if (tabId === 'about') renderAboutTab();
-
-  if (tabId === 'rules') {
-    actualTabId = 'tab-rules';
-    renderRules();
-  }
-
-  if (tabId === 'journal-voucher') {
-    actualTabId = 'tab-journal-voucher';
-    renderJournalVouchers();
-  }
-
+  if (tabId === 'rules') { actualTabId = 'tab-rules'; renderRules(); }
+  if (tabId === 'journal-voucher') { actualTabId = 'tab-journal-voucher'; renderJournalVouchers(); }
   if (tabId === 'polls') renderPolls();
   if (tabId === 'chairman-report') generateMonthlySummary(); 
   if (tabId === 'activity-logs') fetchActivityLogs(); 
-
   if (tabId === 'meetings') renderMeetings();
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
@@ -4644,9 +4173,7 @@ async function openTabOverlay(tabId, skipHistory = false) {
   document.body.appendChild(finalOverlay);
   document.body.style.overflow = 'hidden';
 
-  if (tabId === 'settings') {
-    loadSettingsToForm();
-  }
+  if (tabId === 'settings') { loadSettingsToForm(); }
 
   if (!skipHistory) {
     window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
@@ -4713,7 +4240,7 @@ function openTermsOfService() {
       <p class="small text-muted">You agree not to use the Service for unlawful purposes, upload defamatory content, attempt unauthorized system access, introduce malware, or reverse engineer the platform.</p>
 
       <h5 class="fw-bold mt-3">5. Data Privacy and DPDP Act 2023 Compliance</h5>
-      <p class="small text-muted"> We comply with the Digital Personal Data Protection (DPDP) Act, 2023. Data is collected strictly for society administrative operations based on explicit consent. We do not sell or share personal data with third-party advertisers. You hold rights to access, correct, or erase your data.</p>
+      <p class="small text-muted">We comply with the Digital Personal Data Protection (DPDP) Act, 2023. Data is collected strictly for society administrative operations based on explicit consent. We do not sell or share personal data with third-party advertisers. You hold rights to access, correct, or erase your data.</p>
 
       <h5 class="fw-bold mt-3">6. Payments and Subscription</h5>
       <p class="small text-muted">Subscription plans include Silver (₹49/month), Gold (₹79/month), and Platinum (₹149/month) per house. Fees are billed in advance and are non-refundable except as required by law.</p>
@@ -4735,23 +4262,9 @@ function openTermsOfService() {
   document.body.style.overflow = 'hidden';
 }
 
-function closeTermsOfService() {
-  const overlay = document.getElementById('termsOfServiceOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function closeAboutPS() {
-  const overlay = document.getElementById('aboutPSOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function closePrivacyPolicy() {
-  const overlay = document.getElementById('privacyPolicyOverlay');
-  if (overlay) overlay.style.display = 'none';
-  document.body.style.overflow = '';
-}
+function closeTermsOfService() { const overlay = document.getElementById('termsOfServiceOverlay'); if (overlay) overlay.style.display = 'none'; document.body.style.overflow = ''; }
+function closeAboutPS() { const overlay = document.getElementById('aboutPSOverlay'); if (overlay) overlay.style.display = 'none'; document.body.style.overflow = ''; }
+function closePrivacyPolicy() { const overlay = document.getElementById('privacyPolicyOverlay'); if (overlay) overlay.style.display = 'none'; document.body.style.overflow = ''; }
 
 function openPrivacyPolicy() {
   const overlay = document.getElementById('privacyPolicyOverlay');
@@ -4784,9 +4297,7 @@ function openPrivacyPolicy() {
   document.body.style.overflow = 'hidden';
 }
 
-function openQRModal() {
-  new bootstrap.Modal(document.getElementById('qrModal')).show();
-}
+function openQRModal() { new bootstrap.Modal(document.getElementById('qrModal')).show(); }
 
 function renderTeam() {
   const tbody = document.getElementById('team-list');
@@ -4817,27 +4328,9 @@ function renderAboutTab() {
 
         <h5 class="fw-bold text-dark mb-3">🏷️ Subscription Plans (Per House / Month)</h5>
         <div class="row g-2 mb-4 text-center">
-          <div class="col-4">
-            <div class="p-2 border rounded-3 bg-light">
-              <span class="badge bg-secondary mb-1">SILVER</span>
-              <h5 class="fw-bold mb-0 text-dark">₹49</h5>
-              <small class="text-muted" style="font-size: 10px;">Digital Accounting</small>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="p-2 border border-warning rounded-3 bg-warning-subtle">
-              <span class="badge bg-warning text-dark mb-1">GOLD</span>
-              <h5 class="fw-bold mb-0 text-dark">₹79</h5>
-              <small class="text-muted" style="font-size: 10px;">Accounting + Visits</small>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="p-2 border border-primary rounded-3 bg-primary-subtle">
-              <span class="badge bg-primary mb-1">PLATINUM</span>
-              <h5 class="fw-bold mb-0 text-dark">₹149</h5>
-              <small class="text-muted" style="font-size: 10px;">Complete Operations</small>
-            </div>
-          </div>
+          <div class="col-4"><div class="p-2 border rounded-3 bg-light"><span class="badge bg-secondary mb-1">SILVER</span><h5 class="fw-bold mb-0 text-dark">₹49</h5><small class="text-muted" style="font-size: 10px;">Digital Accounting</small></div></div>
+          <div class="col-4"><div class="p-2 border border-warning rounded-3 bg-warning-subtle"><span class="badge bg-warning text-dark mb-1">GOLD</span><h5 class="fw-bold mb-0 text-dark">₹79</h5><small class="text-muted" style="font-size: 10px;">Accounting + Visits</small></div></div>
+          <div class="col-4"><div class="p-2 border border-primary rounded-3 bg-primary-subtle"><span class="badge bg-primary mb-1">PLATINUM</span><h5 class="fw-bold mb-0 text-dark">₹149</h5><small class="text-muted" style="font-size: 10px;">Complete Operations</small></div></div>
         </div>
 
         <h5 class="fw-bold text-dark mb-2">✨ What Your Society Gets</h5>
@@ -4856,63 +4349,6 @@ function renderAboutTab() {
             <a href="tel:8866376056" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
           </div>
         </div>
-
-        <hr class="my-4">
-
-        <h4 class="fw-bold text-dark mb-2">📜 Terms of Service</h4>
-        <p class="text-muted small">Effective Date: August 2026 • Last Updated: August 2026</p>
-        
-        <h6 class="fw-bold text-dark mt-3">1. Acceptance of Terms</h6>
-        <p class="small text-muted">By accessing or using PS Society Solutions ("the Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use the Service. We reserve the right to update these Terms at any time.</p>
-
-        <h6 class="fw-bold text-dark mt-3">2. Description of Service</h6>
-        <p class="small text-muted">PS Society Solutions is a Software-as-a-Service (SaaS) platform providing housing societies with digital management tools including member directory, maintenance billing, expense tracking, visitor management, and financial reporting. The Service is provided "as-is".</p>
-
-        <h6 class="fw-bold text-dark mt-3">3. User Accounts and Responsibility</h6>
-        <p class="small text-muted">You are solely responsible for maintaining the confidentiality of your login credentials (Flat Number and Password) and for all activities that occur under your account.</p>
-
-        <h6 class="fw-bold text-dark mt-3">4. Acceptable Use Policy</h6>
-        <p class="small text-muted">You agree not to use the Service for unlawful purposes, upload defamatory content, attempt unauthorized system access, introduce malware, or reverse engineer the platform.</p>
-
-        <h6 class="fw-bold text-dark mt-3">5. Data Privacy and DPDP Act 2023 Compliance</h6>
-        <p class="small text-muted">We comply with the Digital Personal Data Protection (DPDP) Act, 2023. Data is collected strictly for society administrative operations based on explicit consent. We do not sell or share personal data with third-party advertisers. You hold rights to access, correct, or erase your data.</p>
-
-        <h6 class="fw-bold text-dark mt-3">6. Payments and Subscription</h6>
-        <p class="small text-muted">Subscription plans include Silver (₹49/month), Gold (₹79/month), and Platinum (₹149/month) per house. Fees are billed in advance and are non-refundable except as required by law.</p>
-
-        <h6 class="fw-bold text-dark mt-3">7. Intellectual Property</h6>
-        <p class="small text-muted">All software, code, logos, and designs are the property of PS Society Solutions. Users retain ownership of content they upload but grant us a license to host and display it for service operations.</p>
-
-        <h6 class="fw-bold text-dark mt-3">8. Limitation of Liability</h6>
-        <p class="small text-muted">The Service is provided "AS IS" without warranties of any kind. Our total liability shall not exceed the total amount paid by you during the preceding twelve (12) months.</p>
-
-        <h6 class="fw-bold text-dark mt-3">9. Governing Law and Jurisdiction</h6>
-        <p class="small text-muted">These Terms are governed by the laws of India. Legal disputes are subject to the exclusive jurisdiction of the courts in Vadodara, Gujarat, India.</p>
-
-        <h6 class="fw-bold text-dark mt-3">10. Contact and Grievance Redressal</h6>
-        <p class="small text-muted mb-0">Grievance Officer: PS Society Solutions Team<br>Email: ps.societysolutions@gmail.com | Phone: +91 8866376056</p>
-
-        <hr class="my-4">
-
-        <h4 class="fw-bold text-dark mb-2">🛡️ Privacy Policy</h4>
-        <p class="text-muted small">Effective Date: August 2026 • Compliant with Digital Personal Data Protection (DPDP) Act 2023</p>
-        
-        <h6 class="fw-bold text-dark mt-3">1. Information We Collect</h6>
-        <p class="small text-muted">We collect resident details (name, flat number, phone, email), maintenance payment proofs (UTR numbers, receipt screenshots), visitor logs (visitor name, phone, purpose, in/out timestamps), and maintenance ticket data exclusively for society administrative operations.</p>
-
-        <h6 class="fw-bold text-dark mt-3">2. How Your Data Is Handled</h6>
-        <ul class="small text-muted ps-3">
-          <li><strong>Data Isolation:</strong> Each housing society's database is segregated using Row-Level Security (RLS) policies.</li>
-          <li><strong>No Third-Party Commercial Sharing:</strong> Personal information is never sold, rented, or shared with third-party advertisers.</li>
-          <li><strong>Payment Safety:</strong> Society collections route strictly through authorized society bank accounts and UPI IDs.</li>
-        </ul>
-
-        <h6 class="fw-bold text-dark mt-3">3. Your Rights & Data Deletion</h6>
-        <p class="small text-muted">Residents reserve the right to review payment histories and request removal of personal data via the in-app <em>Deletion Request</em> workflow under statutory compliance terms.</p>
-
-        <h6 class="fw-bold text-dark mt-3">4. Grievance Redressal</h6>
-        <p class="small text-muted mb-0">For privacy inquiries or data requests, contact our Grievance Officer at <strong>ps.societysolutions@gmail.com</strong> or call <strong>+91 8866376056</strong>.</p>
-
       </div>
     `;
   }
@@ -4933,16 +4369,12 @@ async function loadSocietiesList() {
       <td>${s.address || '-'}</td>
       <td>${s.phone ? `<a href="tel:${s.phone}">${s.phone}</a>` : '-'}</td>
       <td><span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${s.name}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch</button>
-      </td>
+      <td><button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${s.name}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch</button></td>
     </tr>
   `).join('');
 }
 
-function openAddSocietyModal() {
-  new bootstrap.Modal(document.getElementById('addSocietyModal')).show();
-}
+function openAddSocietyModal() { new bootstrap.Modal(document.getElementById('addSocietyModal')).show(); }
 
 async function addNewSociety(event) {
   event.preventDefault();
@@ -4952,19 +4384,10 @@ async function addNewSociety(event) {
   const email = document.getElementById('society-email').value.trim();
   const openingBalanceVal = document.getElementById('society-opening-balance').value.trim() || '0';
   const visitorPassword = document.getElementById('society-visitor-password').value.trim() || '1234';
-
   const planVal = document.getElementById('society-plan-select').value;
   const [planName, planRate] = planVal.split('|');
 
-  const newSoc = { 
-    name, 
-    address, 
-    phone, 
-    email, 
-    is_active: true,
-    subscription_plan: planName,
-    per_house_rate: Number(planRate)
-  };
+  const newSoc = { name, address, phone, email, is_active: true, subscription_plan: planName, per_house_rate: Number(planRate) };
 
   const { error } = await _supabase.from('societies').insert([newSoc]);
   if (error) { alert('Error: ' + error.message); return; }
@@ -5030,28 +4453,21 @@ async function updateAllBadges() {
       notifBadge.textContent = totalNotificationCount;
       notifBadge.style.display = totalNotificationCount > 0 ? 'inline-block' : 'none';
     }
-
-  } catch (err) {
-      console.error('Error loading CA GST summary:', err);
-    }
-  }
+  } catch (err) { console.error('Error loading badges:', err); }
+}
 
 function updateBadge(elementId, count) {
   const badge = document.getElementById(elementId);
   if (!badge) return;
-  if (count > 0 || count === '🔔') {
-    badge.textContent = count;
-    badge.style.display = 'inline-block';
-  } else {
-    badge.style.display = 'none';
-  }
+  if (count > 0 || count === '🔔') { badge.textContent = count; badge.style.display = 'inline-block'; }
+  else { badge.style.display = 'none'; }
 }
 
 function updateCommunityBadge() {
   const lastRead = parseInt(localStorage.getItem('ps_last_community_read') || '0');
   let count = 0;
   if (eventsData.length > 0) count += eventsData.filter(e => (e.id || 0) > lastRead).length;
-  if (noticesData.length > 0) count += noticesData.filter(n => (n.id || 0) > lastRead).length;
+  if (noticesData.length > 0) count += noticesData.filter(n => (n.id || 0) > lastRead && (!n.deep_link || n.deep_link.trim() === '')).length;
   updateBadge('community-badge', count);
 }
 
@@ -5059,10 +4475,8 @@ function markCommunityRead() {
   let maxId = 0;
   if (eventsData.length > 0) maxId = Math.max(maxId, ...eventsData.map(e => e.id || 0));
   if (noticesData.length > 0) maxId = Math.max(maxId, ...noticesData.map(n => n.id || 0));
-  
   localStorage.setItem('ps_last_community_read', maxId.toString());
   localStorage.setItem('ps_last_seen_notice', maxId.toString());
-  
   updateBadge('community-badge', 0);
   updateBadge('notification-badge', 0);
 }
@@ -5087,10 +4501,7 @@ async function verifyVisitorPassword(event) {
   const { data } = await _supabase.from('society_settings').select('value').eq('key', 'visitor_password').eq('society_name', society).maybeSingle();
   const storedPassword = data?.value || '1234';
   
-  if (password !== storedPassword) {
-    alert('❌ Incorrect password. Please try again.');
-    return;
-  }
+  if (password !== storedPassword) { alert('❌ Incorrect password. Please try again.'); return; }
 
   currentSociety = society;
   closeVisitorPassword();
@@ -5110,9 +4521,7 @@ async function loadFlatsDropdown() {
   if (!select) return;
   const { data } = await _supabase.from('members').select('flat_no').eq('society_name', currentSociety).order('flat_no');
   select.innerHTML = '<option value="">-- Select Flat --</option>';
-  (data || []).forEach(m => {
-    select.innerHTML += `<option value="${m.flat_no}">${m.flat_no}</option>`;
-  });
+  (data || []).forEach(m => { select.innerHTML += `<option value="${m.flat_no}">${m.flat_no}</option>`; });
 }
 
 function openUPIPayment() {
@@ -5199,13 +4608,7 @@ function showSOSBanner(alertData) {
 
   const banner = document.createElement('div');
   banner.id = 'sosAlertBanner';
-  banner.style.cssText = `
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(220, 38, 38, 0.95); z-index: 2147483647;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    color: white; text-align: center; padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif;
-    pointer-events: auto !important;
-  `;
+  banner.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(220, 38, 38, 0.95); z-index: 2147483647; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif; pointer-events: auto !important;`;
   
   banner.innerHTML = `
     <div style="font-size: 80px; margin-bottom: 20px;"><i class="fa-solid fa-triangle-exclamation fa-beat" style="pointer-events: none;"></i></div>
@@ -5213,19 +4616,8 @@ function showSOSBanner(alertData) {
     <h3 style="font-weight: 700; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 50px;">
       Type: ${alertData.alert_type || 'Medical'} | Flat: ${alertData.flat_no || 'A-101'}
     </h3>
-    <p style="font-size: 1.1rem; margin-bottom: 30px; max-width: 500px;">
-      इमरजेंसी अलर्ट ट्रिगर किया गया है! कृपया तुरंत सहायता भेजें या एक्शन लें।
-    </p>
-    <button type="button" id="stopSirenBtn" style="
-      background: #fff; color: #dc2626; border: none;
-      padding: 16px 45px; font-size: 18px; font-weight: 800;
-      border-radius: 50px; cursor: pointer;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-      pointer-events: auto !important;
-      touch-action: manipulation;
-      position: relative;
-      z-index: 2147483647;
-    ">
+    <p style="font-size: 1.1rem; margin-bottom: 30px; max-width: 500px;">इमरजेंसी अलर्ट ट्रिगर किया गया है! कृपया तुरंत सहायता भेजें या एक्शन लें।</p>
+    <button type="button" id="stopSirenBtn" style="background: #fff; color: #dc2626; border: none; padding: 16px 45px; font-size: 18px; font-weight: 800; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.4); pointer-events: auto !important; touch-action: manipulation; position: relative; z-index: 2147483647;">
       <i class="fa-solid fa-check-circle me-2" style="pointer-events: none;"></i> Acknowledge & Stop Siren
     </button>
   `;
@@ -5234,50 +4626,18 @@ function showSOSBanner(alertData) {
 
   const stopBtn = document.getElementById('stopSirenBtn');
   if (stopBtn) {
-    const handleStop = (e) => {
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-      resolveSOSAlert(alertData.id || 0);
-    };
-
+    const handleStop = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } resolveSOSAlert(alertData.id || 0); };
     stopBtn.onclick = handleStop;
     stopBtn.ontouchend = handleStop;
   }
 
-  try {
-    sirenAudio.loop = true;
-    sirenAudio.play().catch(e => {
-      console.log("Audio autoplay restricted:", e);
-    });
-  } catch (err) {
-    console.log("Siren error:", err);
-  }
-
-  if ("vibrate" in navigator) {
-    try {
-      navigator.vibrate([500, 250, 500, 250, 500, 250, 1000]);
-    } catch (e) {
-      console.log("Vibration error:", e);
-    }
-  }
+  try { sirenAudio.loop = true; sirenAudio.play().catch(e => { console.log("Audio autoplay restricted:", e); }); } catch (err) { console.log("Siren error:", err); }
+  if ("vibrate" in navigator) { try { navigator.vibrate([500, 250, 500, 250, 500, 250, 1000]); } catch (e) { console.log("Vibration error:", e); } }
 }
 
 async function resolveSOSAlert(alertId) {
-  try {
-    if (alertId) {
-      await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId);
-    }
-  } catch (err) {
-    console.error('Error resolving SOS:', err);
-  }
-  
-  if (typeof sirenAudio !== 'undefined' && sirenAudio) {
-    sirenAudio.pause();
-    sirenAudio.currentTime = 0;
-  }
-  
+  try { if (alertId) { await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId); } } catch (err) { console.error('Error resolving SOS:', err); }
+  if (typeof sirenAudio !== 'undefined' && sirenAudio) { sirenAudio.pause(); sirenAudio.currentTime = 0; }
   const banner = document.getElementById('sosAlertBanner');
   if (banner) banner.remove();
 }
@@ -5290,41 +4650,24 @@ function listenForSOSAlerts() {
 
   try {
     const allChannels = _supabase.getChannels();
-    allChannels.forEach(ch => {
-      if (ch.topic && ch.topic.includes('sos-realtime-')) {
-        _supabase.removeChannel(ch);
-      }
-    });
-  } catch (e) {
-    console.log('SOS channel cleanup note:', e);
-  }
+    allChannels.forEach(ch => { if (ch.topic && ch.topic.includes('sos-realtime-')) { _supabase.removeChannel(ch); } });
+  } catch (e) { console.log('SOS channel cleanup note:', e); }
 
   const channel = _supabase.channel(channelName);
 
   channel
-    .on('postgres_changes', { 
-      event: 'INSERT', 
-      schema: 'public', 
-      table: 'sos_alerts' 
-    }, (payload) => {
-      console.log('🚨 SOS Alert Received via Realtime:', payload.new);
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, (payload) => {
       if (payload.new && payload.new.status === 'active') {
-        if ((payload.new.society_name || '').trim().toLowerCase() === (currentSociety || '').trim().toLowerCase()) {
-          showSOSBanner(payload.new);
-        }
+        if ((payload.new.society_name || '').trim().toLowerCase() === (currentSociety || '').trim().toLowerCase()) { showSOSBanner(payload.new); }
       }
     })
     .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ SOS Realtime: Connected successfully');
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        console.log('⚠️ SOS Realtime status:', status);
-      } else {
-        console.log('SOS Realtime Subscription Status:', status);
-      }
+      if (status === 'SUBSCRIBED') { console.log('✅ SOS Realtime: Connected successfully'); }
+      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { console.log('⚠️ SOS Realtime status:', status); }
     });
 }
 
+// 🟢 FIXED: Robust deep link with retry, section scroll, watchdog
 function handleDeepLink() {
   const params = new URLSearchParams(window.location.search);
   let tab = params.get('tab');
@@ -5334,9 +4677,7 @@ function handleDeepLink() {
   if (tab === 'notice' || tab === 'notices') tab = 'community';
   if (!tab) tab = 'dashboard';
 
-  if (section === 'myPaymentSubmissionsCard') {
-    tab = 'dashboard';
-  }
+  if (section === 'myPaymentSubmissionsCard') { tab = 'dashboard'; }
 
   let attempts = 0;
   const MAX_ATTEMPTS = 50;
@@ -5364,11 +4705,14 @@ function handleDeepLink() {
         pollsData = data || [];
         renderPolls();
       } else if (tab === 'community') {
-        const [{ data: n }, { data: e }] = await Promise.all([
+        const [{ data: n }, { data: e }, { data: f }, { data: b }] = await Promise.all([
           _supabase.from('notices').select('*').eq('society_name', currentSociety),
-          _supabase.from('events').select('*').eq('society_name', currentSociety)
+          _supabase.from('events').select('*').eq('society_name', currentSociety),
+          _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
+          _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety)
         ]);
         noticesData = n || []; eventsData = e || [];
+        facilitiesData = f || []; bookingsData = b || [];
         renderCommunity();
       } else if (tab === 'dashboard') {
         const [{ data: proofs }, { data: mnt }] = await Promise.all([
@@ -5401,16 +4745,12 @@ function handleDeepLink() {
     if (tab === 'visitor') { showVisitorPage(); return; }
 
     __deepLinkLock = true;
-    setTimeout(() => {
-      __deepLinkLock = false;
-      console.log('[DeepLink] Lock released');
-    }, 15000);
+    setTimeout(() => { __deepLinkLock = false; console.log('[DeepLink] Lock released'); }, 15000);
 
     console.log('[DeepLink] Opening tab:', tab);
 
-    if (window.innerWidth <= 768) {
-      openTabOverlay(tab, true);
-    } else {
+    if (window.innerWidth <= 768) { openTabOverlay(tab, true); }
+    else {
       const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
       if (link) switchTab(tab, link);
     }
@@ -5452,47 +4792,6 @@ function handleDeepLink() {
   };
 
   setTimeout(tryOpen, 700);
-}
-
-function toggleMobileMenu() {
-  const overlay = document.getElementById('mobileMenuOverlay');
-  if (!overlay) return;
-
-  if (overlay.style.display === 'flex') {
-    closeMobileMenu();
-  } else {
-    overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    renderGridCards();
-    window.history.pushState({ mobileMenuOpen: true }, "", window.location.href);
-  }
-}
-
-function closeMobileMenu() {
-  const overlay = document.getElementById('mobileMenuOverlay');
-  if (!overlay) return;
-  overlay.style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function closeTabOverlay() {
-  __userClosedOverlay = true;
-  const overlay = document.getElementById('tabOverlay');
-  if (overlay) overlay.remove();
-  document.body.style.overflow = '';
-
-  if (window.innerWidth <= 768) {
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) {
-      gridOverlay.style.display = 'flex';
-      renderGridCards();
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  if (window.history.state && window.history.state.overlayOpen) {
-    window.history.back();
-  }
 }
 
 document.addEventListener('show.bs.modal', function (event) {
@@ -5588,26 +4887,20 @@ function renderMarketplace() {
 async function deleteMarketplacePost(id) {
   if (!confirm('⚠️ Are you sure you want to delete this marketplace post?')) return;
   const { error } = await _supabase.from('marketplace_posts').delete().eq('id', id);
-  if (error) {
-    alert('❌ Error: ' + error.message);
-  } else {
-    alert('✅ Post deleted successfully!');
-    fetchMarketplaceData().then(renderMarketplace);
-  }
+  if (error) { alert('❌ Error: ' + error.message); }
+  else { alert('✅ Post deleted successfully!'); fetchMarketplaceData().then(renderMarketplace); }
 }
 
 async function submitMarketplacePost(event) {
   event.preventDefault();
   const newPost = {
-    society_name: currentSociety,
-    flat_no: currentUser,
+    society_name: currentSociety, flat_no: currentUser,
     title: document.getElementById('market-title').value,
     category: document.getElementById('market-category').value,
     price: Number(document.getElementById('market-price').value),
     contact_phone: document.getElementById('market-phone').value,
     description: document.getElementById('market-desc').value,
-    status: 'Approved',
-    created_at: new Date().toISOString()
+    status: 'Approved', created_at: new Date().toISOString()
   };
   await _supabase.from('marketplace_posts').insert([newPost]);
   alert('✅ Posted successfully!');
@@ -5623,7 +4916,6 @@ function calculateLateFee(flatPendingDue, monthlyRate) {
   const customRate = Number(societySettings.late_fee_amount || 0);
 
   let calculatedLateFee = 0;
-  
   if (lateFeeType === 'fixed') {
     const rate = Number(monthlyRate || 600);
     const pendingMonths = Math.ceil(flatPendingDue / rate); 
@@ -5631,25 +4923,16 @@ function calculateLateFee(flatPendingDue, monthlyRate) {
   } else if (lateFeeType === 'percentage') {
     calculatedLateFee = (flatPendingDue * customRate) / 100; 
   }
-
   return Math.round(calculatedLateFee);
 }
 
 function forceResetScreen() {
   const activeModals = document.querySelectorAll('.modal.show');
   if (activeModals.length > 0) return;
-
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
 
-  const overlays = [
-    'tabOverlay', 'consentOverlay', 'mobileMenuOverlay',
-    'visitorPasswordOverlay', 'aboutPSOverlay',
-    'privacyPolicyOverlay', 'termsOfServiceOverlay'
-  ];
-  overlays.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
+  const overlays = ['tabOverlay', 'consentOverlay', 'mobileMenuOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay'];
+  overlays.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
 
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
@@ -5663,11 +4946,8 @@ function clearStuckOverlays() {
   overlays.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
-      if (id === 'mobileMenuOverlay' || id === 'visitorPasswordOverlay' || id === 'aboutPSOverlay' || id === 'privacyPolicyOverlay' || id === 'termsOfServiceOverlay') {
-        el.style.display = 'none';
-      } else {
-        el.remove();
-      }
+      if (id === 'mobileMenuOverlay' || id === 'visitorPasswordOverlay' || id === 'aboutPSOverlay' || id === 'privacyPolicyOverlay' || id === 'termsOfServiceOverlay') { el.style.display = 'none'; }
+      else { el.remove(); }
     }
   });
 
@@ -5687,11 +4967,8 @@ window.onload = async () => {
   await loadSocietiesForDropdown('login-society');
   await loadSocietiesForDropdown('visitor-password-society');
 
-  if (isLogged === 'true') {
-    applyUserSession(role, email);
-  } else {
-    showLandingPage();
-  }
+  if (isLogged === 'true') { applyUserSession(role, email); }
+  else { showLandingPage(); }
 };
 
 setInterval(async () => {
@@ -5705,9 +4982,7 @@ setInterval(async () => {
 
       updateAllBadges();
       updateCommunityBadge();
-    } catch (e) {
-      console.log('Background sync silent error', e);
-    }
+    } catch (e) { console.log('Background sync silent error', e); }
   }
 }, 30000);
 
