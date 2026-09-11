@@ -12,7 +12,7 @@
   <!-- PWA META & LOGO -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#ea580c">
 
@@ -29,116 +29,114 @@
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
 
-@media (max-width: 767.98px) {
-  .top-nav-links {
-    display: none !important; /* मोबाइल स्क्रीन पर टॉप लिंक्स छिपाएं, यूजर मेनू से नेविगेट करेगा */
-  }
-  header {
-    padding: 10px 15px !important;
-  }
+   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+
+/* ========== LANDING PAGE (Original Black & Orange Theme) ========== */
+.landing-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #090d16 0%, #151c2e 100%), 
+              url('bg.jpeg') center/cover no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  text-align: center;
+  color: #fff;
+  position: relative;
 }
 
-    /* ========== LANDING PAGE ========== */
-    .landing-wrapper {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #090d16 0%, #151c2e 100%), 
-                  url('bg.jpeg') center/cover no-repeat;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 25px 30px;
-      text-align: center;
-      color: #fff;
-      position: relative;
-    }
+.top-nav-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.top-nav-links a {
+  color: #cbd5e1;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: color 0.2s;
+  cursor: pointer;
+}
+.top-nav-links a:hover, .top-nav-links a.active {
+  color: #ea580c;
+}
 
-    .top-nav-links {
-      display: flex;
-      gap: 30px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .top-nav-links a {
-      color: #cbd5e1;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 14px;
-      transition: color 0.2s;
-      cursor: pointer;
-    }
-    .top-nav-links a:hover, .top-nav-links a.active {
-      color: #ea580c;
-    }
+.whatsapp-container {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.whatsapp-float {
+  background-color: #25d366;
+  color: #fff;
+  width: 60px;
+  height: 60px;
+  border-radius: 50px;
+  text-align: center;
+  font-size: 32px;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  color: #fff;
+}
+.whatsapp-label {
+  background: #0f172a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border: 1px solid rgba(234, 88, 12, 0.4);
+  white-space: nowrap;
+}
 
-    /* 🟢 FIX #1: WhatsApp z-index 1050 से 900 किया ताकि modal backdrop से clash न हो */
-    .whatsapp-container {
-      position: fixed;
-      bottom: 25px;
-      right: 25px;
-      z-index: 900;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-    }
-    .whatsapp-float {
-      background-color: #25d366;
-      color: #fff;
-      width: 60px;
-      height: 60px;
-      border-radius: 50px;
-      text-align: center;
-      font-size: 32px;
-      box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      transition: transform 0.3s ease;
-    }
-    .whatsapp-float:hover {
-      transform: scale(1.1);
-      color: #fff;
-    }
-    .whatsapp-label {
-      background: #0f172a;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      border: 1px solid rgba(234, 88, 12, 0.4);
-      white-space: nowrap;
-    }
-
-    #mobileMenuOverlay {
-      background: rgba(15, 23, 42, 0.98) !important;
-    }
-
-    .sidebar { 
-      position: sticky; top: 0; height: 100vh; overflow-y: auto;
-      background: linear-gradient(180deg, #090d16 0%, #151c2e 100%); 
-    }
-/* 🟢 MOBILE GRID CARDS – Restored */
-#mobileMenuOverlay .grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  padding: 10px 5px 20px 5px;
-  flex: 1;
-  align-content: start;
-  overflow-y: auto;
+.login-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(9, 13, 22, 0.92), rgba(21, 28, 46, 0.92)), 
+              url('bg.jpeg') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.glass-login-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  border-radius: 20px;
   width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  border: 1px solid rgba(234, 88, 12, 0.3);
 }
 
+/* 🟢 MOBILE GRID OVERLAY – Background */
+#mobileMenuOverlay {
+  background: rgba(15, 23, 42, 0.98) !important;
+}
+
+/* 🟢 MOBILE GRID CARDS – बड़े और गोल */
 .grid-card-item {
   background: rgba(255, 255, 255, 0.12) !important;
   backdrop-filter: blur(12px);
-  border-radius: 14px !important;
-  padding: 12px 6px !important;
+  border-radius: 18px !important;        /* थोड़ा गोल */
+  padding: 20px 10px !important;         /* बड़ा padding */
   text-align: center;
   cursor: pointer;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -146,60 +144,171 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 105px !important;
-  box-sizing: border-box;
-  overflow: hidden;
+  min-height: 130px !important;          /* ऊँचाई बढ़ाई */
+  transition: 0.2s;
 }
-
 .grid-card-item i {
-  font-size: 28px !important;
-  margin-bottom: 6px;
+  font-size: 36px !important;            /* आइकन बड़ा */
+  margin-bottom: 8px;
   display: block;
 }
-
 .grid-card-item span {
-  font-size: 11px !important;
+  font-size: 14px !important;            /* टेक्स्ट बड़ा */
   font-weight: 600;
   color: #fff;
-  line-height: 1.2;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
+  margin-top: 6px;
+  word-break: break-word;
 }
-    @media (max-width: 767.98px) { .sidebar { min-height: auto; height: auto; position: static; } }
-    .nav-link { cursor: pointer; color: #94a3b8; font-weight: 500; border-radius: 10px; margin-bottom: 6px; padding: 10px 14px; transition: all 0.2s ease; }
-    .nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #ea580c, #f59e0b) !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
-    .card-stat { border-radius: 16px; border: none; }
 
-    /* 🟢 FIX #3: Modal और Backdrop के लिए explicit z-index lock ताकि click हमेशा काम करे */
-    .modal { z-index: 20000 !important; }
-    .modal-backdrop { z-index: 19999 !important; }
-    body.modal-open { pointer-events: auto !important; }
+/* 🟢 GRID CONTAINER – 2 कॉलम, ज्यादा गैप */
+#mobileMenuOverlay .grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);   /* 2 कॉलम – बड़े कार्ड */
+  gap: 14px;                              /* ज्यादा स्पेस */
+  padding: 10px 0 20px 0;
+  flex: 1;
+  align-content: start;
+  overflow-y: auto;
+}
+
+/* Member Ledger Table – Mobile Friendly (unchanged) */
+#member-ledger-table {
+  width: 100%;
+  min-width: 600px;
+}
+#member-ledger-table th,
+#member-ledger-table td {
+  white-space: nowrap;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+@media (max-width: 576px) {
+  #member-ledger-table {
+    min-width: 500px;
+  }
+  #member-ledger-table th,
+  #member-ledger-table td {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+}
+
+/* Sidebar – unchanged */
+.sidebar { 
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  background: linear-gradient(180deg, #090d16 0%, #151c2e 100%); 
+}
+@media (max-width: 767.98px) { .sidebar { min-height: auto; height: auto; position: static; } }
+.nav-link { cursor: pointer; color: #94a3b8; font-weight: 500; border-radius: 10px; margin-bottom: 6px; padding: 10px 14px; transition: all 0.2s ease; }
+.nav-link:hover, .nav-link.active { color: #fff !important; background: linear-gradient(90deg, #ea580c, #f59e0b) !important; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); }
+.card-stat { border-radius: 16px; border: none; }
+
+/* Mobile Landing Page adjustments – unchanged */
+@media (max-width: 768px) {
+  .landing-wrapper {
+    padding: 20px 15px;
+    justify-content: flex-start;
+  }
+  .landing-navbar {
+    padding: 8px 14px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .brand-logo {
+    font-size: 1rem;
+    margin-right: auto;
+  }
+  .nav-actions {
+    gap: 6px;
+  }
+  .nav-btn {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+  .hero-heading {
+    font-size: 1.4rem;
+    line-height: 1.3;
+  }
+  .hero-subtext {
+    font-size: 0.9rem;
+  }
+  .hero-card {
+    max-width: 100%;
+    padding: 14px 12px;
+  }
+  .card-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  .landing-footer {
+    margin-top: 20px;
+    padding-top: 12px;
+    font-size: 0.75rem;
+  }
+  .whatsapp-container {
+    bottom: 15px;
+    right: 15px;
+  }
+  .whatsapp-float {
+    width: 50px;
+    height: 50px;
+    font-size: 26px;
+  }
+  .whatsapp-label {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+}
+
+.visitor-card {
+  background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+}
+.visitor-card .info { flex: 1; }
+.visitor-card .info h6 { margin: 0; font-weight: 600; }
+.visitor-card .info small { color: #64748b; }
+
+@media print {
+  body * { visibility: hidden !important; }
+  .tab-content:not(.d-none), .tab-content:not(.d-none) * { visibility: visible !important; }
+  .fa-whatsapp { color: #25d366 !important; }
+  button:hover .fa-whatsapp { color: #ffffff !important; }
+  .tab-content:not(.d-none) { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; display: block !important; }
+  .sidebar, .navbar, .btn, .no-print, .nav-actions, .modal { display: none !important; }
+  table { width: 100% !important; border-collapse: collapse !important; }
+  th, td { border: 1px solid #333 !important; padding: 6px !important; font-size: 10pt !important; }
+}
+
+@media (max-width: 992px) {
+  .top-nav-links { display: none !important; }
+}
+
   </style>
 </head>
 <body>
 
-
-<!-- ========== LANDING PAGE ========== -->
+<!-- ========== LANDING PAGE (Original Look) ========== -->
 <div id="landing-section" class="landing-wrapper">
   
+  <!-- Top Navigation Bar -->
   <header style="width: 100%; max-width: 1250px; display: flex; justify-content: space-between; align-items: center; padding: 12px 25px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border-radius: 50px; border: 1px solid rgba(234, 88, 12, 0.3);">
+    
+    <!-- Brand Logo -->
     <div style="font-size: 1.15rem; font-weight: 800; letter-spacing: 1px; color: #fff; display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="showLandingPage()">
       <img src="icon-192.png" alt="Logo" style="width: 38px; height: 38px; object-fit: contain; border-radius: 8px;">
       <span><span style="color: #ea580c;">PS</span> Society Solutions</span>
     </div>
 
+    <!-- Center Menu Links -->
     <ul class="top-nav-links">
-      <li><a href="javascript:void(0);" class="active" onclick="showLandingPage()">Home</a></li>
-      <li><a href="javascript:void(0);" onclick="openAboutPS()">About Us</a></li>
-      <!-- 🟢 FIX #4: href="javascript:void(0);" ताकि page reload न हो -->
-      <li><a href="javascript:void(0);" onclick="showLoginPage()">For a Demo</a></li>
-      <li><a href="javascript:void(0);" onclick="openEnrollModal()">New Enroll</a></li>
+      <li><a href="#" class="active" onclick="showLandingPage()">Home</a></li>
+      <li><a href="#" onclick="openAboutPS()">About Us</a></li>
+      <li><a href="#" onclick="showLoginPage()">For a Demo</a></li>
+      <li><a href="#" onclick="openEnrollModal()">New Enroll</a></li>
     </ul>
     
+    <!-- Top Right: Download Brochure Button -->
     <div class="nav-actions" style="display: flex; gap: 10px; align-items: center;">
       <a href="broucher.pdf" download style="background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 30px; padding: 8px 22px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
         <i class="fa-solid fa-file-arrow-down"></i> Download Brochure
@@ -207,8 +316,11 @@
     </div>
   </header>
 
+  <!-- Center Hero Section -->
   <div class="container my-auto py-5" style="max-width: 1000px;">
     <div class="row align-items-center justify-content-between g-4 text-start">
+      
+      <!-- Left Side Text & Visitor/Login Buttons -->
       <div class="col-lg-7 text-center text-lg-start">
         <span class="badge mb-3 px-3 py-2 rounded-pill fw-semibold" style="letter-spacing: 1px; font-size: 12px; background: rgba(234, 88, 12, 0.15); color: #ea580c; border: 1px solid rgba(234, 88, 12, 0.3);">
           <i class="fa-solid fa-bolt me-1"></i> Smart Society Management Engine
@@ -220,40 +332,44 @@
           Simple • Transparent • Affordable. Digitalize your society's accounting, maintenance billing, member ledgers, and visitor tracking in a single click.
         </p>
         
+        <!-- Visitor Desk & Login Buttons (जैसा इमेज में नीचे दिए गए हैं) -->
         <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
-          <button type="button" onclick="showVisitorPage()" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+          <button onclick="showVisitorPage()" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-door-open text-warning"></i> Visitor Desk
           </button>
-          <!-- 🟢 FIX #4: type="button" जोड़ा ताकि form submit न हो -->
-          <button type="button" onclick="showLoginPage()" style="background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 40px; padding: 12px 32px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
+          <button onclick="showLoginPage()" style="background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 40px; padding: 12px 32px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
             <i class="fa-solid fa-right-to-bracket"></i> Login
           </button>
         </div>
       </div>
 
+      <!-- Right Side Demoapp.jpeg Mockup Preview -->
       <div class="col-lg-5 text-center">
         <div style="background: #111827; border: 8px solid #374151; border-radius: 36px; padding: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-width: 300px; margin: 0 auto; position: relative;">
           <div style="width: 90px; height: 16px; background: #374151; border-radius: 0 0 10px 10px; margin: 0 auto 10px auto;"></div>
           <img src="Demoapp.jpeg" alt="App Dashboard Preview" style="width: 100%; height: auto; border-radius: 20px; display: block;">
         </div>
       </div>
+
     </div>
   </div>
 
+  <!-- Footer -->
   <footer class="landing-footer py-3 text-center" style="width: 100%; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
     <div class="d-flex justify-content-center align-items-center gap-3 mb-2 flex-wrap">
-      <button type="button" onclick="openAboutPS()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">About Us</button>
+      <button onclick="openAboutPS()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">About Us</button>
       <span class="text-white-50">|</span>
       <a href="https://www.instagram.com/pssocietysolutions/" target="_blank" style="color: #ea580c; text-decoration: none; font-weight: 600; font-size: 14px;">
         <i class="fa-brands fa-instagram me-1"></i> Follow on Instagram
       </a>
       <span class="text-white-50">|</span>
-      <button type="button" onclick="openPrivacyPolicy()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">Privacy Policy</button>
+      <button onclick="openPrivacyPolicy()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">Privacy Policy</button>
     </div>
     <span class="text-white-50" style="font-size: 12px;">&copy; 2026 PS Society Solutions, Vadodara, Gujarat. All rights reserved.</span>
   </footer>
 </div>
 
+<!-- Floating WhatsApp Button with "Connect Us" label -->
 <div class="whatsapp-container">
   <span class="whatsapp-label">Connect Us</span>
   <a href="https://wa.me/918866376056?text=Hi,%20I%20want%20to%20know%20more%20about%20PS%20Society%20Solutions." target="_blank" class="whatsapp-float" title="Chat with us on WhatsApp">
@@ -261,7 +377,7 @@
   </a>
 </div>
 
-<!-- VISITOR SECTION -->
+<!-- ========== VISITOR SECTION (unchanged) ========== -->
 <div id="visitor-section" class="container py-4" style="display:none; min-height:100vh; background: #f8fafc;">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <button id="visitorBackBtn" class="btn btn-outline-secondary" onclick="goBackFromVisitor()"><i class="fa-solid fa-arrow-left me-2"></i> Back</button>
@@ -271,68 +387,31 @@
   <div id="visitorListContainer" class="mt-3"><div class="alert alert-info">Loading visitors...</div></div>
 </div>
 
-<!-- Login Modal Box (Popup - Size modal-md) -->
-<!-- 🟢 FIX #2: backdrop-filter हटाया, solid white background -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-md">
-    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background: #ffffff;">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold text-dark mx-auto">PS Society Login</h5>
-        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-4 pt-2">
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="mb-3">
-                <label class="form-label fw-semibold small text-secondary">Member ID / Flat ID</label>
-                <div class="input-group">
-                    <input type="text" id="loginIdInput" placeholder="e.g. a-101_demosociety" required class="form-control" style="border-radius: 5px 0 0 5px;">
-                    <span class="input-group-text bg-light fw-bold text-muted small" style="border-radius: 0 5px 5px 0;">@ps.in</span>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-semibold small text-secondary">Password</label>
-                <input type="password" id="loginPassword" placeholder="Enter your password" required class="form-control">
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-2" style="background: linear-gradient(135deg, #ea580c, #f59e0b); border: none;">Login</button>
-
-            <div class="text-end">
-                <a href="javascript:void(0);" onclick="openForgotModal()" style="color: #ea580c; font-size: 13px; text-decoration: none;">Forgot Password?</a>
-            </div>
-        </form>
-      </div>
+<!-- ========== LOGIN (unchanged) ========== -->
+<div id="login-section" class="login-wrapper" style="display:none;">
+  <div class="card p-4 p-md-5 glass-login-card">
+    <div class="text-center mb-4">
+      <button class="btn btn-sm btn-outline-secondary float-start" onclick="showLandingPage()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <div class="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill fw-semibold"><i class="fa-solid fa-building-user me-1"></i> Smart Society Engine</div>
+      <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> <span style="color: #1e293b;">Society Solutions</span></h3>
+      <p class="text-muted small">Select your Society to continue</p>
     </div>
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Select Society</label><select id="login-society" class="form-select bg-light border" required><option value="">-- Select --</option></select></div>
+      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Flat ID / Login ID</label><div class="input-group"><span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-house text-muted"></i></span><input type="text" id="login-email" class="form-control bg-light border-start-0" placeholder="e.g. A-101 or Admin" required></div></div>
+      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Password</label><div class="input-group"><span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span><input type="password" id="login-password" class="form-control bg-light border-start-0 border-end-0" placeholder="••••••••" required><button class="btn btn-light border border-start-0 text-muted" type="button" onclick="togglePasswordVisibility()"><i class="fa-solid fa-eye" id="togglePasswordIcon"></i></button></div></div>
+      <div class="mb-4"><label class="form-label fw-semibold text-secondary small">Role Access</label><select id="login-role" class="form-select bg-light border">
+        <option value="Admin">Admin</option>
+        <option value="Chairman">Chairman</option>
+        <option value="SocietyAdmin">SocietyAdmin</option>
+        <option value="Member">Member</option>
+      </select></div>
+      <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-3 shadow-sm">Sign In to Portal</button>
+    </form>
   </div>
 </div>
 
-<!-- Forgot Password Modal Box -->
-<div class="modal fade" id="forgotModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-  <div class="modal-dialog modal-dialog-centered modal-md">
-    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; background: #151c2e; color: #fff; border: 1px solid rgba(234, 88, 12, 0.4);">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold mx-auto text-warning"><i class="fa-solid fa-key me-2"></i>Reset Password via WhatsApp</h5>
-        <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-4">
-        <p class="text-secondary small text-center mb-4">अपनी जानकारी भरें, मैसेज सीधे एडमिन के WhatsApp पर जाएगा।</p>
-        <div class="mb-3">
-            <label class="form-label small fw-semibold text-light">Society Name</label>
-            <input type="text" id="forgotSociety" placeholder="e.g. Demo Society" class="form-control bg-dark text-white border-secondary">
-        </div>
-        <div class="mb-4">
-            <label class="form-label small fw-semibold text-light">Flat Number / ID</label>
-            <input type="text" id="forgotFlat" placeholder="e.g. A-101" class="form-control bg-dark text-white border-secondary">
-        </div>
-        <button onclick="sendPasswordRequest()" class="btn btn-success w-100 fw-bold py-2.5 rounded-3" style="background: linear-gradient(135deg, #25d366, #1da851); border: none;">
-            <i class="fa-brands fa-whatsapp me-2"></i> Connect with Admin on WhatsApp
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ========== MAIN APP ========== -->
+<!-- ========== MAIN APP (unchanged – same as your old code) ========== -->
 <div id="app-section" class="d-none">
   <nav class="navbar navbar-dark bg-dark d-md-none px-3 sticky-top">
     <a class="navbar-brand fw-bold text-warning" href="#">PS Society</a>
@@ -456,6 +535,7 @@
         <i class="fa-solid fa-rotate me-1"></i> Refresh Data
       </button>
     </div>
+    <!-- यहाँ जावास्क्रिप्ट से पूरा डेटा लोड होकर आएगा -->
     <div id="super-admin-master-container">
       <div class="text-center py-5">
         <i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
@@ -469,6 +549,7 @@
         <div id="tab-dashboard" class="tab-content">
         <div id="tenant-warning-banner-container" class="mb-3"></div>  
           <h3 class="fw-bold mb-3">Dashboard Overview</h3>
+          <!-- 🎂 Feature 5: Birthday & Anniversary Wishes Container -->
           <div id="dashboard-celebrations-container"></div>
 
           <div id="admin-dashboard-stats" class="row g-3 mb-4">
@@ -482,11 +563,13 @@
             </div>
           </div>
          <div id="member-dashboard-stats" class="d-none">
+            <!-- 1. सबसे ऊपर पेंडिंग और टोटल पेड कार्ड्स आ गए -->
             <div class="row g-3 mb-4 mt-2">
               <div class="col-12 col-md-6"><div class="card card-stat bg-danger text-white p-4 shadow-sm"><h6>My Flat Pending Outstanding</h6><h2 id="my-flat-pending">₹0</h2></div></div>
               <div class="col-12 col-md-6"><div class="card card-stat bg-success text-white p-4 shadow-sm"><h6>Total Paid Dues Till Date</h6><h2 id="my-flat-paid">₹0</h2></div></div>
             </div>
 
+            <!-- 2. इसके नीचे अब मेंबर लेजर (स्टेटमेंट) आ गया -->
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mt-3">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-lines me-2 text-primary"></i> My Complete Member Ledger (Statement)</h5>
@@ -539,7 +622,8 @@
 
         <!-- TAB 2: MEMBERS -->
         <div id="tab-members" class="tab-content d-none">
-          <div id="tenant-warning-banner-container-2" class="mb-3"></div>
+          <!-- 🟢 यहाँ डैशबोर्ड वार्निंग बैनर का कंटेनर जोड़ा गया है ताकि डायरेक्ट्री में भी स्टेटस दिखे -->
+          <div id="tenant-warning-banner-container" class="mb-3"></div>
 
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold">Member Directory</h3>
@@ -676,6 +760,7 @@
             </div>
           </div>
 
+          <!-- 🟢 1. ऊपर Trial Balance वाली मुख्य टेबल -->
           <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
             <div class="table-responsive">
               <table class="table table-bordered align-middle">
@@ -688,11 +773,13 @@
                   </tr>
                 </thead>
                 <tbody id="ca-trial-balance-rows">
+                  <!-- JavaScript से डेटा यहाँ भरेगा -->
                 </tbody>
               </table>
             </div>
           </div>
 
+          <!-- 🟢 2. नीचे GST & Tax Summary वाली टेबल -->
           <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i>GST & Tax Audit Summary (From Invoices)</h5>
@@ -709,12 +796,13 @@
                   </tr>
                 </thead>
                 <tbody id="ca-gst-summary-rows">
+                  <!-- Data -->
                 </tbody>
               </table>
             </div>
           </div>
 
-        </div>
+        </div> <!-- /tab-ca-audit का अंत -->
 
         <!-- TAB 8: CHAIRMAN REPORT -->
         <div id="tab-chairman-report" class="tab-content d-none">
@@ -790,6 +878,7 @@
     </button>
   </div>
 
+  <!-- Pending Approvals Section (Admin/Chairman Only) -->
   <div id="pending-parking-section" class="card border-0 shadow-sm rounded-4 p-3 mb-4 role-restricted admin-only chairman-only d-none">
     <h5 class="fw-bold text-danger mb-3"><i class="fa-solid fa-clock-rotate-left me-2"></i> Pending Vehicle Approvals</h5>
     <div class="table-responsive">
@@ -811,6 +900,7 @@
     </div>
   </div>
 
+  <!-- Approved Vehicles Directory -->
   <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
     <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-car me-2 text-primary"></i> Approved Vehicles & Parking Slots</h5>
     <div class="table-responsive">
@@ -881,6 +971,7 @@
           </tr>
         </thead>
         <tbody id="brs-entries-list">
+          <!-- JS से भरेगा -->
         </tbody>
       </table>
     </div>
@@ -947,6 +1038,7 @@
       <i class="fa-solid fa-pen me-1"></i> Edit Rules Categories
     </button>
   </div>
+  <!-- यहाँ अलग-अलग कैटेगरी के ब्लॉक्स रेंडर होंगे -->
   <div id="rulesCategoriesContainer" class="row g-3">
     <p class="text-muted">Loading rules...</p>
   </div>
@@ -1120,6 +1212,7 @@
         <div class="col-md-6"><label class="form-label fw-semibold">Email</label><input type="email" id="settings-email" class="form-control"></div>
         <div class="col-md-6"><label class="form-label fw-semibold">PAN / GST</label><input type="text" id="settings-pan" class="form-control"></div>
 
+        <!-- 🟢 Digital Signature Upload Setting -->
 <div class="col-md-12 mt-3 border-top pt-3">
   <label class="form-label fw-semibold text-primary"><i class="fa-solid fa-signature me-2"></i> Authority Digital Signature (for PDFs & Receipts)</label>
   <div class="row align-items-center">
@@ -1133,6 +1226,7 @@
   </div>
 </div>
 
+<!-- 🟢 GST Configuration Section (अगर सोसायटी GST के दायरे में आती है) -->
 <div class="col-md-12 mt-3 border-top pt-3">
   <label class="form-label fw-semibold text-primary"><i class="fa-solid fa-file-invoice-dollar me-2"></i> GST & Tax Compliance (India / Gujarat CHS Rules)</label>
   <div class="row g-3">
@@ -1151,6 +1245,7 @@
   <small class="text-muted mt-2 d-block">Note: As per Income Tax Act, residential housing societies follow the 'Principle of Mutuality', meaning maintenance contributions from members are tax-exempt. GST (18%) only applies if turnover exceeds ₹20 Lakhs and individual maintenance > ₹7,500/month.</small>
 </div>
 
+        <!-- 🟢 Late Fee Settings (Form के अंदर जोड़ा गया) -->
         <div class="col-md-6">
           <label class="form-label fw-semibold">Enable Auto Late Fee / Interest</label>
           <select id="settings-enable-late-fee" class="form-select">
@@ -1330,6 +1425,7 @@
             <div class="col-md-6"><label class="form-label fw-semibold">Voucher No</label><input type="text" id="exp-form-no" class="form-control" placeholder="V-DEMO-011"></div>
             <div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="exp-form-date" class="form-control" required></div>
             
+            <!-- 🟢 Chart of Accounts (Expense Head Grouping) Dropdown -->
             <div class="col-md-6">
               <label class="form-label fw-semibold">Expense Head Group</label>
               <select id="exp-form-category" class="form-select" required>
@@ -1371,6 +1467,7 @@
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="edit-mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="edit-mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
 
+          <!-- 🟢 Edit Member: Tenant Rented Dropdown -->
           <div class="mb-3">
             <label class="form-label fw-semibold">Is this flat rented? (किराए पर है?)</label>
             <select id="edit-mem-is-tenant" class="form-select" onchange="toggleTenantFormFields(this.value, 'edit')">
@@ -1379,6 +1476,7 @@
             </select>
           </div>
 
+          <!-- 🟢 Edit Member: Dynamic Tenant Fields -->
           <div id="edit-mem-tenant-dynamic-fields" style="display: none;" class="p-3 bg-light rounded-3 border mb-3">
             <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-gear me-1"></i> Tenant & Agreement Details</h6>
             <div class="mb-2">
@@ -1449,6 +1547,7 @@
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
           
+          <!-- 🟢 Add Member: Tenant Rented Dropdown -->
           <div class="mb-3">
             <label class="form-label fw-semibold">Is this flat rented? (किराए पर है?)</label>
             <select id="mem-is-tenant" class="form-select" onchange="toggleTenantFormFields(this.value, 'add')">
@@ -1457,6 +1556,7 @@
             </select>
           </div>
 
+          <!-- 🟢 Add Member: Dynamic Tenant Fields -->
           <div id="tenant-dynamic-fields" style="display: none;" class="p-3 bg-light rounded-3 border mb-3">
             <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-user-gear me-1"></i> Tenant & Agreement Details</h6>
             <div class="mb-2">
@@ -1721,6 +1821,7 @@
       <div class="modal-body bg-light p-4">
         <p class="text-muted small mb-3">यहाँ आप अलग-अलग कैटेगरी के टाइटल और उनके नियम सेट कर सकते हैं। हर कैटेगरी के लिए अलग बॉक्स का इस्तेमाल करें।</p>
         <div id="rulesEditorsContainer">
+          <!-- Dynamic Textareas यहाँ लोड होंगे -->
         </div>
         <button type="button" class="btn btn-outline-success btn-sm mt-3 w-100" onclick="addNewRuleCategoryField()">
           <i class="fa-solid fa-plus me-1"></i> Add New Category Box
@@ -1846,6 +1947,7 @@
           <div class="mb-3"><label class="form-label fw-semibold">Opening Bank Balance (₹)</label><input type="number" id="society-opening-balance" class="form-control" value="0"></div>
           <div class="mb-3">
 
+<!-- 🟢 Subscription Plan & Rate Dropdown -->
 <div class="mb-3">
   <label class="form-label fw-semibold">Subscription Plan</label>
   <select id="society-plan-select" class="form-select" required>
@@ -1899,8 +2001,7 @@
   </div>
 </div>
 
-
-<!-- ========== SCRIPTS ========== -->
+<!-- ========== SCRIPTS (unchanged) ========== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
