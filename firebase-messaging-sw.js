@@ -24,13 +24,21 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
   const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
   
-  // डेटा से तय करें कौन सा टैब खोलना है (जैसे polls, notices आदि)
-  const targetTab = payload.data?.tab || 'dashboard';
+  const clickAction = payload.data?.click_action || '';
+  let targetTab = 'dashboard';
+
+  // 🟢 URL (click_action) से खुद 'tab' पैरामीटर निकालें (जैसे ?tab=polls)
+  if (clickAction.includes('tab=')) {
+    const match = clickAction.match(/tab=([^&]+)/);
+    if (match && match[1]) {
+      targetTab = match[1];
+    }
+  }
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: '/icon-192.png',
-    data: { ...payload.data, tab: targetTab }
+    data: { ...payload.data, tab: targetTab, click_action: clickAction }
   });
 });
 
