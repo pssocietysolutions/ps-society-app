@@ -20,60 +20,35 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // 🟢 अगर Firebase ने पहले ही नोटिफिकेशन भेज दिया है, तो दोबारा न दिखाएं (डबल और background update रुक जाएगा)
-  if (payload.notification) {
-    return;
-  }
-
-  const notificationTitle = payload.data?.title || 'PS Society';
-  const notificationBody = payload.data?.body || 'New update';
+  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
+  const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
+  const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
-    icon: '/icon-192.png',
+    icon: '/icon.png',
     data: payload.data || {}
   });
 });
 
 // ✅ Notification Click Handler
-// ✅ Notification Click Handler (Smart Tab Redirection)
 self.addEventListener('notificationclick', function(event) {
+  console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
   const data = event.notification.data || {};
-  const title = (event.notification.title || '').toLowerCase();
-  const body = (event.notification.body || '').toLowerCase();
+  let urlToOpen = data.click_action || data.url || '/';
 
-  // 1. पहले deep_link चेक करें, फिर click_action, फिर url
-  let urlToOpen = data.deep_link || data.click_action || data.url || '';
-
-  // 🎯 2. अगर पेमेंट से जुड़ा नोटिफिकेशन है तो जबरन Dashboard पर भेजें
-  if (
-    title.includes('payment') || 
-    title.includes('verified') || 
-    title.includes('reject') || 
-    body.includes('payment') || 
-    body.includes('verify')
-  ) {
-    urlToOpen = '/?tab=dashboard&section=myPaymentSubmissionsCard';
-  } 
-  // अगर कोई URL नहीं मिला तो डिफ़ॉल्ट Dashboard
-  else if (!urlToOpen || urlToOpen === '/') {
-    urlToOpen = '/?tab=dashboard';
-  }
-
-  // पूरा यूआरएल बनाएं
   if (!urlToOpen.startsWith('http')) {
-    urlToOpen = self.location.origin + urlToOpen;
+    const baseUrl = self.location.origin;
+    urlToOpen = baseUrl + urlToOpen;
   }
 
-  // 3. विंडो ओपन या फोकस करें
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if ('navigate' in client) {
-            client.navigate(urlToOpen);
+          if (client.url === urlToOpen && 'focus' in client) {
             return client.focus();
           }
         }
