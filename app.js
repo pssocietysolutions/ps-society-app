@@ -956,37 +956,40 @@ async function loadSocietiesForDropdown(selectId) {
 async function loadTodayVisitors() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
+
   container.innerHTML = `<div class="alert alert-info">⏳ Loading visitors...</div>`;
-  
+
   const today = new Date().toISOString().split('T')[0];
   const activeSociety = (currentSociety || localStorage.getItem('ps_user_society') || 'Demo Society').trim();
   const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
 
+  // 🟢 Debug log — F12 Console में देखें
+  console.log('🔍 Visitor Load:', { today, activeSociety, activeUser, currentRole });
+
   try {
-    // 🟢 केवल तारीख और सोसायटी के आधार पर डेटा लाएं (फ्लैट फिल्टर क्लाइंट-साइड करेंगे ताकि मिसमैच न हो)
-    let query = _supabase
+    // Society और date filter server पर, flat_no filter client पर
+    const { data, error } = await _supabase
       .from('visitors')
       .select('*')
       .eq('visit_date', today)
       .ilike('society', activeSociety)
       .order('in_time', { ascending: false });
 
-    const { data, error } = await query;
-    if (error) { 
-      container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`; 
-      return; 
-    }
-    
-    let allVisitors = data || [];
-
-    // 🟢 यदि यूजर Member है, तो फ्लैट को केस-इनसेंसिटिव तरीके से फिल्टर करें
-    const isLogged = localStorage.getItem('ps_user_logged') === 'true';
-    if (isLogged && currentRole === 'Member' && activeUser) {
-      visitors = allVisitors.filter(v => (v.flat_no || '').trim().toUpperCase() === activeUser);
-    } else {
-      visitors = allVisitors;
+    if (error) {
+      container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
+      return;
     }
 
+    let list = data || [];
+
+    // 🟢 Member के लिए flat_no filter client-side (case-insensitive, trimmed)
+    if (currentRole === 'Member' && activeUser) {
+      list = list.filter(v =>
+        (v.flat_no || '').trim().toUpperCase() === activeUser
+      );
+    }
+
+    visitors = list;
     renderVisitorList();
     updateVisitorBadge();
 
@@ -1111,9 +1114,12 @@ async function markVisitorOut(id) {
 
 function updateVisitorBadge() {
   const lastSeen = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
-  // 🟢 PENDING और IN दोनों को काउंट करें ताकि नोटिफिकेशन बैज सही संख्या दिखाए
-  const count = visitors.filter(v => (v.status === 'PENDING' || v.status === 'IN') && (v.id || 0) > lastSeen).length;
-  updateBadge('visitor-badge', count);
+  // 🟢 PENDING + IN दोनों count करो
+  const newCount = visitors.filter(v =>
+    (v.status === 'IN' || v.status === 'PENDING' || v.status === 'APPROVED') &&
+    (v.id || 0) > lastSeen
+  ).length;
+  updateBadge('visitor-badge', newCount);
 }
 
 function renderAMCTracker() {
