@@ -3646,36 +3646,7 @@ async function submitPoll(event) {
   const { error } = await _supabase.from('polls').insert([newPoll]);
   if (error) { alert('❌ Error creating poll: ' + error.message); return; }
 
-  // ✅ FIX: Insert a notice to trigger notification
-  try {
-    await _supabase.from('notices').insert([{
-      society_name: currentSociety,
-      title: `📊 New Poll: ${question}`,
-      content: `A new poll has started. Tap to cast your vote now!`,
-      date: new Date().toISOString().split('T')[0],
-      author: currentUser,
-      priority: 'Medium',
-      target_members: [],
-      attachment_url: null,
-      deep_link: '/?tab=polls'
-    }]);
-    console.log('[Poll] Notice inserted for notification');
-  } catch (notifyErr) {
-    console.warn('[Poll] Notice insert failed:', notifyErr);
-    // Try without deep_link
-    try {
-      await _supabase.from('notices').insert([{
-        society_name: currentSociety,
-        title: `📊 New Poll: ${question}`,
-        content: `A new poll has started. Tap to cast your vote now!`,
-        date: new Date().toISOString().split('T')[0],
-        author: currentUser,
-        priority: 'Medium',
-        target_members: [],
-        attachment_url: null
-      }]);
-    } catch(e) { console.log('Poll notify fallback error:', e); }
-  }
+  // ✅ Notification automatically जाएगा — polls table पर trigger लगा है
 
   bootstrap.Modal.getInstance(document.getElementById('pollModal')).hide();
   document.getElementById('pollModal').querySelector('form').reset();
