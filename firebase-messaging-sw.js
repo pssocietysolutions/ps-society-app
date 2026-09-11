@@ -16,11 +16,11 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Background Message Handler (सिर्फ एक बार)
+// ✅ Background Message Handler
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
+  // एज फंक्शन से आने वाले data या notification दोनों से वैल्यू सुरक्षित रूप से निकालें
   const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
   const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
 
@@ -31,7 +31,7 @@ messaging.onBackgroundMessage((payload) => {
   });
 });
 
-// ✅ Notification Click Handler
+// ✅ Notification Click Handler (Direct Tab Redirection Fix)
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
@@ -39,17 +39,20 @@ self.addEventListener('notificationclick', function(event) {
   const data = event.notification.data || {};
   let urlToOpen = data.click_action || data.url || '/';
 
+  // यदि click_action में 상대 पाथ (relative path) है तो उसे सही से बेस यूआरएल के साथ जोड़ें
   if (!urlToOpen.startsWith('http')) {
     const baseUrl = self.location.origin;
-    urlToOpen = baseUrl + urlToOpen;
+    urlToOpen = baseUrl + (urlToOpen.startsWith('/') ? '' : '/') + urlToOpen;
   }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.focus();
+            client.navigate(urlToOpen);
+            return;
           }
         }
         if (clients.openWindow) {
