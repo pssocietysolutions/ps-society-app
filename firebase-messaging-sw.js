@@ -16,17 +16,16 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Background Message Handler (सिर्फ एक बार)
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
-  const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
-  const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
+  // एज फंक्शन द्वारा भेजे गए data ऑब्जेक्ट से सीधे टाइटल और बॉडी लें
+  const notificationTitle = payload.data?.title || 'PS Society Notification';
+  const notificationBody = payload.data?.body || 'New update received';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
-    icon: '/icon.png',
+    icon: '/icon-192.png',
     data: payload.data || {}
   });
 });
