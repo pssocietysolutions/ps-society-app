@@ -1704,7 +1704,6 @@ async function submitPaymentDetails(event) {
   fetchSupabaseData();
 }
 
-
 // ==================== REALTIME SUBSCRIPTION ====================
 // ✅ NEW: Realtime subscription for payment proofs
 let __proofRealtimeChannel = null;
