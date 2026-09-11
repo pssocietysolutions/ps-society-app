@@ -956,33 +956,41 @@ async function loadSocietiesForDropdown(selectId) {
 async function loadTodayVisitors() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
-  const today = new Date().toISOString().split('T')[0];
   
-  // 🟢 यदि currentSociety खाली हो, तो localStorage से ले लें
+  // 🟢 तुरंत लोडिंग मैसेज दिखाएं ताकि पता रहे कि फेचिंग चल रही है
+  container.innerHTML = `<div class="alert alert-info">⏳ Loading visitors...</div>`;
+  
+  const today = new Date().toISOString().split('T')[0];
   const activeSociety = (currentSociety || localStorage.getItem('ps_user_society') || 'Demo Society').trim();
   const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
 
-  let query = _supabase
-    .from('visitors')
-    .select('*')
-    .eq('visit_date', today)
-    .ilike('society', activeSociety)
-    .order('in_time', { ascending: false });
+  try {
+    let query = _supabase
+      .from('visitors')
+      .select('*')
+      .eq('visit_date', today)
+      .ilike('society', activeSociety)
+      .order('in_time', { ascending: false });
 
-  const isLogged = localStorage.getItem('ps_user_logged') === 'true';
-  if (isLogged && currentRole === 'Member' && activeUser) {
-    query = query.eq('flat_no', activeUser);
-  }
+    const isLogged = localStorage.getItem('ps_user_logged') === 'true';
+    if (isLogged && currentRole === 'Member' && activeUser) {
+      query = query.eq('flat_no', activeUser);
+    }
 
-  const { data, error } = await query;
-  if (error) { 
-    container.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`; 
-    return; 
+    const { data, error } = await query;
+    if (error) { 
+      container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`; 
+      return; 
+    }
+    
+    visitors = data || [];
+    renderVisitorList();
+    updateVisitorBadge();
+
+  } catch (err) {
+    console.error('Visitor fetch exception:', err);
+    container.innerHTML = `<div class="alert alert-danger">❌ Failed to load visitors. Please check your connection.</div>`;
   }
-  
-  visitors = data || [];
-  renderVisitorList();
-  updateVisitorBadge();
 }
 
 function renderVisitorList() {
