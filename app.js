@@ -1709,6 +1709,7 @@ async function submitPaymentDetails(event) {
 let __proofRealtimeChannel = null;
 
 function setupRealtimeSubscriptions() {
+  // Cleanup old channel
   if (__proofRealtimeChannel) {
     try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
     __proofRealtimeChannel = null;
@@ -1717,51 +1718,247 @@ function setupRealtimeSubscriptions() {
   if (!currentSociety) return;
 
   const cleanName = currentSociety.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const filterExpr = `society_name=eq.${currentSociety}`;
+  const socFilter = `society_name=eq.${currentSociety}`;
 
   __proofRealtimeChannel = _supabase
-    .channel(`proof-rt-${cleanName}`)
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'payment_proofs', filter: filterExpr },
+    .channel(`society-rt-${cleanName}`)
+
+    // 1. PAYMENT PROOFS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'payment_proofs', filter: socFilter },
       async (payload) => {
-        console.log('[Realtime] payment_proofs event:', payload.eventType);
-
-        const { data } = await _supabase
-          .from('payment_proofs')
-          .select('*')
-          .eq('society_name', currentSociety);
+        console.log('[RT] payment_proofs:', payload.eventType);
+        const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
         paymentProofs = data || [];
-
         renderPaymentProofs();
         renderMyPaymentSubmissions();
         updateAllBadges();
 
-        if (
-          payload.eventType === 'INSERT' &&
-          (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')
-        ) {
+        if (payload.eventType === 'INSERT' &&
+            (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')) {
           try {
-            if (Notification.permission === 'granted') {
-              if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.ready.then(reg => {
-                  reg.showNotification('💰 New Payment Proof Submitted', {
-                    body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`,
-                    icon: '/ps-society-app/icon-192.png',
-                    badge: '/ps-society-app/icon-192.png',
-                    tag: `proof-${payload.new.id}`,
-                    renotify: true,
-                    data: { url: '/ps-society-app/?tab=proofs' }
-                  });
+            if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+              navigator.serviceWorker.ready.then(reg => {
+                reg.showNotification('💰 New Payment Proof Submitted', {
+                  body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`,
+                  icon: '/ps-society-app/icon-192.png',
+                  badge: '/ps-society-app/icon-192.png',
+                  tag: `proof-${payload.new.id}`,
+                  renotify: true,
+                  data: { url: '/ps-society-app/?tab=proofs' }
                 });
-              }
+              });
             }
           } catch (e) { console.log('Notify err:', e); }
         }
-      }
-    )
+      })
+
+    // 2. MEMBERS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'members', filter: socFilter },
+      async () => {
+        console.log('[RT] members changed');
+        const { data } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
+        membersData = data || [];
+        renderMembers();
+        renderMemberPersonalView();
+        renderTenantAgreementWarnings();
+        renderCelebrations();
+      })
+
+    // 3. MAINTENANCE PAYMENTS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'maintenance_payments', filter: socFilter },
+      async () => {
+        console.log('[RT] maintenance_payments changed');
+        const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
+        maintenanceData = data || [];
+        renderMaintenance();
+        renderMembers();
+        renderMemberPersonalView();
+        renderMyPaymentHistory();
+        renderTallyBankBook();
+      })
+
+    // 4. EXPENSES
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'expenses', filter: socFilter },
+      async () => {
+        console.log('[RT] expenses changed');
+        const { data } = await _supabase.from('expenses').select('*').eq('society_name', currentSociety);
+        expenseData = data || [];
+        renderExpenses();
+        renderTallyBankBook();
+      })
+
+    // 5. COMPLAINTS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'complaints', filter: socFilter },
+      async () => {
+        console.log('[RT] complaints changed');
+        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
+        complaintData = data || [];
+        renderComplaints();
+        updateAllBadges();
+      })
+
+    // 6. NOTICES
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'notices', filter: socFilter },
+      async () => {
+        console.log('[RT] notices changed');
+        const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
+        noticesData = data || [];
+        renderNoticesCommunity();
+        updateAllBadges();
+      })
+
+    // 7. POLLS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'polls', filter: socFilter },
+      async () => {
+        console.log('[RT] polls changed');
+        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
+        pollsData = data || [];
+        renderPolls();
+        updateAllBadges();
+      })
+
+    // 8. VISITORS (society col, not society_name)
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'visitors', filter: `society=eq.${currentSociety}` },
+      async () => {
+        console.log('[RT] visitors changed');
+        if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
+      })
+
+    // 9. PARKING
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'parking_vehicles', filter: socFilter },
+      async () => {
+        console.log('[RT] parking changed');
+        const { data } = await _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety);
+        parkingData = data || [];
+        renderParking();
+      })
+
+    // 10. FACILITY BOOKINGS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'facility_bookings', filter: socFilter },
+      async () => {
+        console.log('[RT] facility_bookings changed');
+        const { data } = await _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety);
+        bookingsData = data || [];
+        if (typeof renderCommunity === 'function') renderCommunity();
+      })
+
+    // 11. EVENTS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'events', filter: socFilter },
+      async () => {
+        console.log('[RT] events changed');
+        const { data } = await _supabase.from('events').select('*').eq('society_name', currentSociety);
+        eventsData = data || [];
+        renderEventsCommunity();
+        updateCommunityBadge();
+      })
+
+    // 12. MARKETPLACE
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'marketplace_posts', filter: socFilter },
+      async () => {
+        console.log('[RT] marketplace changed');
+        await fetchMarketplaceData();
+        renderMarketplace();
+      })
+
+    // 13. JOURNAL VOUCHERS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'journal_vouchers', filter: socFilter },
+      async () => {
+        console.log('[RT] journal_vouchers changed');
+        const { data } = await _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
+        journalVouchersData = data || [];
+        renderJournalVouchers();
+        renderMembers();
+      })
+
+    // 14. BANK ENTRIES
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'bank_entries', filter: socFilter },
+      async () => {
+        console.log('[RT] bank_entries changed');
+        const { data } = await _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
+        customBankEntries = data || [];
+        renderTallyBankBook();
+      })
+
+    // 15. ASSETS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'assets', filter: socFilter },
+      async () => {
+        console.log('[RT] assets changed');
+        const { data } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
+        assetData = data || [];
+        renderAssets();
+      })
+
+    // 16. FDs
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'sinking_fund_fd', filter: socFilter },
+      async () => {
+        console.log('[RT] sinking_fund_fd changed');
+        const { data } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
+        fdData = data || [];
+        renderFDs();
+      })
+
+    // 17. TEAM
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'team', filter: socFilter },
+      async () => {
+        console.log('[RT] team changed');
+        const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
+        teamData = data || [];
+        renderTeam();
+        renderSOSContacts();
+      })
+
+    // 18. MEETINGS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'society_meetings', filter: socFilter },
+      async () => {
+        console.log('[RT] meetings changed');
+        const { data } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety);
+        meetingsData = data || [];
+        renderMeetings();
+      })
+
+    // 19. AMC
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'amc_contracts', filter: socFilter },
+      async () => {
+        console.log('[RT] amc_contracts changed');
+        const { data } = await _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety);
+        amcContractsData = data || [];
+        renderAMCTracker();
+      })
+
+    // 20. DELETION REQUESTS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'deletion_requests', filter: socFilter },
+      async () => {
+        console.log('[RT] deletion_requests changed');
+        if (currentRole === 'Admin') {
+          await loadDeletionRequests();
+          renderDeletionRequests();
+        }
+      })
+
     .subscribe((status) => {
-      console.log('[Realtime] proof channel status:', status);
+      console.log('[RT] channel status:', status);
+      if (status === 'SUBSCRIBED') console.log('✅ Realtime connected for', currentSociety);
+      if (status === 'CHANNEL_ERROR') console.warn('⚠️ Realtime channel error');
     });
 }
 
