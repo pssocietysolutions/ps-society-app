@@ -16,40 +16,42 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Background Message Handler (सिर्फ एक बार)
+// firebase-messaging-sw.js में यह कोड अपडेट करें
+
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
   const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
   const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
+  
+  // डेटा से तय करें कौन सा टैब खोलना है (जैसे polls, notices आदि)
+  const targetTab = payload.data?.tab || 'dashboard';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: '/icon-192.png',
-    data: payload.data || {}
+    data: { ...payload.data, tab: targetTab }
   });
 });
 
-// ✅ Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
 
   const data = event.notification.data || {};
-  let urlToOpen = data.click_action || data.url || '/';
-
-  if (!urlToOpen.startsWith('http')) {
-    const baseUrl = self.location.origin;
-    urlToOpen = baseUrl + urlToOpen;
-  }
+  
+  // 🟢 FIX: अगर डेटा में tab दिया है तो उसी टैब का URL बनाएं, वरना डिफ़ॉल्ट होम
+  let relativePath = data.tab ? `/?tab=${data.tab}` : (data.click_action || data.url || '/');
+  const urlToOpen = new URL(relativePath, self.location.origin).href;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
+          if (client.url.includes(self.location.origin) && 'focus' in client) {
+            client.focus();
+            client.navigate(urlToOpen);
+            return;
           }
         }
         if (clients.openWindow) {

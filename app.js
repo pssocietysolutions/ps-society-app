@@ -1485,7 +1485,17 @@ const messaging = firebase.messaging();
 
 messaging.onMessage((payload) => {
   console.log('Message received in foreground: ', payload);
-  alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
+  
+  // 🟢 FIX: बार-बार आने वाले intrusive alert() को हटाएं और इन-ऐप नोटिफिकेशन या बैज अपडेट करें
+  const title = payload.notification?.title || payload.data?.title || 'New Notification';
+  const body = payload.notification?.body || payload.data?.body || '';
+  
+  if (typeof updateAllBadges === 'function') {
+    updateAllBadges();
+  }
+  
+  // वैकल्पिक रूप से छोटा टोस्ट दिखा सकते हैं, अलर्ट बंद करें ताकि डबल डिस्टर्बेंस न हो
+  console.log(`📢 [Foreground Notice] ${title}: ${body}`);
 });
 
 async function requestNotificationPermission() {
