@@ -1042,7 +1042,7 @@ function renderVisitorList() {
         <div class="info">
           <h6>${v.name} <small class="text-muted">(${v.category})</small></h6>
           <small>Flat: ${v.flat_no} | ${v.society}</small><br>
-          <small>Mobile: ${v.mobile || 'N/A'} | 🚗 Vehicle: <strong>${v.vehicle_number || 'N/A'}</strong></small><br>
+          <small>Mobile: ${v.mobile || 'N/A'} | 🚗🏍️ Vehicle: <strong>${v.vehicle_number || 'N/A'}</strong></small><br>
           <small>In: ${v.in_time ? v.in_time.substring(0,5) : 'N/A'}</small> | ${statusBadge}
         </div>
         <div>${actionButtons}</div>
@@ -1492,7 +1492,23 @@ async function requestNotificationPermission() {
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+
+      // 🟢 नया block — "updated in background" notification suppress करे
+      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+        updateViaCache: 'none'
+      });
+
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        }
+      });
+
       await navigator.serviceWorker.ready;
       
       const token = await messaging.getToken({
