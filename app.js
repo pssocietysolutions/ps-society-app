@@ -497,6 +497,7 @@ function loadMainApp(role) {
 
   setTimeout(requestNotificationPermission, 2000);
   listenForSOSAlerts();
+  setupRealtimeSubscriptions();  // ✅ NEW
   setTimeout(() => loadSecondaryData(), 500);
 }
 
@@ -525,7 +526,8 @@ function switchSociety(societyName) {
   
   fetchSupabaseData();
   setTimeout(() => loadSecondaryData(), 500);
-  
+  setupRealtimeSubscriptions();  // ✅ NEW
+
   const sidebarName = document.getElementById('sidebar-society-name');
   if (sidebarName) sidebarName.innerText = societyName;
   
@@ -577,6 +579,11 @@ function handleLogout() {
   const gridOverlay = document.getElementById('mobileMenuOverlay');
   if (gridOverlay) gridOverlay.style.display = 'none';
   
+if (__proofRealtimeChannel) {
+  try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
+  __proofRealtimeChannel = null;
+}
+
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
   document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
   document.body.classList.remove('modal-open');
@@ -1503,32 +1510,54 @@ async function verifyProof(id, status) {
         remarks: `Auto-verified from UTR: ${proof.utr || 'N/A'}`,
         society_name: proof.society_name || currentSociety
       };
-      
+
       await _supabase.from('maintenance_payments').insert([newReceipt]);
 
-      await _supabase.from('payment_proofs').update({ 
+      await _supabase.from('payment_proofs').update({
         status: 'Verified',
         verified_at: new Date().toISOString(),
         verified_by: currentUser
       }).eq('id', id);
 
       await sendProofNotificationToMember(proof.flat_no, Number(proof.amount), 'Verified', proof.society_name || currentSociety);
-      
+
       alert('✅ Payment verified & member ko notification bhej diya gaya!');
     } else {
-      await _supabase.from('payment_proofs').update({ 
+      await _supabase.from('payment_proofs').update({
         status: 'Rejected',
         verified_at: new Date().toISOString(),
         verified_by: currentUser
       }).eq('id', id);
 
       await sendProofNotificationToMember(proof.flat_no, Number(proof.amount), 'Rejected', proof.society_name || currentSociety);
-      
+
       alert('❌ Proof Rejected & member ko notification bhej diya gaya!');
     }
-    
-    fetchSupabaseData();
-  } catch (err) { alert('❌ Error: ' + err.message); }
+
+    // ✅ FIXED: Properly refresh proofs so action buttons update
+    const { data: freshProofs } = await _supabase
+      .from('payment_proofs')
+      .select('*')
+      .eq('society_name', currentSociety);
+    if (freshProofs) paymentProofs = freshProofs;
+
+    // Refresh maintenance/payments related data
+    const { data: freshMaint } = await _supabase
+      .from('maintenance_payments')
+      .select('*')
+      .eq('society_name', currentSociety);
+    if (freshMaint) maintenanceData = freshMaint;
+
+    // Re-render everything
+    renderPaymentProofs();
+    renderMyPaymentSubmissions();
+    renderMaintenance();
+    renderMembers();
+    updateAllBadges();
+
+  } catch (err) {
+    alert('❌ Error: ' + err.message);
+  }
 }
 
 async function submitPaymentDetails(event) {
@@ -1562,10 +1591,95 @@ async function submitPaymentDetails(event) {
 
   const { error } = await _supabase.from('payment_proofs').insert([newProof]);
   if (error) { alert('❌ Error: ' + error.message); return; }
+
+  // ✅ FIXED: Notify Admin / SocietyAdmin / Chairman
+  try {
+    await _supabase.from('notices').insert([{
+      society_name: currentSociety,
+      title: `💰 New Payment Proof from Flat ${currentUser}`,
+      content: `Flat ${currentUser} ने ₹${amount} का payment proof submit किया है। UTR: ${utr}. कृपया verify करें।`,
+      date: new Date().toISOString().split('T')[0],
+      author: currentUser,
+      priority: 'High',
+      target_members: ['ADMIN_MARKER'], // admin को दिखेगा, members को नहीं
+      attachment_url: null,
+      deep_link: '/?tab=proofs'
+    }]);
+  } catch (notifyErr) {
+    // Fallback if deep_link column missing
+    try {
+      await _supabase.from('notices').insert([{
+        society_name: currentSociety,
+        title: `💰 New Payment Proof from Flat ${currentUser}`,
+        content: `Flat ${currentUser} ने ₹${amount} का payment proof submit किया है। कृपया verify करें।`,
+        date: new Date().toISOString().split('T')[0],
+        author: currentUser,
+        priority: 'High',
+        target_members: ['ADMIN_MARKER'],
+        attachment_url: null
+      }]);
+    } catch(e) { console.log('Admin notify fallback err:', e); }
+  }
+
   alert('✅ Submitted successfully! Admin will verify soon.');
   bootstrap.Modal.getInstance(document.getElementById('paymentDetailsModal')).hide();
   document.getElementById('paymentProofForm').reset();
   fetchSupabaseData();
+}
+
+// ✅ NEW: Realtime subscription for payment proofs
+let __proofRealtimeChannel = null;
+
+function setupRealtimeSubscriptions() {
+  // Cleanup old channel
+  if (__proofRealtimeChannel) {
+    try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
+    __proofRealtimeChannel = null;
+  }
+
+  if (!currentSociety) return;
+
+  const cleanName = currentSociety.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  const filterExpr = `society_name=eq.${currentSociety}`;
+
+  __proofRealtimeChannel = _supabase
+    .channel(`proof-rt-${cleanName}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'payment_proofs', filter: filterExpr },
+      async (payload) => {
+        console.log('[Realtime] payment_proofs event:', payload.eventType);
+
+        // Reload proofs from DB
+        const { data } = await _supabase
+          .from('payment_proofs')
+          .select('*')
+          .eq('society_name', currentSociety);
+        paymentProofs = data || [];
+
+        // Re-render
+        renderPaymentProofs();
+        renderMyPaymentSubmissions();
+        updateAllBadges();
+
+        // Admin/Chairman → desktop notification on new proof
+        if (
+          payload.eventType === 'INSERT' &&
+          (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')
+        ) {
+          try {
+            if (Notification.permission === 'granted') {
+              new Notification('💰 New Payment Proof Submitted', {
+                body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`
+              });
+            }
+          } catch (e) { console.log('Desktop notify err:', e); }
+        }
+      }
+    )
+    .subscribe((status) => {
+      console.log('[Realtime] proof channel status:', status);
+    });
 }
 
 function renderMemberPersonalView() {
@@ -2005,32 +2119,37 @@ async function submitMeetingMinutes(event) {
   const { error } = await _supabase.from('society_meetings').insert([newMeeting]);
   if (error) { alert('❌ Error saving meeting: ' + error.message); return; }
 
-  try {
-    try {
-      await _supabase.from('notices').insert([{
-        society_name: currentSociety,
-        title: `📋 New ${type} Recorded`,
-        content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
-        date: new Date().toISOString().split('T')[0],
-        author: currentUser || 'Admin',
-        priority: type === 'AGM' ? 'High' : 'Medium',
-        target_members: [],
-        attachment_url: null,
-        deep_link: '/?tab=meetings'
-      }]);
-    } catch (colErr) {
-      await _supabase.from('notices').insert([{
-        society_name: currentSociety,
-        title: `📋 New ${type} Recorded`,
-        content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
-        date: new Date().toISOString().split('T')[0],
-        author: currentUser || 'Admin',
-        priority: type === 'AGM' ? 'High' : 'Medium',
-        target_members: [],
-        attachment_url: null
-      }]);
+  // ✅ FIXED: Robust notice insert with proper error logging
+  const noticeData = {
+    society_name: currentSociety,
+    title: `📋 New ${type} Recorded`,
+    content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
+    date: new Date().toISOString().split('T')[0],
+    author: currentUser || 'Admin',
+    priority: type === 'AGM' ? 'High' : 'Medium',
+    target_members: [],
+    attachment_url: null
+  };
+
+  // Try with deep_link first
+  const { error: noticeErr1 } = await _supabase
+    .from('notices')
+    .insert([{ ...noticeData, deep_link: '/?tab=meetings' }]);
+
+  if (noticeErr1) {
+    console.warn('[Meeting Notice] First insert failed:', noticeErr1.message);
+    // Fallback without deep_link
+    const { error: noticeErr2 } = await _supabase.from('notices').insert([noticeData]);
+    if (noticeErr2) {
+      console.error('[Meeting Notice] Fallback also failed:', noticeErr2.message);
+      // Abort but still keep meeting saved
+      alert('⚠️ Meeting saved but notification notice failed: ' + noticeErr2.message);
+    } else {
+      console.log('[Meeting Notice] Inserted WITHOUT deep_link (run SQL to add column)');
     }
-  } catch (e) { console.log('Meeting notification error:', e); }
+  } else {
+    console.log('[Meeting Notice] Inserted successfully WITH deep_link');
+  }
 
   alert('✅ Meeting Minutes Recorded & Members Notified!');
   bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
@@ -2185,14 +2304,24 @@ function renderNoticesCommunity() {
   }
 
   const visibleNotices = noticesData.filter(n => {
-    // 🟢 Hide system-generated notices (with deep_link) from Community Hub
-    // They are meant for notifications only, not for Community Hub display
+    // Primary filter: hide notices with deep_link (system notifications)
     if (n.deep_link && String(n.deep_link).trim() !== '') return false;
 
+    // ✅ NEW: Backup filter by title pattern (for cases where deep_link column missing)
+    const systemTitlePatterns = [
+      'Payment Verified',
+      'Payment Rejected',
+      'New Payment Proof',
+      'New AGM',
+      'New Managing Committee',
+      'New Special Meeting'
+    ];
+    if (n.title && systemTitlePatterns.some(p => n.title.includes(p))) return false;
+
     if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') return true;
-    
+
     if (!n.target_members || n.target_members.length === 0) return true;
-    
+
     let targets = n.target_members;
     if (typeof targets === 'string') {
       try { targets = JSON.parse(targets); } catch (e) { targets = []; }
@@ -2204,6 +2333,7 @@ function renderNoticesCommunity() {
 
     return true;
   });
+
 
   if (visibleNotices.length === 0) {
     container.innerHTML = `<div class="col-12 text-muted text-center">No notices for you.</div>`;
