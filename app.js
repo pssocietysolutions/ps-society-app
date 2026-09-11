@@ -1648,7 +1648,7 @@ async function submitPaymentDetails(event) {
   const { error } = await _supabase.from('payment_proofs').insert([newProof]);
   if (error) { alert('❌ Error: ' + error.message); return; }
 
-  // ✅ FIXED: Query real admin/societyadmin/chairman users & notify them
+  // ✅ FIXED: Notify admins with clear flat + name in body
   try {
     const { data: adminUsers, error: adminErr } = await _supabase
       .from('user_master')
@@ -1662,13 +1662,17 @@ async function submitPaymentDetails(event) {
       .map(u => (u.flat_no || '').trim().toUpperCase())
       .filter(Boolean);
 
+    const memberInfo = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === currentUser.toUpperCase());
+    const memberName = memberInfo?.name || 'Member';
+    const memberPhone = memberInfo?.phone || '';
+
     console.log('[PaymentProof] Admin flats to notify:', adminFlats);
 
     if (adminFlats.length > 0) {
       const noticePayload = {
         society_name: currentSociety,
-        title: `💰 New Payment Proof from Flat ${currentUser}`,
-        content: `Flat ${currentUser} ने ₹${amount} का payment proof submit किया है। UTR: ${utr}. कृपया verify करें।`,
+        title: `💰 ₹${amount} - Flat ${currentUser}`,
+        content: `${memberName} (Flat ${currentUser}${memberPhone ? ', ' + memberPhone : ''}) submitted payment of ₹${amount}. UTR: ${utr || 'N/A'}.`,
         date: new Date().toISOString().split('T')[0],
         author: currentUser,
         priority: 'High',
