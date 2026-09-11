@@ -39,7 +39,7 @@ self.addEventListener('notificationclick', function(event) {
   let urlToOpen = data.click_action || data.url || '/';
 
   if (!urlToOpen.startsWith('http')) {
-   const baseUrl = self.registration.scope;
+   const baseUrl = self.location.origin;
     urlToOpen = baseUrl + urlToOpen;
   }
 
