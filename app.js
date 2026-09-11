@@ -1489,26 +1489,13 @@ messaging.onMessage((payload) => {
 });
 
 async function requestNotificationPermission() {
+  if (window._swRegistered) return;
+  window._swRegistered = true;
+
   try {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-
-      // 🟢 नया block — "updated in background" notification suppress करे
-      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
-        updateViaCache: 'none'
-      });
-
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-            }
-          });
-        }
-      });
-
+      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
       await navigator.serviceWorker.ready;
       
       const token = await messaging.getToken({
@@ -1524,6 +1511,7 @@ async function requestNotificationPermission() {
     console.error('Error in notification setup:', err);
   }
 }
+
 
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
