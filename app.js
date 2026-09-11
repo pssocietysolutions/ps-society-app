@@ -958,17 +958,20 @@ async function loadTodayVisitors() {
   if (!container) return;
   const today = new Date().toISOString().split('T')[0];
   
-  // 🟢 वर्तमान सोसायटी को ट्रिम करके क्वेरी चलाएं ताकि स्पेस या केस का फर्क न पड़े
+  // 🟢 यदि currentSociety खाली हो, तो localStorage से ले लें
+  const activeSociety = (currentSociety || localStorage.getItem('ps_user_society') || 'Demo Society').trim();
+  const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
+
   let query = _supabase
     .from('visitors')
     .select('*')
     .eq('visit_date', today)
-    .ilike('society', (currentSociety || '').trim())
+    .ilike('society', activeSociety)
     .order('in_time', { ascending: false });
 
   const isLogged = localStorage.getItem('ps_user_logged') === 'true';
-  if (isLogged && currentRole === 'Member') {
-    query = query.eq('flat_no', (currentUser || '').trim().toUpperCase());
+  if (isLogged && currentRole === 'Member' && activeUser) {
+    query = query.eq('flat_no', activeUser);
   }
 
   const { data, error } = await query;
