@@ -16,22 +16,22 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// ✅ Background Message Handler
+// ✅ Background Message Handler (सिर्फ एक बार)
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // एज फंक्शन से आने वाले data या notification दोनों से वैल्यू सुरक्षित रूप से निकालें
+  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
   const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
   const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
-    icon: '/icon-192.png',
+    icon: '/icon.png',
     data: payload.data || {}
   });
 });
 
-// ✅ Notification Click Handler (Direct Tab Redirection Fix)
+// ✅ Notification Click Handler
 self.addEventListener('notificationclick', function(event) {
   console.log('🔔 Notification clicked:', event.notification);
   event.notification.close();
@@ -39,20 +39,17 @@ self.addEventListener('notificationclick', function(event) {
   const data = event.notification.data || {};
   let urlToOpen = data.click_action || data.url || '/';
 
-  // यदि click_action में 상대 पाथ (relative path) है तो उसे सही से बेस यूआरएल के साथ जोड़ें
   if (!urlToOpen.startsWith('http')) {
     const baseUrl = self.location.origin;
-    urlToOpen = baseUrl + (urlToOpen.startsWith('/') ? '' : '/') + urlToOpen;
+    urlToOpen = baseUrl + urlToOpen;
   }
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true })
       .then(windowClients => {
         for (let client of windowClients) {
-          if (client.url.includes(self.location.origin) && 'focus' in client) {
-            client.focus();
-            client.navigate(urlToOpen);
-            return;
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
           }
         }
         if (clients.openWindow) {
