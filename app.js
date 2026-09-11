@@ -82,7 +82,11 @@ function showVisitorPage() {
   if (localStorage.getItem('ps_user_logged') === 'true') {
     document.getElementById('landing-section').style.display = 'none';
     document.getElementById('visitor-section').style.display = 'block';
-    document.getElementById('login-section').style.display = 'none';
+
+    // 🟢 FIX: null-check — login-section मौजूद ही नहीं है
+    const loginSec = document.getElementById('login-section');
+    if (loginSec) loginSec.style.display = 'none';
+
     document.getElementById('app-section').classList.add('d-none');
     const backBtn = document.getElementById('visitorBackBtn');
     if (backBtn) backBtn.onclick = goBackFromVisitor;
@@ -467,9 +471,15 @@ function loadMainApp(role) {
   const manageTab = document.querySelector('a[onclick*="manage-societies"]');
   if (manageTab) manageTab.closest('li').style.display = (role === 'Admin') ? '' : 'none';
   
-  if (window.innerWidth <= 768) {
+    if (window.innerWidth <= 768) {
     const sidebar = document.querySelector('#sidebarMenu');
     if (sidebar) sidebar.style.display = 'none';
+
+    // 🟢 अगर visitor page खुला है तो app-section बंद रहे
+    if (activeTab === 'visitor') {
+      document.getElementById('app-section').classList.add('d-none');
+    }
+
     const hasTabParam = urlParams.has('tab');
     if (!hasTabParam) {
       toggleMobileMenu();
@@ -4873,7 +4883,11 @@ async function verifyVisitorPassword(event) {
   closeVisitorPassword();
   document.getElementById('landing-section').style.display = 'none';
   document.getElementById('visitor-section').style.display = 'block';
-  document.getElementById('login-section').style.display = 'none';
+
+  // 🟢 FIX: null-check
+  const loginSec = document.getElementById('login-section');
+  if (loginSec) loginSec.style.display = 'none';
+
   document.getElementById('app-section').classList.add('d-none');
   updateFloatingButtonsVisibility(false);
   
