@@ -5155,26 +5155,28 @@ function closeTabOverlay() {
     }
   }
 
-  // 🟢 अब यह फंक्शन के अंदर सुरक्षित है
-  if (window.history.state && window.history.state.overlayOpen) {
-    window.history.back();
-  }
-}
+ // 🟢 मोडल खुलने पर हिस्ट्री में स्टेट जोड़ें ताकि बैक बटन से मोडल बंद हो सके
+document.addEventListener('show.bs.modal', function (event) {
+  window.history.pushState({ modalOpen: true }, "", window.location.href);
+});
 
-// 🟢 एकमात्र ग्लोबल पॉपस्टेट हैंडलर जो मोबाइल बैक बटन को सही से मैनेज करेगा
+// 🟢 सुधरा हुआ ग्लोबल पॉपस्टेट (Popstate) हैंडलर
 window.addEventListener('popstate', function(event) {
   const tabOverlay = document.getElementById('tabOverlay');
   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
 
-  document.querySelectorAll('.modal.show').forEach(modal => {
-    const modalInstance = bootstrap.Modal.getInstance(modal);
+  // 1. अगर कोई खुला हुआ Bootstrap modal है, तो उसे बंद करें
+  const openModal = document.querySelector('.modal.show');
+  if (openModal) {
+    const modalInstance = bootstrap.Modal.getInstance(openModal);
     if (modalInstance) modalInstance.hide();
-  });
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    return;
+  }
 
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-  document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
-
+  // 2. अगर Tab Overlay खुला है, तो उसे हटाकर वापस ग्रिड मेनू दिखाएं
   if (tabOverlay) {
     tabOverlay.remove();
     if (window.innerWidth <= 768 && mobileMenuOverlay) {
@@ -5184,10 +5186,12 @@ window.addEventListener('popstate', function(event) {
     }
     return;
   }
-
-  if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
-    mobileMenuOverlay.style.display = 'none';
-    document.body.style.overflow = '';
+// 3. अगर मोबाइल पर डैशबोर्ड खुला है और ग्रिड बंद है, तो बैक दबाने पर ऐप से बाहर होने के बजाय ग्रिड मेनू खुले
+  if (window.innerWidth <= 768 && mobileMenuOverlay && mobileMenuOverlay.style.display !== 'flex') {
+    window.history.pushState({ menuOpen: true }, "", window.location.href);
+    mobileMenuOverlay.style.display = 'flex';
+    renderGridCards();
+    document.body.style.overflow = 'hidden';
     return;
   }
 });
