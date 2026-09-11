@@ -99,26 +99,22 @@ function showVisitorPage() {
 function showLoginPage() {
   updateFloatingButtonsVisibility(false);
 
+  // Landing, visitor, app सब छुपाओ
+  const landingSec = document.getElementById('landing-section');
+  if (landingSec) landingSec.style.display = 'none';
+
   const visitorSec = document.getElementById('visitor-section');
   if (visitorSec) visitorSec.style.display = 'none';
 
-  document.querySelectorAll('.modal.show').forEach(m => {
-    const inst = bootstrap.Modal.getInstance(m);
-    if (inst) inst.hide();
-  });
+  const appSec = document.getElementById('app-section');
+  if (appSec) appSec.classList.add('d-none');
 
-  const loginModalEl = document.getElementById('loginModal');
-  if (loginModalEl) {
-    const oldInstance = bootstrap.Modal.getInstance(loginModalEl);
-    if (oldInstance) oldInstance.dispose();
+  // ✅ असली login form दिखाओ
+  const loginSec = document.getElementById('login-section');
+  if (loginSec) loginSec.style.display = 'flex';
 
-    const modal = new bootstrap.Modal(loginModalEl, {
-      backdrop: true,
-      keyboard: true,
-      focus: true
-    });
-    modal.show();
-  }
+  // Society dropdown load करो
+  loadSocietiesForDropdown('login-society');
 }
 
 function goBackFromVisitor() {
@@ -169,78 +165,91 @@ function goBackFromVisitor() {
 }
 
 async function handleLogin(event) {
-    event.preventDefault();
-    
-    clearAllData();
-    
-    const rawInput = document.getElementById('loginIdInput').value;
-    const inputVal = rawInput.trim().toLowerCase().replace(/\s+/g, '');
-    const password = document.getElementById('loginPassword').value.trim();
+  event.preventDefault();
 
-    if (!inputVal.includes('_')) {
-        alert("❌ कृपया सही फॉर्मेट में आईडी दर्ज करें (जैसे: a-101_demosociety)।");
-        return;
+  clearAllData();
+
+  // ✅ सही element IDs
+  const rawInput = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value.trim();
+  const selectedSociety = document.getElementById('login-society').value;
+  const selectedRole = document.getElementById('login-role').value;
+
+  if (!rawInput || !password) {
+    alert('❌ Please enter both ID and Password.');
+    return;
+  }
+
+  // Input format: flat_no_societyname (e.g., a-101_demosociety)
+  const inputVal = rawInput.toLowerCase().replace(/\s+/g, '');
+
+  if (!inputVal.includes('_')) {
+    alert("❌ कृपया सही फॉर्मेट में ID दर्ज करें\n\nFormat: flatno_societyname\nExample: a-101_demosociety");
+    return;
+  }
+
+  const fullEmail = inputVal + '@ps.in';
+  console.log('🔐 Trying login with:', fullEmail);
+
+  try {
+    const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
+      email: fullEmail,
+      password: password
+    });
+
+    if (authError) {
+      console.error('Auth error:', authError);
+      alert('❌ Login Failed!\n\n' + authError.message + '\n\nCheck your ID format and password.');
+      return;
     }
 
-    const fullEmail = inputVal + '@ps.in';
-
-    try {
-        const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
-            email: fullEmail,
-            password: password
-        });
-        
-        if (authError || !authData.user) {
-            alert('❌ Invalid credentials! Please check your ID and Password.');
-            return;
-        }
-        
-        const { data: userData, error: userError } = await _supabase
-            .from('user_master')
-            .select('*')
-            .eq('user_id', authData.user.id)
-            .single();
-        
-        if (userError || !userData) {
-            alert('❌ User not found in system.');
-            await _supabase.auth.signOut();
-            return;
-        }
-        
-        const user = userData;
-        
-        localStorage.setItem('ps_user_logged', 'true');
-        localStorage.setItem('ps_user_role', user.role);
-        localStorage.setItem('ps_user_id', user.flat_no);
-        
-        let targetSociety = user.society_name || currentSociety;
-        localStorage.setItem('ps_user_society', targetSociety);
-        currentSociety = targetSociety.trim();
-        
-        const modalEl = document.getElementById('loginModal');
-        if (modalEl) {
-          const modalInstance = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
-          modalInstance.hide();
-        }
-
-        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-
-        const landingSec = document.getElementById('landing-section');
-        if (landingSec) landingSec.style.display = 'none';
-        
-        const appSec = document.getElementById('app-section');
-        if (appSec) appSec.classList.remove('d-none');
-
-        // 🟢 alert को सबसे अंत में रखा ताकि व्हाइट स्क्रीन या रेंडरिंग में रुकावट न आए
-        applyUserSession(user.role, user.flat_no);
-        alert("✅ Login Successful!");
-
-    } catch (err) {
-        console.error('Login error:', err);
-        alert('❌ Something went wrong.');
+    if (!authData.user) {
+      alert('❌ No user returned from auth.');
+      return;
     }
+
+    // User master से details लाओ
+    const { data: userData, error: userError } = await _supabase
+      .from('user_master')
+      .select('*')
+      .eq('user_id', authData.user.id)
+      .single();
+
+    if (userError || !userData) {
+      console.warn('User not in user_master table:', userError);
+      alert('❌ User found in auth but missing in user_master table.\nPlease contact admin.');
+      await _supabase.auth.signOut();
+      return;
+    }
+
+    const user = userData;
+    console.log('✅ Login successful:', user);
+
+    // Session save
+    localStorage.setItem('ps_user_logged', 'true');
+    localStorage.setItem('ps_user_role', user.role || 'Member');
+    localStorage.setItem('ps_user_id', user.flat_no || inputVal);
+    localStorage.setItem('ps_user_society', user.society_name || selectedSociety || 'Demo Society');
+
+    currentSociety = (user.society_name || selectedSociety || 'Demo Society').trim();
+    currentRole = user.role || 'Member';
+    currentUser = user.flat_no || inputVal;
+
+    // Login form छुपाओ
+    const loginSec = document.getElementById('login-section');
+    if (loginSec) loginSec.style.display = 'none';
+
+    // App दिखाओ
+    const appSec = document.getElementById('app-section');
+    if (appSec) appSec.classList.remove('d-none');
+
+    applyUserSession(user.role, user.flat_no);
+    alert('✅ Login Successful!');
+
+  } catch (err) {
+    console.error('Login exception:', err);
+    alert('❌ Something went wrong: ' + err.message);
+  }
 }
 
 function openForgotModal() {
