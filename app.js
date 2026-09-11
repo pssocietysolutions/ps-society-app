@@ -82,11 +82,7 @@ function showVisitorPage() {
   if (localStorage.getItem('ps_user_logged') === 'true') {
     document.getElementById('landing-section').style.display = 'none';
     document.getElementById('visitor-section').style.display = 'block';
-
-    // 🟢 FIX: null-check — login-section मौजूद ही नहीं है
-    const loginSec = document.getElementById('login-section');
-    if (loginSec) loginSec.style.display = 'none';
-
+    document.getElementById('login-section').style.display = 'none';
     document.getElementById('app-section').classList.add('d-none');
     const backBtn = document.getElementById('visitorBackBtn');
     if (backBtn) backBtn.onclick = goBackFromVisitor;
@@ -99,22 +95,34 @@ function showVisitorPage() {
 function showLoginPage() {
   updateFloatingButtonsVisibility(false);
 
-  // Landing, visitor, app सब छुपाओ
-  const landingSec = document.getElementById('landing-section');
-  if (landingSec) landingSec.style.display = 'none';
-
+  // Visitor section छिपाएँ
   const visitorSec = document.getElementById('visitor-section');
   if (visitorSec) visitorSec.style.display = 'none';
+
+  // खुले हुए modals बंद करें
+  document.querySelectorAll('.modal.show').forEach(m => {
+    const inst = bootstrap.Modal.getInstance(m);
+    if (inst) inst.hide();
+  });
+
+  // Landing छिपाएँ, App छिपाएँ
+  const landing = document.getElementById('landing-section');
+  if (landing) landing.style.display = 'none';
 
   const appSec = document.getElementById('app-section');
   if (appSec) appSec.classList.add('d-none');
 
-  // ✅ असली login form दिखाओ
+  // 🟢 असली login section दिखाएँ
   const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'flex';
+  if (loginSec) {
+    loginSec.style.display = 'flex';
 
-  // Society dropdown load करो
-  loadSocietiesForDropdown('login-society');
+    // Society dropdown populate करें (अगर खाली हो)
+    const sel = document.getElementById('login-society');
+    if (sel && sel.options.length <= 1) {
+      loadSocietiesForDropdown('login-society');
+    }
+  }
 }
 
 function goBackFromVisitor() {
@@ -166,30 +174,32 @@ function goBackFromVisitor() {
 
 async function handleLogin(event) {
   event.preventDefault();
-
   clearAllData();
 
-  // ✅ सही element IDs
-  const rawInput = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value.trim();
-  const selectedSociety = document.getElementById('login-society').value;
-  const selectedRole = document.getElementById('login-role').value;
+  const societyVal = (document.getElementById('login-society')?.value || '').trim();
+  const rawInput   = (document.getElementById('login-email')?.value || '').trim();
+  const password   = (document.getElementById('login-password')?.value || '').trim();
 
   if (!rawInput || !password) {
-    alert('❌ Please enter both ID and Password.');
+    alert('❌ कृपया Flat ID और Password दर्ज करें।');
     return;
   }
 
-  // Input format: flat_no_societyname (e.g., a-101_demosociety)
-  const inputVal = rawInput.toLowerCase().replace(/\s+/g, '');
+  // Login ID बनाएँ
+  let loginId = rawInput.toLowerCase().replace(/\s+/g, '');
 
-  if (!inputVal.includes('_')) {
-    alert("❌ कृपया सही फॉर्मेट में ID दर्ज करें\n\nFormat: flatno_societyname\nExample: a-101_demosociety");
-    return;
+  // अगर यूजर ने पूरा ID (जैसे a-101_demosociety) नहीं दिया,
+  // तो society dropdown से जोड़कर बनाएँ
+  if (!loginId.includes('_')) {
+    if (!societyVal) {
+      alert('❌ कृपया Society सेलेक्ट करें।');
+      return;
+    }
+    const socSlug = societyVal.toLowerCase().replace(/[^a-z0-9]/g, '');
+    loginId = `${loginId}_${socSlug}`;
   }
 
-  const fullEmail = inputVal + '@ps.in';
-  console.log('🔐 Trying login with:', fullEmail);
+  const fullEmail = loginId + '@ps.in';
 
   try {
     const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
@@ -197,18 +207,11 @@ async function handleLogin(event) {
       password: password
     });
 
-    if (authError) {
-      console.error('Auth error:', authError);
-      alert('❌ Login Failed!\n\n' + authError.message + '\n\nCheck your ID format and password.');
+    if (authError || !authData.user) {
+      alert('❌ Invalid credentials! Please check your ID and Password.');
       return;
     }
 
-    if (!authData.user) {
-      alert('❌ No user returned from auth.');
-      return;
-    }
-
-    // User master से details लाओ
     const { data: userData, error: userError } = await _supabase
       .from('user_master')
       .select('*')
@@ -216,38 +219,40 @@ async function handleLogin(event) {
       .single();
 
     if (userError || !userData) {
-      console.warn('User not in user_master table:', userError);
-      alert('❌ User found in auth but missing in user_master table.\nPlease contact admin.');
+      alert('❌ User not found in system.');
       await _supabase.auth.signOut();
       return;
     }
 
     const user = userData;
-    console.log('✅ Login successful:', user);
 
-    // Session save
     localStorage.setItem('ps_user_logged', 'true');
-    localStorage.setItem('ps_user_role', user.role || 'Member');
-    localStorage.setItem('ps_user_id', user.flat_no || inputVal);
-    localStorage.setItem('ps_user_society', user.society_name || selectedSociety || 'Demo Society');
+    localStorage.setItem('ps_user_role', user.role);
+    localStorage.setItem('ps_user_id', user.flat_no);
 
-    currentSociety = (user.society_name || selectedSociety || 'Demo Society').trim();
-    currentRole = user.role || 'Member';
-    currentUser = user.flat_no || inputVal;
+    let targetSociety = user.society_name || societyVal || currentSociety;
+    localStorage.setItem('ps_user_society', targetSociety);
+    currentSociety = targetSociety.trim();
 
-    // Login form छुपाओ
+    // Login section छिपाएँ, App दिखाएँ
     const loginSec = document.getElementById('login-section');
     if (loginSec) loginSec.style.display = 'none';
 
-    // App दिखाओ
+    const landing = document.getElementById('landing-section');
+    if (landing) landing.style.display = 'none';
+
     const appSec = document.getElementById('app-section');
     if (appSec) appSec.classList.remove('d-none');
+
+    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
 
     applyUserSession(user.role, user.flat_no);
     alert('✅ Login Successful!');
 
   } catch (err) {
-    console.error('Login exception:', err);
+    console.error('Login error:', err);
     alert('❌ Something went wrong: ' + err.message);
   }
 }
@@ -480,15 +485,9 @@ function loadMainApp(role) {
   const manageTab = document.querySelector('a[onclick*="manage-societies"]');
   if (manageTab) manageTab.closest('li').style.display = (role === 'Admin') ? '' : 'none';
   
-    if (window.innerWidth <= 768) {
+  if (window.innerWidth <= 768) {
     const sidebar = document.querySelector('#sidebarMenu');
     if (sidebar) sidebar.style.display = 'none';
-
-    // 🟢 अगर visitor page खुला है तो app-section बंद रहे
-    if (activeTab === 'visitor') {
-      document.getElementById('app-section').classList.add('d-none');
-    }
-
     const hasTabParam = urlParams.has('tab');
     if (!hasTabParam) {
       toggleMobileMenu();
@@ -975,40 +974,37 @@ async function loadSocietiesForDropdown(selectId) {
 async function loadTodayVisitors() {
   const container = document.getElementById('visitorListContainer');
   if (!container) return;
-
   container.innerHTML = `<div class="alert alert-info">⏳ Loading visitors...</div>`;
-
+  
   const today = new Date().toISOString().split('T')[0];
   const activeSociety = (currentSociety || localStorage.getItem('ps_user_society') || 'Demo Society').trim();
   const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
 
-  // 🟢 Debug log — F12 Console में देखें
-  console.log('🔍 Visitor Load:', { today, activeSociety, activeUser, currentRole });
-
   try {
-    // Society और date filter server पर, flat_no filter client पर
-    const { data, error } = await _supabase
+    // 🟢 केवल तारीख और सोसायटी के आधार पर डेटा लाएं (फ्लैट फिल्टर क्लाइंट-साइड करेंगे ताकि मिसमैच न हो)
+    let query = _supabase
       .from('visitors')
       .select('*')
       .eq('visit_date', today)
       .ilike('society', activeSociety)
       .order('in_time', { ascending: false });
 
-    if (error) {
-      container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
-      return;
+    const { data, error } = await query;
+    if (error) { 
+      container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`; 
+      return; 
+    }
+    
+    let allVisitors = data || [];
+
+    // 🟢 यदि यूजर Member है, तो फ्लैट को केस-इनसेंसिटिव तरीके से फिल्टर करें
+    const isLogged = localStorage.getItem('ps_user_logged') === 'true';
+    if (isLogged && currentRole === 'Member' && activeUser) {
+      visitors = allVisitors.filter(v => (v.flat_no || '').trim().toUpperCase() === activeUser);
+    } else {
+      visitors = allVisitors;
     }
 
-    let list = data || [];
-
-    // 🟢 Member के लिए flat_no filter client-side (case-insensitive, trimmed)
-    if (currentRole === 'Member' && activeUser) {
-      list = list.filter(v =>
-        (v.flat_no || '').trim().toUpperCase() === activeUser
-      );
-    }
-
-    visitors = list;
     renderVisitorList();
     updateVisitorBadge();
 
@@ -1051,7 +1047,7 @@ function renderVisitorList() {
         <div class="info">
           <h6>${v.name} <small class="text-muted">(${v.category})</small></h6>
           <small>Flat: ${v.flat_no} | ${v.society}</small><br>
-          <small>Mobile: ${v.mobile || 'N/A'} | 🚗🏍️ Vehicle: <strong>${v.vehicle_number || 'N/A'}</strong></small><br>
+          <small>Mobile: ${v.mobile || 'N/A'} | 🚗 Vehicle: <strong>${v.vehicle_number || 'N/A'}</strong></small><br>
           <small>In: ${v.in_time ? v.in_time.substring(0,5) : 'N/A'}</small> | ${statusBadge}
         </div>
         <div>${actionButtons}</div>
@@ -1133,12 +1129,9 @@ async function markVisitorOut(id) {
 
 function updateVisitorBadge() {
   const lastSeen = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
-  // 🟢 PENDING + IN दोनों count करो
-  const newCount = visitors.filter(v =>
-    (v.status === 'IN' || v.status === 'PENDING' || v.status === 'APPROVED') &&
-    (v.id || 0) > lastSeen
-  ).length;
-  updateBadge('visitor-badge', newCount);
+  // 🟢 PENDING और IN दोनों को काउंट करें ताकि नोटिफिकेशन बैज सही संख्या दिखाए
+  const count = visitors.filter(v => (v.status === 'PENDING' || v.status === 'IN') && (v.id || 0) > lastSeen).length;
+  updateBadge('visitor-badge', count);
 }
 
 function renderAMCTracker() {
@@ -1494,94 +1487,29 @@ const messaging = firebase.messaging();
 
 messaging.onMessage((payload) => {
   console.log('Message received in foreground: ', payload);
-  
-  const title = payload.notification?.title || payload.data?.title || 'New Notification';
-  const body = payload.notification?.body || payload.data?.body || '';
-  
-  if (typeof updateAllBadges === 'function') {
-    updateAllBadges();
-  }
-  
-  // 🟢 यहाँ स्क्रीन पर दिखाने के लिए browser notification trigger करें
-  if (Notification.permission === 'granted') {
-    new Notification(title, {
-      body: body,
-      icon: '/icon-192.png'
-    });
-  }
+  alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
 });
 
 async function requestNotificationPermission() {
   try {
-    // 1. Permission status check
-    if (Notification.permission === 'denied') {
-      console.warn('🔕 Notification permission is DENIED. User must enable from browser settings.');
-      return;
-    }
-
     const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      console.log('⏭️ Notification permission not granted:', permission);
-      return;
-    }
-
-    // 2. Register SW (idempotent)
-    let registration = await navigator.serviceWorker.getRegistration('./');
-    if (!registration) {
-      registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js', {
-        scope: './'
+    if (permission === 'granted') {
+      const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+      await navigator.serviceWorker.ready;
+      
+      const token = await messaging.getToken({
+        vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
+        serviceWorkerRegistration: registration
       });
-    }
-    await navigator.serviceWorker.ready;
 
-    // 3. Get token
-    const token = await messaging.getToken({
-      vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
-      serviceWorkerRegistration: registration
-    });
-
-    if (!token) {
-      console.warn('⚠️ No FCM token received. Check VAPID key & Firebase console settings.');
-      return;
-    }
-
-    console.log('✅ FCM Token:', token);
-    await saveFCMTokenToSupabase(token);
-
-    // 4. Token refresh listener (important!)
-    messaging.onTokenRefresh(async (newToken) => {
-      console.log('🔄 FCM Token refreshed:', newToken);
-      await saveFCMTokenToSupabase(newToken);
-    });
-
-  } catch (err) {
-    console.error('❌ Notification setup error:', err);
-  }
-}
-
-async function saveFCMTokenToSupabase(token) {
-  if (!currentUser || !currentSociety || !token) return;
-  try {
-    // 🟢 एक flat के multiple devices support करने के लिए unique key: token
-    const { error } = await _supabase.from('fcm_tokens').upsert([
-      {
-        society_name: currentSociety,
-        flat_no: currentUser,
-        token: token,
-        updated_at: new Date().toISOString()
+      if (token) {
+        await saveFCMTokenToSupabase(token);
       }
-    ], { onConflict: 'token' });
-
-    if (error) {
-      console.error('❌ Token save error:', error.message);
-    } else {
-      console.log('✅ FCM token saved to Supabase');
     }
   } catch (err) {
-    console.error('Token save exception:', err);
+    console.error('Error in notification setup:', err);
   }
 }
-
 
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
@@ -4957,11 +4885,7 @@ async function verifyVisitorPassword(event) {
   closeVisitorPassword();
   document.getElementById('landing-section').style.display = 'none';
   document.getElementById('visitor-section').style.display = 'block';
-
-  // 🟢 FIX: null-check
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'none';
-
+  document.getElementById('login-section').style.display = 'none';
   document.getElementById('app-section').classList.add('d-none');
   updateFloatingButtonsVisibility(false);
   
