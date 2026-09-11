@@ -20,13 +20,17 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   console.log("📩 Background message received:", payload);
   
-  // पहले data से try करें, अगर न मिले तो notification से, और अंत में default
-  const notificationTitle = payload.data?.title || payload.notification?.title || 'PS Society';
-  const notificationBody = payload.data?.body || payload.notification?.body || 'New update';
+  // 🟢 अगर Firebase ने पहले ही नोटिफिकेशन भेज दिया है, तो दोबारा न दिखाएं (डबल और background update रुक जाएगा)
+  if (payload.notification) {
+    return;
+  }
+
+  const notificationTitle = payload.data?.title || 'PS Society';
+  const notificationBody = payload.data?.body || 'New update';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
-    icon: '/icon.png',
+    icon: '/icon-192.png',
     data: payload.data || {}
   });
 });

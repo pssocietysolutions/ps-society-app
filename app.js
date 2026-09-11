@@ -240,6 +240,7 @@ async function handleLogin(event) {
     document.body.style.overflow = '';
 
     applyUserSession(user.role, user.flat_no);
+    requestNotificationPermission();
     alert('✅ Login Successful!');
 
   } catch (err) {
@@ -1419,8 +1420,18 @@ async function requestNotificationPermission() {
 async function saveFCMTokenToSupabase(token) {
   if (!currentUser || !currentSociety) return;
   try {
-    await _supabase.from('fcm_tokens').upsert([{ society_name: currentSociety, flat_no: currentUser, token: token }], { onConflict: 'token' });
-  } catch (err) { console.error('Error saving FCM token:', err); }
+    const payload = { 
+      society_name: currentSociety, 
+      flat_no: currentUser, 
+      role: currentRole, // 👈 Role जोड़ें (Admin / Member / Chairman)
+      token: token,
+      updated_at: new Date().toISOString()
+    };
+    await _supabase.from('fcm_tokens').upsert([payload], { onConflict: 'token' });
+    console.log('✅ FCM Token saved for:', currentUser, currentRole);
+  } catch (err) { 
+    console.error('Error saving FCM token:', err); 
+  }
 }
 
 function sendWhatsAppReminder(phone, message) {
@@ -1745,18 +1756,28 @@ function setupRealtimeSubscriptions() {
         updateAllBadges();
 
         // Admin/Chairman → desktop notification on new proof
-        if (
-          payload.eventType === 'INSERT' &&
-          (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')
-        ) {
-          try {
-            if (Notification.permission === 'granted') {
-              new Notification('💰 New Payment Proof Submitted', {
-                body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`
-              });
-            }
-          } catch (e) { console.log('Desktop notify err:', e); }
-        }
+        // setupRealtimeSubscriptions के अंदर लाइन 700 के पास:
+if (
+  payload.eventType === 'INSERT' &&
+  (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')
+) {
+  try {
+    if (Notification.permission === 'granted') {
+      // 🟢 Desktop और Android Mobile दोनों पर 100% काम करने वाला कोड
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification('💰 New Payment Proof Submitted', {
+            body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`,
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            tag: `proof-${payload.new.id}`, // डुप्लीकेट नहीं बनेगा
+            renotify: true
+          });
+        });
+      }
+    }
+  } catch (e) { console.log('Notify err:', e); }
+}
       }
     )
     .subscribe((status) => {
@@ -5181,17 +5202,6 @@ function clearStuckOverlays() {
 
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
-}
-
-// ✅ Handle service worker auto-update without infinite reload loop
-if ('serviceWorker' in navigator) {
-  let swRefreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (swRefreshing) return;
-    swRefreshing = true;
-    console.log('[SW] New service worker activated, reloading...');
-    window.location.reload();
-  });
 }
 
 window.onload = async () => {
