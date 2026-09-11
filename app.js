@@ -3643,7 +3643,40 @@ async function submitPoll(event) {
     society_name: currentSociety
   };
 
-  await _supabase.from('polls').insert([newPoll]);
+  const { error } = await _supabase.from('polls').insert([newPoll]);
+  if (error) { alert('❌ Error creating poll: ' + error.message); return; }
+
+  // ✅ FIX: Insert a notice to trigger notification
+  try {
+    await _supabase.from('notices').insert([{
+      society_name: currentSociety,
+      title: `📊 New Poll: ${question}`,
+      content: `A new poll has started. Tap to cast your vote now!`,
+      date: new Date().toISOString().split('T')[0],
+      author: currentUser,
+      priority: 'Medium',
+      target_members: [],
+      attachment_url: null,
+      deep_link: '/?tab=polls'
+    }]);
+    console.log('[Poll] Notice inserted for notification');
+  } catch (notifyErr) {
+    console.warn('[Poll] Notice insert failed:', notifyErr);
+    // Try without deep_link
+    try {
+      await _supabase.from('notices').insert([{
+        society_name: currentSociety,
+        title: `📊 New Poll: ${question}`,
+        content: `A new poll has started. Tap to cast your vote now!`,
+        date: new Date().toISOString().split('T')[0],
+        author: currentUser,
+        priority: 'Medium',
+        target_members: [],
+        attachment_url: null
+      }]);
+    } catch(e) { console.log('Poll notify fallback error:', e); }
+  }
+
   bootstrap.Modal.getInstance(document.getElementById('pollModal')).hide();
   document.getElementById('pollModal').querySelector('form').reset();
   fetchSupabaseData();
@@ -4318,11 +4351,36 @@ async function openTabOverlay(tabId, skipHistory = false) {
 
   if (tabId === 'terms' || tabId === 'privacy') { tabId = 'about'; }
 
-  if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
-    tabId = 'community';
-    markCommunityRead();
+  // ✅ NEW: Show overlay IMMEDIATELY with loading spinner (kills dashboard flash)
+  const existingOverlay = document.getElementById('tabOverlay');
+  if (existingOverlay) existingOverlay.remove();
 
-    try {
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.id = 'tabOverlay';
+  loadingOverlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow-y: auto; display: flex; flex-direction: column;';
+  loadingOverlay.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <button onclick="closeTabOverlay()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <span style="color: #f59e0b; font-weight: 600;">${tabId.toUpperCase()}</span>
+      <span style="width: 50px;"></span>
+    </div>
+    <div style="flex: 1; margin-top: 15px; background: #fff; border-radius: 16px; padding: 40px 20px; color: #0f172a; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size: 32px; color: #2563eb;"></i>
+      <p style="margin-top: 15px; color: #64748b; font-weight: 500;">Loading ${tabId}...</p>
+    </div>
+  `;
+  document.body.appendChild(loadingOverlay);
+  document.body.style.overflow = 'hidden';
+  if (!skipHistory) {
+    window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+  }
+
+  // ✅ Now fetch data in background
+  try {
+    if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
+      tabId = 'community';
+      markCommunityRead();
+
       const [{ data: fData }, { data: bData }, { data: nData }, { data: eData }] = await Promise.all([
         _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
         _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true }),
@@ -4334,57 +4392,62 @@ async function openTabOverlay(tabId, skipHistory = false) {
       noticesData = nData || [];
       eventsData = eData || [];
 
-      // 🟢 FIRST render into hidden tab-community
       renderCommunity();
 
-      // 🟢 THEN clone into overlay
       const target = document.getElementById('tab-community');
       if (target) {
         const finalOverlay = createTabOverlay(tabId, target.innerHTML);
+        const old = document.getElementById('tabOverlay');
+        if (old) old.remove();
         document.body.appendChild(finalOverlay);
-        document.body.style.overflow = 'hidden';
-        if (!skipHistory) {
-          window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
-        }
       }
-    } catch (e) { console.log('[Community] fetch error:', e); }
-    return;
-  }
+      return;
+    }
 
-  if (tabId === 'marketplace') { fetchMarketplaceData().then(renderMarketplace); }
+    if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
 
-  let actualTabId = `tab-${tabId}`;
-  if (tabId === 'master-dashboard') { renderSuperAdminMasterDashboard(); }
-  if (tabId === 'bank-reconciliation') { renderBankReconciliation(); }
-  if (tabId === 'about') renderAboutTab();
-  if (tabId === 'rules') { actualTabId = 'tab-rules'; renderRules(); }
-  if (tabId === 'journal-voucher') { actualTabId = 'tab-journal-voucher'; renderJournalVouchers(); }
-  if (tabId === 'polls') renderPolls();
-  if (tabId === 'chairman-report') generateMonthlySummary(); 
-  if (tabId === 'activity-logs') fetchActivityLogs(); 
-  if (tabId === 'meetings') renderMeetings();
-  if (tabId === 'amc-tracker') renderAMCTracker();
-  if (tabId === 'bank-details') renderBankDetails();
-  if (tabId === 'sos-contacts') renderSOSContacts();
-  if (tabId === 'proofs') renderPaymentProofs();
-  if (tabId === 'marketplace') renderMarketplace();
-  if (tabId === 'manage-societies') loadSocietiesList();
+    let actualTabId = `tab-${tabId}`;
+    if (tabId === 'master-dashboard') { await renderSuperAdminMasterDashboard(); }
+    if (tabId === 'bank-reconciliation') { renderBankReconciliation(); }
+    if (tabId === 'about') renderAboutTab();
+    if (tabId === 'rules') { actualTabId = 'tab-rules'; renderRules(); }
+    if (tabId === 'journal-voucher') { actualTabId = 'tab-journal-voucher'; renderJournalVouchers(); }
+    if (tabId === 'polls') renderPolls();
+    if (tabId === 'chairman-report') generateMonthlySummary();
+    if (tabId === 'activity-logs') fetchActivityLogs();
+    if (tabId === 'meetings') renderMeetings();
+    if (tabId === 'amc-tracker') renderAMCTracker();
+    if (tabId === 'bank-details') renderBankDetails();
+    if (tabId === 'sos-contacts') renderSOSContacts();
+    if (tabId === 'proofs') renderPaymentProofs();
+    if (tabId === 'marketplace') renderMarketplace();
+    if (tabId === 'manage-societies') loadSocietiesList();
 
-  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
-    try { await refreshTabData(tabId); } catch(e) { console.log(e); }
-  }
+    if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
+      await refreshTabData(tabId);
+    }
 
-  const target = document.getElementById(actualTabId);
-  if (!target) return;
+    const target = document.getElementById(actualTabId);
+    if (!target) {
+      const old = document.getElementById('tabOverlay');
+      if (old) old.remove();
+      return;
+    }
 
-  const finalOverlay = createTabOverlay(tabId, target.innerHTML);
-  document.body.appendChild(finalOverlay);
-  document.body.style.overflow = 'hidden';
+    const finalOverlay = createTabOverlay(tabId, target.innerHTML);
+    const old = document.getElementById('tabOverlay');
+    if (old) old.remove();
+    document.body.appendChild(finalOverlay);
 
-  if (tabId === 'settings') { loadSettingsToForm(); }
+    if (tabId === 'settings') { loadSettingsToForm(); }
 
-  if (!skipHistory) {
-    window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
+  } catch (e) {
+    console.log('[OpenTabOverlay] error:', e);
+    // Fallback: show generic error
+    const old = document.getElementById('tabOverlay');
+    if (old) {
+      old.innerHTML = old.innerHTML.replace('Loading ' + tabId + '...', '⚠️ Failed to load ' + tabId + '. Please try again.');
+    }
   }
 }
 
@@ -5161,6 +5224,17 @@ function clearStuckOverlays() {
 
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
+}
+
+// ✅ Handle service worker auto-update without infinite reload loop
+if ('serviceWorker' in navigator) {
+  let swRefreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (swRefreshing) return;
+    swRefreshing = true;
+    console.log('[SW] New service worker activated, reloading...');
+    window.location.reload();
+  });
 }
 
 window.onload = async () => {
