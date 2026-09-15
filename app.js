@@ -129,9 +129,10 @@ function goBackFromVisitor() {
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
 
- if (visitorSection) {
-  visitorSection.style.display = 'none';
-}
+  const visitorSection = document.getElementById('visitor-section');  // ✅ FIX
+  if (visitorSection) {
+    visitorSection.style.display = 'none';
+  }
 
   const tabOverlay = document.getElementById('tabOverlay');
   if (tabOverlay) tabOverlay.remove();
@@ -2047,23 +2048,29 @@ function switchTab(tabId, element) {
   if (tabId === 'rules') renderRules();
 
   if (tabId === 'visitor') {
-    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
 
-    const visitorSection = document.getElementById('visitor-section');
-    if (visitorSection) { visitorSection.style.display = 'block'; }
-
-    const appSection = document.getElementById('app-section');
-    if (appSection) appSection.classList.add('d-none');
-
-    const backBtn = document.getElementById('visitorBackBtn');
-    if (backBtn) backBtn.onclick = goBackFromVisitor;
-
-    loadTodayVisitors();
-    if (visitors.length > 0) { localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString()); }
-    updateBadge('visitor-badge', 0);
+  const visitorSection = document.getElementById('visitor-section');
+  if (visitorSection) { 
+    visitorSection.style.display = 'block'; 
+    // ✅ History state push karo taaki native back kaam kare
+    if (!history.state || !history.state.visitorOpen) {
+      window.history.pushState({ visitorOpen: true }, "", window.location.href);
+    }
   }
+
+  const appSection = document.getElementById('app-section');
+  if (appSection) appSection.classList.add('d-none');
+
+  const backBtn = document.getElementById('visitorBackBtn');
+  if (backBtn) backBtn.onclick = goBackFromVisitor;
+
+  loadTodayVisitors();
+  if (visitors.length > 0) { localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString()); }
+  updateBadge('visitor-badge', 0);
+}
 
   if (tabId === 'marketplace') { fetchMarketplaceData().then(renderMarketplace); }
   if (tabId === 'master-dashboard') { renderSuperAdminMasterDashboard(); }
@@ -5138,29 +5145,33 @@ window.addEventListener('popstate', function(event) {
 
   const tabOverlay = document.getElementById('tabOverlay');
   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+  const visitorSection = document.getElementById('visitor-section');  // ✅ NEW
 
-  const openModal = document.querySelector('.modal.show');
-  if (openModal) {
-    const modalInstance = bootstrap.Modal.getInstance(openModal);
-    if (modalInstance) modalInstance.hide();
-    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-    document.body.classList.remove('modal-open');
+  // ✅ Visitor section check — agar open hai to close karo
+  if (visitorSection && visitorSection.style.display === 'block') {
+    visitorSection.style.display = 'none';
     document.body.style.overflow = '';
-    document.body.style.pointerEvents = 'auto';
-    return;
-  }
 
-  if (tabOverlay) {
-    tabOverlay.remove();
-    document.body.style.overflow = '';
-    document.body.style.pointerEvents = 'auto';
-    if (window.innerWidth <= 768 && mobileMenuOverlay) {
-      mobileMenuOverlay.style.display = 'flex';
-      renderGridCards();
-      document.body.style.overflow = 'hidden';
+    if (localStorage.getItem('ps_user_logged') === 'true') {
+      const appSection = document.getElementById('app-section');
+      if (appSection) appSection.classList.remove('d-none');
+
+      if (window.innerWidth <= 768 && mobileMenuOverlay) {
+        mobileMenuOverlay.style.display = 'flex';
+        renderGridCards();
+        document.body.style.overflow = 'hidden';
+      } else {
+        const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
+        if (dashboardLink) switchTab('dashboard', dashboardLink);
+      }
+    } else {
+      showLandingPage();
     }
     return;
   }
+
+  const openModal = document.querySelector('.modal.show');
+  // ... baaki existing code same
 });
 
 function renderCelebrations() {
