@@ -39,6 +39,7 @@ let deletionRequests = [];
 
 let __deepLinkLock = false;
 let __userClosedOverlay = false;
+let __programmaticBack = false;   // ✅ NEW — apne history.back() ko ignore karne ke liye
 let notificationBadgeCount = 0;
 let communityBadgeCount = 0;
 
@@ -4543,6 +4544,13 @@ function closeTabOverlay() {
   if (overlay) overlay.remove();
   document.body.style.overflow = '';
 
+  // ✅ Programmatic back — popstate ko batana hai ki ye humne khud trigger kiya hai
+  if (window.history.state && window.history.state.overlayOpen) {
+    __programmaticBack = true;
+    window.history.back();
+  }
+
+  // Mobile par mobile menu wapas dikhao
   if (window.innerWidth <= 768) {
     const gridOverlay = document.getElementById('mobileMenuOverlay');
     if (gridOverlay) {
@@ -4550,10 +4558,6 @@ function closeTabOverlay() {
       renderGridCards();
       document.body.style.overflow = 'hidden';
     }
-  }
-
-  if (window.history.state && window.history.state.overlayOpen) {
-    window.history.back();
   }
 }
 
@@ -5138,16 +5142,26 @@ document.addEventListener('show.bs.modal', function (event) {
 });
 
 window.addEventListener('popstate', function(event) {
+  // ✅ Sabse pehle programmatic flag capture + reset karo
+  const wasProgrammatic = __programmaticBack;
+  __programmaticBack = false;
+
   if (__deepLinkLock === true) {
     console.log('[DeepLink] popstate ignored during lock');
     return;
   }
 
-  const tabOverlay = document.getElementById('tabOverlay');
-  const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-  const visitorSection = document.getElementById('visitor-section');  // ✅ NEW
+  // Apne hi history.back() se aaya hai — skip karo
+  if (wasProgrammatic) {
+    console.log('[Popstate] Skipped (programmatic back from closeTabOverlay)');
+    return;
+  }
 
-  // ✅ Visitor section check — agar open hai to close karo
+  const tabOverlay       = document.getElementById('tabOverlay');
+  const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+  const visitorSection   = document.getElementById('visitor-section');
+
+  // ---------- 1. VISITOR SECTION ----------
   if (visitorSection && visitorSection.style.display === 'block') {
     visitorSection.style.display = 'none';
     document.body.style.overflow = '';
@@ -5170,8 +5184,39 @@ window.addEventListener('popstate', function(event) {
     return;
   }
 
+  // ---------- 2. OPEN MODAL ----------
   const openModal = document.querySelector('.modal.show');
-  // ... baaki existing code same
+  if (openModal) {
+    const inst = bootstrap.Modal.getInstance(openModal);
+    if (inst) inst.hide();
+    return;
+  }
+
+  // ---------- 3. TAB OVERLAY (ye hi missing tha!) ----------
+  if (tabOverlay) {
+    __userClosedOverlay = true;
+    tabOverlay.remove();
+    document.body.style.overflow = '';
+
+    if (window.innerWidth <= 768 && mobileMenuOverlay) {
+      mobileMenuOverlay.style.display = 'flex';
+      renderGridCards();
+      document.body.style.overflow = 'hidden';
+    } else {
+      const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
+      if (dashboardLink) switchTab('dashboard', dashboardLink);
+    }
+    return;
+  }
+
+  // ---------- 4. MOBILE MENU ----------
+  if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
+    mobileMenuOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+    return;
+  }
+
+  // Else: dashboard par hai, kuch nahi karna (app exit ho jayega naturally)
 });
 
 function renderCelebrations() {
