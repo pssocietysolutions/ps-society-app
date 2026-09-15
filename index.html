@@ -320,13 +320,27 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 </div>
 
 <!-- ========== VISITOR SECTION ========== -->
-<div id="visitor-section" class="container py-4" style="display:none; min-height:100vh; background: #f8fafc;">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <button id="visitorBackBtn" class="btn btn-outline-secondary" onclick="goBackFromVisitor()"><i class="fa-solid fa-arrow-left me-2"></i> Back</button>
-    <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-plus text-primary me-2"></i> Visitor Management</h3>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitorModal" onclick="loadFlatsDropdown()"><i class="fa-solid fa-plus me-2"></i> Add Visitor</button>
+<div id="visitor-section" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #f8fafc; padding: 16px; z-index: 1050;">
+  <div style="max-width: 1200px; margin: 0 auto; height: 100%; display: flex; flex-direction: column;">
+    
+    <!-- FIXED HEADER (kabhi scroll nahi hoga) -->
+    <div class="d-flex justify-content-between align-items-center mb-3" style="flex: 0 0 auto;">
+      <button id="visitorBackBtn" class="btn btn-outline-secondary" onclick="goBackFromVisitor()">
+        <i class="fa-solid fa-arrow-left me-2"></i> Back
+      </button>
+      <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-plus text-primary me-2"></i> Visitor Management</h3>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitorModal" onclick="loadFlatsDropdown()">
+        <i class="fa-solid fa-plus me-2"></i> Add Visitor
+      </button>
+    </div>
+
+    <!-- SCROLLABLE LIST -->
+    <div id="visitorListContainer" 
+         style="flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; padding-right: 6px; -webkit-overflow-scrolling: touch;">
+      <div class="alert alert-info">Loading visitors...</div>
+    </div>
+    
   </div>
-  <div id="visitorListContainer" class="mt-3"><div class="alert alert-info">Loading visitors...</div></div>
 </div>
 
 <!-- ========== LOGIN ========== -->
@@ -365,11 +379,16 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <nav id="sidebarMenu" class="col-md-3 col-lg-2 bg-dark navbar-dark collapse d-md-block sidebar p-3">
         <div class="text-white mb-3 d-none d-md-block text-center border-bottom border-secondary pb-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <span id="user-role-badge" class="badge bg-primary px-2 py-1">Admin</span>
-            <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="handleLogout()" title="Logout" style="font-size: 12px; border-radius: 20px;">
-              <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-            </button>
-          </div>
+  <span id="user-role-badge" class="badge bg-primary px-2 py-1">Admin</span>
+  <div class="d-flex gap-1">
+    <button class="btn btn-outline-warning btn-sm py-0 px-2 refresh-btn" onclick="manualRefresh()" title="Refresh Data" style="font-size: 12px; border-radius: 20px;">
+      <i class="fa-solid fa-rotate"></i>
+    </button>
+    <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="handleLogout()" title="Logout" style="font-size: 12px; border-radius: 20px;">
+      <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
+    </button>
+  </div>
+</div>
           <h5 id="sidebar-society-name" class="fw-bold text-warning mb-0">Demo Society</h5>
           <div id="user-name-display" class="small text-muted">A-101</div>
           <div id="society-switcher" class="mt-2 d-none">
@@ -425,14 +444,19 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
               <div id="mobile-user-details" style="color: #cbd5e1; font-size: 12px; margin-top: 3px; font-weight: 500;">A-101 | Member</div>
             </div>
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
-              <div style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 0.5px;">
-                <span style="color: #f59e0b;">PS</span> Society
-                <span id="notification-badge" style="display: none; background: #ef4444; color: white; font-size: 10px; border-radius: 50%; padding: 1px 6px; margin-left: 4px;">0</span>
-              </div>
-              <button onclick="handleLogout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 4px 10px; border-radius: 14px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
-              </button>
-            </div>
+  <div style="font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 0.5px;">
+    <span style="color: #f59e0b;">PS</span> Society
+    <span id="notification-badge" style="display: none; background: #ef4444; color: white; font-size: 10px; border-radius: 50%; padding: 1px 6px; margin-left: 4px;">0</span>
+  </div>
+  <div style="display: flex; gap: 6px;">
+    <button onclick="manualRefresh()" class="refresh-btn" title="Refresh Data" style="background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; padding: 4px 10px; border-radius: 14px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+      <i class="fa-solid fa-rotate"></i> Refresh
+    </button>
+    <button onclick="handleLogout()" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 4px 10px; border-radius: 14px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </button>
+  </div>
+</div>
           </div>
           <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; flex: 1;"></div>
         </div>

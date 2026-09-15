@@ -129,13 +129,9 @@ function goBackFromVisitor() {
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
 
-  const visitorSection = document.getElementById('visitor-section');
-  if (visitorSection) {
-    visitorSection.style.display = 'none';
-    visitorSection.style.height = '0';
-    visitorSection.style.overflow = 'hidden';
-    visitorSection.style.background = 'transparent';
-  }
+ if (visitorSection) {
+  visitorSection.style.display = 'none';
+}
 
   const tabOverlay = document.getElementById('tabOverlay');
   if (tabOverlay) tabOverlay.remove();
@@ -528,6 +524,10 @@ function switchSociety(societyName) {
   fetchSupabaseData();
   setTimeout(() => loadSecondaryData(), 500);
   setupRealtimeSubscriptions();
+  listenForSOSAlerts();                      // ✅ NEW: SOS channel refresh on switch
+
+  // ✅ NEW: Save FCM token for this society (Admin multi-society support)
+  setTimeout(() => requestNotificationPermission(), 1200);
 
   const sidebarName = document.getElementById('sidebar-society-name');
   if (sidebarName) sidebarName.innerText = societyName;
@@ -1718,12 +1718,13 @@ function setupRealtimeSubscriptions() {
   if (!currentSociety) return;
 
   const cleanName = currentSociety.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const socFilter = `society_name=eq.${currentSociety}`;
+  const encodedSociety = encodeURIComponent(currentSociety);
+  const socFilter = `society_name=eq.${encodedSociety}`;
 
   __proofRealtimeChannel = _supabase
     .channel(`society-rt-${cleanName}`)
 
-    // 1. PAYMENT PROOFS
+    // 1. PAYMENT PROOFS (with Admin notification)
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'payment_proofs', filter: socFilter },
       async (payload) => {
@@ -1766,7 +1767,48 @@ function setupRealtimeSubscriptions() {
         renderCelebrations();
       })
 
-    // 3. MAINTENANCE PAYMENTS
+    // 3. COMPLAINTS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'complaints', filter: socFilter },
+      async () => {
+        console.log('[RT] complaints changed');
+        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
+        complaintData = data || [];
+        renderComplaints();
+        updateAllBadges();
+      })
+
+    // 4. NOTICES
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'notices', filter: socFilter },
+      async () => {
+        console.log('[RT] notices changed');
+        const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
+        noticesData = data || [];
+        renderNoticesCommunity();
+        updateAllBadges();
+      })
+
+    // 5. POLLS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'polls', filter: socFilter },
+      async () => {
+        console.log('[RT] polls changed');
+        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
+        pollsData = data || [];
+        renderPolls();
+        updateAllBadges();
+      })
+
+    // 6. VISITORS
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'visitors', filter: `society=eq.${encodedSociety}` },
+      async () => {
+        console.log('[RT] visitors changed');
+        if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
+      })
+
+    // 7. MAINTENANCE PAYMENTS
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'maintenance_payments', filter: socFilter },
       async () => {
@@ -1780,7 +1822,7 @@ function setupRealtimeSubscriptions() {
         renderTallyBankBook();
       })
 
-    // 4. EXPENSES
+    // 8. EXPENSES
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'expenses', filter: socFilter },
       async () => {
@@ -1789,90 +1831,43 @@ function setupRealtimeSubscriptions() {
         expenseData = data || [];
         renderExpenses();
         renderTallyBankBook();
+        renderBankReconciliation();
       })
 
-    // 5. COMPLAINTS
+    // 9. BANK ENTRIES (Tally Bank + BRS)
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'complaints', filter: socFilter },
+      { event: '*', schema: 'public', table: 'bank_entries', filter: socFilter },
       async () => {
-        console.log('[RT] complaints changed');
-        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-        complaintData = data || [];
-        renderComplaints();
-        updateAllBadges();
+        console.log('[RT] bank_entries changed');
+        const { data } = await _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
+        customBankEntries = data || [];
+        renderTallyBankBook();
+        renderBankReconciliation();
       })
 
-    // 6. NOTICES
+    // 10. ASSETS (CA Audit)
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'notices', filter: socFilter },
+      { event: '*', schema: 'public', table: 'assets', filter: socFilter },
       async () => {
-        console.log('[RT] notices changed');
-        const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-        noticesData = data || [];
-        renderNoticesCommunity();
-        updateAllBadges();
+        console.log('[RT] assets changed');
+        const { data } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
+        assetData = data || [];
+        renderAssets();
+        renderCAAuditReport();
       })
 
-    // 7. POLLS
+    // 11. FDs (CA Audit)
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'polls', filter: socFilter },
+      { event: '*', schema: 'public', table: 'sinking_fund_fd', filter: socFilter },
       async () => {
-        console.log('[RT] polls changed');
-        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
-        pollsData = data || [];
-        renderPolls();
-        updateAllBadges();
+        console.log('[RT] sinking_fund_fd changed');
+        const { data } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
+        fdData = data || [];
+        renderFDs();
+        renderCAAuditReport();
       })
 
-    // 8. VISITORS (society col, not society_name)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'visitors', filter: `society=eq.${currentSociety}` },
-      async () => {
-        console.log('[RT] visitors changed');
-        if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
-      })
-
-    // 9. PARKING
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'parking_vehicles', filter: socFilter },
-      async () => {
-        console.log('[RT] parking changed');
-        const { data } = await _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety);
-        parkingData = data || [];
-        renderParking();
-      })
-
-    // 10. FACILITY BOOKINGS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'facility_bookings', filter: socFilter },
-      async () => {
-        console.log('[RT] facility_bookings changed');
-        const { data } = await _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety);
-        bookingsData = data || [];
-        if (typeof renderCommunity === 'function') renderCommunity();
-      })
-
-    // 11. EVENTS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'events', filter: socFilter },
-      async () => {
-        console.log('[RT] events changed');
-        const { data } = await _supabase.from('events').select('*').eq('society_name', currentSociety);
-        eventsData = data || [];
-        renderEventsCommunity();
-        updateCommunityBadge();
-      })
-
-    // 12. MARKETPLACE
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'marketplace_posts', filter: socFilter },
-      async () => {
-        console.log('[RT] marketplace changed');
-        await fetchMarketplaceData();
-        renderMarketplace();
-      })
-
-    // 13. JOURNAL VOUCHERS
+    // 12. JOURNAL VOUCHERS (Member Ledger + CA Audit)
     .on('postgres_changes',
       { event: '*', schema: 'public', table: 'journal_vouchers', filter: socFilter },
       async () => {
@@ -1881,78 +1876,7 @@ function setupRealtimeSubscriptions() {
         journalVouchersData = data || [];
         renderJournalVouchers();
         renderMembers();
-      })
-
-    // 14. BANK ENTRIES
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'bank_entries', filter: socFilter },
-      async () => {
-        console.log('[RT] bank_entries changed');
-        const { data } = await _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
-        customBankEntries = data || [];
-        renderTallyBankBook();
-      })
-
-    // 15. ASSETS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'assets', filter: socFilter },
-      async () => {
-        console.log('[RT] assets changed');
-        const { data } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
-        assetData = data || [];
-        renderAssets();
-      })
-
-    // 16. FDs
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'sinking_fund_fd', filter: socFilter },
-      async () => {
-        console.log('[RT] sinking_fund_fd changed');
-        const { data } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
-        fdData = data || [];
-        renderFDs();
-      })
-
-    // 17. TEAM
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'team', filter: socFilter },
-      async () => {
-        console.log('[RT] team changed');
-        const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
-        teamData = data || [];
-        renderTeam();
-        renderSOSContacts();
-      })
-
-    // 18. MEETINGS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'society_meetings', filter: socFilter },
-      async () => {
-        console.log('[RT] meetings changed');
-        const { data } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety);
-        meetingsData = data || [];
-        renderMeetings();
-      })
-
-    // 19. AMC
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'amc_contracts', filter: socFilter },
-      async () => {
-        console.log('[RT] amc_contracts changed');
-        const { data } = await _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety);
-        amcContractsData = data || [];
-        renderAMCTracker();
-      })
-
-    // 20. DELETION REQUESTS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'deletion_requests', filter: socFilter },
-      async () => {
-        console.log('[RT] deletion_requests changed');
-        if (currentRole === 'Admin') {
-          await loadDeletionRequests();
-          renderDeletionRequests();
-        }
+        renderMemberPersonalView();
       })
 
     .subscribe((status) => {
@@ -2128,7 +2052,7 @@ function switchTab(tabId, element) {
     document.body.style.overflow = '';
 
     const visitorSection = document.getElementById('visitor-section');
-    if (visitorSection) { visitorSection.style.display = 'block'; visitorSection.style.minHeight = '100vh'; visitorSection.style.background = '#f8fafc'; }
+    if (visitorSection) { visitorSection.style.display = 'block'; }
 
     const appSection = document.getElementById('app-section');
     if (appSection) appSection.classList.add('d-none');
@@ -5395,3 +5319,109 @@ setInterval(async () => {
 }, 30000);
 
 handleDeepLink();
+
+// ==================== VISIBILITY SYNC (Realtime Fallback) ====================
+// Jab user wapas app pe aaye (tab switch / phone unlock), fresh data load karo
+// Sirf tab refresh karo jab 5 second se zyada app hidden thi
+let __lastHiddenAt = 0;
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    __lastHiddenAt = Date.now();
+  } else if (document.visibilityState === 'visible') {
+    const hiddenFor = Date.now() - __lastHiddenAt;
+    
+    // Agar 5 sec se zyada hidden tha, data refresh karo
+    if (__lastHiddenAt > 0 && hiddenFor > 5000) {
+      if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {
+        console.log('[Visibility] App visible after', Math.round(hiddenFor / 1000) + 's — refreshing data');
+        fetchSupabaseData();
+        setTimeout(() => loadSecondaryData(), 300);
+      }
+    }
+    __lastHiddenAt = 0;
+  }
+});
+// ==================== MANUAL REFRESH BUTTON ====================
+let __lastRefreshTime = 0;
+
+async function manualRefresh() {
+  const now = Date.now();
+  const cooldown = 10000; // ✅ 10 second cooldown
+  
+  // Agar 10 second se pehle click kiya to ignore karo
+  if (now - __lastRefreshTime < cooldown) {
+    const remaining = Math.ceil((cooldown - (now - __lastRefreshTime)) / 1000);
+    console.log('[Refresh] Cooldown active. Please wait', remaining, 'sec');
+    
+    // User ko countdown dikhao
+    const btns = document.querySelectorAll('.refresh-btn');
+    btns.forEach(btn => {
+      const originalContent = btn.innerHTML;
+      btn.innerHTML = `<i class="fa-solid fa-clock"></i> ${remaining}s`;
+      setTimeout(() => {
+        btn.innerHTML = originalContent;
+      }, 1000);
+    });
+    return;
+  }
+  
+  __lastRefreshTime = now;
+
+  const btns = document.querySelectorAll('.refresh-btn');
+  
+  // Loading state
+  btns.forEach(btn => {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+  });
+
+  try {
+    console.log('[Manual Refresh] Started...');
+    
+    // Main data
+    await fetchSupabaseData();
+    
+    // Secondary data
+    await loadSecondaryData();
+    
+    // Visitor page khuli hai to visitors bhi refresh
+    const visitorSection = document.getElementById('visitor-section');
+    if (visitorSection && visitorSection.style.display === 'block') {
+      await loadTodayVisitors();
+    }
+    
+    console.log('[Manual Refresh] Done ✅');
+    
+    // Success indicator
+    btns.forEach(btn => {
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> Done!';
+      btn.style.background = 'rgba(34, 197, 94, 0.2)';
+      btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+      btn.style.color = '#4ade80';
+    });
+    
+    setTimeout(() => {
+      btns.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rotate"></i>';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+      });
+    }, 1500);
+    
+  } catch (err) {
+    console.error('[Manual Refresh] Error:', err);
+    
+    btns.forEach(btn => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-rotate"></i>';
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+    });
+    
+    alert('❌ Refresh failed. Please check your connection and try again.');
+  }
+}
