@@ -90,6 +90,7 @@ function showVisitorPage() {
     const backBtn = document.getElementById('visitorBackBtn');
     if (backBtn) backBtn.onclick = goBackFromVisitor;
     loadTodayVisitors();
+    setupVisitorRealtimeForGuard();
   } else {
     openVisitorPassword();
   }
@@ -125,10 +126,12 @@ function goBackFromVisitor() {
   document.body.classList.remove('modal-open');
   document.body.style.overflow = '';
 
-  const visitorSection = document.getElementById('visitor-section');  // ✅ FIX
+   const visitorSection = document.getElementById('visitor-section');
   if (visitorSection) {
     visitorSection.style.display = 'none';
   }
+
+  cleanupVisitorRealtimeForGuard();
 
   const tabOverlay = document.getElementById('tabOverlay');
   if (tabOverlay) tabOverlay.remove();
@@ -1009,6 +1012,43 @@ async function loadSocietiesForDropdown(selectId) {
     opt.textContent = s.name;
     select.appendChild(opt);
   });
+}
+
+// ============= VISITOR REALTIME (For Guard / Password Flow) =============
+let __visitorGuardChannel = null;
+
+function setupVisitorRealtimeForGuard() {
+  // Cleanup old channel
+  if (__visitorGuardChannel) {
+    try { _supabase.removeChannel(__visitorGuardChannel); } catch(e){}
+    __visitorGuardChannel = null;
+  }
+
+  if (!currentSociety) return;
+
+  const encodedSociety = encodeURIComponent(currentSociety);
+  const cleanName = currentSociety.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+  __visitorGuardChannel = _supabase
+    .channel(`visitor-guard-${cleanName}-${Date.now()}`)
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'visitors', filter: `society=eq.${encodedSociety}` },
+      (payload) => {
+        console.log('[Visitor RT] Change detected:', payload.eventType);
+        if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
+      }
+    )
+    .subscribe((status) => {
+      console.log('[Visitor RT] Channel status:', status);
+    });
+}
+
+function cleanupVisitorRealtimeForGuard() {
+  if (__visitorGuardChannel) {
+    try { _supabase.removeChannel(__visitorGuardChannel); } catch(e){}
+    __visitorGuardChannel = null;
+    console.log('[Visitor RT] Cleaned up');
+  }
 }
 
 async function loadTodayVisitors() {
@@ -2142,6 +2182,7 @@ function switchTab(tabId, element) {
   loadTodayVisitors();
   if (visitors.length > 0) { localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString()); }
   updateBadge('visitor-badge', 0);
+  setupVisitorRealtimeForGuard();
 }
 
   if (tabId === 'marketplace') { fetchMarketplaceData().then(renderMarketplace); }
@@ -4926,9 +4967,10 @@ async function verifyVisitorPassword(event) {
   document.getElementById('app-section').classList.add('d-none');
   updateFloatingButtonsVisibility(false);
   
-  const backBtn = document.getElementById('visitorBackBtn');
+    const backBtn = document.getElementById('visitorBackBtn');
   if (backBtn) backBtn.onclick = showLandingPage;
   loadTodayVisitors();
+  setupVisitorRealtimeForGuard();
 }
 
 async function loadFlatsDropdown() {
@@ -5232,10 +5274,12 @@ window.addEventListener('popstate', function(event) {
   const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
   const visitorSection   = document.getElementById('visitor-section');
 
-  // ---------- 1. VISITOR SECTION ----------
+    // ---------- 1. VISITOR SECTION ----------
   if (visitorSection && visitorSection.style.display === 'block') {
     visitorSection.style.display = 'none';
     document.body.style.overflow = '';
+
+    cleanupVisitorRealtimeForGuard();
 
     if (localStorage.getItem('ps_user_logged') === 'true') {
       const appSection = document.getElementById('app-section');
