@@ -97,6 +97,7 @@ function showVisitorPage() {
 
 function showLoginPage() {
   updateFloatingButtonsVisibility(false);
+
   const visitorSec = document.getElementById('visitor-section');
   if (visitorSec) visitorSec.style.display = 'none';
 
@@ -112,13 +113,7 @@ function showLoginPage() {
   if (appSec) appSec.classList.add('d-none');
 
   const loginSec = document.getElementById('login-section');
-  if (loginSec) {
-    loginSec.style.display = 'flex';
-    const sel = document.getElementById('login-society');
-    if (sel && sel.options.length <= 1) {
-      loadSocietiesForDropdown('login-society');
-    }
-  }
+  if (loginSec) loginSec.style.display = 'flex';
 }
 
 function goBackFromVisitor() {
@@ -169,29 +164,66 @@ async function handleLogin(event) {
   event.preventDefault();
   clearAllData();
 
-  const societyVal = (document.getElementById('login-society')?.value || '').trim();
-  const rawInput   = (document.getElementById('login-email')?.value || '').trim();
-  const password   = (document.getElementById('login-password')?.value || '').trim();
+  const rawInput = (document.getElementById('login-email')?.value || '').trim();
+  const password = (document.getElementById('login-password')?.value || '').trim();
 
+  // ─────────────────────────────────────────
+  // STEP 1: Empty check
+  // ─────────────────────────────────────────
   if (!rawInput || !password) {
-    alert('❌ कृपया Flat ID और Password दर्ज करें।');
+    alert('❌ कृपया Login ID और Password दर्ज करें।');
     return;
   }
 
-  let loginId = rawInput.toLowerCase().replace(/\s+/g, '');
-
-  if (!loginId.includes('_')) {
-    if (!societyVal) {
-      alert('❌ कृपया Society सेलेक्ट करें।');
-      return;
-    }
-    const socSlug = societyVal.toLowerCase().replace(/[^a-z0-9]/g, '');
-    loginId = `${loginId}_${socSlug}`;
+  // ─────────────────────────────────────────
+  // STEP 2: Strip @ps.in if user typed it
+  // ─────────────────────────────────────────
+  let loginId = rawInput;
+  if (loginId.toLowerCase().endsWith('@ps.in')) {
+    loginId = loginId.slice(0, -6);
   }
 
+  // ─────────────────────────────────────────
+  // STEP 3: No spaces allowed
+  // ─────────────────────────────────────────
+  if (/\s/.test(loginId)) {
+    alert('❌ Login ID में space allowed नहीं है।\n\nExample: a-101_demosociety');
+    return;
+  }
+
+  // ─────────────────────────────────────────
+  // STEP 4: Auto-lowercase (Hybrid Option C)
+  // ─────────────────────────────────────────
+  loginId = loginId.toLowerCase();
+
+  // ─────────────────────────────────────────
+  // STEP 5: Must contain exactly ONE underscore
+  // ─────────────────────────────────────────
+  const underscoreCount = (loginId.match(/_/g) || []).length;
+  if (underscoreCount !== 1) {
+    alert('❌ Login ID में exactly एक underscore (_) होना चाहिए।\n\nExample: a-101_demosociety\nया: admin_demosociety');
+    return;
+  }
+
+  // ─────────────────────────────────────────
+  // STEP 6: Character set check
+  // Only a-z, 0-9, hyphen before underscore
+  // Only a-z, 0-9 after underscore
+  // ─────────────────────────────────────────
+  if (!/^[a-z0-9-]+_[a-z0-9]+$/.test(loginId)) {
+    alert('❌ Login ID में सिर्फ small letters (a-z), numbers (0-9), और hyphen (-) allowed हैं।\n\nExample: a-101_demosociety');
+    return;
+  }
+
+  // ─────────────────────────────────────────
+  // STEP 7: Build full email
+  // ─────────────────────────────────────────
   const fullEmail = loginId + '@ps.in';
 
   try {
+    // ───────────────────────────────────────
+    // STEP 8: Supabase Authentication
+    // ───────────────────────────────────────
     const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
       email: fullEmail,
       password: password
@@ -202,6 +234,9 @@ async function handleLogin(event) {
       return;
     }
 
+    // ───────────────────────────────────────
+    // STEP 9: Fetch user role from user_master
+    // ───────────────────────────────────────
     const { data: userData, error: userError } = await _supabase
       .from('user_master')
       .select('*')
@@ -216,14 +251,43 @@ async function handleLogin(event) {
 
     const user = userData;
 
+    // ───────────────────────────────────────
+    // STEP 10: Save session to localStorage
+    // ───────────────────────────────────────
     localStorage.setItem('ps_user_logged', 'true');
     localStorage.setItem('ps_user_role', user.role);
     localStorage.setItem('ps_user_id', user.flat_no);
 
-    let targetSociety = user.society_name || societyVal || currentSociety;
+    // ───────────────────────────────────────
+    // STEP 11: Auto-detect society from login ID slug
+    // "admin_demosociety" → socSlug = "demosociety"
+    // Then match against societies table
+    // ───────────────────────────────────────
+    const socSlug = loginId.split('_').slice(1).join('_');
+    let targetSociety = user.society_name || currentSociety || 'Demo Society';
+
+    try {
+      const { data: socData } = await _supabase
+        .from('societies')
+        .select('name')
+        .eq('is_active', true);
+
+      if (socData && socData.length > 0) {
+        const matched = socData.find(s =>
+          s.name.toLowerCase().replace(/[^a-z0-9]/g, '') === socSlug
+        );
+        if (matched) targetSociety = matched.name;
+      }
+    } catch (e) {
+      console.log('[Login] Society match error (using fallback):', e);
+    }
+
     localStorage.setItem('ps_user_society', targetSociety);
     currentSociety = targetSociety.trim();
 
+    // ───────────────────────────────────────
+    // STEP 12: Hide login/landing, show app
+    // ───────────────────────────────────────
     const loginSec = document.getElementById('login-section');
     if (loginSec) loginSec.style.display = 'none';
 
@@ -237,6 +301,9 @@ async function handleLogin(event) {
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
 
+    // ───────────────────────────────────────
+    // STEP 13: Apply role-based session
+    // ───────────────────────────────────────
     applyUserSession(user.role, user.flat_no);
     requestNotificationPermission();
     alert('✅ Login Successful!');
@@ -248,13 +315,17 @@ async function handleLogin(event) {
 }
 
 function openForgotModal() {
-    const loginModalEl = document.getElementById('loginModal');
-    const loginModalInstance = bootstrap.Modal.getInstance(loginModalEl);
-    if (loginModalInstance) loginModalInstance.hide();
+  const forgotEl = document.getElementById('forgotModal');
+  if (!forgotEl) return;
 
-    const forgotEl = document.getElementById('forgotModal');
-    const forgotModal = new bootstrap.Modal(forgotEl);
-    forgotModal.show();
+  // Clear previous values
+  const socInput = document.getElementById('forgotSociety');
+  const flatInput = document.getElementById('forgotFlat');
+  if (socInput) socInput.value = '';
+  if (flatInput) flatInput.value = '';
+
+  const forgotModal = new bootstrap.Modal(forgotEl);
+  forgotModal.show();
 }
 
 function closeForgotModal() {
@@ -5352,7 +5423,6 @@ window.onload = async () => {
   currentSociety = localStorage.getItem('ps_user_society') || 'Demo Society';
 
   await loadSocietiesForDropdown('visitor-society');
-  await loadSocietiesForDropdown('login-society');
   await loadSocietiesForDropdown('visitor-password-society');
 
   if (isLogged === 'true') { applyUserSession(role, email); }

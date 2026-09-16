@@ -350,18 +350,44 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <button class="btn btn-sm btn-outline-secondary float-start" onclick="showLandingPage()"><i class="fa-solid fa-arrow-left"></i> Back</button>
       <div class="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill fw-semibold"><i class="fa-solid fa-building-user me-1"></i> Smart Society Engine</div>
       <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> <span style="color: #1e293b;">Society Solutions</span></h3>
-      <p class="text-muted small">Select your Society to continue</p>
+      <p class="text-muted small">Login with your Society ID to continue</p>
     </div>
+
     <form id="login-form" onsubmit="handleLogin(event)">
-      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Select Society</label><select id="login-society" class="form-select bg-light border" required><option value="">-- Select --</option></select></div>
-      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Flat ID / Login ID</label><div class="input-group"><span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-house text-muted"></i></span><input type="text" id="login-email" class="form-control bg-light border-start-0" placeholder="e.g. A-101 or Admin" required></div></div>
-      <div class="mb-3"><label class="form-label fw-semibold text-secondary small">Password</label><div class="input-group"><span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span><input type="password" id="login-password" class="form-control bg-light border-start-0 border-end-0" placeholder="••••••••" required><button class="btn btn-light border border-start-0 text-muted" type="button" onclick="togglePasswordVisibility()"><i class="fa-solid fa-eye" id="togglePasswordIcon"></i></button></div></div>
-      <div class="mb-4"><label class="form-label fw-semibold text-secondary small">Role Access</label><select id="login-role" class="form-select bg-light border">
-        <option value="Admin">Admin</option>
-        <option value="Chairman">Chairman</option>
-        <option value="SocietyAdmin">SocietyAdmin</option>
-        <option value="Member">Member</option>
-      </select></div>
+
+      <!-- Login ID with @ps.in suffix -->
+<div class="mb-2">
+  <label class="form-label fw-semibold text-secondary small">Login ID</label>
+  <div class="input-group">
+    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-house text-muted"></i></span>
+    <input type="text" id="login-email" class="form-control bg-light border-start-0 border-end-0" placeholder="" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+    <span class="input-group-text bg-secondary-subtle text-secondary fw-semibold" style="font-size: 13px;">@ps.in</span>
+  </div>
+  <div class="form-text text-muted mt-1" style="font-size: 11px;">
+    <i class="fa-solid fa-lightbulb text-warning me-1"></i>
+    Example: <b>a-101_demosociety</b> &nbsp;|&nbsp; <b>chairman_demosociety</b>
+  </div>
+</div>
+
+      <!-- Password -->
+      <div class="mb-2">
+        <label class="form-label fw-semibold text-secondary small">Password</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
+          <input type="password" id="login-password" class="form-control bg-light border-start-0 border-end-0" placeholder="••••••••" autocomplete="current-password" required>
+          <button class="btn btn-light border border-start-0 text-muted" type="button" onclick="togglePasswordVisibility()">
+            <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Forgot Password Link -->
+      <div class="text-end mb-3">
+        <a href="javascript:void(0)" onclick="openForgotModal()" class="text-decoration-none small fw-semibold" style="color: #ea580c;">
+          <i class="fa-solid fa-key me-1"></i> Forgot Password?
+        </a>
+      </div>
+
       <button type="submit" class="btn btn-primary w-100 py-2.5 fw-bold rounded-3 shadow-sm">Sign In to Portal</button>
     </form>
   </div>
@@ -1321,6 +1347,63 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 <div class="modal fade" id="changePasswordModal" tabindex="-1">
   <div class="modal-dialog border-0 shadow-lg"><div class="modal-content border-0"><div class="modal-header bg-warning text-dark"><h5 class="modal-title fw-bold"><i class="fa-solid fa-key me-2"></i> Set New Password</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitChangePassword(event)"><div class="mb-3"><label class="form-label fw-semibold">Old Password</label><input type="password" id="pass-old" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">New Password</label><input type="password" id="pass-new" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Confirm New Password</label><input type="password" id="pass-confirm" class="form-control" required></div><button type="submit" class="btn btn-warning w-100 fw-bold py-2">Update</button></form></div></div></div>
 </div>
+<!-- ========== FORGOT PASSWORD MODAL ========== -->
+<div class="modal fade" id="forgotModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered border-0 shadow-lg">
+    <div class="modal-content border-0" style="border-radius: 20px; overflow: hidden;">
+      
+      <div class="modal-header text-dark border-0" style="background: linear-gradient(135deg, #f59e0b, #ea580c); border-radius: 20px 20px 0 0;">
+        <h5 class="modal-title fw-bold text-white">
+          <i class="fa-solid fa-key me-2"></i> Forgot Password
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        
+        <p class="text-muted small mb-4 text-center">
+          Password reset करने के लिए नीचे अपनी details भरें।<br>
+          Admin आपको <b class="text-success">WhatsApp</b> पर reply करेगा।
+        </p>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold text-secondary small">Society Name <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0">
+              <i class="fa-solid fa-building text-muted"></i>
+            </span>
+            <input type="text" id="forgotSociety" class="form-control bg-light border-start-0" 
+                   placeholder="e.g. Demo Society" required>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold text-secondary small">Flat Number / Login ID <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0">
+              <i class="fa-solid fa-house text-muted"></i>
+            </span>
+            <input type="text" id="forgotFlat" class="form-control bg-light border-start-0" 
+                   placeholder="e.g. A-101" required>
+          </div>
+        </div>
+
+        <button type="button" onclick="sendPasswordRequest()" 
+                class="btn w-100 fw-bold py-2.5 text-white shadow-sm mb-2" 
+                style="background: linear-gradient(135deg, #25d366, #1da851); border-radius: 12px; border: none;">
+          <i class="fa-brands fa-whatsapp me-2" style="font-size: 18px;"></i> Send to Admin via WhatsApp
+        </button>
+
+        <button type="button" class="btn btn-outline-secondary w-100 fw-semibold py-2" 
+                data-bs-dismiss="modal" style="border-radius: 12px;">
+          Cancel
+        </button>
+
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ========== END FORGOT PASSWORD MODAL ========== -->
 
 <!-- Payment Details Modal -->
 <div class="modal fade" id="paymentDetailsModal" tabindex="-1">
