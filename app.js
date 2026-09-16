@@ -1018,7 +1018,6 @@ async function loadSocietiesForDropdown(selectId) {
 let __visitorGuardChannel = null;
 
 function setupVisitorRealtimeForGuard() {
-  // Cleanup old channel
   if (__visitorGuardChannel) {
     try { _supabase.removeChannel(__visitorGuardChannel); } catch(e){}
     __visitorGuardChannel = null;
@@ -1026,20 +1025,27 @@ function setupVisitorRealtimeForGuard() {
 
   if (!currentSociety) return;
 
-  const encodedSociety = encodeURIComponent(currentSociety);
   const cleanName = currentSociety.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
   __visitorGuardChannel = _supabase
-    .channel(`visitor-guard-${cleanName}-${Date.now()}`)
+    .channel(`visitor-guard-${cleanName}`)
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'visitors', filter: `society=eq.${encodedSociety}` },
+      { event: '*', schema: 'public', table: 'visitors' },
       (payload) => {
-        console.log('[Visitor RT] Change detected:', payload.eventType);
-        if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
+        console.log('[Visitor RT] Change:', payload.eventType, payload);
+        const row = payload.new || payload.old || {};
+        const rowSociety = (row.society || '').trim().toLowerCase();
+        const mySociety = (currentSociety || '').trim().toLowerCase();
+        
+        if (rowSociety === mySociety) {
+          console.log('[Visitor RT] Match found → reloading list');
+          if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
+        }
       }
     )
-    .subscribe((status) => {
-      console.log('[Visitor RT] Channel status:', status);
+    .subscribe((status, err) => {
+      console.log('[Visitor RT] Status:', status);
+      if (err) console.error('[Visitor RT] Error:', err);
     });
 }
 
