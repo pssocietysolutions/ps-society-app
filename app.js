@@ -6743,6 +6743,17 @@ async function openTabOverlay(tabId, skipHistory = false) {
   }
 
   try {
+    // ✅ CONTENT PEHLE MOVE KARO (white screen avoid karne ke liye)
+    const newTarget = document.getElementById(actualTabId);
+    const contentDiv = document.querySelector('#tabOverlay #tabOverlayContent');
+    if (newTarget && contentDiv) {
+      contentDiv.innerHTML = '';
+      contentDiv.appendChild(newTarget);
+      newTarget.classList.remove('d-none');
+      newTarget.setAttribute('data-in-overlay', 'true');
+      if (tabId === 'settings') loadSettingsToForm();
+    }
+
     // ═══════════════════════════════════════════════
     // SPECIAL CASE: Community tab (early return)
     // ═══════════════════════════════════════════════
@@ -6802,23 +6813,10 @@ async function openTabOverlay(tabId, skipHistory = false) {
     if (tabId === 'manage-societies') loadSocietiesList();
 
     if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
-      await refreshTabData(tabId);
+      refreshTabData(tabId);
     }
 
-    if (tabId === 'settings') { loadSettingsToForm(); }
-
-    // ✅ MOVE content को overlay में (सिर्फ एक बार)
-    const newTarget = document.getElementById(actualTabId);
-    const contentDiv = document.querySelector('#tabOverlay #tabOverlayContent');
-    if (newTarget && contentDiv) {
-      contentDiv.innerHTML = '';
-      contentDiv.appendChild(newTarget);
-      newTarget.classList.remove('d-none');
-      newTarget.setAttribute('data-in-overlay', 'true');
-      if (tabId === 'settings') loadSettingsToForm();
-    }
-
-  } catch (e) {
+   } catch (e) {
     console.log('[OpenTabOverlay] error:', e);
   }
 }
