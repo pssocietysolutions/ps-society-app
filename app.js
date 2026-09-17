@@ -556,13 +556,23 @@ function loadMainApp(role) {
   if (manageTab) manageTab.closest('li').style.display = (role === 'Admin') ? '' : 'none';
   
   if (window.innerWidth <= 768) {
-    const sidebar = document.querySelector('#sidebarMenu');
-    if (sidebar) sidebar.style.display = 'none';
-    const hasTabParam = urlParams.has('tab');
-    if (!hasTabParam) {
-      toggleMobileMenu();
+  const sidebar = document.querySelector('#sidebarMenu');
+  if (sidebar) sidebar.style.display = 'none';
+  const hasTabParam = urlParams.has('tab');
+  if (!hasTabParam) {
+    // ✅ Force-show grid (toggle nahi — kyunki login pe state unknown hai)
+    const gridOverlay = document.getElementById('mobileMenuOverlay');
+    if (gridOverlay) {
+      gridOverlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      renderGridCards();
+      if (!history.state || !history.state.mobileMenuOpen) {
+        window.history.pushState({ mobileMenuOpen: true }, "", window.location.href);
+      }
     }
-  } else {
+  }
+}
+ else {
     const sidebar = document.querySelector('#sidebarMenu');
     if (sidebar) sidebar.style.display = 'block';
   }
@@ -1700,6 +1710,14 @@ function isDemoMode() {
   return localStorage.getItem('ps_demo_mode') === 'true';
 }
 
+function blockDemoWrite() {
+  if (isDemoMode()) {
+    alert('🔒 Demo Mode mein changes allowed nahi hain.\n\nPlease login to make changes.');
+    return true;
+  }
+  return false;
+}
+
 async function startLiveDemo() {
   if (isDemoMode()) {
     alert('✅ You are already in Demo Mode.');
@@ -1716,7 +1734,6 @@ async function startLiveDemo() {
   currentSociety = DEMO_SOCIETY_NAME;
   currentRole = 'Member';
   currentUser = 'DEMO-VIEWER';
-
   clearAllData();
 
   document.getElementById('landing-section').style.display = 'none';
@@ -6825,39 +6842,33 @@ function createTabOverlay(tabId, content) {
 
 function closeTabOverlay() {
   __userClosedOverlay = true;
-  
   const overlay = document.getElementById('tabOverlay');
   
-  // ✅ Overlay से content निकालो और वापस main में भेजो
+  // ✅ GRID PEHLE show karo (white flash avoid)
+  if (window.innerWidth <= 768) {
+    const gridOverlay = document.getElementById('mobileMenuOverlay');
+    if (gridOverlay) {
+      renderGridCards();
+      gridOverlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+  
+  // ✅ AB overlay remove karo
   if (overlay) {
     const movedContent = overlay.querySelector('.tab-content[data-in-overlay="true"]');
     if (movedContent) {
-      movedContent.classList.add('d-none');       // वापस hidden
+      movedContent.classList.add('d-none');
       movedContent.removeAttribute('data-in-overlay');
-      
-      // Main element में वापस append करो
       const mainElement = document.querySelector('main');
       if (mainElement) mainElement.appendChild(movedContent);
     }
     overlay.remove();
   }
   
-  document.body.style.overflow = '';
-
-  // ✅ Programmatic back
   if (window.history.state && window.history.state.overlayOpen) {
     __programmaticBack = true;
     window.history.back();
-  }
-
-  // Mobile menu वापस खोलो
-  if (window.innerWidth <= 768) {
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) {
-      gridOverlay.style.display = 'flex';
-      renderGridCards();
-      document.body.style.overflow = 'hidden';
-    }
   }
 }
 
@@ -7523,7 +7534,14 @@ window.addEventListener('popstate', function(event) {
 if (tabOverlay) {
   __userClosedOverlay = true;
   
-  // ✅ Moved content वापस भेजो
+  // ✅ GRID PEHLE show karo (white flash avoid karne ke liye)
+  if (window.innerWidth <= 768 && mobileMenuOverlay) {
+    renderGridCards();
+    mobileMenuOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  
+  // ✅ AB tab overlay content wapas main mein bhejo
   const movedContent = tabOverlay.querySelector('.tab-content[data-in-overlay="true"]');
   if (movedContent) {
     movedContent.classList.add('d-none');
@@ -7532,13 +7550,9 @@ if (tabOverlay) {
     if (mainElement) mainElement.appendChild(movedContent);
   }
   tabOverlay.remove();
-  document.body.style.overflow = '';
-
-  if (window.innerWidth <= 768 && mobileMenuOverlay) {
-    mobileMenuOverlay.style.display = 'flex';
-    renderGridCards();
-    document.body.style.overflow = 'hidden';
-  } else {
+  
+  if (window.innerWidth > 768) {
+    document.body.style.overflow = '';
     const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
     if (dashboardLink) switchTab('dashboard', dashboardLink);
   }
