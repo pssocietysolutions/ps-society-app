@@ -6,7 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
 
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>PS Society Solutions - Management Portal</title>
 
   <!-- PWA META & LOGO -->
@@ -160,15 +160,52 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   word-break: break-word;
 }
 
+.grid-card-item {
+  position: relative;   /* badge के लिए */
+}
+
+.grid-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.grid-badge:empty,
+.grid-badge[data-count="0"] {
+  display: none;
+}
+
 /* 🟢 GRID CONTAINER – 2 कॉलम, ज्यादा गैप */
 #mobileMenuOverlay .grid-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
   padding: 10px 0 20px 0;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   align-content: start;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 20px;
+  padding-bottom: 40px;
+}
+
+/* Tablets / बड़े phones पर 3 columns */
+@media (min-width: 480px) {
+  #mobileMenuOverlay .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* Member Ledger Table – Mobile Friendly */
@@ -235,6 +272,28 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 @media (max-width: 992px) {
   .top-nav-links { display: none !important; }
 }
+/* 🎬 DEMO MODE — Hide all write actions */
+body.demo-mode .admin-only,
+body.demo-mode .chairman-only,
+body.demo-mode button[onclick*="delete"],
+body.demo-mode button[onclick*="Delete"],
+body.demo-mode button[onclick*="submit"],
+body.demo-mode button[onclick*="verify"],
+body.demo-mode button[onclick*="approve"],
+body.demo-mode button[onclick*="reject"],
+body.demo-mode button[onclick*="Resolve"],
+body.demo-mode button[onclick*="Save"],
+body.demo-mode button[data-bs-target="#memberModal"],
+body.demo-mode button[data-bs-target="#maintenanceModal"],
+body.demo-mode button[data-bs-target="#expenseModal"],
+body.demo-mode button[data-bs-target="#bankModal"],
+body.demo-mode button[data-bs-target="#journalModal"],
+body.demo-mode button[data-bs-target="#paymentDetailsModal"],
+body.demo-mode #deletionRequestCard,
+body.demo-mode .no-print.admin-only {
+  display: none !important;
+}
+
   </style>
 </head>
 <body>
@@ -249,10 +308,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <span><span style="color: #ea580c;">PS</span> Society Solutions</span>
     </div>
 
-    <ul class="top-nav-links">
+        <ul class="top-nav-links">
       <li><a href="#" class="active" onclick="showLandingPage()">Home</a></li>
       <li><a href="#" onclick="openAboutPS()">About Us</a></li>
-      <li><a href="#" onclick="showLoginPage()">For a Demo</a></li>
+      <li><a href="#" onclick="startLiveDemo()" style="color: #22c55e; font-weight: 700;">🎬 Try Live Demo</a></li>
       <li><a href="#" onclick="openEnrollModal()">New Enroll</a></li>
     </ul>
     
@@ -277,15 +336,18 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           Simple • Transparent • Affordable. Digitalize your society's accounting, maintenance billing, member ledgers, and visitor tracking in a single click.
         </p>
         
-        <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+                <div class="d-flex flex-wrap gap-3 justify-content-center justify-content-lg-start">
+          <button onclick="startLiveDemo()" style="background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; border: none; border-radius: 40px; padding: 12px 32px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);">
+            <i class="fa-solid fa-play-circle"></i> Try Live Demo
+          </button>
           <button onclick="showVisitorPage()" style="background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 40px; padding: 12px 28px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-door-open text-warning"></i> Visitor Desk
           </button>
           <button onclick="showLoginPage()" style="background: linear-gradient(135deg, #ea580c, #f59e0b); color: #fff; border: none; border-radius: 40px; padding: 12px 32px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
             <i class="fa-solid fa-right-to-bracket"></i> Login
           </button>
-        </div>
-      </div>
+         </div>
+      </div>   <!-- ✅ YE MISSING THA - col-lg-7 close -->
 
       <div class="col-lg-5 text-center">
         <div style="background: #111827; border: 8px solid #374151; border-radius: 36px; padding: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); max-width: 300px; margin: 0 auto; position: relative;">
@@ -293,7 +355,6 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <img src="Demoapp.jpeg" alt="App Dashboard Preview" style="width: 100%; height: auto; border-radius: 20px; display: block;">
         </div>
       </div>
-
     </div>
   </div>
 
@@ -318,6 +379,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     <i class="fa-brands fa-whatsapp"></i>
   </a>
 </div>
+
 
 <!-- ========== VISITOR SECTION ========== -->
 <div id="visitor-section" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #f8fafc; padding: 16px; z-index: 1050;">
@@ -427,6 +489,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <li class="nav-item"><a class="nav-link active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-chart-line me-2" style="color: #2563eb;"></i> Dashboard</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('members', this)"><i class="fa-solid fa-users me-2" style="color: #22c55e;"></i> Members Directory</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('maintenance', this)"><i class="fa-solid fa-indian-rupee-sign me-2" style="color: #f59e0b;"></i> Maintenance Log <span id="maintenance-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+<li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('bills', this)"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: #16a34a;"></i> Monthly Bills</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('expenses', this)"><i class="fa-solid fa-receipt me-2" style="color: #ef4444;"></i> Expense Ledger</a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('amc-tracker', this)"><i class="fa-solid fa-screwdriver-wrench me-2" style="color: #f59e0b;"></i> AMC Tracker <span id="amc-badge" class="badge bg-warning text-dark ms-1" style="display:none;font-size:10px;">🔔</span></a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('tally-bank', this)"><i class="fa-solid fa-building-columns me-2" style="color: #8b5cf6;"></i> Tally Bank Book</a></li>
@@ -436,6 +499,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('chairman-report', this)"><i class="fa-solid fa-file-invoice-dollar me-2" style="color: #f59e0b;"></i> Chairman Report</a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('visitor', this)"><i class="fa-solid fa-user-plus me-2" style="color: #8b5cf6;"></i> Visitor <span id="visitor-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('complaints', this)"><i class="fa-solid fa-headset me-2" style="color: #ec4899;"></i> Complaints <span id="complaints-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
+          <li class="nav-item"><a class="nav-link" onclick="switchTab('support', this)"><i class="fa-solid fa-life-ring me-2" style="color: #0ea5e9;"></i> Support Tickets <span id="support-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item"><a class="nav-link" onclick="switchTab('polls', this)"><i class="fa-solid fa-check-to-slot me-2" style="color: #f97316;"></i> Polls & Voting <span id="polls-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item" id="community-nav-item"><a class="nav-link" onclick="switchTab('community', this)"><i class="fa-solid fa-people-group me-2" style="color: #14b8a6;"></i> Community Hub <span id="community-badge" class="badge bg-danger ms-1" style="display:none;font-size:10px;">0</span></a></li>
           <li class="nav-item role-restricted admin-only chairman-only"><a class="nav-link" onclick="switchTab('meetings', this)"><i class="fa-solid fa-book-open me-2" style="color: #2563eb;"></i> Meeting Minutes (AGM)</a></li>
@@ -463,7 +527,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
 
         <!-- MOBILE GRID OVERLAY -->
-        <div id="mobileMenuOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 10000; display: none; flex-direction: column; padding: 20px; overflow-y: auto;">
+        <div id="mobileMenuOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(15, 23, 42, 0.95); z-index: 10000; display: none; flex-direction: column; padding: 20px; overflow: hidden;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.15);">
             <div style="text-align: left;">
               <h5 id="mobile-society-name" style="font-weight: 800; color: #f59e0b; margin: 0; font-size: 1.1rem; line-height: 1.2;">Demo Society</h5>
@@ -484,7 +548,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   </div>
 </div>
           </div>
-          <div class="grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; flex: 1;"></div>
+          <div class="grid-container"></div>
         </div>
 
 <!-- 👑 Super-Admin Master Dashboard Tab -->
@@ -499,10 +563,100 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         <i class="fa-solid fa-rotate me-1"></i> Refresh Data
       </button>
     </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- 🔒 SUBSCRIPTION STATUS BANNER (Auto-Suspend Alert)  -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <div id="subscription-status-banner" class="mb-3"></div>
+
     <div id="super-admin-master-container">
       <div class="text-center py-5">
         <i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i>
         <p class="text-muted mt-2">Loading Master Overview...</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 💰 SUBSCRIPTION BILLING SYSTEM (Super Admin Only)       -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-success mb-1">
+            <i class="fa-solid fa-file-invoice-dollar me-2"></i> Subscription Billing (Agency Revenue)
+          </h5>
+          <p class="text-muted small mb-0">Track monthly subscription payments from all societies — invoices, collections & reminders.</p>
+        </div>
+        <span class="badge bg-success-subtle text-success fw-semibold px-3 py-2">
+          <i class="fa-solid fa-shield-halved me-1"></i> Super Admin Only
+        </span>
+      </div>
+
+      <!-- Overdue Alert Banner (dynamic) -->
+      <div id="subscription-overdue-banner" class="mb-3"></div>
+
+      <!-- Stats Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="card p-3 border-0 shadow-sm rounded-3 bg-warning-subtle">
+            <h6 class="text-warning-emphasis small mb-1">Pending Invoices</h6>
+            <h4 class="fw-bold text-warning-emphasis mb-0" id="sub-stat-pending-count">0</h4>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3 border-0 shadow-sm rounded-3 bg-danger-subtle">
+            <h6 class="text-danger small mb-1">Overdue Amount</h6>
+            <h4 class="fw-bold text-danger mb-0" id="sub-stat-overdue">₹0</h4>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3 border-0 shadow-sm rounded-3 bg-success-subtle">
+            <h6 class="text-success small mb-1">Total Collected</h6>
+            <h4 class="fw-bold text-success mb-0" id="sub-stat-collected">₹0</h4>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="card p-3 border-0 shadow-sm rounded-3 bg-primary-subtle">
+            <h6 class="text-primary small mb-1">This Month Expected</h6>
+            <h4 class="fw-bold text-primary mb-0" id="sub-stat-expected">₹0</h4>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <input type="month" id="sub-invoice-month-picker" class="form-control form-control-sm" style="width: auto;">
+        <button class="btn btn-sm btn-success fw-semibold" onclick="generateSubscriptionInvoices()">
+          <i class="fa-solid fa-bolt me-1"></i> Generate Invoices
+        </button>
+        <button class="btn btn-sm btn-outline-success fw-semibold" onclick="loadSubscriptionInvoices()">
+          <i class="fa-solid fa-rotate me-1"></i> Refresh
+        </button>
+        <button class="btn btn-sm btn-outline-secondary fw-semibold" onclick="showAllSubscriptionInvoices()">
+          <i class="fa-solid fa-list me-1"></i> Show All
+        </button>
+      </div>
+
+      <!-- Invoices Table -->
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" id="subscription-invoices-table">
+          <thead class="table-light">
+            <tr>
+              <th>Invoice No</th>
+              <th>Society</th>
+              <th>Month</th>
+              <th>Flats</th>
+              <th>Rate</th>
+              <th>Amount (₹)</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th class="no-print">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="subscription-invoices-list">
+            <tr><td colspan="9" class="text-center text-muted">Loading invoices...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -510,7 +664,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 
         <!-- TAB 1: DASHBOARD -->
         <div id="tab-dashboard" class="tab-content">
-        <div id="tenant-warning-banner-container" class="mb-3"></div>  
+  <div id="tenant-warning-banner-container" class="tenant-warning-banner mb-3"></div>    
           <h3 class="fw-bold mb-3">Dashboard Overview</h3>
           <div id="dashboard-celebrations-container"></div>
 
@@ -605,7 +759,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 
         <!-- TAB 2: MEMBERS -->
         <div id="tab-members" class="tab-content d-none">
-          <div id="tenant-warning-banner-container" class="mb-3"></div>
+  <div id="tenant-warning-banner-members" class="tenant-warning-banner mb-3"></div>  
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="fw-bold">Member Directory</h3>
             <div class="no-print">
@@ -632,6 +786,78 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
             </table>
           </div>
         </div>
+<!-- TAB: MONTHLY BILLS -->
+<div id="tab-bills" class="tab-content d-none">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h3 class="fw-bold mb-0"><i class="fa-solid fa-file-invoice-dollar text-success me-2"></i> Monthly Maintenance Bills</h3>
+    <div class="d-flex flex-wrap align-items-center gap-2 no-print">
+      <input type="month" id="bill-month-picker" class="form-control form-control-sm" style="width: auto;">
+      <button class="btn btn-sm btn-success fw-semibold" onclick="generateMonthlyBills()">
+        <i class="fa-solid fa-bolt me-1"></i> Generate Bills
+      </button>
+      <button class="btn btn-sm btn-outline-success fw-semibold" onclick="exportBillsExcel()">
+        <i class="fa-solid fa-file-excel me-1"></i> Excel
+      </button>
+      <button class="btn btn-sm btn-outline-primary fw-semibold" onclick="renderBillsTable()">
+        <i class="fa-solid fa-rotate me-1"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card p-3 bg-white border-0 shadow-sm rounded-3">
+        <h6 class="text-muted small mb-1">Total Bills Generated</h6>
+        <h4 class="text-primary fw-bold mb-0" id="bill-stat-total">0</h4>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 bg-white border-0 shadow-sm rounded-3">
+        <h6 class="text-muted small mb-1">Total Bill Amount</h6>
+        <h4 class="text-dark fw-bold mb-0" id="bill-stat-amount">₹0</h4>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 bg-white border-0 shadow-sm rounded-3">
+        <h6 class="text-muted small mb-1">Paid</h6>
+        <h4 class="text-success fw-bold mb-0" id="bill-stat-paid">₹0</h4>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 bg-white border-0 shadow-sm rounded-3">
+        <h6 class="text-muted small mb-1">Pending</h6>
+        <h4 class="text-danger fw-bold mb-0" id="bill-stat-pending">₹0</h4>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <button class="btn btn-success fw-bold shadow-sm" onclick="sendBulkBillsWhatsApp()" style="border-radius: 50px; padding: 10px 30px; background: linear-gradient(90deg, #25d366, #1da851); border: none;">
+      <i class="fa-brands fa-whatsapp me-2"></i> Send Bills to All Pending Members
+    </button>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle" id="bills-table">
+        <thead class="table-light">
+          <tr>
+            <th>Bill No</th>
+            <th>Flat No</th>
+            <th>Month</th>
+            <th>Amount (₹)</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th class="no-print">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bills-list">
+          <tr><td colspan="7" class="text-center text-muted">Select month & click "Generate Bills" or "Refresh"</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
         <!-- TAB 3: MAINTENANCE -->
         <div id="tab-maintenance" class="tab-content d-none">
@@ -838,6 +1064,50 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
     </table>
   </div>
 </div>
+
+        <!-- 🎫 TAB: SUPPORT TICKETS -->
+        <div id="tab-support" class="tab-content d-none">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <h3 class="fw-bold mb-0"><i class="fa-solid fa-life-ring text-primary me-2"></i> Support Tickets</h3>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <select id="support-filter-status" class="form-select form-select-sm" style="width:auto;" onchange="renderSupportTickets()">
+                <option value="all">All Status</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+                <option value="Closed">Closed</option>
+              </select>
+              <button class="btn btn-primary fw-semibold" onclick="openSupportCreateModal()">
+                <i class="fa-solid fa-plus me-1"></i> Raise Ticket
+              </button>
+            </div>
+          </div>
+
+          <div class="alert alert-info small mb-3" style="border-radius:12px;">
+            <i class="fa-solid fa-lightbulb me-2"></i>
+            <strong>Koi problem hai?</strong> Ticket raise karo — admin ko turant notification milega aur wo reply karega.
+          </div>
+
+          <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th class="admin-only">Society</th>
+                  <th>Raised By</th>
+                  <th>Subject</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th class="no-print">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="support-tickets-list">
+                <tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
         <!-- TAB 11: POLLS -->
         <div id="tab-polls" class="tab-content d-none">
@@ -1166,11 +1436,12 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         <div class="col-md-6"><label class="form-label fw-semibold">Email</label><input type="email" id="settings-email" class="form-control"></div>
         <div class="col-md-6"><label class="form-label fw-semibold">PAN / GST</label><input type="text" id="settings-pan" class="form-control"></div>
 <div class="col-md-6">
-  <label class="form-label fw-semibold">Opening Capital / Corpus Fund (₹)</label>
-  <input type="number" id="settings-opening-capital" class="form-control" placeholder="e.g. 0" step="0.01">
-  <small class="text-muted">Day-1 capital fund (usually equals day-1 bank balance if no liabilities)</small>
+  <label class="form-label fw-semibold">Opening Capital / Corpus Fund</label>
+  <div class="alert alert-info mb-0 py-2 px-3" style="font-size: 12px; border-radius: 8px;">
+    <i class="fa-solid fa-robot me-1"></i> <strong>Auto-computed</strong><br>
+    <span style="font-size: 11px;">Calculated from: Opening Bank + Receivables + Fixed Assets + FDs − Advance Liability</span>
+  </div>
 </div>
-
 <div class="col-md-12 mt-3 border-top pt-3">
   <label class="form-label fw-semibold text-primary"><i class="fa-solid fa-signature me-2"></i> Authority Digital Signature (for PDFs & Receipts)</label>
   <div class="row align-items-center">
@@ -1224,6 +1495,59 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       </div>
       <button type="submit" class="btn btn-primary w-100 fw-bold mt-4 py-2">Update Society Details</button>
     </form>
+  </div>
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- 🛡️ FULL DATA BACKUP & EXPORT (Admin Only)       -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <h5 class="fw-bold text-danger mb-1">
+          <i class="fa-solid fa-database me-2"></i> Full Data Backup & Export
+        </h5>
+        <p class="text-muted small mb-0">Download complete backup of all society data — Members, Payments, Expenses, Visitors, Complaints, and everything else.</p>
+      </div>
+      <span class="badge bg-danger-subtle text-danger fw-semibold px-3 py-2">
+        <i class="fa-solid fa-shield-halved me-1"></i> Admin Only
+      </span>
+    </div>
+
+    <div class="row g-3">
+      <!-- JSON Backup -->
+      <div class="col-md-6">
+        <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column">
+          <h6 class="fw-bold text-primary mb-2">
+            <i class="fa-solid fa-file-code me-2"></i> JSON Backup
+          </h6>
+          <p class="small text-muted mb-3 flex-grow-1">
+            Complete raw data in structured format. Best for technical restore and long-term archival.
+          </p>
+          <button onclick="downloadFullBackupJSON()" class="btn btn-primary w-100 fw-bold" id="btn-backup-json">
+            <i class="fa-solid fa-download me-2"></i> Download JSON Backup
+          </button>
+        </div>
+      </div>
+
+      <!-- Excel Backup -->
+      <div class="col-md-6">
+        <div class="p-3 border rounded-3 bg-light h-100 d-flex flex-column">
+          <h6 class="fw-bold text-success mb-2">
+            <i class="fa-solid fa-file-excel me-2"></i> Excel Workbook
+          </h6>
+          <p class="small text-muted mb-3 flex-grow-1">
+            Multi-sheet Excel file (24 sheets). Best for CA review, audits, and manual analysis.
+          </p>
+          <button onclick="downloadFullBackupExcel()" class="btn btn-success w-100 fw-bold" id="btn-backup-excel">
+            <i class="fa-solid fa-download me-2"></i> Download Excel Backup
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning mt-3 small mb-0" style="border-radius: 12px;">
+      <i class="fa-solid fa-triangle-exclamation me-2"></i>
+      <strong>Security Note:</strong> Backup files contain sensitive member data (names, phones, payment history). Store them safely and never share publicly.
+    </div>
   </div>
 </div>
 
@@ -1422,7 +1746,10 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
 
 <!-- Maintenance Modal -->
 <div class="modal fade" id="maintenanceModal" tabindex="-1">
-  <div class="modal-dialog border-0 shadow-lg"><div class="modal-content border-0"><div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold">Record Payment</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitMaintenance(event)"><div class="row g-3"><div class="col-md-6"><label class="form-label fw-semibold">Receipt No</label><input type="text" id="maint-form-ref" class="form-control" placeholder="DEMO011"></div><div class="col-md-6"><label class="form-label fw-semibold">Flat No</label><input type="text" id="maint-form-flat" class="form-control" placeholder="A-101" required></div><div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="maint-form-date" class="form-control" required></div><div class="col-md-6"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="maint-form-amount" class="form-control" value="600" required></div><div class="col-md-6"><label class="form-label fw-semibold">Mode</label><select id="maint-form-mode" class="form-select"><option value="UPI">UPI</option><option value="Cash">Cash</option></select></div><div class="col-md-6"><label class="form-label fw-semibold">Month</label><input type="text" id="maint-form-month" class="form-control" placeholder="July'26"></div><div class="col-12"><label class="form-label fw-semibold">Remarks</label><input type="text" id="maint-form-remarks" class="form-control"></div></div><button type="submit" class="btn btn-success w-100 fw-bold py-2.5 mt-4">Save</button></form></div></div></div>
+  <div class="modal-dialog border-0 shadow-lg"><div class="modal-content border-0"><div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold">Record Payment</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitMaintenance(event)"><div class="row g-3"><div class="col-md-6"><label class="form-label fw-semibold">Receipt No</label><input type="text" id="maint-form-ref" class="form-control" placeholder="DEMO011"></div><div class="col-md-6"><label class="form-label fw-semibold">Flat No</label><input type="text" id="maint-form-flat" class="form-control" placeholder="A-101" required 
+       style="text-transform: uppercase;"
+       oninput="this.value = this.value.toUpperCase().trim()"
+       maxlength="15"></div><div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="maint-form-date" class="form-control" required></div><div class="col-md-6"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="maint-form-amount" class="form-control" value="600" required></div><div class="col-md-6"><label class="form-label fw-semibold">Mode</label><select id="maint-form-mode" class="form-select"><option value="UPI">UPI</option><option value="Cash">Cash</option></select></div><div class="col-md-6"><label class="form-label fw-semibold">Month</label><input type="text" id="maint-form-month" class="form-control" placeholder="July'26"></div><div class="col-12"><label class="form-label fw-semibold">Remarks</label><input type="text" id="maint-form-remarks" class="form-control"></div></div><button type="submit" class="btn btn-success w-100 fw-bold py-2.5 mt-4">Save</button></form></div></div></div>
 </div>
 
 <!-- Expense Modal -->
@@ -1475,7 +1802,8 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <div class="modal-body p-4">
         <form onsubmit="updateMember(event)" id="editMemberForm">
           <input type="hidden" id="edit-mem-id">
-          <div class="mb-3"><label class="form-label fw-semibold">Flat No</label><input type="text" id="edit-mem-flat" class="form-control" readonly></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Flat No</label><input type="text" id="edit-mem-flat" class="form-control" readonly 
+       style="text-transform: uppercase;"></div>
           <div class="mb-3"><label class="form-label fw-semibold">Owner Name</label><input type="text" id="edit-mem-name" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="edit-mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="edit-mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
@@ -1553,7 +1881,11 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Add Member</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <div class="modal-body p-4">
         <form onsubmit="submitMember(event)">
-          <div class="mb-3"><label class="form-label fw-semibold">Flat No</label><input type="text" id="mem-flat" class="form-control" required></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Flat No</label><input type="text" id="mem-flat" class="form-control" required 
+       style="text-transform: uppercase;" 
+       oninput="this.value = this.value.toUpperCase().trim()"
+       placeholder="e.g. A-101" 
+       maxlength="15"></div>
           <div class="mb-3"><label class="form-label fw-semibold">Owner Name</label><input type="text" id="mem-name" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Phone</label><input type="tel" id="mem-phone" class="form-control" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Status</label><select id="mem-status" class="form-select"><option value="Owner">Owner</option><option value="Tenant">Tenant</option></select></div>
@@ -1762,6 +2094,119 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
       <button type="submit" class="btn btn-danger w-100 fw-bold">Submit</button>
     </form>
   </div></div></div></div>
+
+<!-- 🎫 Support Ticket CREATE Modal -->
+<div class="modal fade" id="supportCreateModal" tabindex="-1">
+  <div class="modal-dialog modal-lg border-0 shadow-lg">
+    <div class="modal-content border-0" style="border-radius:20px;">
+      <div class="modal-header bg-primary text-white" style="border-radius:20px 20px 0 0;">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-life-ring me-2"></i> Raise Support Ticket</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form onsubmit="submitSupportTicket(event)" id="supportCreateForm">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
+              <input type="text" id="support-subject" class="form-control" placeholder="e.g. Maintenance payment not showing" required maxlength="100">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Priority <span class="text-danger">*</span></label>
+              <select id="support-priority" class="form-select" required>
+                <option value="Low">🟢 Low</option>
+                <option value="Medium" selected>🔵 Medium</option>
+                <option value="High">🟡 High</option>
+                <option value="Urgent">🔴 Urgent</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+              <select id="support-category" class="form-select" required>
+                <option value="Bug / Error">Bug / Error</option>
+                <option value="Payment Issue">Payment Issue</option>
+                <option value="Accounting">Accounting</option>
+                <option value="Feature Request">Feature Request</option>
+                <option value="Login / Access">Login / Access</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Your Phone (optional)</label>
+              <input type="tel" id="support-phone" class="form-control" placeholder="For faster contact">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Describe the issue <span class="text-danger">*</span></label>
+              <textarea id="support-description" class="form-control" rows="5" placeholder="Detail mein likho — kab hua, kya hua, screenshot attach karo agar possible ho..." required></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Attachment (Screenshot / PDF, optional)</label>
+              <input type="file" id="support-attachment" class="form-control" accept="image/*,.pdf">
+              <small class="text-muted">Max 5MB</small>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold py-2.5 mt-4" id="btn-support-submit">
+            <i class="fa-solid fa-paper-plane me-2"></i> Submit Ticket
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🎫 Support Ticket VIEW / REPLY Modal -->
+<div class="modal fade" id="supportViewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg border-0 shadow-lg">
+    <div class="modal-content border-0" style="border-radius:20px;">
+      <div class="modal-header bg-dark text-white" style="border-radius:20px 20px 0 0;">
+        <h5 class="modal-title fw-bold"><i class="fa-solid fa-ticket me-2"></i> Ticket #<span id="support-view-id"></span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row g-2 mb-3">
+          <div class="col-md-6"><small class="text-muted">Society</small><div><strong id="support-view-society">-</strong></div></div>
+          <div class="col-md-6"><small class="text-muted">Raised By</small><div><strong id="support-view-raisedby">-</strong></div></div>
+          <div class="col-md-4"><small class="text-muted">Category</small><div><span id="support-view-category" class="badge bg-secondary">-</span></div></div>
+          <div class="col-md-4"><small class="text-muted">Priority</small><div><span id="support-view-priority" class="badge bg-primary">-</span></div></div>
+          <div class="col-md-4"><small class="text-muted">Status</small><div><span id="support-view-status" class="badge bg-warning text-dark">-</span></div></div>
+          <div class="col-md-6"><small class="text-muted">Created</small><div id="support-view-date">-</div></div>
+          <div class="col-md-6"><small class="text-muted">Phone</small><div id="support-view-phone">-</div></div>
+        </div>
+
+        <div class="p-3 bg-light rounded-3 mb-3">
+          <h6 class="fw-bold mb-2" id="support-view-subject">-</h6>
+          <p class="mb-0" style="white-space:pre-wrap;" id="support-view-description">-</p>
+          <div id="support-view-attachment-box" class="mt-3" style="display:none;">
+            <a href="#" id="support-view-attachment-link" target="_blank" class="btn btn-sm btn-outline-primary">
+              <i class="fa-solid fa-paperclip me-1"></i> View Attachment
+            </a>
+          </div>
+        </div>
+
+        <div id="support-existing-reply-box" class="alert alert-success" style="display:none;">
+          <h6 class="fw-bold mb-1"><i class="fa-solid fa-reply me-1"></i> Admin Reply</h6>
+          <p class="mb-1" style="white-space:pre-wrap;" id="support-existing-reply-text"></p>
+          <small class="text-muted" id="support-existing-reply-meta"></small>
+        </div>
+
+        <div id="support-admin-reply-section" style="display:none;">
+          <hr>
+          <h6 class="fw-bold mb-2"><i class="fa-solid fa-pen me-1"></i> Your Reply (Admin)</h6>
+          <textarea id="support-reply-text" class="form-control mb-2" rows="4" placeholder="Reply to the user..."></textarea>
+          <label class="form-label fw-semibold small">Change Status</label>
+          <select id="support-reply-status" class="form-select mb-3">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+          </select>
+          <button class="btn btn-success w-100 fw-bold py-2" onclick="submitSupportReply()">
+            <i class="fa-solid fa-paper-plane me-1"></i> Send Reply & Update
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Enroll Modal -->
 <div class="modal fade" id="enrollModal" tabindex="-1" aria-hidden="true">
@@ -2012,6 +2457,64 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
         <button onclick="processUPIPayment()" class="btn btn-success w-100 fw-bold py-3 rounded-4 shadow-sm">
           <i class="fa-solid fa-arrow-right me-2"></i> Pay Now
         </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SUBSCRIPTION MARK PAID MODAL ========== -->
+<div class="modal fade" id="subscriptionPaidModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered border-0 shadow-lg">
+    <div class="modal-content border-0" style="border-radius: 20px; overflow: hidden;">
+      <div class="modal-header bg-success text-white" style="border-radius: 20px 20px 0 0;">
+        <h5 class="modal-title fw-bold">
+          <i class="fa-solid fa-check-circle me-2"></i> Mark Subscription as Paid
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form onsubmit="submitSubscriptionPaid(event)" id="subscriptionPaidForm">
+          <input type="hidden" id="sub-paid-invoice-id">
+
+          <!-- Invoice Info (read-only) -->
+          <div class="alert alert-info py-2 px-3 mb-3" style="border-radius: 10px; font-size: 13px;">
+            <div><strong>Society:</strong> <span id="sub-paid-society-name">-</span></div>
+            <div><strong>Invoice:</strong> <span id="sub-paid-invoice-no">-</span></div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Payment Date</label>
+              <input type="date" id="sub-paid-date" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Amount Received (₹)</label>
+              <input type="number" id="sub-paid-amount" class="form-control" required min="1">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Payment Mode</label>
+              <select id="sub-paid-mode" class="form-select" required>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cash">Cash</option>
+                <option value="Cheque">Cheque</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">UTR / Ref No (Optional)</label>
+              <input type="text" id="sub-paid-utr" class="form-control" placeholder="e.g. 123456789012">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Notes (Optional)</label>
+              <input type="text" id="sub-paid-notes" class="form-control" placeholder="Any remarks...">
+            </div>
+          </div>
+
+          <button type="submit" id="btn-subscription-paid-submit" class="btn btn-success w-100 fw-bold py-2.5 mt-4">
+            <i class="fa-solid fa-check-circle me-2"></i> Confirm Payment
+          </button>
+        </form>
       </div>
     </div>
   </div>
