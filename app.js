@@ -4,13 +4,29 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ✅ Global FY Helper — saari jagah consistent FY date milegi
+function getCurrentFYStartDate() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0 = Jan, 11 = Dec
+  const fyStartYear = month >= 3 ? year : year - 1; // April = 3
+  return `${fyStartYear}-04-01`;
+}
+
 const sirenAudio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg');
 
 let activityLogs = [];
 let currentRole = 'Admin';
 let currentUser = 'A-101';
 let currentSociety = 'Demo Society';
-const MONTHS_IN_FY_SO_FAR = 5; 
+// Dynamic: Months elapsed since 1 April of current FY
+const MONTHS_IN_FY_SO_FAR = (() => {
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-11
+  const fyStartMonth = 3; // April = 3 (0-indexed)
+  if (currentMonth >= fyStartMonth) return currentMonth - fyStartMonth + 1;
+  return (12 - fyStartMonth) + currentMonth + 1;
+})(); 
 let openingBalance = 105035.85;
 
 let membersData = [];
@@ -36,7 +52,7 @@ let eventsData = [];
 let societyRules = '';
 let amcContractsData = [];
 let deletionRequests = [];
-
+let marketplaceData = [];
 let __deepLinkLock = false;
 let __userClosedOverlay = false;
 let __programmaticBack = false;   // ✅ NEW — apne history.back() ko ignore karne ke liye
@@ -816,6 +832,7 @@ function clearAllData() {
   eventsData = [];
   amcContractsData = [];
   deletionRequests = [];
+  marketplaceData = []; 
   openingBalance = 0;
   renderAllTables();
 }
@@ -2019,10 +2036,12 @@ function renderMemberPersonalView() {
   const rate = member ? Number(member.monthly_rate || 600) : 600;
   const openingDue = member ? Number(member.opening_due || 0) : 0;
   
-  let runningBalance = openingDue;
-  let ledgerRows = [{ date: '2026-04-01', particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
+  const fyStartDateStr = getCurrentFYStartDate(); // ✅ Helper
   
-  const fyStartDate = new Date('2026-04-01');
+  let runningBalance = openingDue;
+  let ledgerRows = [{ date: fyStartDateStr, particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
+  
+  const fyStartDate = new Date(fyStartDateStr);
   let currentIterDate = new Date(fyStartDate);
   
   let monthlyDueEntries = [];
@@ -2097,19 +2116,22 @@ function renderMemberPersonalView() {
 function renderTallyBankBook() {
   const tbody = document.getElementById('tally-bank-entries');
   if (!tbody) return;
+  
+  const fyStartDate = getCurrentFYStartDate(); // ✅ Helper use karo
+  
   let runningBalance = openingBalance;
   let totalMoneyIn = 0, totalMoneyOut = 0;
-  let bankEntries = [{ date: '2026-04-01', ref: 'OPENING-BAL', head: 'Opening Bank Balance', type: 'Receipt', deposit: openingBalance, withdraw: 0, source: null, id: null }];
+  let bankEntries = [{ date: fyStartDate, ref: 'OPENING-BAL', head: 'Opening Bank Balance', type: 'Receipt', deposit: openingBalance, withdraw: 0, source: null, id: null }];
   
   maintenanceData.forEach(r => {
     const amt = Number(r.amount_paid || 0);
     totalMoneyIn += amt;
-    bankEntries.push({ date: r.payment_date || '2026-04-01', ref: r.receipt_no || 'REC-001', head: `Maintenance - ${r.flat_no}`, type: 'Receipt (Bank In)', deposit: amt, withdraw: 0, source: 'maintenance', id: r.id });
+    bankEntries.push({ date: r.payment_date || fyStartDate, ref: r.receipt_no || 'REC-001', head: `Maintenance - ${r.flat_no}`, type: 'Receipt (Bank In)', deposit: amt, withdraw: 0, source: 'maintenance', id: r.id });
   });
   expenseData.forEach(e => {
     const amt = Number(e.amount || 0);
     totalMoneyOut += amt;
-    bankEntries.push({ date: e.expense_date || '2026-05-01', ref: e.voucher_no || 'VOU-001', head: `${e.category} - ${e.paid_to}`, type: 'Payment Voucher', deposit: 0, withdraw: amt, source: 'expense', id: e.id });
+    bankEntries.push({ date: e.expense_date || fyStartDate, ref: e.voucher_no || 'VOU-001', head: `${e.category} - ${e.paid_to}`, type: 'Payment Voucher', deposit: 0, withdraw: amt, source: 'expense', id: e.id });
   });
   customBankEntries.forEach(cb => { 
     cb.source = 'custom'; 
@@ -2164,6 +2186,16 @@ function switchTab(tabId, element) {
 
   if (tabId === 'about') renderAboutTab();
   if (tabId === 'rules') renderRules();
+if (tabId === 'ca-audit') { 
+  // Re-fetch settings to ensure fresh opening_capital
+  _supabase.from('society_settings').select('*').eq('society_name', currentSociety).then(({ data }) => {
+    if (data) {
+      societySettings = {};
+      data.forEach(s => { societySettings[s.key] = s.value; });
+    }
+    renderCAAuditReport();
+  });
+}
 
   if (tabId === 'visitor') {
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
@@ -2246,9 +2278,9 @@ function switchTab(tabId, element) {
   if (tabId === 'sos-contacts') renderSOSContacts();
   if (tabId === 'settings') { loadSettingsToForm(); }
 
-  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
-    refreshTabData(tabId);
-  }
+  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank', 'ca-audit'].includes(tabId)) {
+  refreshTabData(tabId);
+}
 }
 
 async function refreshTabData(tabId) {
@@ -2336,6 +2368,15 @@ async function refreshTabData(tabId) {
         }
         renderBankDetails(); break;
       }
+case 'ca-audit': {
+  const { data } = await _supabase.from('society_settings').select('*').eq('society_name', currentSociety);
+  if (data) {
+    societySettings = {};
+    data.forEach(s => { societySettings[s.key] = s.value; });
+  }
+  await renderCAAuditReport();
+  break;
+}
       case 'tally-bank': {
         const [{ data: bankEnt }, { data: mnt }, { data: exp }] = await Promise.all([
           _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
@@ -2574,6 +2615,7 @@ function loadSettingsToForm() {
   setVal('settings-address', s.society_address || '');
   setVal('settings-email', s.society_email || '');
   setVal('settings-pan', s.society_pan || '');
+  setVal('settings-opening-capital', s.opening_capital || '0');
   setVal('settings-enable-late-fee', s.enable_late_fee || 'false');
   setVal('settings-late-fee-type', s.late_fee_type || 'fixed');
   setVal('settings-late-fee-amount', s.late_fee_amount || '');
@@ -3266,39 +3308,154 @@ function renderExpenses() {
 }
 
 async function renderCAAuditReport() {
-  let totalAdvanceLiability = 0;
+    let totalAdvanceLiability = 0;
   membersData.forEach(m => {
     const flatNo = (m.flat_no || '').trim().toUpperCase();
     const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const rate = Number(m.monthly_rate || 600);
     const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
     const openingDue = Number(m.opening_due || 0);
-    const rawPending = openingDue + totalDueTillDate - flatPaid;
+
+    // ✅ NEW: Include JV effect (Debit adds to due, Credit reduces)
+    const flatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === flatNo);
+    const totalDebitJV = flatJVs.filter(jv => jv.type === 'Debit').reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+    const totalCreditJV = flatJVs.filter(jv => jv.type === 'Credit').reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+
+    const rawPending = openingDue + totalDueTillDate + totalDebitJV - totalCreditJV - flatPaid;
     if (rawPending < 0) { totalAdvanceLiability += Math.abs(rawPending); }
   });
 
-  const totalIncome = maintenanceData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-  const totalExp = expenseData.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const totalAssets = assetData.reduce((sum, a) => sum + Number(a.cost || 0), 0);
-  const totalFDs = fdData.reduce((sum, f) => sum + Number(f.principal_amount || 0), 0);
+    // ✅ FY Filter: Only current FY's income & expense
+  const __now = new Date();
+  const __currentYear = __now.getFullYear();
+  const __currentMonth = __now.getMonth(); // 0-11
+  const __fyStartYear = __currentMonth >= 3 ? __currentYear : __currentYear - 1;
+  const __fyStartDate = `${__fyStartYear}-04-01`;
+  const __fyEndDate = `${__fyStartYear + 1}-03-31`;
 
-  const totalDebit = openingBalance + totalAssets + totalExp + totalFDs;
-  const openingCapitalOrSurplus = Math.max(0, totalDebit - totalIncome);
+      // ─────────────────────────────────────────────
+    // INCOME & EXPENSES (current FY)
+    // ─────────────────────────────────────────────
+    const totalIncome = maintenanceData
+      .filter(r => {
+        const d = (r.payment_date || '').trim();
+        return d >= __fyStartDate && d <= __fyEndDate;
+      })
+      .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
 
+    const totalExp = expenseData
+      .filter(e => {
+        const d = (e.expense_date || '').trim();
+        return d >= __fyStartDate && d <= __fyEndDate;
+      })
+      .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+    // ─────────────────────────────────────────────
+    // JOURNAL VOUCHERS (current FY)
+    // ─────────────────────────────────────────────
+    const fyJVs = journalVouchersData.filter(jv => {
+      const d = (jv.date || '').trim();
+      return d >= __fyStartDate && d <= __fyEndDate;
+    });
+
+    const jvDebitTotal = fyJVs.filter(jv => jv.type === 'Debit')
+      .reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+
+    const jvCreditTotal = fyJVs.filter(jv => jv.type === 'Credit')
+      .reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+
+    // Combined totals (with JV effect)
+    const totalIncomeWithJV = totalIncome + jvDebitTotal;
+    const totalExpWithJV = totalExp + jvCreditTotal;
+
+    // ─────────────────────────────────────────────
+    // ASSETS & LIABILITIES
+    // ─────────────────────────────────────────────
+    const totalAssets = assetData.reduce((sum, a) => sum + Number(a.cost || 0), 0);
+    const totalFDs = fdData.reduce((sum, f) => sum + Number(f.principal_amount || 0), 0);
+
+    // ─────────────────────────────────────────────
+    // TRIAL BALANCE
+    // ─────────────────────────────────────────────
+        const openingCapital = Number(societySettings.opening_capital || 0);
+
+    // ✅ NEW: Members Opening Dues as Receivable
+    const totalMembersOpeningDue = membersData.reduce(
+      (sum, m) => sum + Number(m.opening_due || 0),
+      0
+    );
+
+    const debitAssets = openingBalance + totalMembersOpeningDue + totalAssets + totalFDs;
+    const debitExpenses = totalExpWithJV;
+    const totalDebitBeforeSuspense = debitAssets + debitExpenses;
+
+    const creditIncome = totalIncomeWithJV;
+    const creditLiability = totalAdvanceLiability;
+    const creditCapital = openingCapital + totalMembersOpeningDue;
+    const totalCreditBeforeSuspense = creditIncome + creditLiability + creditCapital;
+
+    const difference = totalDebitBeforeSuspense - totalCreditBeforeSuspense;
+
+    let suspenseDebit = 0;
+    let suspenseCredit = 0;
+    if (difference > 0) {
+      suspenseCredit = difference;
+    } else if (difference < 0) {
+      suspenseDebit = Math.abs(difference);
+    }
+
+    const totalDebitFinal = totalDebitBeforeSuspense + suspenseDebit;
+    const totalCreditFinal = totalCreditBeforeSuspense + suspenseCredit;
+
+    const currentFYSurplus = totalIncomeWithJV - totalExpWithJV;
   const tbody = document.getElementById('ca-trial-balance-rows');
   if (tbody) {
+         // ✅ FIX: Conditional label variable ke andar nikal diya
+    const openingCapitalLabel = totalMembersOpeningDue > 0
+      ? 'Opening Capital / Corpus Fund (incl. Members Dues)'
+      : 'Opening Capital / Corpus Fund';
+
     tbody.innerHTML = `
       <tr><td>Opening Bank Balance</td><td>Asset</td><td class="text-success fw-bold">${openingBalance.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Members Opening Dues Receivable</td><td>Asset / Receivable</td><td class="text-success fw-bold">${totalMembersOpeningDue.toFixed(2)}</td><td>-</td></tr>
       <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${totalIncome.toFixed(2)}</td></tr>
+      ${jvDebitTotal > 0 ? `<tr><td>&nbsp;&nbsp;+ Journal Vouchers (Debit — Penalties/Extra Charges)</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${jvDebitTotal.toFixed(2)}</td></tr>` : ''}
       <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${totalAssets.toFixed(2)}</td><td>-</td></tr>
       <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${totalExp.toFixed(2)}</td><td>-</td></tr>
+      ${jvCreditTotal > 0 ? `<tr><td>&nbsp;&nbsp;+ Journal Vouchers (Credit — Waivers/Discounts)</td><td>Expense</td><td class="text-danger fw-bold">${jvCreditTotal.toFixed(2)}</td><td>-</td></tr>` : ''}
       <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${totalFDs.toFixed(2)}</td><td>-</td></tr>
       <tr><td>Advance Maintenance Received (Liability)</td><td>Current Liability</td><td>-</td><td class="text-warning fw-bold">${totalAdvanceLiability.toFixed(2)}</td></tr>
-      <tr><td>Opening Capital / Accumulated Surplus</td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${openingCapitalOrSurplus.toFixed(2)}</td></tr>
+      <tr>
+        <td>${openingCapitalLabel}</td>
+        <td>Capital / Liability</td>
+        <td>-</td>
+        <td class="text-primary fw-bold">${creditCapital.toFixed(2)}</td>
+      </tr>
+      ${suspenseCredit > 0 ? `
+      <tr class="table-warning">
+        <td><i class="fa-solid fa-triangle-exclamation me-1"></i>Difference in Books (Suspense A/c)</td>
+        <td>Suspense</td>
+        <td>-</td>
+        <td class="text-danger fw-bold">${suspenseCredit.toFixed(2)}</td>
+      </tr>` : ''}
+      ${suspenseDebit > 0 ? `
+      <tr class="table-warning">
+        <td><i class="fa-solid fa-triangle-exclamation me-1"></i>Difference in Books (Suspense A/c)</td>
+        <td>Suspense</td>
+        <td class="text-danger fw-bold">${suspenseDebit.toFixed(2)}</td>
+        <td>-</td>
+      </tr>` : ''}
+      <tr class="table-info fw-bold">
+        <td><i class="fa-solid fa-info-circle me-1"></i>Current FY Surplus / (Deficit) — Memo</td>
+        <td>${currentFYSurplus >= 0 ? 'Surplus' : 'Deficit'}</td>
+        <td colspan="2" class="${currentFYSurplus >= 0 ? 'text-success' : 'text-danger'} text-center">
+          ${Math.abs(currentFYSurplus).toFixed(2)} ${currentFYSurplus < 0 ? '(Deficit)' : '(Surplus)'}
+        </td>
+      </tr>
       <tr class="table-secondary fw-bold">
-        <td colspan="2">GRAND TOTAL (MATCHED)</td>
-        <td class="text-success">${totalDebit.toFixed(2)}</td>
-        <td class="text-primary">${(totalIncome + openingCapitalOrSurplus).toFixed(2)}</td>
+        <td colspan="2">GRAND TOTAL (BALANCED)</td>
+        <td class="text-success">${totalDebitFinal.toFixed(2)}</td>
+        <td class="text-primary">${totalCreditFinal.toFixed(2)}</td>
       </tr>
     `;
   }
@@ -3588,14 +3745,17 @@ function openAdminMemberLedger(flatNo) {
   const rate = member ? Number(member.monthly_rate || 600) : 600;
   const openingDue = member ? Number(member.opening_due || 0) : 0;
   
-  let runningBalance = openingDue;
-  let ledgerRows = [{ date: '2026-04-01', particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
+  const fyStartDateStr = getCurrentFYStartDate(); // ✅ Helper
   
-  const fyStartDate = new Date('2026-04-01');
+  let runningBalance = openingDue;
+  let ledgerRows = [{ date: fyStartDateStr, particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
+  
+  const fyStartDate = new Date(fyStartDateStr);
   let currentIterDate = new Date(fyStartDate);
   
   let monthlyDueEntries = [];
   for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
+    // ... baaki code same rahega
     const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
     const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-05`;
     monthlyDueEntries.push({ date: dueDate, type: 'monthly_due', particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`, amount: rate });
@@ -3720,6 +3880,34 @@ function renderBankReconciliation() {
     const amt = Number(e.amount || 0);
     softwareBalance -= amt;
     allEntries.push({ date: e.expense_date || '-', ref: e.voucher_no || 'VOU', head: `${e.category} - ${e.paid_to}`, amount: amt, type: 'Withdrawal (-)' });
+  });
+
+  // ✅ NEW: Manual Bank Entries (from bank_entries table)
+  customBankEntries.forEach(cb => {
+    const depositAmt = Number(cb.deposit || 0);
+    const withdrawAmt = Number(cb.withdraw || 0);
+    
+    if (depositAmt > 0) {
+      softwareBalance += depositAmt;
+      allEntries.push({
+        date: cb.date || '-',
+        ref: cb.ref || 'BNK',
+        head: cb.head || 'Manual Bank Entry',
+        amount: depositAmt,
+        type: 'Deposit (+)'
+      });
+    }
+    
+    if (withdrawAmt > 0) {
+      softwareBalance -= withdrawAmt;
+      allEntries.push({
+        date: cb.date || '-',
+        ref: cb.ref || 'BNK',
+        head: cb.head || 'Manual Bank Entry',
+        amount: withdrawAmt,
+        type: 'Withdrawal (-)'
+      });
+    }
   });
 
   document.getElementById('brs-software-balance').innerText = `₹${softwareBalance.toFixed(2)}`;
@@ -3932,6 +4120,7 @@ async function updateSocietySettings(event) {
     society_phone: document.getElementById('settings-phone').value,
     society_email: document.getElementById('settings-email').value,
     society_pan: document.getElementById('settings-pan').value,
+opening_capital: document.getElementById('settings-opening-capital').value || '0',
     enable_late_fee: document.getElementById('settings-enable-late-fee').value,
     late_fee_type: document.getElementById('settings-late-fee-type').value,
     late_fee_amount: document.getElementById('settings-late-fee-amount').value,
@@ -4003,15 +4192,55 @@ async function generateTaxInvoicePDF(receiptId) {
       ['Total Invoice Amount (Incl. GST)', `Rs. ${finalTotal.toFixed(2)}`]
     );
 
+        // ✅ NEW: Robust GST invoice save with proper error handling
+    const invoicePayload = {
+      society_name: currentSociety,
+      invoice_no: data.receipt_no || `INV-${Date.now()}`,
+      invoice_date: data.payment_date,
+      flat_no: data.flat_no,
+      base_amount: Number(baseAmount.toFixed(2)),
+      cgst_rate: 9,
+      sgst_rate: 9,
+      cgst_amount: Number(cgst.toFixed(2)),
+      sgst_amount: Number(sgst.toFixed(2)),
+      total_amount: finalTotal,
+      is_gst_applicable: true,
+      gstin: societyGstin
+    };
+
     try {
-      await _supabase.from('society_invoices').upsert([{
-        society_name: currentSociety, invoice_no: data.receipt_no || `INV-${Date.now()}`,
-        invoice_date: data.payment_date, flat_no: data.flat_no,
-        base_amount: Number(baseAmount.toFixed(2)), cgst_rate: 9, sgst_rate: 9,
-        cgst_amount: Number(cgst.toFixed(2)), sgst_amount: Number(sgst.toFixed(2)),
-        total_amount: finalTotal, is_gst_applicable: true, gstin: societyGstin
-      }], { onConflict: 'society_name,invoice_no' });
-    } catch (e) { console.log('Invoice table sync note:', e); }
+      // Attempt 1: Upsert (update if exists, insert if new)
+      const { error: upsertErr } = await _supabase
+        .from('society_invoices')
+        .upsert([invoicePayload], { onConflict: 'society_name,invoice_no' });
+
+      if (upsertErr) {
+        console.warn('[GST Invoice] Upsert failed:', upsertErr.message);
+        
+        // Attempt 2: Check if invoice already exists → try insert
+        const { error: insertErr } = await _supabase
+          .from('society_invoices')
+          .insert([invoicePayload]);
+
+        if (insertErr) {
+          console.error('[GST Invoice] Insert also failed:', insertErr.message);
+          
+          // If duplicate, that's fine — invoice already saved
+          if (insertErr.message && insertErr.message.includes('duplicate')) {
+            console.log('[GST Invoice] Invoice already exists — skipping');
+          } else {
+            alert('⚠️ GST Invoice could not be saved to records:\n' + insertErr.message + '\n\nInvoice PDF is still downloaded, but CA Audit report may not reflect it.');
+          }
+        } else {
+          console.log('[GST Invoice] Inserted successfully (fallback)');
+        }
+      } else {
+        console.log('[GST Invoice] Upserted successfully');
+      }
+    } catch (e) {
+      console.error('[GST Invoice] Unexpected error:', e);
+      alert('⚠️ GST Invoice save error: ' + e.message);
+    }
   } else {
     tableRows.push(['Total Amount Paid', `Rs. ${finalTotal.toFixed(2)}`]);
   }
@@ -4214,7 +4443,21 @@ async function submitJournalVoucher(event) {
   alert('✅ Journal Voucher Posted Successfully!');
   bootstrap.Modal.getInstance(document.getElementById('journalModal')).hide();
   document.getElementById('journalForm').reset();
-  fetchSupabaseData();
+  
+  // ✅ Reload journal vouchers data FIRST
+  const { data: freshJVs } = await _supabase
+    .from('journal_vouchers')
+    .select('*')
+    .eq('society_name', currentSociety)
+    .order('date', { ascending: false });
+  journalVouchersData = freshJVs || [];
+  
+  // Then refresh everything
+  renderJournalVouchers();
+  renderCAAuditReport();
+  renderMembers();
+  renderMemberPersonalView();
+  updateAllBadges();
 }
 
 function renderJournalVouchers() {
@@ -4244,21 +4487,38 @@ async function deleteJournalVoucher(id) {
   if (!confirm('⚠️ Delete this Journal Voucher?')) return;
   const { error } = await _supabase.from('journal_vouchers').delete().eq('id', id);
   if (error) alert('Error: ' + error.message);
-  else fetchSupabaseData();
+  else {
+    // ✅ Reload journal vouchers data FIRST
+    const { data: freshJVs } = await _supabase
+      .from('journal_vouchers')
+      .select('*')
+      .eq('society_name', currentSociety)
+      .order('date', { ascending: false });
+    journalVouchersData = freshJVs || [];
+    
+    // Then refresh everything
+    renderJournalVouchers();
+    renderCAAuditReport();
+    renderMembers();
+    renderMemberPersonalView();
+    updateAllBadges();
+  }
 }
 
 async function submitAsset(event) {
   event.preventDefault();
   const newAsset = {
-    asset_code: `AST-${Date.now()}`,
-    name: document.getElementById('asset-name').value,
-    location: document.getElementById('asset-loc').value,
-    quantity: parseInt(document.getElementById('asset-qty').value) || 1,
-    cost: Number(document.getElementById('asset-cost').value),
-    condition_status: document.getElementById('asset-condition').value,
-    details: document.getElementById('asset-details').value || '',
-    society_name: currentSociety
-  };
+  asset_code: `AST-${Date.now()}`,
+  name: document.getElementById('asset-name').value,
+  location: document.getElementById('asset-loc').value,
+  quantity: parseInt(document.getElementById('asset-qty').value) || 1,
+  cost: Number(document.getElementById('asset-cost').value),
+  purchase_date: document.getElementById('asset-purchase-date')?.value || null,
+  depreciation_rate: Number(document.getElementById('asset-dep-rate')?.value || 10),
+  condition_status: document.getElementById('asset-condition').value,
+  details: document.getElementById('asset-details').value || '',
+  society_name: currentSociety
+};
   await _supabase.from('assets').insert([newAsset]);
   bootstrap.Modal.getInstance(document.getElementById('assetModal')).hide();
   fetchSupabaseData();
@@ -5362,8 +5622,6 @@ function renderCelebrations() {
   html += `</div>`;
   container.innerHTML = html;
 }
-
-let marketplaceData = [];
 
 async function fetchMarketplaceData() {
   const { data } = await _supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false });
