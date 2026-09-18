@@ -833,6 +833,30 @@ async function loadSecondaryData() {
     if (currentRole === 'Admin') renderDeletionRequests();
     renderAllTables();
     updateAllBadges();
+    // ✅ FIX 4: Visitor badge — light count query only (role-aware)
+    try {
+      const lastSeenV = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
+      let vQuery = _supabase
+        .from('visitors')
+        .select('*', { count: 'exact', head: true })
+        .ilike('society', currentSociety)
+        .in('status', ['PENDING', 'IN'])
+        .gt('id', lastSeenV);
+
+      // Member ko sirf apne flat ke visitors dikhein
+      if (currentRole === 'Member') {
+        vQuery = vQuery.eq('flat_no', (currentUser || '').toUpperCase());
+      }
+
+      const { count: vCount } = await vQuery;
+      updateBadge('visitor-badge', vCount || 0);
+    } catch (vErr) {
+      console.log('[Badge] visitor count silent error:', vErr);
+    }
+
+    // ✅ FIX 5: Support badge refresh
+    if (typeof updateSupportBadge === 'function') updateSupportBadge();
+
   } catch (e) {
     console.log('Background sync error:', e);
   }
@@ -6694,7 +6718,8 @@ function syncMobileGridBadges() {
     'community': 'community-badge',
     'visitor': 'visitor-badge',
     'amc-tracker': 'amc-badge',
-    'parking': 'parking-badge'
+    'parking': 'parking-badge',
+    'support': 'support-badge'   // ✅ FIX 3: YE LINE ADD KARO
   };
 
   Object.entries(badgeMap).forEach(([cardId, srcBadgeId]) => {
@@ -7061,6 +7086,8 @@ async function addNewSociety(event) {
   renderSuperAdminMasterDashboard();
 }
 
+// ⚠️ DEPRECATED — Not called anywhere. Kept for reference only.
+// Logic is now handled inside updateAllBadges()
 function checkForNewNotifications() {
   if (localStorage.getItem('ps_user_logged') !== 'true') return;
   const lastSeenNotice = parseInt(localStorage.getItem('ps_last_seen_notice') || '0');
@@ -7106,6 +7133,20 @@ async function updateAllBadges() {
       notifBadge.textContent = totalNotificationCount;
       notifBadge.style.display = totalNotificationCount > 0 ? 'inline-block' : 'none';
     }
+// ✅ FIX 1: Ye 5 badges bhi refresh honge — zero extra cost
+    if (typeof updateVisitorBadge === 'function') updateVisitorBadge();
+    if (typeof updateSupportBadge === 'function') updateSupportBadge();
+    if (typeof updateCommunityBadge === 'function') updateCommunityBadge();
+
+    const amcExpiringSoon = (amcContractsData || []).filter(c => {
+      const diffDays = Math.ceil((new Date(c.expiry_date) - new Date()) / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= 7;
+    }).length;
+    updateBadge('amc-badge', amcExpiringSoon > 0 ? '🔔' : 0);
+
+    const parkingPending = (parkingData || []).filter(p => p.status === 'Pending').length;
+    updateBadge('parking-badge', parkingPending > 0 ? parkingPending : 0);
+
   } catch (err) { console.error('Error loading badges:', err); }
 }
 
@@ -7138,7 +7179,11 @@ function markCommunityRead() {
   localStorage.setItem('ps_last_community_read', maxId.toString());
   localStorage.setItem('ps_last_seen_notice', maxId.toString());
   updateBadge('community-badge', 0);
-  updateBadge('notification-badge', 0);
+
+  // ✅ FIX 2: notification-badge ko 0 mat karo — polls pending ho sakte hain
+  const lastSeenPoll = parseInt(localStorage.getItem('ps_last_seen_polls') || '0');
+  const newPollsCount = pollsData.filter(p => (p.id || 0) > lastSeenPoll).length;
+  updateBadge('notification-badge', newPollsCount);
 }
 
 async function openVisitorPassword() {
