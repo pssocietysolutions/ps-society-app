@@ -8082,7 +8082,6 @@ async function submitSupportTicket(event) {
     deep_link: '/?tab=support'
   }]);
 }
-      }
     } catch (nErr) { console.warn('[Support] Notify error:', nErr); }
 
     alert('✅ Ticket submitted! Admin will respond soon.');
