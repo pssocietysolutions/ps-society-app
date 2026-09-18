@@ -2989,14 +2989,17 @@ function renderNoticesCommunity() {
   const visibleNotices = noticesData.filter(n => {
     if (n.deep_link && String(n.deep_link).trim() !== '') return false;
 
-    const systemTitlePatterns = [
-      'Payment Verified',
-      'Payment Rejected',
-      'New Payment Proof',
-      'New AGM',
-      'New Managing Committee',
-      'New Special Meeting'
-    ];
+    // ✅ FIXED
+const systemTitlePatterns = [
+  'Payment Verified',
+  'Payment Rejected',
+  'New Payment Proof',
+  'New AGM',
+  'New Managing Committee',
+  'New Special Meeting',
+  'Admin replied to your ticket',    // ✅ ADD
+  'New Support Ticket'                // ✅ ADD
+];
     if (n.title && systemTitlePatterns.some(p => n.title.includes(p))) return false;
 
     if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') return true;
@@ -3263,6 +3266,17 @@ function renderActivityLogs() {
       </tr>
     `;
   }).join('');
+}
+
+function insertNotice(payload) {
+  const systemPatterns = ['Admin replied', 'New Support Ticket', 'Payment Verified', 'Payment Rejected', 'New AGM'];
+  const isSystem = systemPatterns.some(p => (payload.title || '').includes(p));
+  
+  if (isSystem && !payload.deep_link) {
+    console.error('❌ System notice must have deep_link:', payload.title);
+    return Promise.reject(new Error('System notice requires deep_link'));
+  }
+  return _supabase.from('notices').insert([payload]);
 }
 
 function renderFacilitiesCommunity() {
@@ -8056,16 +8070,18 @@ async function submitSupportTicket(event) {
       const adminFlats = (adminUsers || []).map(u => (u.flat_no || '').toUpperCase()).filter(Boolean);
 
       if (adminFlats.length > 0) {
-        await _supabase.from('notices').insert([{
-          society_name: currentSociety,
-          title: `🎫 New Support Ticket — ${priority}`,
-          content: `${currentUser} raised: "${subject}" (${category})`,
-          date: new Date().toISOString().split('T')[0],
-          author: currentUser,
-          priority: priority === 'Urgent' || priority === 'High' ? 'High' : 'Medium',
-          target_members: adminFlats,
-          attachment_url: null
-        }]);
+  await _supabase.from('notices').insert([{
+    society_name: currentSociety,
+    title: `🎫 New Support Ticket — ${priority}`,
+    content: `${currentUser} raised: "${subject}" (${category})`,
+    date: new Date().toISOString().split('T')[0],
+    author: currentUser,
+    priority: (priority === 'Urgent' || priority === 'High') ? 'High' : 'Medium',
+    target_members: adminFlats,
+    attachment_url: null,
+    deep_link: '/?tab=support'
+  }]);
+}
       }
     } catch (nErr) { console.warn('[Support] Notify error:', nErr); }
 
@@ -8177,9 +8193,10 @@ async function submitSupportReply() {
           date: new Date().toISOString().split('T')[0],
           author: 'Support',
           priority: 'Medium',
-          target_members: [t.raised_by_flat],
-          attachment_url: null
-        }]);
+                target_members: [t.raised_by_flat],
+      attachment_url: null,
+      deep_link: '/?tab=support'   // ✅ ADD THIS COMMA + LINE
+    }]);
       } catch (e) { console.warn('Notify user error:', e); }
     }
 
