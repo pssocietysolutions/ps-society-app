@@ -2095,7 +2095,7 @@ async function submitPaymentDetails(event) {
 
     console.log('[PaymentProof] Admin flats to notify:', adminFlats);
 
-   
+    if (adminFlats.length > 0) {
       const noticePayload = {
         society_name: currentSociety,
         title: `💰 ₹${amount} - Flat ${currentUser}`,
