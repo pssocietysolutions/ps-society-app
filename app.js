@@ -56,6 +56,7 @@ let marketplaceData = [];
 let __deepLinkLock = false;
 let __userClosedOverlay = false;
 let __programmaticBack = false;   // ✅ NEW — apne history.back() ko ignore karne ke liye
+let __changePasswordFromGrid = false;   // ✅ NEW — change-password grid restore ke liye
 let notificationBadgeCount = 0;
 let communityBadgeCount = 0;
 
@@ -665,6 +666,10 @@ function markAllAsRead() {
   updateBadge('polls-badge', 0);
   updateBadge('community-badge', 0);
   updateBadge('visitor-badge', 0);
+  updateBadge('support-badge', 0);
+  updateBadge('amc-badge', 0);
+  updateBadge('parking-badge', 0);
+  updateBadge('notification-badge', 0);
 }
 
 function handleLogout() {
@@ -782,6 +787,15 @@ async function fetchSupabaseData() {
 
 async function loadSecondaryData() {
   try {
+// ✅ FIX: Role-aware support ticket filter
+    const ticketQuery = (currentRole === 'Member' || currentRole === 'Chairman')
+      ? _supabase.from('support_tickets').select('*')
+          .eq('society_name', currentSociety)
+          .eq('raised_by_flat', (currentUser || '').toUpperCase())
+          .order('created_at', { ascending: false })
+      : _supabase.from('support_tickets').select('*')
+          .eq('society_name', currentSociety)
+          .order('created_at', { ascending: false });
     const [
       { data: assets },
       { data: fds },
@@ -811,8 +825,8 @@ async function loadSecondaryData() {
       _supabase.from('team').select('*').eq('society_name', currentSociety),
       _supabase.from('deletion_requests').select('*').eq('society_name', currentSociety).order('requested_at', { ascending: false }),
       _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
-      _supabase.from('support_tickets').select('*').order('created_at', { ascending: false })
-    ]);
+      ticketQuery
+    ]);                                         // ⬅️ YE ZAROORI HAI
 
     assetData = assets || [];
     fdData = fds || [];
@@ -1469,29 +1483,61 @@ async function deleteAMCContract(id) {
 }
 
 function renderBankDetails() {
-  const accName = societySettings.bank_acc_name || 'M/S. Aakruti Heights CHS';
-  const bankName = societySettings.bank_name || 'ICICI Bank';
-  const accNo = societySettings.bank_acc_no || '000000000000';
-  const ifsc = societySettings.bank_ifsc || 'ICIC0000000';
-  const upiId = societySettings.bank_upi_id || '8866376056@icici';
-  const qrUrl = societySettings.society_qr_url || 'qr-payment.png';
+  // ✅ Demo Society ke liye purane defaults rakho, baaki ke liye empty
+  const isDemo = (currentSociety === 'Demo Society');
+
+  const accName    = societySettings.bank_acc_name        || (isDemo ? 'M/S. Aakruti Heights CHS' : '');
+  const bankName   = societySettings.bank_name            || (isDemo ? 'ICICI Bank' : '');
+  const accNo      = societySettings.bank_acc_no          || (isDemo ? '000000000000' : '');
+  const ifsc       = societySettings.bank_ifsc            || (isDemo ? 'ICIC0000000' : '');
+  const upiId      = societySettings.bank_upi_id          || (isDemo ? '8866376056@icici' : '');
+  const qrUrl      = societySettings.society_qr_url       || (isDemo ? 'qr-payment.png' : '');
   const openBalVal = societySettings.opening_bank_balance || '0';
 
-  if (document.getElementById('bank-acc-name')) document.getElementById('bank-acc-name').innerText = accName;
-  if (document.getElementById('bank-name-display')) document.getElementById('bank-name-display').innerText = bankName;
-  if (document.getElementById('bank-acc-no')) document.getElementById('bank-acc-no').innerText = accNo;
-  if (document.getElementById('bank-ifsc')) document.getElementById('bank-ifsc').innerText = ifsc;
-  if (document.getElementById('bank-upi-id')) document.getElementById('bank-upi-id').innerText = upiId;
-  
-  if (document.getElementById('society-dynamic-qr')) document.getElementById('society-dynamic-qr').src = qrUrl;
-  if (document.getElementById('member-dashboard-qr')) document.getElementById('member-dashboard-qr').src = qrUrl;
-  if (document.getElementById('modal-qr-img')) document.getElementById('modal-qr-img').src = qrUrl;
+  // Display text — khaali ho to "— Not Set —" dikhao
+  const showOrNotSet = (val) => val ? val : '<span class="text-muted">— Not Set —</span>';
 
-  if (document.getElementById('edit-bank-acc-name')) document.getElementById('edit-bank-acc-name').value = accName;
-  if (document.getElementById('edit-bank-name')) document.getElementById('edit-bank-name').value = bankName;
-  if (document.getElementById('edit-bank-acc-no')) document.getElementById('edit-bank-acc-no').value = accNo;
-  if (document.getElementById('edit-bank-ifsc')) document.getElementById('edit-bank-ifsc').value = ifsc;
-  if (document.getElementById('edit-bank-upi')) document.getElementById('edit-bank-upi').value = upiId;
+  if (document.getElementById('bank-acc-name'))     document.getElementById('bank-acc-name').innerHTML = showOrNotSet(accName);
+  if (document.getElementById('bank-name-display')) document.getElementById('bank-name-display').innerHTML = showOrNotSet(bankName);
+  if (document.getElementById('bank-acc-no'))       document.getElementById('bank-acc-no').innerHTML = showOrNotSet(accNo);
+  if (document.getElementById('bank-ifsc'))         document.getElementById('bank-ifsc').innerHTML = showOrNotSet(ifsc);
+  if (document.getElementById('bank-upi-id'))       document.getElementById('bank-upi-id').innerHTML = showOrNotSet(upiId);
+
+  // ✅ QR image — khaali ho to placeholder SVG dikhao (no GitHub upload needed)
+  const placeholderQr = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220">' +
+    '<rect width="220" height="220" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="12"/>' +
+    '<text x="110" y="100" font-family="sans-serif" font-size="14" fill="#64748b" text-anchor="middle">QR Not Uploaded</text>' +
+    '<text x="110" y="122" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">Click Edit to upload</text>' +
+    '</svg>'
+  );
+
+  const finalQr = qrUrl || placeholderQr;
+  if (document.getElementById('society-dynamic-qr'))  document.getElementById('society-dynamic-qr').src = finalQr;
+  // ✅ Member Dashboard — icon + society name + UPI ID (QR nahi)
+const paySocietyNameEl = document.getElementById('pay-society-name');
+const paySocietyUpiEl = document.getElementById('pay-society-upi');
+
+if (paySocietyNameEl) {
+  paySocietyNameEl.innerText = societySettings.society_name || currentSociety || 'Society';
+}
+if (paySocietyUpiEl) {
+  if (upiId) {
+    paySocietyUpiEl.innerText = `UPI: ${upiId}`;
+    paySocietyUpiEl.className = 'text-muted small mb-0';
+  } else {
+    paySocietyUpiEl.innerText = '⚠️ UPI not set';
+    paySocietyUpiEl.className = 'text-warning small fw-bold mb-0';
+  }
+}
+  if (document.getElementById('modal-qr-img'))        document.getElementById('modal-qr-img').src = finalQr;
+
+  // Edit modal pre-fill — khaali ho to blank input rakho
+  if (document.getElementById('edit-bank-acc-name'))   document.getElementById('edit-bank-acc-name').value = accName;
+  if (document.getElementById('edit-bank-name'))       document.getElementById('edit-bank-name').value = bankName;
+  if (document.getElementById('edit-bank-acc-no'))     document.getElementById('edit-bank-acc-no').value = accNo;
+  if (document.getElementById('edit-bank-ifsc'))       document.getElementById('edit-bank-ifsc').value = ifsc;
+  if (document.getElementById('edit-bank-upi'))        document.getElementById('edit-bank-upi').value = upiId;
   if (document.getElementById('edit-opening-balance')) document.getElementById('edit-opening-balance').value = openBalVal;
 }
 
@@ -2262,18 +2308,14 @@ function setupRealtimeSubscriptions() {
         renderMemberPersonalView();
       })
 
-    // 13. SUPPORT TICKETS (Admin real-time)
+        // 13. SUPPORT TICKETS (Society-isolated real-time)
     .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'support_tickets' },
+      { event: '*', schema: 'public', table: 'support_tickets', filter: socFilter },
       async (payload) => {
         console.log('[RT] support_tickets changed:', payload.eventType);
-        const row = payload.new || payload.old || {};
-        // Admin: sab dekh; baaki: apni society ka
-        if (currentRole === 'Admin' || row.society_name === currentSociety) {
-          await loadSupportTickets();
-          renderSupportTickets();
-          updateSupportBadge();
-        }
+        await loadSupportTickets();
+        renderSupportTickets();
+        updateSupportBadge();
       })
 
     .subscribe((status) => {
@@ -2430,7 +2472,11 @@ async function deleteBankEntry(source, id) {
   if (source === 'maintenance') { await deleteMaintenance(id); }
   else if (source === 'expense') { await deleteExpense(id); }
   else if (source === 'custom') {
-    const { error } = await _supabase.from('bank_entries').delete().eq('id', id);
+    const { error } = await _supabase
+  .from('bank_entries')
+  .delete()
+  .eq('id', id)
+  .eq('society_name', currentSociety);
     if (error) { alert('❌ Error: ' + error.message); return; }
     fetchSupabaseData();
     setTimeout(() => loadSecondaryData(), 500);
@@ -6569,6 +6615,23 @@ function exportTableToExcel(tableId, filename) {
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
 
+// ✅ Change Password button handler (Desktop sidebar ke liye)
+function handleChangePasswordClick() {
+  // 🔒 Sirf PS Live Demo mein block
+  if (typeof isDemoMode === 'function' && isDemoMode()) {
+    alert('🔒 Password change is not available in Demo Mode.\n\n' +
+          'This is just a preview. To change your password:\n' +
+          '1. Go to the landing page\n' +
+          '2. Login with your account\n' +
+          '3. Then change your password');
+    return;
+  }
+  
+  // Normal flow — modal kholo
+  const modalEl = document.getElementById('changePasswordModal');
+  if (modalEl) new bootstrap.Modal(modalEl).show();
+}
+
 function toggleMobileMenu() {
   const overlay = document.getElementById('mobileMenuOverlay');
   if (!overlay) return;
@@ -6737,14 +6800,36 @@ function syncMobileGridBadges() {
 }
 
 async function openTabOverlay(tabId, skipHistory = false) {
-  closeMobileMenu();
-  if (tabId === 'visitor') { showVisitorPage(); return; }
-
+  // ✅ Change-Password special handling — grid ko band mat karo, sirf temporarily hide karo
   if (tabId === 'change-password') {
+    // 🔒 PS Live Demo check — SIRF preview mode ke liye
+    if (typeof isDemoMode === 'function' && isDemoMode()) {
+      alert('🔒 Password change is not available in Demo Mode.\n\n' +
+            'This is just a preview. To change your password:\n' +
+            '1. Go to the landing page\n' +
+            '2. Login with your account\n' +
+            '3. Then change your password');
+      return;
+    }
+
+    const gridOverlay = document.getElementById('mobileMenuOverlay');
+    const fromGrid = !!(gridOverlay && gridOverlay.style.display === 'flex' && window.innerWidth <= 768);
+    __changePasswordFromGrid = fromGrid;
+
+    if (fromGrid) {
+      gridOverlay.style.display = 'none';
+      document.body.style.overflow = 'hidden';
+    } else {
+      closeMobileMenu();
+    }
+
     const modalEl = document.getElementById('changePasswordModal');
     if (modalEl) new bootstrap.Modal(modalEl).show();
     return;
   }
+
+  closeMobileMenu();
+  if (tabId === 'visitor') { showVisitorPage(); return; }
 
   if (tabId === 'terms' || tabId === 'privacy') { tabId = 'about'; }
 
@@ -7248,13 +7333,50 @@ async function loadFlatsDropdown() {
 }
 
 function openUPIPayment() {
-  document.getElementById('upi-amount').value = '1000';
+  // ✅ Fallback chain: bank_acc_name → society_name → currentSociety → 'Society'
+  const accName = societySettings.bank_acc_name 
+                || societySettings.society_name 
+                || currentSociety 
+                || 'Society';
+  
+  const merchantEl = document.getElementById('upi-merchant-display');
+  if (merchantEl) {
+    merchantEl.innerText = accName;
+  }
+  
+  // ✅ Auto-fill amount with member's actual pending due
+  let prefillAmount = '1000';  // Default fallback
+  try {
+    const pendingEl = document.getElementById('my-flat-pending');
+    if (pendingEl) {
+      // Text like "3401" or "3401 (Incl. Late Fee: ₹60)" — extract first number
+      const match = pendingEl.innerText.match(/(\d+)/);
+      if (match && Number(match[1]) > 0) {
+        prefillAmount = match[1];
+      }
+    }
+  } catch (e) {
+    console.warn('[UPI] Could not read pending amount:', e);
+  }
+  
+  document.getElementById('upi-amount').value = prefillAmount;
   new bootstrap.Modal(document.getElementById('upiPaymentModal')).show();
 }
 
 function processUPIPayment() {
-  const upiId = societySettings.bank_upi_id || '8866376056@icici';
-  const name = societySettings.bank_acc_name || 'PS Society';
+  const isDemo = (currentSociety === 'Demo Society');
+  const upiId = societySettings.bank_upi_id || (isDemo ? '8866376056@icici' : '');
+  const name = societySettings.bank_acc_name 
+             || societySettings.society_name 
+             || currentSociety 
+             || 'Society';
+
+  // ✅ UPI nahi hai to payment mat karo
+  if (!upiId) {
+    alert('❌ Is society ka UPI ID set nahi hai.\n\nPlease admin se contact karein.');
+    return;
+  }
+
   const amount = parseFloat(document.getElementById('upi-amount').value || 1000).toFixed(2);
   const note = document.getElementById('upi-note').value || 'Maintenance';
   window.location.href = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
@@ -7520,6 +7642,23 @@ document.addEventListener('show.bs.modal', function (event) {
   window.history.pushState({ modalOpen: true }, "", window.location.href);
 });
 
+// ✅ NEW — Change Password modal band hone pe grid wapas restore karo
+document.addEventListener('hidden.bs.modal', function (event) {
+  if (event.target && event.target.id === 'changePasswordModal') {
+    if (__changePasswordFromGrid) {
+      __changePasswordFromGrid = false;
+      if (window.innerWidth <= 768) {
+        const gridOverlay = document.getElementById('mobileMenuOverlay');
+        if (gridOverlay) {
+          renderGridCards();
+          gridOverlay.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        }
+      }
+    }
+  }
+});
+
 window.addEventListener('popstate', function(event) {
   // ✅ Sabse pehle programmatic flag capture + reset karo
   const wasProgrammatic = __programmaticBack;
@@ -7601,6 +7740,13 @@ if (tabOverlay) {
   }
   return;
 }
+
+    // ---------- 4. MOBILE MENU OVERLAY (grid) ----------
+  if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
+    mobileMenuOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+    return;
+  }
 
   // Else: dashboard par hai, kuch nahi karna (app exit ho jayega naturally)
 });
@@ -7765,10 +7911,19 @@ let __currentSupportTicketId = null;
 
 async function loadSupportTickets() {
   try {
-    const { data, error } = await _supabase
+    // ✅ Base: society filter always
+    let query = _supabase
       .from('support_tickets')
       .select('*')
+      .eq('society_name', currentSociety)
       .order('created_at', { ascending: false });
+
+    // ✅ Extra tight filter for Member/Chairman — only their own
+    if (currentRole === 'Member' || currentRole === 'Chairman') {
+      query = query.eq('raised_by_flat', (currentUser || '').toUpperCase());
+    }
+
+    const { data, error } = await query;
     if (error) { console.warn('[Support] Load error:', error.message); supportTicketsData = []; return; }
     supportTicketsData = data || [];
     updateSupportBadge();
@@ -7782,15 +7937,17 @@ function renderSupportTickets() {
   const tbody = document.getElementById('support-tickets-list');
   if (!tbody) return;
 
-  const isAdmin = currentRole === 'Admin';
+    const isAdmin = currentRole === 'Admin' || currentRole === 'SocietyAdmin';   // ✅ YE
+
+  // ✅ Data already society-filtered (see loadSupportTickets)
+  // Now apply role-based filter on top
   let tickets = supportTicketsData;
 
-  if (!isAdmin) {
-    tickets = tickets.filter(t => (t.society_name || '') === currentSociety);
-    if (currentRole === 'Member' || currentRole === 'Chairman') {
-      tickets = tickets.filter(t => (t.raised_by_flat || '').toUpperCase() === (currentUser || '').toUpperCase());
-    }
+  if (currentRole === 'Member' || currentRole === 'Chairman') {
+    // Members/Chairman see ONLY their own tickets
+    tickets = tickets.filter(t => (t.raised_by_flat || '').toUpperCase() === (currentUser || '').toUpperCase());
   }
+  // Admin / SocietyAdmin: see ALL tickets of THIS society (already filtered)
 
   const filter = document.getElementById('support-filter-status')?.value || 'all';
   if (filter !== 'all') tickets = tickets.filter(t => t.status === filter);
@@ -8051,11 +8208,12 @@ function updateSupportBadge() {
   if (!badge) return;
 
   let count = 0;
-  if (currentRole === 'Admin') {
+  if (currentRole === 'Admin' || currentRole === 'SocietyAdmin') {
+    // Admin / SocietyAdmin: count of open + in-progress tickets in current society
     count = supportTicketsData.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
   } else {
+    // Member / Chairman: only their own open tickets
     count = supportTicketsData.filter(t =>
-      t.society_name === currentSociety &&
       (t.raised_by_flat || '').toUpperCase() === (currentUser || '').toUpperCase() &&
       t.status !== 'Closed'
     ).length;

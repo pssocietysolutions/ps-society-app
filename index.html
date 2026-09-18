@@ -520,7 +520,9 @@ body.demo-mode .no-print.admin-only {
           <li class="nav-item role-restricted admin-only"><a class="nav-link" onclick="switchTab('activity-logs', this)"><i class="fa-solid fa-list-check me-2" style="color: #0ea5e9;"></i> Activity Logs</a></li>
         </ul>
         <hr class="text-secondary">
-        <button class="btn btn-outline-warning w-100 mb-2" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="fa-solid fa-key me-2"></i> Change Password</button>
+        <button class="btn btn-outline-warning w-100 mb-2" onclick="handleChangePasswordClick()">
+  <i class="fa-solid fa-key me-2"></i> Change Password
+</button>
       </nav>
 
       <!-- MAIN CONTENT -->
@@ -710,20 +712,26 @@ body.demo-mode .no-print.admin-only {
               </div>
             </div>
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mb-4">
-              <div class="row align-items-center">
-                <div class="col-md-4 text-center">
-                  <img id="member-dashboard-qr" src="qr-payment.png" alt="Payment QR" style="width: 100%; max-width: 150px; border-radius: 12px; border: 1px solid #e2e8f0; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" onclick="openQRModal()" title="Click to enlarge QR">
-                  <p class="text-muted small mt-2 mb-0">Scan to Pay</p>
-                </div>
-                <div class="col-md-8 text-center text-md-start">
-                  <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-credit-card me-2"></i>Pay Maintenance</h6>
-                  <p class="text-muted small mb-3">Pay directly using your preferred UPI app. Enter amount manually.</p>
-                  <button onclick="openUPIPayment()" class="btn btn-success fw-bold shadow-sm" style="border-radius: 50px; padding: 12px 35px; background: linear-gradient(135deg, #00c853, #009624); border: none; font-size: 16px;">
-                    <i class="fa-brands fa-google-pay me-2"></i> Pay Now with UPI
-                  </button>
-                </div>
-              </div>
-            </div>
+  <div class="row align-items-center">
+    <div class="col-md-4 text-center">
+      <div id="pay-society-icon" style="font-size: 80px; color: #2563eb; line-height: 1;">
+        <i class="fa-solid fa-credit-card"></i>
+      </div>
+      <h6 class="fw-bold mt-3 mb-1" id="pay-society-name">Society</h6>
+      <p class="text-muted small mb-0" id="pay-society-upi">UPI: —</p>
+    </div>
+    <div class="col-md-8 text-center text-md-start">
+      <h6 class="fw-bold text-primary mb-2"><i class="fa-solid fa-credit-card me-2"></i>Pay Maintenance</h6>
+      <p class="text-muted small mb-3">Pay directly using your preferred UPI app. Enter amount manually.</p>
+      <button onclick="openUPIPayment()" class="btn btn-success fw-bold shadow-sm" style="border-radius: 50px; padding: 12px 35px; background: linear-gradient(135deg, #00c853, #009624); border: none; font-size: 16px;">
+        <i class="fa-brands fa-google-pay me-2"></i> Pay Now with UPI
+      </button>
+      <p class="text-muted small mt-3 mb-0">
+        <i class="fa-solid fa-qrcode me-1"></i> Need a QR code? <b>Bank / QR</b> Look in the Bank / QR tab.
+      </p>
+    </div>
+  </div>
+</div>
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0 mb-4"><h5 class="fw-bold text-primary mb-3"><i class="fa-solid fa-credit-card me-2"></i> Submit Payment Receipt Details</h5><button class="btn btn-success fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#paymentDetailsModal"><i class="fa-solid fa-upload me-2"></i> Pay & Upload Receipt Details</button></div>
             <div class="card p-4 bg-white shadow-sm rounded-4 border-0"><h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-history me-2"></i> My Payment History</h5><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>Receipt No</th><th>Date</th><th>Amount Paid</th><th>Mode</th></tr></thead><tbody id="my-payment-history-list"></tbody></table></div></div>
 
