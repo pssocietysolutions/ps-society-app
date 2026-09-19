@@ -595,10 +595,13 @@ function loadMainApp(role) {
     fetchSupabaseData();
   }
 
-  setTimeout(requestNotificationPermission, 2000);
+    setTimeout(requestNotificationPermission, 2000);
   listenForSOSAlerts();
   setupRealtimeSubscriptions();
   setTimeout(() => loadSecondaryData(), 500);
+  
+  // 🔒 NEW: Check subscription mode after login
+  setTimeout(() => checkSocietySubscriptionMode(), 1200);
 }
 
 async function loadSocietySwitcher() {
@@ -641,10 +644,13 @@ async function loadSocietySwitcher() {
   const sidebarName = document.getElementById('sidebar-society-name');
   if (sidebarName) sidebarName.innerText = societyName;
   
-  const dropdown = document.getElementById('switch-society-dropdown');
+    const dropdown = document.getElementById('switch-society-dropdown');
   if (dropdown) dropdown.value = societyName;
   
   updateMobileHeaderInfo();
+  
+  // 🔒 NEW: Re-check after society switch
+  setTimeout(() => checkSocietySubscriptionMode(), 1000);
 }
 
 function markAllAsRead() {
@@ -687,6 +693,16 @@ function handleLogout() {
   currentUser = '';
   currentSociety = 'Demo Society';
   
+  // ═══════════════════════════════════════════════════
+  // ✅ FIX: Show landing page FIRST (white screen fix)
+  // ═══════════════════════════════════════════════════
+  const landingSec = document.getElementById('landing-section');
+  if (landingSec) {
+    landingSec.style.display = 'flex';
+    landingSec.style.visibility = 'visible';
+  }
+  
+  // ✅ THEN hide app section
   const appSection = document.getElementById('app-section');
   if (appSection) appSection.classList.add('d-none');
   
@@ -711,19 +727,18 @@ function handleLogout() {
     if (el) el.style.display = 'none';
   });
   
-// ✅ NEW: Visitor channel cleanup on logout
   if (typeof cleanupVisitorRealtimeForGuard === 'function') {
     cleanupVisitorRealtimeForGuard();
   }
 
-  // ✅ NEW: Broadcast logout to other tabs
   localStorage.setItem('ps_logout_broadcast', Date.now().toString());
   setTimeout(() => localStorage.removeItem('ps_logout_broadcast'), 1000);
 
+  // ✅ Delay बढ़ाया: 100ms → 400ms (user को landing दिखेगा)
   setTimeout(() => {
     const baseUrl = window.location.origin + window.location.pathname;
     window.location.replace(baseUrl + '?t=' + Date.now());
-  }, 100);
+  }, 400);
 }
 
 async function fetchSupabaseData() {
@@ -5897,7 +5912,7 @@ PS Society Solutions`;
 // 🔒 GRACE PERIOD + AUTO-SUSPEND LOGIC
 // ══════════════════════════════════════════════════════════════
 
-const SUBSCRIPTION_GRACE_DAYS = 7;
+const SUBSCRIPTION_GRACE_DAYS = 30;   // ✅ 7 → 30 दिन
 
 /**
  * Compute days overdue for an invoice
@@ -8452,4 +8467,104 @@ async function manualRefresh() {
     
     alert('❌ Refresh failed. Please check your connection and try again.');
   }
+}
+// ══════════════════════════════════════════════════════════════
+// 🔒 READ-ONLY MODE — Subscription Overdue Enforcement
+// ══════════════════════════════════════════════════════════════
+
+async function checkSocietySubscriptionMode() {
+  if (!currentSociety) return;
+
+  // 🎯 Super Admin ALWAYS exempt (तुम कभी block नहीं होगे)
+  if (currentRole === 'Admin') {
+    disableReadOnlyMode();
+    return;
+  }
+
+  // Demo Mode भी exempt
+  if (typeof isDemoMode === 'function' && isDemoMode()) {
+    disableReadOnlyMode();
+    return;
+  }
+
+  try {
+    const { data: socData, error } = await _supabase
+      .from('societies')
+      .select('subscription_status')
+      .eq('name', currentSociety)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('[ReadOnly] Check error:', error.message);
+      return;
+    }
+
+    if (socData?.subscription_status === 'suspended') {
+      enableReadOnlyMode();
+    } else {
+      disableReadOnlyMode();
+    }
+  } catch (e) {
+    console.warn('[ReadOnly] Exception:', e);
+  }
+}
+
+function enableReadOnlyMode() {
+  if (document.body.classList.contains('read-only-mode')) return;
+  document.body.classList.add('read-only-mode');
+  showReadOnlyBanner();
+  console.log('[ReadOnly] 🔒 Mode ACTIVATED for', currentSociety);
+}
+
+function disableReadOnlyMode() {
+  document.body.classList.remove('read-only-mode');
+  removeReadOnlyBanner();
+}
+
+function showReadOnlyBanner() {
+  if (document.getElementById('readOnlyBanner')) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'readOnlyBanner';
+  banner.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+    color: #fff;
+    padding: 12px 20px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    z-index: 999999;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.5;
+  `;
+
+  const upiLink = 'upi://pay?pa=8866376056@icici&pn=PS%20Society%20Solutions&cu=INR&tn=Society%20Subscription';
+
+  banner.innerHTML = `
+    <div style="max-width: 900px; margin: 0 auto;">
+      🚨 <strong>SOCIETY SUBSCRIPTION OVERDUE</strong> — Read-Only Mode
+      <div style="margin-top: 5px; font-size: 12px; font-weight: 500;">
+        <a href="${upiLink}" style="color: #fff; text-decoration: underline; font-weight: 700;">
+          💳 Pay via UPI
+        </a>
+        &nbsp;|&nbsp;
+        📞 +91 8866376056
+        &nbsp;|&nbsp;
+        📧 ps.societysolutions@gmail.com
+      </div>
+    </div>
+  `;
+  document.body.appendChild(banner);
+  document.body.style.paddingTop = '58px';
+}
+
+function removeReadOnlyBanner() {
+  const banner = document.getElementById('readOnlyBanner');
+  if (banner) banner.remove();
+  document.body.style.paddingTop = '';
 }

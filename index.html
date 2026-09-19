@@ -294,6 +294,67 @@ body.demo-mode .no-print.admin-only {
   display: none !important;
 }
 
+/* ═══════════════════════════════════════════════════ */
+/* 🔒 READ-ONLY MODE — Subscription Overdue            */
+/* ═══════════════════════════════════════════════════ */
+
+/* Hide all write actions */
+body.read-only-mode button[onclick*="submit"],
+body.read-only-mode button[onclick*="Submit"],
+body.read-only-mode button[onclick*="delete"],
+body.read-only-mode button[onclick*="Delete"],
+body.read-only-mode button[onclick*="update"],
+body.read-only-mode button[onclick*="Update"],
+body.read-only-mode button[onclick*="verify"],
+body.read-only-mode button[onclick*="Verify"],
+body.read-only-mode button[onclick*="approve"],
+body.read-only-mode button[onclick*="Approve"],
+body.read-only-mode button[onclick*="reject"],
+body.read-only-mode button[onclick*="Reject"],
+body.read-only-mode button[onclick*="generate"],
+body.read-only-mode button[onclick*="Generate"],
+body.read-only-mode button[onclick*="save"],
+body.read-only-mode button[onclick*="Save"],
+body.read-only-mode button[onclick*="resolve"],
+body.read-only-mode button[onclick*="Resolve"],
+body.read-only-mode button[onclick*="triggerSOS"],
+body.read-only-mode button[onclick*="processUPIPayment"],
+body.read-only-mode button[onclick*="openExpenseModal"],
+body.read-only-mode button[onclick*="openAddSocietyModal"],
+body.read-only-mode button[data-bs-target="#memberModal"],
+body.read-only-mode button[data-bs-target="#maintenanceModal"],
+body.read-only-mode button[data-bs-target="#expenseModal"],
+body.read-only-mode button[data-bs-target="#bankModal"],
+body.read-only-mode button[data-bs-target="#journalModal"],
+body.read-only-mode button[data-bs-target="#amcModal"],
+body.read-only-mode button[data-bs-target="#assetModal"],
+body.read-only-mode button[data-bs-target="#fdModal"],
+body.read-only-mode button[data-bs-target="#teamModal"],
+body.read-only-mode button[data-bs-target="#parkingModal"],
+body.read-only-mode button[data-bs-target="#pollModal"],
+body.read-only-mode button[data-bs-target="#meetingModal"],
+body.read-only-mode button[data-bs-target="#complaintModal"],
+body.read-only-mode button[data-bs-target="#visitorModal"],
+body.read-only-mode button[data-bs-target="#noticeModal"],
+body.read-only-mode button[data-bs-target="#eventModal"],
+body.read-only-mode button[data-bs-target="#marketplaceModal"],
+body.read-only-mode button[data-bs-target="#addFacilityModal"],
+body.read-only-mode button[data-bs-target="#bookingModal"],
+body.read-only-mode button[data-bs-target="#paymentDetailsModal"],
+body.read-only-mode button[data-bs-target="#editBankDetailsModal"],
+body.read-only-mode button[data-bs-target="#editMemberModal"],
+body.read-only-mode .readonly-hide {
+  display: none !important;
+}
+
+/* Keep view/export buttons visible */
+body.read-only-mode button[onclick*="Print"],
+body.read-only-mode button[onclick*="print"],
+body.read-only-mode button[onclick*="Excel"],
+body.read-only-mode button[onclick*="excel"],
+body.read-only-mode a[download] {
+  display: inline-flex !important;
+}
   </style>
 </head>
 <body>
