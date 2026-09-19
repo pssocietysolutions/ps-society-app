@@ -349,26 +349,159 @@ function openForgotModal() {
 }
 
 function closeForgotModal() {
-    const forgotEl = document.getElementById('forgotModal');
-    const modalInstance = bootstrap.Modal.getInstance(forgotEl);
-    if (modalInstance) modalInstance.hide();
+  const forgotEl = document.getElementById('forgotModal');
+  if (!forgotEl) return;
+  const modalInstance = bootstrap.Modal.getInstance(forgotEl);
+  if (modalInstance) modalInstance.hide();
 }
 
-function sendPasswordRequest() {
-    const society = document.getElementById('forgotSociety').value.trim();
-    const flat = document.getElementById('forgotFlat').value.trim();
-    
-    if(!society || !flat) {
-        alert("कृपया सोसायटी का नाम और फ्लैट नंबर दर्ज करें।");
-        return;
+// ═══════════════════════════════════════════════════
+// 📩 SUBMIT FORGOT PASSWORD REQUEST (Save to DB)
+// ═══════════════════════════════════════════════════
+async function submitForgotPasswordRequest() {
+  const societyInput = document.getElementById('forgotSociety');
+  const flatInput = document.getElementById('forgotFlat');
+  const btn = document.getElementById('btn-submit-forgot-request');
+
+  const societyName = societyInput?.value.trim();
+  const flatNo = flatInput?.value.trim().toUpperCase();
+
+  // ─── Validation ───
+  if (!societyName) {
+    alert('❌ Please enter Society Name');
+    societyInput?.focus();
+    return;
+  }
+  if (!flatNo) {
+    alert('❌ Please enter Flat Number / Login ID');
+    flatInput?.focus();
+    return;
+  }
+
+  // ─── Save button state ───
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
+
+  try {
+    // ─── Phone lookup from members table (agar mila) ───
+    let phone = '';
+    let userRole = 'Member';
+
+    try {
+      const { data: memberInfo } = await _supabase
+        .from('members')
+        .select('phone, name, status')
+        .ilike('society_name', societyName)
+        .ilike('flat_no', flatNo)
+        .maybeSingle();
+
+      if (memberInfo) {
+        phone = memberInfo.phone || '';
+        userRole = memberInfo.status || 'Member';
+      }
+    } catch (e) {
+      console.log('[ForgotPwd] Member lookup skipped:', e.message);
     }
-    
-    const adminPhone = "918866376056"; 
-    const message = `Hello Admin, I forgot my password. Please reset it for Society: ${society}, Flat/ID: ${flat}.`;
-    
-    const whatsappURL = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappURL, '_blank');
-    closeForgotModal();
+
+    // ─── Check: duplicate request in last 5 minutes? ───
+    try {
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recent } = await _supabase
+        .from('password_reset_requests')
+        .select('id')
+        .ilike('society_name', societyName)
+        .ilike('flat_no', flatNo)
+        .eq('status', 'Pending')
+        .gte('requested_at', fiveMinAgo)
+        .limit(1);
+
+      if (recent && recent.length > 0) {
+        alert('⚠️ You already submitted a request in the last 5 minutes.\n\nPlease wait — admin will respond soon.');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        return;
+      }
+    } catch (e) {
+      console.log('[ForgotPwd] Duplicate check skipped:', e.message);
+    }
+
+    // ─── Insert into DB ───
+    const { data, error } = await _supabase
+      .from('password_reset_requests')
+      .insert([{
+        society_name: societyName,
+        flat_no: flatNo,
+        phone: phone,
+        user_role: userRole,
+        note: 'User forgot password',
+        status: 'Pending'
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[ForgotPwd] Insert error:', error);
+      alert('❌ Failed to submit request:\n' + error.message);
+      return;
+    }
+
+    console.log('[ForgotPwd] ✅ Request submitted:', data);
+
+    // ─── Success alert ───
+    alert(
+      '✅ Request Submitted Successfully!\n\n' +
+      '📋 Society: ' + societyName + '\n' +
+      '🏠 Flat: ' + flatNo + '\n\n' +
+      'Admin will reset your password soon.\n' +
+      'You will receive your new password on WhatsApp.'
+    );
+
+    // ─── Clear inputs ───
+    if (societyInput) societyInput.value = '';
+    if (flatInput) flatInput.value = '';
+
+    // ─── Close modal ───
+    const modalEl = document.getElementById('forgotModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+
+  } catch (err) {
+    console.error('[ForgotPwd] Exception:', err);
+    alert('❌ Something went wrong: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// 📱 SEND FORGOT PASSWORD REQUEST VIA WHATSAPP
+// ═══════════════════════════════════════════════════
+function sendPasswordRequest() {
+  const society = document.getElementById('forgotSociety')?.value.trim();
+  const flat = document.getElementById('forgotFlat')?.value.trim().toUpperCase();
+
+  if (!society || !flat) {
+    alert('❌ Please enter Society Name and Flat Number first');
+    return;
+  }
+
+  const adminPhone = '918866376056';
+  const message = 
+`🔐 Password Reset Request
+
+Society: ${society}
+Flat/ID: ${flat}
+
+User has forgotten their password. Please reset it from the Admin Panel.
+
+- PS Society Solutions`;
+
+  const whatsappURL = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+  window.open(whatsappURL, '_blank');
+
+  // ⚠️ Note: Modal band NAHI karna — user alag se "Submit Request" bhi dabayega
 }
 
 async function submitChangePassword(event) {
@@ -1929,6 +2062,41 @@ function renderPaymentProofs() {
   });
 }
 
+// ═══════════════════════════════════════════════════
+// 🗑️ DELETE SINGLE IMAGE (DB row stays, only image removed)
+// ═══════════════════════════════════════════════════
+async function deleteSingleImage({ table, rowId, column, bucket, imageUrl, refreshFn, label }) {
+  if (currentRole !== 'Admin' && currentRole !== 'SocietyAdmin') {
+    alert('⛔ Only Admin can delete images.');
+    return;
+  }
+  if (!confirm(`⚠️ Delete this ${label || 'image'}?\n\n(Data will stay — only image removed)`)) return;
+  if (!imageUrl) { alert('No image found.'); return; }
+
+  try {
+    const parts = imageUrl.split(`/${bucket}/`);
+    if (parts.length < 2) { alert('❌ Invalid image URL'); return; }
+    const filePath = decodeURIComponent(parts[1]);
+
+    const { error: delErr } = await _supabase.storage.from(bucket).remove([filePath]);
+    if (delErr) { alert('❌ Storage delete failed: ' + delErr.message); return; }
+
+    const { error: updErr } = await _supabase
+      .from(table)
+      .update({ [column]: null })
+      .eq('id', rowId);
+
+    if (updErr) { alert('❌ DB update failed: ' + updErr.message); return; }
+
+    console.log(`[ImgDelete] ${table}.${column} nulled for id=${rowId}`);
+    alert('✅ Image deleted (data safe)');
+
+    if (typeof refreshFn === 'function') refreshFn();
+  } catch (e) {
+    alert('❌ Error: ' + e.message);
+  }
+}
+
 async function verifyProof(id, status) {
   if (!confirm(`Are you sure you want to mark this proof as ${status}?`)) return;
   const proof = paymentProofs.find(p => p.id === id);
@@ -2609,6 +2777,7 @@ if (tabId === 'ca-audit') {
   if (tabId === 'amc-tracker') renderAMCTracker();
   if (tabId === 'bank-details') renderBankDetails();
   if (tabId === 'sos-contacts') renderSOSContacts();
+  if (tabId === 'user-management') { initUserManagementTab(); }
   if (tabId === 'settings') { loadSettingsToForm(); }
 
   if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank', 'ca-audit'].includes(tabId)) {
@@ -3064,9 +3233,14 @@ const systemTitlePatterns = [
           </div>
           <p class="mt-2 text-secondary mb-2">${n.content}</p>
           ${n.attachment_url ? `
-            <div class="mb-2">
-              <a href="${n.attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-paperclip me-1"></i> View Attachment</a>
-            </div>` : ''}
+  <div class="mb-2">
+    <a href="${n.attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-paperclip me-1"></i> View</a>
+    ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+      <button class="btn btn-sm btn-outline-danger ms-1"
+        onclick="deleteSingleImage({table:'notices',rowId:${n.id},column:'attachment_url',bucket:'notice_attachments',imageUrl:'${n.attachment_url}',refreshFn:()=>fetchSupabaseData(),label:'notice attachment'})">
+        <i class="fa-solid fa-trash"></i>
+      </button>` : ''}
+  </div>` : ''}
           ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? `<button class="btn btn-link text-danger btn-sm p-0" onclick="deleteNotice(${n.id})">Delete</button>` : ''}
         </div>
       </div>
@@ -4484,7 +4658,16 @@ function renderComplaints() {
         <td>${c.category || '-'}</td>
         <td>${c.description || '-'}</td>
         <td><span class="badge ${c.status === 'Resolved' ? 'bg-success' : 'bg-warning text-dark'}">${c.status || 'Pending'}</span></td>
-        <td>${hasImage ? `<a href="${c.image_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-image"></i></a>` : '-'}</td>
+        <td>
+  ${hasImage ? `
+    <a href="${c.image_url}" target="_blank" class="btn btn-sm btn-outline-primary me-1" title="View"><i class="fa-solid fa-image"></i></a>
+    ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+      <button class="btn btn-sm btn-outline-danger" title="Delete image only"
+        onclick="deleteSingleImage({table:'complaints',rowId:${c.id},column:'image_url',bucket:'complaint_images',imageUrl:'${c.image_url}',refreshFn:()=>fetchSupabaseData(),label:'complaint photo'})">
+        <i class="fa-solid fa-trash"></i>
+      </button>` : ''}
+  ` : '-'}
+</td>
         <td class="no-print admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">
           ${c.status !== 'Resolved' ? `<button class="btn btn-sm btn-success" onclick="resolveComplaint(${index})">Resolve</button>` : '-'}
         </td>
@@ -6722,6 +6905,7 @@ function renderGridCards() {
     { id: 'assets', icon: 'fa-boxes-stacked', label: 'Assets', color: '#64748b' },
     { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
     { id: 'proofs', icon: 'fa-file-invoice', label: 'Payment Details', color: '#3b82f6' },
+    { id: 'user-management', icon: 'fa-user-shield', label: 'User Mgmt', color: '#f59e0b' },
     { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
     { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
     { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
@@ -6735,10 +6919,10 @@ function renderGridCards() {
     const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'support', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'rules', 'about', 'team', 'change-password'];
     allCards = allCards.filter(c => memberCards.includes(c.id));
   } else if (role === 'Chairman') {
-    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests' && c.id !== 'master-dashboard' && c.id !== 'activity-logs' && c.id !== 'proofs');
+    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests' && c.id !== 'master-dashboard' && c.id !== 'activity-logs' && c.id !== 'proofs' && c.id !== 'user-management');
   } else if (role === 'SocietyAdmin') {
-    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'master-dashboard' && c.id !== 'deletion-requests');
-  }
+    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'master-dashboard' && c.id !== 'deletion-requests' && c.id !== 'user-management');
+ }
 
   allCards.sort((a, b) => {
     if (a.id === 'dashboard') return -1;
@@ -6811,7 +6995,8 @@ function syncMobileGridBadges() {
     'visitor': 'visitor-badge',
     'amc-tracker': 'amc-badge',
     'parking': 'parking-badge',
-    'support': 'support-badge'   // ✅ FIX 3: YE LINE ADD KARO
+        'support': 'support-badge',
+    'user-management': 'user-mgmt-badge'
   };
 
   Object.entries(badgeMap).forEach(([cardId, srcBadgeId]) => {
@@ -6950,7 +7135,7 @@ async function openTabOverlay(tabId, skipHistory = false) {
       updateSupportBadge(); 
     }
     if (tabId === 'manage-societies') loadSocietiesList();
-
+if (tabId === 'user-management') { await initUserManagementTab(); }   // ← ये line ADD करो!
     if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
       refreshTabData(tabId);
     }
@@ -8142,12 +8327,31 @@ function openSupportViewModal(ticketId, showReply = false) {
     t.status === 'Resolved' ? 'bg-success' : 'bg-secondary';
   document.getElementById('support-view-status').className = `badge ${sColor}`;
 
-  const attBox = document.getElementById('support-view-attachment-box');
+    const attBox = document.getElementById('support-view-attachment-box');
+  const delBtn = document.getElementById('support-delete-attachment-btn');
   if (t.attachment_url && t.attachment_url.trim() !== '') {
     document.getElementById('support-view-attachment-link').href = t.attachment_url;
     attBox.style.display = 'block';
+
+    // Delete button — only for Admin
+    if (delBtn && (currentRole === 'Admin' || currentRole === 'SocietyAdmin')) {
+      delBtn.style.display = 'inline-block';
+      delBtn.onclick = () => deleteSingleImage({
+        table: 'support_tickets', rowId: t.id, column: 'attachment_url',
+        bucket: 'complaint_images', imageUrl: t.attachment_url,
+        refreshFn: async () => {
+          await loadSupportTickets();
+          renderSupportTickets();
+          bootstrap.Modal.getInstance(document.getElementById('supportViewModal')).hide();
+        },
+        label: 'ticket attachment'
+      });
+    } else if (delBtn) {
+      delBtn.style.display = 'none';
+    }
   } else {
     attBox.style.display = 'none';
+    if (delBtn) delBtn.style.display = 'none';
   }
 
   const replyBox = document.getElementById('support-existing-reply-box');
@@ -8226,12 +8430,57 @@ async function submitSupportReply() {
 
 async function deleteSupportTicket(id) {
   if (currentRole !== 'Admin') { alert('⛔ Only Admin can delete.'); return; }
-  if (!confirm('⚠️ Delete this support ticket permanently?')) return;
-  const { error } = await _supabase.from('support_tickets').delete().eq('id', id);
-  if (error) { alert('❌ ' + error.message); return; }
-  await loadSupportTickets();
-  renderSupportTickets();
-  updateSupportBadge();
+  if (!confirm('⚠️ Delete this support ticket permanently?\n\n(Attachment image will also be deleted)')) return;
+
+  try {
+    // STEP 1: Pehle ticket ka attachment_url nikalo
+    const { data: ticket, error: fetchErr } = await _supabase
+      .from('support_tickets')
+      .select('attachment_url')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fetchErr) {
+      console.warn('[DeleteTicket] Fetch warning:', fetchErr.message);
+    }
+
+    // STEP 2: Storage se attachment delete karo (agar hai)
+    if (ticket?.attachment_url && ticket.attachment_url.trim() !== '') {
+      try {
+        const parts = ticket.attachment_url.split('/complaint_images/');
+        if (parts.length > 1) {
+          const filePath = decodeURIComponent(parts[1]);
+          const { error: delErr } = await _supabase.storage
+            .from('complaint_images')
+            .remove([filePath]);
+
+          if (delErr) {
+            console.warn('[DeleteTicket] Storage delete failed:', delErr.message);
+            // Continue anyway — DB delete karna important hai
+          } else {
+            console.log('[DeleteTicket] Attachment deleted:', filePath);
+          }
+        }
+      } catch (imgErr) {
+        console.warn('[DeleteTicket] Image cleanup error:', imgErr);
+      }
+    }
+
+    // STEP 3: DB se ticket delete karo
+    const { error } = await _supabase.from('support_tickets').delete().eq('id', id);
+    if (error) { alert('❌ ' + error.message); return; }
+
+    console.log('[DeleteTicket] Ticket deleted: #' + id);
+    alert('✅ Ticket & attachment deleted successfully!');
+
+    await loadSupportTickets();
+    renderSupportTickets();
+    updateSupportBadge();
+
+  } catch (err) {
+    console.error('[DeleteTicket] Error:', err);
+    alert('❌ Error: ' + err.message);
+  }
 }
 
 function updateSupportBadge() {
@@ -8567,4 +8816,622 @@ function removeReadOnlyBanner() {
   const banner = document.getElementById('readOnlyBanner');
   if (banner) banner.remove();
   document.body.style.paddingTop = '';
+}
+
+// ═══════════════════════════════════════════════════════
+// 1️⃣4️⃣ INIT (Called from switchTab)
+// ═══════════════════════════════════════════════════════
+async function initUserManagementTab() {
+  if (currentRole !== 'Admin') {
+    alert('⛔ Only Admin');
+    return;
+  }
+  
+  await loadAllUsers();
+  await loadPendingResetRequests();
+  setupUserMgmtRealtime();
+}
+
+// ये सब app.js के सबसे आखिर में जोड़ो (initUserManagementTab के बाद):
+
+let allUsersData = [];
+let passwordResetRequests = [];
+let __userMgmtRealtimeChannel = null;
+
+// 1. Load All Users
+async function loadAllUsers() {
+  if (currentRole !== 'Admin') {
+    alert('⛔ Only Admin');
+    return;
+  }
+
+  const tbody = document.getElementById('user-management-list');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i> Loading users...</td></tr>';
+
+  try {
+    const { data, error } = await _supabase
+      .from('user_master')
+      .select('user_id, flat_no, role, society_name')
+      .order('society_name')
+      .order('flat_no');
+
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ ${error.message}</td></tr>`;
+      return;
+    }
+
+    allUsersData = data || [];
+    console.log('[UserMgmt] Loaded', allUsersData.length, 'users');
+
+    buildSocietyFilterDropdown();
+    renderUserManagementTable();
+
+  } catch (e) {
+    console.error('[UserMgmt] Exception:', e);
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ ${e.message}</td></tr>`;
+  }
+}
+
+// 2. Build Society Filter Dropdown
+function buildSocietyFilterDropdown() {
+  const select = document.getElementById('user-mgmt-society-filter');
+  if (!select) return;
+
+  const societies = [...new Set(allUsersData.map(u => u.society_name).filter(Boolean))].sort();
+
+  let html = '<option value="all">All Societies (' + allUsersData.length + ')</option>';
+  societies.forEach(s => {
+    const count = allUsersData.filter(u => u.society_name === s).length;
+    html += `<option value="${s}">${s} (${count})</option>`;
+  });
+
+  select.innerHTML = html;
+}
+
+// 3. Render User Table
+function renderUserManagementTable() {
+  const tbody = document.getElementById('user-management-list');
+  if (!tbody) return;
+
+  const societyFilter = document.getElementById('user-mgmt-society-filter')?.value || 'all';
+  const searchTerm = (document.getElementById('user-mgmt-search')?.value || '').toLowerCase().trim();
+
+  let filtered = allUsersData;
+
+  if (societyFilter !== 'all') {
+    filtered = filtered.filter(u => u.society_name === societyFilter);
+  }
+
+  if (searchTerm) {
+    filtered = filtered.filter(u => 
+      (u.flat_no || '').toLowerCase().includes(searchTerm) ||
+      (u.role || '').toLowerCase().includes(searchTerm) ||
+      (u.society_name || '').toLowerCase().includes(searchTerm) ||
+      (u.user_id || '').toLowerCase().includes(searchTerm)
+    );
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">
+      <i class="fa-solid fa-search fa-2x d-block mb-2"></i>
+      No users match the current filter
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(u => {
+    const roleColor = 
+      u.role === 'Admin' ? 'bg-dark' :
+      u.role === 'Chairman' ? 'bg-warning text-dark' :
+      u.role === 'SocietyAdmin' ? 'bg-info text-dark' : 'bg-primary';
+
+    return `
+      <tr>
+        <td><b>${u.flat_no || '-'}</b></td>
+        <td><span class="badge ${roleColor}">${u.role || '-'}</span></td>
+        <td><small>${u.society_name || '-'}</small></td>
+        <td><small class="text-muted font-monospace">${(u.user_id || '').substring(0, 8)}...</small></td>
+        <td class="no-print">
+          <button class="btn btn-sm btn-warning fw-semibold"
+            onclick="openResetPasswordModal('${u.user_id}', '${u.flat_no}', '${u.role}', '${u.society_name}')">
+            <i class="fa-solid fa-key me-1"></i> Reset
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function clearUserMgmtFilters() {
+  const socFilter = document.getElementById('user-mgmt-society-filter');
+  const search = document.getElementById('user-mgmt-search');
+  if (socFilter) socFilter.value = 'all';
+  if (search) search.value = '';
+  renderUserManagementTable();
+}
+
+// 4. Load Pending Password Reset Requests
+async function loadPendingResetRequests() {
+  if (currentRole !== 'Admin') return;
+
+  try {
+    const { data, error } = await _supabase
+      .from('password_reset_requests')
+      .select('*')
+      .eq('status', 'Pending')
+      .order('requested_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.warn('[ResetReq] Load error:', error.message);
+      return;
+    }
+
+    passwordResetRequests = data || [];
+    renderPendingResetRequests();
+    updateUserMgmtBadge();
+
+  } catch (e) {
+    console.error('[ResetReq] Exception:', e);
+  }
+}
+
+// 5. Render Pending Requests Panel
+function renderPendingResetRequests() {
+  const panel = document.getElementById('pending-reset-requests-panel');
+  if (!panel) return;
+
+  if (!passwordResetRequests || passwordResetRequests.length === 0) {
+    panel.innerHTML = `
+      <div class="alert alert-success d-flex align-items-center mb-0" style="border-radius:12px;">
+        <i class="fa-solid fa-check-circle me-2"></i>
+        <strong>All clear!</strong> &nbsp; No pending password reset requests.
+      </div>
+    `;
+    return;
+  }
+
+  const societyFilter = document.getElementById('user-mgmt-society-filter')?.value || 'all';
+  let visible = passwordResetRequests;
+
+  if (societyFilter !== 'all') {
+    visible = visible.filter(r => r.society_name === societyFilter);
+  }
+
+  if (visible.length === 0) {
+    panel.innerHTML = `
+      <div class="alert alert-info mb-0" style="border-radius:12px;">
+        <i class="fa-solid fa-info-circle me-2"></i>
+        ${passwordResetRequests.length} pending request(s) in other societies. Change filter to view.
+      </div>
+    `;
+    return;
+  }
+
+  panel.innerHTML = `
+    <div class="card border-0 shadow-sm rounded-4 p-3 bg-warning-subtle">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-warning-emphasis mb-0">
+          <i class="fa-solid fa-bell me-2"></i> 
+          ${visible.length} Pending Password Reset Request${visible.length > 1 ? 's' : ''}
+        </h6>
+        <button class="btn btn-sm btn-outline-warning" onclick="loadPendingResetRequests()">
+          <i class="fa-solid fa-rotate"></i>
+        </button>
+      </div>
+      <div class="row g-2">
+        ${visible.map(r => {
+          const timeAgo = getTimeAgo(r.requested_at);
+          return `
+            <div class="col-md-6">
+              <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <h6 class="fw-bold mb-1">
+                      <i class="fa-solid fa-user-clock text-warning me-1"></i>
+                      ${r.flat_no}
+                    </h6>
+                    <span class="badge bg-secondary">${r.user_role || 'Member'}</span>
+                    <span class="badge bg-info text-dark ms-1">${r.society_name}</span>
+                  </div>
+                  <small class="text-muted">${timeAgo}</small>
+                </div>
+                ${r.phone ? `<p class="small mb-2"><i class="fa-solid fa-phone me-1"></i> ${r.phone}</p>` : ''}
+                <div class="d-flex gap-1 flex-wrap">
+                  <button class="btn btn-sm btn-warning fw-semibold flex-grow-1" 
+                    onclick="resetFromRequest(${r.id})">
+                    <i class="fa-solid fa-key me-1"></i> Reset Now
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="dismissResetRequest(${r.id})" title="Dismiss">
+                    <i class="fa-solid fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function getTimeAgo(timestamp) {
+  if (!timestamp) return '';
+  const diff = Date.now() - new Date(timestamp).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + ' min ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + ' hr ago';
+  const days = Math.floor(hrs / 24);
+  return days + ' day ago';
+}
+
+// 6. Badge Update
+function updateUserMgmtBadge() {
+  const count = passwordResetRequests.filter(r => r.status === 'Pending').length;
+
+  const badge = document.getElementById('user-mgmt-badge');
+  if (badge) {
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  const gridBadge = document.getElementById('grid-badge-user-management');
+  if (gridBadge) {
+    gridBadge.textContent = count > 0 ? count : '';
+    gridBadge.setAttribute('data-count', count.toString());
+  }
+}
+
+// 7. Reset From Request
+async function resetFromRequest(requestId) {
+  const req = passwordResetRequests.find(r => r.id === requestId);
+  if (!req) { alert('❌ Request not found'); return; }
+
+  const user = allUsersData.find(u => 
+    (u.flat_no || '').toUpperCase() === (req.flat_no || '').toUpperCase() &&
+    (u.society_name || '').toLowerCase() === (req.society_name || '').toLowerCase()
+  );
+
+  if (!user) {
+    alert(`❌ User not found in user_master\n\nFlat: ${req.flat_no}\nSociety: ${req.society_name}`);
+    return;
+  }
+
+  openResetPasswordModal(user.user_id, user.flat_no, user.role, user.society_name, requestId);
+}
+
+// 8. Dismiss Request
+async function dismissResetRequest(requestId) {
+  if (!confirm('⚠️ Dismiss this password reset request?\n\nUser will NOT be notified.')) return;
+
+  try {
+    const { error } = await _supabase
+      .from('password_reset_requests')
+      .update({
+        status: 'Dismissed',
+        resolved_at: new Date().toISOString(),
+        resolved_by: currentUser,
+        resolved_note: 'Dismissed by admin'
+      })
+      .eq('id', requestId);
+
+    if (error) { alert('❌ ' + error.message); return; }
+
+    alert('✅ Request dismissed');
+    await loadPendingResetRequests();
+
+  } catch (e) {
+    alert('❌ ' + e.message);
+  }
+}
+
+// 9. Random Password Generator
+function generateRandomPassword() {
+  const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lowercase = 'abcdefghjkmnpqrstuvwxyz';
+  const digits = '23456789';
+  const symbols = '@#$!';
+  const all = uppercase + lowercase + digits + symbols;
+
+  let pwd = '';
+  pwd += uppercase[Math.floor(Math.random() * uppercase.length)];
+  pwd += lowercase[Math.floor(Math.random() * lowercase.length)];
+  pwd += digits[Math.floor(Math.random() * digits.length)];
+  pwd += symbols[Math.floor(Math.random() * symbols.length)];
+
+  for (let i = 0; i < 6; i++) {
+    pwd += all[Math.floor(Math.random() * all.length)];
+  }
+
+  return pwd.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+// 10. Open Reset Password Modal
+function openResetPasswordModal(userId, flatNo, role, society, requestId = null) {
+  const existing = document.getElementById('resetPasswordModal');
+  if (existing) existing.remove();
+
+  const randomPwd = generateRandomPassword();
+
+  const modal = document.createElement('div');
+  modal.id = 'resetPasswordModal';
+  modal.className = 'modal fade';
+  modal.setAttribute('data-bs-backdrop', 'static');
+  modal.innerHTML = `
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-header bg-warning text-dark" style="border-radius: 20px 20px 0 0;">
+          <h5 class="modal-title fw-bold">
+            <i class="fa-solid fa-key me-2"></i> Reset User Password
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="alert alert-info py-2 px-3 mb-3" style="border-radius: 10px; font-size: 13px;">
+            <div><strong>Flat/ID:</strong> ${flatNo}</div>
+            <div><strong>Role:</strong> ${role}</div>
+            <div><strong>Society:</strong> ${society}</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              New Password 
+              <button class="btn btn-sm btn-outline-warning ms-2 py-0 px-2" onclick="regeneratePassword()" type="button">
+                <i class="fa-solid fa-rotate me-1"></i> Regenerate
+              </button>
+            </label>
+            <div class="input-group">
+              <input type="text" id="reset-new-pwd" class="form-control font-monospace fw-bold" 
+                     value="${randomPwd}" readonly>
+              <button class="btn btn-outline-secondary" type="button" onclick="copyResetPwd()" title="Copy">
+                <i class="fa-solid fa-copy"></i>
+              </button>
+            </div>
+            <small class="text-muted">
+              <i class="fa-solid fa-info-circle me-1"></i>
+              User will get this password via WhatsApp
+            </small>
+          </div>
+
+          <div class="alert alert-warning small mb-3" style="border-radius: 10px;">
+            <i class="fa-solid fa-shield-halved me-1"></i>
+            User ko WhatsApp pe message jayega: <em>"Login karke Change Password se apna password set kar lein"</em>
+          </div>
+
+          <button class="btn btn-warning w-100 fw-bold py-2" id="btn-do-reset"
+            onclick="doResetPassword('${userId}', '${flatNo}', '${role}', '${society}', ${requestId || 'null'})">
+            <i class="fa-solid fa-check me-1"></i> Reset Password
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  new bootstrap.Modal(modal).show();
+}
+
+function regeneratePassword() {
+  const input = document.getElementById('reset-new-pwd');
+  if (input) input.value = generateRandomPassword();
+}
+
+function copyResetPwd() {
+  const input = document.getElementById('reset-new-pwd');
+  if (!input) return;
+  input.select();
+  document.execCommand('copy');
+  input.setSelectionRange(0, 0);
+  alert('✅ Password copied to clipboard');
+}
+
+// 11. Do Reset Password
+async function doResetPassword(userId, flatNo, role, society, requestId) {
+  const newPwd = document.getElementById('reset-new-pwd').value.trim();
+
+  if (!newPwd || newPwd.length < 6) {
+    alert('❌ Password minimum 6 characters');
+    return;
+  }
+
+  const btn = document.getElementById('btn-do-reset');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Resetting...';
+
+  try {
+    const { data: authData } = await _supabase.auth.getUser();
+    if (!authData?.user?.id) {
+      alert('❌ Not authenticated');
+      return;
+    }
+
+    const { data, error } = await _supabase.functions.invoke('reset-user-password', {
+      body: {
+        userId: userId,
+        newPassword: newPwd,
+        callerUserId: authData.user.id
+      }
+    });
+
+    if (error) throw new Error(error.message);
+    if (data?.error) throw new Error(data.error);
+
+    if (requestId) {
+      try {
+        await _supabase
+          .from('password_reset_requests')
+          .update({
+            status: 'Resolved',
+            resolved_at: new Date().toISOString(),
+            resolved_by: currentUser,
+            resolved_note: `Reset by Admin. New password length: ${newPwd.length}`
+          })
+          .eq('id', requestId);
+      } catch (e) { console.warn('Request mark error:', e); }
+    }
+
+    try {
+      await logActivity('PASSWORD_RESET', `Reset password for ${flatNo} (${role}) in ${society}`);
+    } catch (e) {}
+
+    const modalEl = document.getElementById('resetPasswordModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (modalInstance) modalInstance.hide();
+    setTimeout(() => modalEl?.remove(), 400);
+
+    showResetSuccessModal(flatNo, role, society, newPwd);
+
+    setTimeout(() => loadPendingResetRequests(), 500);
+
+  } catch (err) {
+    console.error('[ResetPwd] Error:', err);
+    alert('❌ Failed to reset password:\n\n' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+}
+
+// 12. Success Modal + WhatsApp Button
+function showResetSuccessModal(flatNo, role, society, newPwd) {
+  const existing = document.getElementById('resetSuccessModal');
+  if (existing) existing.remove();
+
+  const loginId = `${flatNo.toLowerCase()}_${society.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+  
+  const waMessage = 
+`🔐 *Password Reset Successful*
+
+Namaste,
+
+Aapka password reset kar diya gaya hai.
+
+*Login ID:* ${loginId}
+*New Password:* ${newPwd}
+
+⚠️ *IMPORTANT:*
+Login karne ke baad, kripya turant apna password change kar lein.
+👉 Login karo → "Change Password" tab me jao → apna naya password set karo.
+
+- PS Society Solutions`;
+
+  const member = membersData.find(m => (m.flat_no || '').toUpperCase() === flatNo.toUpperCase());
+  const phone = member?.phone || '';
+
+  const modal = document.createElement('div');
+  modal.id = 'resetSuccessModal';
+  modal.className = 'modal fade';
+  modal.innerHTML = `
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+        <div class="modal-header bg-success text-white" style="border-radius: 20px 20px 0 0;">
+          <h5 class="modal-title fw-bold">
+            <i class="fa-solid fa-check-circle me-2"></i> Password Reset!
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body p-4 text-center">
+          <div class="mb-3">
+            <i class="fa-solid fa-check-circle text-success" style="font-size: 70px;"></i>
+          </div>
+
+          <div class="alert alert-success mb-3" style="border-radius: 12px;">
+            <div class="mb-1"><strong>User:</strong> ${flatNo} (${role})</div>
+            <div class="mb-1"><strong>Society:</strong> ${society}</div>
+            <div class="mt-2">
+              <strong>New Password:</strong><br>
+              <code class="fs-6 fw-bold" style="background:#fff; padding:6px 12px; border-radius:8px; display:inline-block; margin-top:4px;">${newPwd}</code>
+            </div>
+          </div>
+
+          ${phone ? `
+            <button class="btn btn-success w-100 fw-bold mb-2 py-2"
+              onclick="sendResetWhatsApp('${phone}', ${JSON.stringify(waMessage).replace(/"/g, '&quot;')})">
+              <i class="fa-brands fa-whatsapp me-2" style="font-size:18px;"></i> 
+              Send via WhatsApp
+            </button>
+          ` : `
+            <div class="alert alert-warning small mb-2">
+              ⚠️ Member ka phone number nahi mila.<br>
+              Copy karke manually bhej dein:
+              <div class="mt-2">
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyText(\`${waMessage.replace(/`/g, '')}\`)">
+                  <i class="fa-solid fa-copy me-1"></i> Copy Message
+                </button>
+              </div>
+            </div>
+          `}
+
+          <button class="btn btn-outline-secondary w-100" data-bs-dismiss="modal">
+            <i class="fa-solid fa-times me-1"></i> Close
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  new bootstrap.Modal(modal).show();
+}
+
+function sendResetWhatsApp(phone, message) {
+  const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+  const finalPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
+  window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert('✅ Copied to clipboard');
+  }).catch(() => {
+    alert('⚠️ Copy failed — manually select and copy');
+  });
+}
+
+// 13. Realtime Subscription
+function setupUserMgmtRealtime() {
+  if (__userMgmtRealtimeChannel) {
+    try { _supabase.removeChannel(__userMgmtRealtimeChannel); } catch(e) {}
+    __userMgmtRealtimeChannel = null;
+  }
+
+  if (currentRole !== 'Admin') return;
+
+  __userMgmtRealtimeChannel = _supabase
+    .channel('password-reset-requests-rt')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'password_reset_requests' },
+      async (payload) => {
+        console.log('[RT] password_reset_requests:', payload.eventType);
+        await loadPendingResetRequests();
+
+        if (payload.eventType === 'INSERT') {
+          const newReq = payload.new;
+          if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+            try {
+              navigator.serviceWorker.ready.then(reg => {
+                reg.showNotification('🔐 Password Reset Request', {
+                  body: `${newReq.flat_no} (${newReq.society_name}) needs password reset`,
+                  icon: '/ps-society-app/icon-192.png',
+                  badge: '/ps-society-app/icon-192.png',
+                  tag: `reset-${newReq.id}`,
+                  renotify: true,
+                  data: { url: '/ps-society-app/?tab=user-management' }
+                });
+              });
+            } catch (e) { console.log('Notify error:', e); }
+          }
+        }
+      }
+    )
+    .subscribe((status) => {
+      console.log('[RT] User Mgmt channel:', status);
+    });
 }
