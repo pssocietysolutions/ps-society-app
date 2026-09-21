@@ -359,6 +359,16 @@ body.read-only-mode a[download] {
 </head>
 <body>
 
+<!-- 🚀 Initial Loading Screen -->
+<div id="initialLoader" style="position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#090d16 0%,#151c2e 100%);display:flex;justify-content:center;align-items:center;z-index:9999999;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;flex-direction:column;transition:opacity 0.4s ease;">
+  <div style="font-size:1.5rem;font-weight:800;margin-bottom:20px;letter-spacing:1px;">
+    <span style="color:#ea580c;">PS</span> Society Solutions
+  </div>
+  <div style="width:50px;height:50px;border:4px solid rgba(234,88,12,0.2);border-top-color:#ea580c;border-radius:50%;animation:psSpin 1s linear infinite;"></div>
+  <div style="margin-top:15px;color:#94a3b8;font-size:13px;font-weight:500;">Loading your portal...</div>
+  <style>@keyframes psSpin { to { transform: rotate(360deg); } }</style>
+</div>
+
 <!-- ========== LANDING PAGE ========== -->
 <div id="landing-section" class="landing-wrapper">
   
@@ -2737,7 +2747,7 @@ body.read-only-mode a[download] {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="app.js?v=999"></script>
+<script src="app.js?v=2"></script>
 
 </body>
 </html>

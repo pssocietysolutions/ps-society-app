@@ -8510,6 +8510,18 @@ function updateSupportBadge() {
 }
 
 window.onload = async () => {
+  // 🚀 Hide loading screen after page ready
+  const hideLoader = () => {
+    const loader = document.getElementById('initialLoader');
+    if (loader) {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.remove(), 500);
+    }
+  };
+  
+  setTimeout(hideLoader, 2000);
+  window.addEventListener('load', () => setTimeout(hideLoader, 500));
+
   clearStuckOverlays();
 
 // ✅ Demo mode check — sabse pehle
@@ -9435,3 +9447,14 @@ function setupUserMgmtRealtime() {
       console.log('[RT] User Mgmt channel:', status);
     });
 }
+// ═══════════════════════════════════════════════════
+// 🛡️ LOADER FALLBACK — Force hide after 5 seconds
+// ═══════════════════════════════════════════════════
+setTimeout(() => {
+  const loader = document.getElementById('initialLoader');
+  if (loader && loader.parentNode) {
+    loader.style.opacity = '0';
+    setTimeout(() => loader.remove(), 500);
+    console.log('[Loader] Force hidden after 5s timeout');
+  }
+}, 5000);
