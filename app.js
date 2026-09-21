@@ -1,568 +1,17 @@
-// ==================== FULL app.js ====================
-const SUPABASE_URL = 'https://kuxttskznuzbtmfxtifr.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1eHR0c2t6bnV6YnRtZnh0aWZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjg3OTQsImV4cCI6MjEwMTUwNDc5NH0.tc4XXUeDI19R1XsFJasO0Aq9gTg3JrzPL1JWM83RnYM';
+const SUPABASE_URL="https://kuxttskznuzbtmfxtifr.supabase.co",SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1eHR0c2t6bnV6YnRtZnh0aWZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjg3OTQsImV4cCI6MjEwMTUwNDc5NH0.tc4XXUeDI19R1XsFJasO0Aq9gTg3JrzPL1JWM83RnYM",_supabase=supabase.createClient("https://kuxttskznuzbtmfxtifr.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1eHR0c2t6bnV6YnRtZnh0aWZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5Mjg3OTQsImV4cCI6MjEwMTUwNDc5NH0.tc4XXUeDI19R1XsFJasO0Aq9gTg3JrzPL1JWM83RnYM");function getCurrentFYStartDate(){let e=new Date,t=e.getFullYear(),a=e.getMonth();return`${a>=3?t:t-1}-04-01`}const sirenAudio=new Audio("https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg");let activityLogs=[],currentRole="Admin",currentUser="A-101",currentSociety="Demo Society";const MONTHS_IN_FY_SO_FAR=(()=>{let e=new Date,t=e.getMonth();return t>=3?t-3+1:9+t+1})();let openingBalance=105035.85,membersData=[],maintenanceData=[],expenseData=[],customBankEntries=[],journalVouchersData=[],pollsData=[],noticesData=[],meetingsData=[],complaintData=[],parkingData=[],assetData=[],fdData=[],societySettings={},visitors=[],paymentProofs=[],teamData=[],allSocieties=[],facilitiesData=[],bookingsData=[],eventsData=[],societyRules="",amcContractsData=[],deletionRequests=[],marketplaceData=[],__deepLinkLock=!1,__userClosedOverlay=!1,__programmaticBack=!1,__changePasswordFromGrid=!1,notificationBadgeCount=0,communityBadgeCount=0;function updateFloatingButtonsVisibility(e){let t=document.getElementById("enrollButtonContainer"),a=document.getElementById("aboutButtonContainer");t&&(t.style.display=e?"block":"none"),a&&(a.style.display=e?"block":"none")}function togglePasswordVisibility(){let e=document.getElementById("login-password"),t=document.getElementById("togglePasswordIcon");"password"===e.type?(e.type="text",t.classList.remove("fa-eye"),t.classList.add("fa-eye-slash")):(e.type="password",t.classList.remove("fa-eye-slash"),t.classList.add("fa-eye"))}function toggleTenantFormFields(e,t="add"){let a=document.getElementById("edit"===t?"edit-mem-tenant-dynamic-fields":"tenant-dynamic-fields");a&&(a.style.display="Yes"===e?"block":"none")}function showLandingPage(){document.getElementById("landing-section").style.display="flex",document.getElementById("visitor-section").style.display="none";let e=document.getElementById("login-section");e&&(e.style.display="none"),document.getElementById("app-section").classList.add("d-none"),updateFloatingButtonsVisibility(!0)}function showVisitorPage(){if(updateFloatingButtonsVisibility(!1),"true"===localStorage.getItem("ps_user_logged")){document.getElementById("landing-section").style.display="none",document.getElementById("visitor-section").style.display="block",document.getElementById("login-section").style.display="none",document.getElementById("app-section").classList.add("d-none");let e=document.getElementById("visitorBackBtn");e&&(e.onclick=goBackFromVisitor),loadTodayVisitors(),setupVisitorRealtimeForGuard()}else openVisitorPassword()}function showLoginPage(){updateFloatingButtonsVisibility(!1);let e=document.getElementById("visitor-section");e&&(e.style.display="none"),document.querySelectorAll(".modal.show").forEach(e=>{let t=bootstrap.Modal.getInstance(e);t&&t.hide()});let t=document.getElementById("landing-section");t&&(t.style.display="none");let a=document.getElementById("app-section");a&&a.classList.add("d-none");let n=document.getElementById("login-section");n&&(n.style.display="flex")}function goBackFromVisitor(){document.querySelectorAll(".modal.show").forEach(e=>{let t=bootstrap.Modal.getInstance(e);t&&t.hide()}),document.querySelectorAll(".modal-backdrop").forEach(e=>e.remove()),document.body.classList.remove("modal-open"),document.body.style.overflow="";let e=document.getElementById("visitor-section");e&&(e.style.display="none"),cleanupVisitorRealtimeForGuard();let t=document.getElementById("tabOverlay");if(t&&t.remove(),"true"===localStorage.getItem("ps_user_logged")){let a=document.getElementById("app-section");if(a&&a.classList.remove("d-none"),window.innerWidth<=768){let n=document.getElementById("mobileMenuOverlay");n&&(n.style.display="flex",n.style.backgroundColor="rgba(15, 23, 42, 0.95)",n.style.zIndex="10000",n.style.position="fixed",n.style.top="0",n.style.left="0",n.style.width="100%",n.style.height="100%",renderGridCards(),document.body.style.overflow="hidden")}else{let s=document.querySelector('.nav-link[onclick*="dashboard"]');s&&switchTab("dashboard",s)}}else showLandingPage()}async function handleLogin(e){e.preventDefault(),clearAllData();let t=(document.getElementById("login-email")?.value||"").trim(),a=(document.getElementById("login-password")?.value||"").trim();if(!t||!a){alert("❌ कृपया Login ID और Password दर्ज करें।");return}let n=t;if(n.toLowerCase().endsWith("@ps.in")&&(n=n.slice(0,-6)),/\s/.test(n)){alert("❌ Login ID में space allowed नहीं है।\n\nExample: a-101_demosociety");return}n=n.toLowerCase();let s=(n.match(/_/g)||[]).length;if(1!==s){alert("❌ Login ID में exactly एक underscore (_) होना चाहिए।\n\nExample: a-101_demosociety\nया: admin_demosociety");return}if(!/^[a-z0-9-]+_[a-z0-9]+$/.test(n)){alert("❌ Login ID में सिर्फ small letters (a-z), numbers (0-9), और hyphen (-) allowed हैं।\n\nExample: a-101_demosociety");return}let i=n+"@ps.in";try{let{data:r,error:o}=await _supabase.auth.signInWithPassword({email:i,password:a});if(o||!r.user){alert("❌ Invalid credentials! Please check your ID and Password.");return}let{data:l,error:d}=await _supabase.from("user_master").select("*").eq("user_id",r.user.id).single();if(d||!l){alert("❌ User not found in system."),await _supabase.auth.signOut();return}let c=l;localStorage.setItem("ps_user_logged","true"),localStorage.setItem("ps_user_role",c.role),localStorage.setItem("ps_user_id",c.flat_no);let m=n.split("_").slice(1).join("_"),u=c.society_name||currentSociety||"Demo Society";try{let{data:p}=await _supabase.from("societies").select("name").eq("is_active",!0);if(p&&p.length>0){let y=p.find(e=>e.name.toLowerCase().replace(/[^a-z0-9]/g,"")===m);y&&(u=y.name)}}catch(g){console.log("[Login] Society match error (using fallback):",g)}localStorage.setItem("ps_user_society",u),currentSociety=u.trim();let b=document.getElementById("login-section");b&&(b.style.display="none");let f=document.getElementById("landing-section");f&&(f.style.display="none");let h=document.getElementById("app-section");h&&h.classList.remove("d-none"),document.querySelectorAll(".modal-backdrop").forEach(e=>e.remove()),document.body.classList.remove("modal-open"),document.body.style.overflow="",applyUserSession(c.role,c.flat_no),requestNotificationPermission(),alert("✅ Login Successful!")}catch(v){console.error("Login error:",v),alert("❌ Something went wrong: "+v.message)}}function openForgotModal(){let e=document.getElementById("forgotModal");if(!e)return;let t=document.getElementById("forgotSociety"),a=document.getElementById("forgotFlat");t&&(t.value=""),a&&(a.value="");let n=new bootstrap.Modal(e);n.show()}function closeForgotModal(){let e=document.getElementById("forgotModal");if(!e)return;let t=bootstrap.Modal.getInstance(e);t&&t.hide()}async function submitForgotPasswordRequest(){let e=document.getElementById("forgotSociety"),t=document.getElementById("forgotFlat"),a=document.getElementById("btn-submit-forgot-request"),n=e?.value.trim(),s=t?.value.trim().toUpperCase();if(!n){alert("❌ Please enter Society Name"),e?.focus();return}if(!s){alert("❌ Please enter Flat Number / Login ID"),t?.focus();return}let i=a.innerHTML;a.disabled=!0,a.innerHTML='<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';try{let r="",o="Member";try{let{data:l}=await _supabase.from("members").select("phone, name, status").ilike("society_name",n).ilike("flat_no",s).maybeSingle();l&&(r=l.phone||"",o=l.status||"Member")}catch(d){console.log("[ForgotPwd] Member lookup skipped:",d.message)}try{let c=new Date(Date.now()-3e5).toISOString(),{data:m}=await _supabase.from("password_reset_requests").select("id").ilike("society_name",n).ilike("flat_no",s).eq("status","Pending").gte("requested_at",c).limit(1);if(m&&m.length>0){alert("⚠️ You already submitted a request in the last 5 minutes.\n\nPlease wait — admin will respond soon."),a.disabled=!1,a.innerHTML=i;return}}catch(u){console.log("[ForgotPwd] Duplicate check skipped:",u.message)}let{data:p,error:y}=await _supabase.from("password_reset_requests").insert([{society_name:n,flat_no:s,phone:r,user_role:o,note:"User forgot password",status:"Pending"}]).select().single();if(y){console.error("[ForgotPwd] Insert error:",y),alert("❌ Failed to submit request:\n"+y.message);return}console.log("[ForgotPwd] ✅ Request submitted:",p),alert("✅ Request Submitted Successfully!\n\n\uD83D\uDCCB Society: "+n+"\n\uD83C\uDFE0 Flat: "+s+"\n\nAdmin will reset your password soon.\nYou will receive your new password on WhatsApp."),e&&(e.value=""),t&&(t.value="");let g=document.getElementById("forgotModal"),b=bootstrap.Modal.getInstance(g);b&&b.hide()}catch(f){console.error("[ForgotPwd] Exception:",f),alert("❌ Something went wrong: "+f.message)}finally{a.disabled=!1,a.innerHTML=i}}function sendPasswordRequest(){let e=document.getElementById("forgotSociety")?.value.trim(),t=document.getElementById("forgotFlat")?.value.trim().toUpperCase();if(!e||!t){alert("❌ Please enter Society Name and Flat Number first");return}let a=`🔐 Password Reset Request
 
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ✅ Global FY Helper — saari jagah consistent FY date milegi
-function getCurrentFYStartDate() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0 = Jan, 11 = Dec
-  const fyStartYear = month >= 3 ? year : year - 1; // April = 3
-  return `${fyStartYear}-04-01`;
-}
-
-const sirenAudio = new Audio('https://actions.google.com/sounds/v1/alarms/emergency_alarm.ogg');
-
-let activityLogs = [];
-let currentRole = 'Admin';
-let currentUser = 'A-101';
-let currentSociety = 'Demo Society';
-// Dynamic: Months elapsed since 1 April of current FY
-const MONTHS_IN_FY_SO_FAR = (() => {
-  const now = new Date();
-  const currentMonth = now.getMonth(); // 0-11
-  const fyStartMonth = 3; // April = 3 (0-indexed)
-  if (currentMonth >= fyStartMonth) return currentMonth - fyStartMonth + 1;
-  return (12 - fyStartMonth) + currentMonth + 1;
-})(); 
-let openingBalance = 105035.85;
-
-let membersData = [];
-let maintenanceData = [];
-let expenseData = [];
-let customBankEntries = [];
-let journalVouchersData = [];
-let pollsData = [];
-let noticesData = [];
-let meetingsData = [];
-let complaintData = [];
-let parkingData = [];
-let assetData = [];
-let fdData = [];
-let societySettings = {};
-let visitors = [];
-let paymentProofs = [];
-let teamData = [];
-let allSocieties = [];
-let facilitiesData = [];
-let bookingsData = [];
-let eventsData = [];
-let societyRules = '';
-let amcContractsData = [];
-let deletionRequests = [];
-let marketplaceData = [];
-let __deepLinkLock = false;
-let __userClosedOverlay = false;
-let __programmaticBack = false;   // ✅ NEW — apne history.back() ko ignore karne ke liye
-let __changePasswordFromGrid = false;   // ✅ NEW — change-password grid restore ke liye
-let notificationBadgeCount = 0;
-let communityBadgeCount = 0;
-
-function updateFloatingButtonsVisibility(isLanding) {
-  const enrollBtn = document.getElementById('enrollButtonContainer');
-  const aboutBtn = document.getElementById('aboutButtonContainer');
-  if (enrollBtn) enrollBtn.style.display = isLanding ? 'block' : 'none';
-  if (aboutBtn) aboutBtn.style.display = isLanding ? 'block' : 'none';
-}
-
-function togglePasswordVisibility() {
-  const pwdInput = document.getElementById('login-password');
-  const icon = document.getElementById('togglePasswordIcon');
-  if (pwdInput.type === 'password') {
-    pwdInput.type = 'text';
-    icon.classList.remove('fa-eye');
-    icon.classList.add('fa-eye-slash');
-  } else {
-    pwdInput.type = 'password';
-    icon.classList.remove('fa-eye-slash');
-    icon.classList.add('fa-eye');
-  }
-}
-
-function toggleTenantFormFields(val, mode = 'add') {
-  const directContainer = document.getElementById(mode === 'edit' ? 'edit-mem-tenant-dynamic-fields' : 'tenant-dynamic-fields');
-  if (directContainer) {
-    directContainer.style.display = (val === 'Yes') ? 'block' : 'none';
-  }
-}
-
-function showLandingPage() {
-  document.getElementById('landing-section').style.display = 'flex';
-  document.getElementById('visitor-section').style.display = 'none';
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'none';
-  document.getElementById('app-section').classList.add('d-none');
-  updateFloatingButtonsVisibility(true);
-}
-
-function showVisitorPage() {
-  updateFloatingButtonsVisibility(false);
-  if (localStorage.getItem('ps_user_logged') === 'true') {
-    document.getElementById('landing-section').style.display = 'none';
-    document.getElementById('visitor-section').style.display = 'block';
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('app-section').classList.add('d-none');
-    const backBtn = document.getElementById('visitorBackBtn');
-    if (backBtn) backBtn.onclick = goBackFromVisitor;
-    loadTodayVisitors();
-    setupVisitorRealtimeForGuard();
-  } else {
-    openVisitorPassword();
-  }
-}
-
-function showLoginPage() {
-  updateFloatingButtonsVisibility(false);
-
-  const visitorSec = document.getElementById('visitor-section');
-  if (visitorSec) visitorSec.style.display = 'none';
-
-  document.querySelectorAll('.modal.show').forEach(m => {
-    const inst = bootstrap.Modal.getInstance(m);
-    if (inst) inst.hide();
-  });
-
-  const landing = document.getElementById('landing-section');
-  if (landing) landing.style.display = 'none';
-
-  const appSec = document.getElementById('app-section');
-  if (appSec) appSec.classList.add('d-none');
-
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'flex';
-}
-
-function goBackFromVisitor() {
-  document.querySelectorAll('.modal.show').forEach(modal => {
-    const instance = bootstrap.Modal.getInstance(modal);
-    if (instance) instance.hide();
-  });
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-  document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
-
-   const visitorSection = document.getElementById('visitor-section');
-  if (visitorSection) {
-    visitorSection.style.display = 'none';
-  }
-
-  cleanupVisitorRealtimeForGuard();
-
-  const tabOverlay = document.getElementById('tabOverlay');
-  if (tabOverlay) tabOverlay.remove();
-
-  if (localStorage.getItem('ps_user_logged') === 'true') {
-    const appSection = document.getElementById('app-section');
-    if (appSection) appSection.classList.remove('d-none');
-
-    if (window.innerWidth <= 768) {
-      const gridOverlay = document.getElementById('mobileMenuOverlay');
-      if (gridOverlay) {
-        gridOverlay.style.display = 'flex';
-        gridOverlay.style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
-        gridOverlay.style.zIndex = '10000';
-        gridOverlay.style.position = 'fixed';
-        gridOverlay.style.top = '0';
-        gridOverlay.style.left = '0';
-        gridOverlay.style.width = '100%';
-        gridOverlay.style.height = '100%';
-        renderGridCards();
-        document.body.style.overflow = 'hidden';
-      }
-    } else {
-      const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
-      if (dashboardLink) switchTab('dashboard', dashboardLink);
-    }
-  } else {
-    showLandingPage();
-  }
-}
-
-async function handleLogin(event) {
-  event.preventDefault();
-  clearAllData();
-
-  const rawInput = (document.getElementById('login-email')?.value || '').trim();
-  const password = (document.getElementById('login-password')?.value || '').trim();
-
-  // ─────────────────────────────────────────
-  // STEP 1: Empty check
-  // ─────────────────────────────────────────
-  if (!rawInput || !password) {
-    alert('❌ कृपया Login ID और Password दर्ज करें।');
-    return;
-  }
-
-  // ─────────────────────────────────────────
-  // STEP 2: Strip @ps.in if user typed it
-  // ─────────────────────────────────────────
-  let loginId = rawInput;
-  if (loginId.toLowerCase().endsWith('@ps.in')) {
-    loginId = loginId.slice(0, -6);
-  }
-
-  // ─────────────────────────────────────────
-  // STEP 3: No spaces allowed
-  // ─────────────────────────────────────────
-  if (/\s/.test(loginId)) {
-    alert('❌ Login ID में space allowed नहीं है।\n\nExample: a-101_demosociety');
-    return;
-  }
-
-  // ─────────────────────────────────────────
-  // STEP 4: Auto-lowercase (Hybrid Option C)
-  // ─────────────────────────────────────────
-  loginId = loginId.toLowerCase();
-
-  // ─────────────────────────────────────────
-  // STEP 5: Must contain exactly ONE underscore
-  // ─────────────────────────────────────────
-  const underscoreCount = (loginId.match(/_/g) || []).length;
-  if (underscoreCount !== 1) {
-    alert('❌ Login ID में exactly एक underscore (_) होना चाहिए।\n\nExample: a-101_demosociety\nया: admin_demosociety');
-    return;
-  }
-
-  // ─────────────────────────────────────────
-  // STEP 6: Character set check
-  // Only a-z, 0-9, hyphen before underscore
-  // Only a-z, 0-9 after underscore
-  // ─────────────────────────────────────────
-  if (!/^[a-z0-9-]+_[a-z0-9]+$/.test(loginId)) {
-    alert('❌ Login ID में सिर्फ small letters (a-z), numbers (0-9), और hyphen (-) allowed हैं।\n\nExample: a-101_demosociety');
-    return;
-  }
-
-  // ─────────────────────────────────────────
-  // STEP 7: Build full email
-  // ─────────────────────────────────────────
-  const fullEmail = loginId + '@ps.in';
-
-  try {
-    // ───────────────────────────────────────
-    // STEP 8: Supabase Authentication
-    // ───────────────────────────────────────
-    const { data: authData, error: authError } = await _supabase.auth.signInWithPassword({
-      email: fullEmail,
-      password: password
-    });
-
-    if (authError || !authData.user) {
-      alert('❌ Invalid credentials! Please check your ID and Password.');
-      return;
-    }
-
-    // ───────────────────────────────────────
-    // STEP 9: Fetch user role from user_master
-    // ───────────────────────────────────────
-    const { data: userData, error: userError } = await _supabase
-      .from('user_master')
-      .select('*')
-      .eq('user_id', authData.user.id)
-      .single();
-
-    if (userError || !userData) {
-      alert('❌ User not found in system.');
-      await _supabase.auth.signOut();
-      return;
-    }
-
-    const user = userData;
-
-    // ───────────────────────────────────────
-    // STEP 10: Save session to localStorage
-    // ───────────────────────────────────────
-    localStorage.setItem('ps_user_logged', 'true');
-    localStorage.setItem('ps_user_role', user.role);
-    localStorage.setItem('ps_user_id', user.flat_no);
-
-    // ───────────────────────────────────────
-    // STEP 11: Auto-detect society from login ID slug
-    // "admin_demosociety" → socSlug = "demosociety"
-    // Then match against societies table
-    // ───────────────────────────────────────
-    const socSlug = loginId.split('_').slice(1).join('_');
-    let targetSociety = user.society_name || currentSociety || 'Demo Society';
-
-    try {
-      const { data: socData } = await _supabase
-        .from('societies')
-        .select('name')
-        .eq('is_active', true);
-
-      if (socData && socData.length > 0) {
-        const matched = socData.find(s =>
-          s.name.toLowerCase().replace(/[^a-z0-9]/g, '') === socSlug
-        );
-        if (matched) targetSociety = matched.name;
-      }
-    } catch (e) {
-      console.log('[Login] Society match error (using fallback):', e);
-    }
-
-    localStorage.setItem('ps_user_society', targetSociety);
-    currentSociety = targetSociety.trim();
-
-    // ───────────────────────────────────────
-    // STEP 12: Hide login/landing, show app
-    // ───────────────────────────────────────
-    const loginSec = document.getElementById('login-section');
-    if (loginSec) loginSec.style.display = 'none';
-
-    const landing = document.getElementById('landing-section');
-    if (landing) landing.style.display = 'none';
-
-    const appSec = document.getElementById('app-section');
-    if (appSec) appSec.classList.remove('d-none');
-
-    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-
-    // ───────────────────────────────────────
-    // STEP 13: Apply role-based session
-    // ───────────────────────────────────────
-    applyUserSession(user.role, user.flat_no);
-    requestNotificationPermission();
-    alert('✅ Login Successful!');
-
-  } catch (err) {
-    console.error('Login error:', err);
-    alert('❌ Something went wrong: ' + err.message);
-  }
-}
-
-function openForgotModal() {
-  const forgotEl = document.getElementById('forgotModal');
-  if (!forgotEl) return;
-
-  // Clear previous values
-  const socInput = document.getElementById('forgotSociety');
-  const flatInput = document.getElementById('forgotFlat');
-  if (socInput) socInput.value = '';
-  if (flatInput) flatInput.value = '';
-
-  const forgotModal = new bootstrap.Modal(forgotEl);
-  forgotModal.show();
-}
-
-function closeForgotModal() {
-  const forgotEl = document.getElementById('forgotModal');
-  if (!forgotEl) return;
-  const modalInstance = bootstrap.Modal.getInstance(forgotEl);
-  if (modalInstance) modalInstance.hide();
-}
-
-// ═══════════════════════════════════════════════════
-// 📩 SUBMIT FORGOT PASSWORD REQUEST (Save to DB)
-// ═══════════════════════════════════════════════════
-async function submitForgotPasswordRequest() {
-  const societyInput = document.getElementById('forgotSociety');
-  const flatInput = document.getElementById('forgotFlat');
-  const btn = document.getElementById('btn-submit-forgot-request');
-
-  const societyName = societyInput?.value.trim();
-  const flatNo = flatInput?.value.trim().toUpperCase();
-
-  // ─── Validation ───
-  if (!societyName) {
-    alert('❌ Please enter Society Name');
-    societyInput?.focus();
-    return;
-  }
-  if (!flatNo) {
-    alert('❌ Please enter Flat Number / Login ID');
-    flatInput?.focus();
-    return;
-  }
-
-  // ─── Save button state ───
-  const originalHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
-
-  try {
-    // ─── Phone lookup from members table (agar mila) ───
-    let phone = '';
-    let userRole = 'Member';
-
-    try {
-      const { data: memberInfo } = await _supabase
-        .from('members')
-        .select('phone, name, status')
-        .ilike('society_name', societyName)
-        .ilike('flat_no', flatNo)
-        .maybeSingle();
-
-      if (memberInfo) {
-        phone = memberInfo.phone || '';
-        userRole = memberInfo.status || 'Member';
-      }
-    } catch (e) {
-      console.log('[ForgotPwd] Member lookup skipped:', e.message);
-    }
-
-    // ─── Check: duplicate request in last 5 minutes? ───
-    try {
-      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      const { data: recent } = await _supabase
-        .from('password_reset_requests')
-        .select('id')
-        .ilike('society_name', societyName)
-        .ilike('flat_no', flatNo)
-        .eq('status', 'Pending')
-        .gte('requested_at', fiveMinAgo)
-        .limit(1);
-
-      if (recent && recent.length > 0) {
-        alert('⚠️ You already submitted a request in the last 5 minutes.\n\nPlease wait — admin will respond soon.');
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
-        return;
-      }
-    } catch (e) {
-      console.log('[ForgotPwd] Duplicate check skipped:', e.message);
-    }
-
-    // ─── Insert into DB ───
-    const { data, error } = await _supabase
-      .from('password_reset_requests')
-      .insert([{
-        society_name: societyName,
-        flat_no: flatNo,
-        phone: phone,
-        user_role: userRole,
-        note: 'User forgot password',
-        status: 'Pending'
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[ForgotPwd] Insert error:', error);
-      alert('❌ Failed to submit request:\n' + error.message);
-      return;
-    }
-
-    console.log('[ForgotPwd] ✅ Request submitted:', data);
-
-    // ─── Success alert ───
-    alert(
-      '✅ Request Submitted Successfully!\n\n' +
-      '📋 Society: ' + societyName + '\n' +
-      '🏠 Flat: ' + flatNo + '\n\n' +
-      'Admin will reset your password soon.\n' +
-      'You will receive your new password on WhatsApp.'
-    );
-
-    // ─── Clear inputs ───
-    if (societyInput) societyInput.value = '';
-    if (flatInput) flatInput.value = '';
-
-    // ─── Close modal ───
-    const modalEl = document.getElementById('forgotModal');
-    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) modalInstance.hide();
-
-  } catch (err) {
-    console.error('[ForgotPwd] Exception:', err);
-    alert('❌ Something went wrong: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
-}
-
-// ═══════════════════════════════════════════════════
-// 📱 SEND FORGOT PASSWORD REQUEST VIA WHATSAPP
-// ═══════════════════════════════════════════════════
-function sendPasswordRequest() {
-  const society = document.getElementById('forgotSociety')?.value.trim();
-  const flat = document.getElementById('forgotFlat')?.value.trim().toUpperCase();
-
-  if (!society || !flat) {
-    alert('❌ Please enter Society Name and Flat Number first');
-    return;
-  }
-
-  const adminPhone = '918866376056';
-  const message = 
-`🔐 Password Reset Request
-
-Society: ${society}
-Flat/ID: ${flat}
+Society: ${e}
+Flat/ID: ${t}
 
 User has forgotten their password. Please reset it from the Admin Panel.
 
-- PS Society Solutions`;
-
-  const whatsappURL = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
-  window.open(whatsappURL, '_blank');
-
-  // ⚠️ Note: Modal band NAHI karna — user alag se "Submit Request" bhi dabayega
-}
-
-async function submitChangePassword(event) {
-  event.preventDefault();
-  const oldP = document.getElementById('pass-old').value;
-  const newP = document.getElementById('pass-new').value;
-  const confirmP = document.getElementById('pass-confirm').value;
-  
-  if (newP !== confirmP) {
-    alert('❌ New Password and Confirm Password do not match!');
-    return;
-  }
-  
-  try {
-    const { error } = await _supabase.auth.updateUser({ password: newP });
-    if (error) {
-      alert('❌ Error updating password: ' + error.message);
-      return;
-    }
-    alert('✅ Password Updated Successfully!');
-    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
-    event.target.reset();
-  } catch (err) {
-    console.error(err);
-    alert('❌ Something went wrong.');
-  }
-}
-
-function applyUserSession(role, email) {
-  currentRole = role;
-  currentUser = email.toUpperCase();
-  loadMainApp(role);
-}
-
-async function checkUserConsent(flatNo, callback) {
-  try { callback(); } catch (err) { callback(); }
-}
-
-function showConsentPopup(flatNo, callback) {
-  const existingOverlay = document.getElementById('consentOverlay');
-  if (existingOverlay) existingOverlay.remove();
-
-  document.getElementById('app-section').classList.add('d-none');
-  document.getElementById('landing-section').style.display = 'none';
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'none';
-  document.getElementById('visitor-section').style.display = 'none';
-  updateFloatingButtonsVisibility(false);
-
-  const cleanFlat = (flatNo || '').trim();
-
-  const overlay = document.createElement('div');
-  overlay.id = 'consentOverlay';
-  overlay.style.cssText = `
+- PS Society Solutions`,n=`https://wa.me/918866376056?text=${encodeURIComponent(a)}`;window.open(n,"_blank")}async function submitChangePassword(e){e.preventDefault(),document.getElementById("pass-old").value;let t=document.getElementById("pass-new").value,a=document.getElementById("pass-confirm").value;if(t!==a){alert("❌ New Password and Confirm Password do not match!");return}try{let{error:n}=await _supabase.auth.updateUser({password:t});if(n){alert("❌ Error updating password: "+n.message);return}alert("✅ Password Updated Successfully!"),bootstrap.Modal.getInstance(document.getElementById("changePasswordModal")).hide(),e.target.reset()}catch(s){console.error(s),alert("❌ Something went wrong.")}}function applyUserSession(e,t){currentRole=e,currentUser=t.toUpperCase(),loadMainApp(e)}async function checkUserConsent(e,t){try{t()}catch(a){t()}}function showConsentPopup(e,t){let a=document.getElementById("consentOverlay");a&&a.remove(),document.getElementById("app-section").classList.add("d-none"),document.getElementById("landing-section").style.display="none";let n=document.getElementById("login-section");n&&(n.style.display="none"),document.getElementById("visitor-section").style.display="none",updateFloatingButtonsVisibility(!1);let s=(e||"").trim(),i=document.createElement("div");i.id="consentOverlay",i.style.cssText=`
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: rgba(15, 23, 42, 0.92); z-index: 99999;
     display: flex; justify-content: center; align-items: center;
     padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif;
     pointer-events: auto;
-  `;
-  overlay.innerHTML = `
+  `,i.innerHTML=`
     <div style="background: #fff; border-radius: 24px; padding: 30px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(0,0,0,0.4); position: relative; z-index: 100000; pointer-events: auto;">
       <h3 style="font-weight: 800; color: #0f172a; text-align: center; margin-bottom: 10px;">
         <span style="color: #f59e0b;">PS</span> Society Solutions
@@ -589,1409 +38,116 @@ function showConsentPopup(flatNo, callback) {
         </button>
       </div>
     </div>
-  `;
-  document.body.appendChild(overlay);
-
-  document.getElementById('btnAcceptConsent').onclick = function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    acceptConsent(cleanFlat);
-  };
-}
-
-async function acceptConsent(flatNo) {
-  const { error } = await _supabase
-    .from('user_master')
-    .update({ consent_given: true, consent_date: new Date().toISOString() })
-    .eq('flat_no', flatNo);
-
-  if (error) { alert('❌ Failed to save consent.'); return; }
-  const overlay = document.getElementById('consentOverlay');
-  if (overlay) overlay.remove();
-  loadMainApp(currentRole);
-}
-
-function loadMainApp(role) {
-  document.getElementById('landing-section').style.display = 'none';
-  const loginSec = document.getElementById('login-section');
-  if (loginSec) loginSec.style.display = 'none';
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const activeTab = urlParams.get('tab');
-
-  document.querySelectorAll('#sidebarMenu li').forEach(li => {
-    li.style.display = '';
-    li.classList.remove('d-none');
-  });
-  
-  document.querySelectorAll('#sidebarMenu .nav-link').forEach(el => {
-    el.style.display = '';
-    el.classList.remove('d-none');
-    const li = el.closest('li');
-    if (li) {
-      li.style.display = '';
-      li.classList.remove('d-none');
-    }
-  });
-
-  if (activeTab === 'visitor') {
-    showVisitorPage();
-    return;
-  }
-
-  document.getElementById('visitor-section').style.display = 'none';
-  document.getElementById('app-section').classList.remove('d-none');
-  updateFloatingButtonsVisibility(false);
-
-  document.getElementById('user-role-badge').innerText = role;
-  document.getElementById('user-name-display').innerText = currentUser || 'User';
-  
-  const switcher = document.getElementById('society-switcher');
-  if (switcher) {
-    if (role === 'Admin') {
-      switcher.classList.remove('d-none');
-      loadSocietySwitcher();
-    } else {
-      switcher.classList.add('d-none');
-    }
-  }
-
-  const adminStats = document.getElementById('admin-dashboard-stats');
-  const memberStats = document.getElementById('member-dashboard-stats');
-
-  if (role === 'Member') {
-    document.querySelectorAll('.admin-only, .chairman-only').forEach(el => el.classList.add('d-none'));
-    adminStats.classList.add('d-none'); memberStats.classList.remove('d-none');
-  } 
-  else if (role === 'Chairman') {
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('d-none'));
-    document.querySelectorAll('.chairman-only').forEach(el => el.classList.remove('d-none'));
-    adminStats.classList.remove('d-none'); memberStats.classList.add('d-none');
-  } 
-  else if (role === 'SocietyAdmin') {
-    document.querySelectorAll('.admin-only, .chairman-only').forEach(el => el.classList.remove('d-none'));
-    adminStats.classList.remove('d-none'); memberStats.classList.add('d-none');
-    document.querySelectorAll('.nav-link[onclick*="manage-societies"]').forEach(el => el.closest('li').style.display = 'none');
-    document.querySelectorAll('.nav-link[onclick*="settings"]').forEach(el => el.closest('li').style.display = 'none');
-    document.querySelectorAll('.nav-link[onclick*="master-dashboard"]').forEach(el => el.closest('li').style.display = 'none');
-    document.querySelectorAll('.nav-link[onclick*="deletion-requests"]').forEach(el => el.closest('li').style.display = 'none');
-    if (switcher) switcher.classList.add('d-none');
-  } 
-  else {
-    document.querySelectorAll('.admin-only, .chairman-only').forEach(el => el.classList.remove('d-none'));
-    adminStats.classList.remove('d-none'); memberStats.classList.add('d-none');
-  }
-
-  const settingsTab = document.querySelector('a[onclick*="settings"]');
-  if (settingsTab) settingsTab.closest('li').style.display = (role === 'Admin') ? '' : 'none';
-  const proofsTab = document.querySelector('a[onclick*="proofs"]');
-  if (proofsTab) proofsTab.closest('li').style.display = (role === 'Admin' || role === 'SocietyAdmin') ? '' : 'none';
-  const manageTab = document.querySelector('a[onclick*="manage-societies"]');
-  if (manageTab) manageTab.closest('li').style.display = (role === 'Admin') ? '' : 'none';
-  
-  if (window.innerWidth <= 768) {
-  const sidebar = document.querySelector('#sidebarMenu');
-  if (sidebar) sidebar.style.display = 'none';
-  const hasTabParam = urlParams.has('tab');
-  if (!hasTabParam) {
-    // ✅ Force-show grid (toggle nahi — kyunki login pe state unknown hai)
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) {
-      gridOverlay.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-      renderGridCards();
-      if (!history.state || !history.state.mobileMenuOpen) {
-        window.history.pushState({ mobileMenuOpen: true }, "", window.location.href);
-      }
-    }
-  }
-}
- else {
-    const sidebar = document.querySelector('#sidebarMenu');
-    if (sidebar) sidebar.style.display = 'block';
-  }
-  
-  clearAllData();
-  
-  if (activeTab === 'marketplace') {
-    fetchMarketplaceData().then(() => { fetchSupabaseData(); });
-  } else if (activeTab === 'community') {
-    fetchEvents().then(() => {
-      fetchFacilityData().then(() => { fetchSupabaseData(); });
-    });
-  } else if (activeTab === 'meetings') {
-    _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
-      meetingsData = data || [];
-      fetchSupabaseData();
-    });
-  } else {
-    fetchSupabaseData();
-  }
-
-    setTimeout(requestNotificationPermission, 2000);
-  listenForSOSAlerts();
-  setupRealtimeSubscriptions();
-  setTimeout(() => loadSecondaryData(), 500);
-  
-  // 🔒 NEW: Check subscription mode after login
-  setTimeout(() => checkSocietySubscriptionMode(), 1200);
-}
-
-async function loadSocietySwitcher() {
-  const dropdown = document.getElementById('switch-society-dropdown');
-  if (!dropdown) return;
-  const { data, error } = await _supabase.from('societies').select('name').eq('is_active', true);
-  if (error) return;
-  dropdown.innerHTML = '<option value="">-- Switch Society --</option>';
-  data.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.name;
-    opt.textContent = s.name;
-    if (s.name === currentSociety) opt.selected = true;
-    dropdown.appendChild(opt);
-  });
-}
-
-// ✅ NEW: Cleanup old visitor channel before switching
-  function switchSociety(societyName) {
-  if (!societyName || societyName === currentSociety) return;
-  if (!confirm(`Switch to "${societyName}"? Data will reload.`)) return;
-  
-  clearAllData();
-  currentSociety = societyName;
-  localStorage.setItem('ps_user_society', societyName);
-  
-// ✅ NEW: Cleanup old visitor channel before switching
-  if (typeof cleanupVisitorRealtimeForGuard === 'function') {
-    cleanupVisitorRealtimeForGuard();
-  }
-
-  fetchSupabaseData();
-  setTimeout(() => loadSecondaryData(), 500);
-  setupRealtimeSubscriptions();
-  listenForSOSAlerts();                      // ✅ NEW: SOS channel refresh on switch
-
-  // ✅ NEW: Save FCM token for this society (Admin multi-society support)
-  setTimeout(() => requestNotificationPermission(), 1200);
-
-  const sidebarName = document.getElementById('sidebar-society-name');
-  if (sidebarName) sidebarName.innerText = societyName;
-  
-    const dropdown = document.getElementById('switch-society-dropdown');
-  if (dropdown) dropdown.value = societyName;
-  
-  updateMobileHeaderInfo();
-  
-  // 🔒 NEW: Re-check after society switch
-  setTimeout(() => checkSocietySubscriptionMode(), 1000);
-}
-
-function markAllAsRead() {
-  if (maintenanceData.length > 0) localStorage.setItem('ps_last_seen_maintenance', Math.max(...maintenanceData.map(r => r.id || 0)).toString());
-  if (paymentProofs.length > 0) localStorage.setItem('ps_last_seen_proofs', Math.max(...paymentProofs.map(p => p.id || 0)).toString());
-  if (complaintData.length > 0) localStorage.setItem('ps_last_seen_complaints', Math.max(...complaintData.map(c => c.id || 0)).toString());
-  if (pollsData.length > 0) localStorage.setItem('ps_last_seen_polls', Math.max(...pollsData.map(p => p.id || 0)).toString());
-  if (noticesData.length > 0) localStorage.setItem('ps_last_seen_notice', Math.max(...noticesData.map(n => n.id || 0)).toString());
-  if (visitors.length > 0) localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString());
-
-  let communityMax = 0;
-  if (eventsData.length > 0) communityMax = Math.max(communityMax, ...eventsData.map(e => e.id || 0));
-  if (noticesData.length > 0) communityMax = Math.max(communityMax, ...noticesData.map(n => n.id || 0));
-  localStorage.setItem('ps_last_community_read', communityMax.toString());
-
-  updateBadge('maintenance-badge', 0);
-  updateBadge('proofs-badge', 0);
-  updateBadge('complaints-badge', 0);
-  updateBadge('polls-badge', 0);
-  updateBadge('community-badge', 0);
-  updateBadge('visitor-badge', 0);
-  updateBadge('support-badge', 0);
-  updateBadge('amc-badge', 0);
-  updateBadge('parking-badge', 0);
-  updateBadge('notification-badge', 0);
-}
-
-function handleLogout() {
-  markAllAsRead();
-  _supabase.auth.signOut();
-  
-  localStorage.removeItem('ps_user_logged');
-  localStorage.removeItem('ps_user_role');
-  localStorage.removeItem('ps_user_id');
-  localStorage.removeItem('ps_user_society');
-  
-  clearAllData();
-  
-  currentRole = 'Member';
-  currentUser = '';
-  currentSociety = 'Demo Society';
-  
-  // ═══════════════════════════════════════════════════
-  // ✅ FIX: Show landing page FIRST (white screen fix)
-  // ═══════════════════════════════════════════════════
-  const landingSec = document.getElementById('landing-section');
-  if (landingSec) {
-    landingSec.style.display = 'flex';
-    landingSec.style.visibility = 'visible';
-  }
-  
-  // ✅ THEN hide app section
-  const appSection = document.getElementById('app-section');
-  if (appSection) appSection.classList.add('d-none');
-  
-  const gridOverlay = document.getElementById('mobileMenuOverlay');
-  if (gridOverlay) gridOverlay.style.display = 'none';
-  
-  if (__proofRealtimeChannel) {
-    try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
-    __proofRealtimeChannel = null;
-  }
-
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-  document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
-  document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
-  
-  const tabOverlay = document.getElementById('tabOverlay');
-  if (tabOverlay) tabOverlay.remove();
-  
-  ['consentOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
-  
-  if (typeof cleanupVisitorRealtimeForGuard === 'function') {
-    cleanupVisitorRealtimeForGuard();
-  }
-
-  localStorage.setItem('ps_logout_broadcast', Date.now().toString());
-  setTimeout(() => localStorage.removeItem('ps_logout_broadcast'), 1000);
-
-  // ✅ Delay बढ़ाया: 100ms → 400ms (user को landing दिखेगा)
-  setTimeout(() => {
-    const baseUrl = window.location.origin + window.location.pathname;
-    window.location.replace(baseUrl + '?t=' + Date.now());
-  }, 400);
-}
-
-async function fetchSupabaseData() {
-  try {
-    const [
-      { data: members },
-      { data: maint },
-      { data: expenses },
-      { data: settings },
-      { data: market },
-      { data: notices },
-      { data: events },
-      { data: facilities },
-      { data: bookings },
-      { data: meets },
-      { data: parking }
-    ] = await Promise.all([
-      _supabase.from('members').select('*').eq('society_name', currentSociety),
-      _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
-      _supabase.from('expenses').select('*').eq('society_name', currentSociety),
-      _supabase.from('society_settings').select('*').eq('society_name', currentSociety),
-      _supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety),
-      _supabase.from('notices').select('*').eq('society_name', currentSociety),
-      _supabase.from('events').select('*').eq('society_name', currentSociety),
-      _supabase.from('facilities').select('*').eq('society_name', currentSociety),
-      _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety),
-      _supabase.from('society_meetings').select('*').eq('society_name', currentSociety),
-      _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety)
-    ]);
-
-    membersData = members || [];
-    maintenanceData = maint || [];
-    expenseData = expenses || [];
-    marketplaceData = market || [];
-    noticesData = notices || [];
-    eventsData = events || [];
-    facilitiesData = facilities || [];
-    bookingsData = bookings || [];
-    meetingsData = meets || []; 
-    parkingData = parking || [];
-    
-    societySettings = {};
-    if (settings) {
-      settings.forEach(s => { societySettings[s.key] = s.value; });
-    }
-
-    societyRules = societySettings.society_rules || 'नियम सेट नहीं हैं।';
-    openingBalance = parseFloat(societySettings.opening_bank_balance) || 0;
-
-    renderAllTables();
-    renderMarketplace();
-    renderMeetings();
-    updateAllBadges();
-    renderNoticesCommunity();
-    updateMobileHeaderInfo();
-
-  } catch (err) {
-    console.error('💥 Error in fetchSupabaseData:', err);
-  }
-}
-
-async function loadSecondaryData() {
-  try {
-// ✅ FIX: Role-aware support ticket filter
-    const ticketQuery = (currentRole === 'Member' || currentRole === 'Chairman')
-      ? _supabase.from('support_tickets').select('*')
-          .eq('society_name', currentSociety)
-          .eq('raised_by_flat', (currentUser || '').toUpperCase())
-          .order('created_at', { ascending: false })
-      : _supabase.from('support_tickets').select('*')
-          .eq('society_name', currentSociety)
-          .order('created_at', { ascending: false });
-    const [
-      { data: assets },
-      { data: fds },
-      { data: complaints },
-      { data: polls },
-      { data: notices },
-      { data: meets },
-      { data: parking },
-      { data: amcs },
-      { data: proofs },
-      { data: jvs },
-      { data: team },
-      { data: delReq },
-      { data: bankEnt },
-      { data: tickets }
-    ] = await Promise.all([
-      _supabase.from('assets').select('*').eq('society_name', currentSociety),
-      _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety),
-      _supabase.from('complaints').select('*').eq('society_name', currentSociety),
-      _supabase.from('polls').select('*').eq('society_name', currentSociety),
-      _supabase.from('notices').select('*').eq('society_name', currentSociety),
-      _supabase.from('society_meetings').select('*').eq('society_name', currentSociety),
-      _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety),
-      _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety),
-      _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety),
-      _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
-      _supabase.from('team').select('*').eq('society_name', currentSociety),
-      _supabase.from('deletion_requests').select('*').eq('society_name', currentSociety).order('requested_at', { ascending: false }),
-      _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
-      ticketQuery
-    ]);                                         // ⬅️ YE ZAROORI HAI
-
-    assetData = assets || [];
-    fdData = fds || [];
-    complaintData = complaints || [];
-    pollsData = polls || [];
-    noticesData = notices || [];
-    meetingsData = meets || [];
-    parkingData = parking || [];
-    amcContractsData = amcs || [];
-    paymentProofs = proofs || [];
-    journalVouchersData = jvs || [];
-    teamData = team || [];
-    deletionRequests = delReq || [];
-    customBankEntries = bankEnt || [];
-    supportTicketsData = tickets || [];
-
-    renderJournalVouchers();
-    if (currentRole === 'Admin') renderDeletionRequests();
-    renderAllTables();
-    updateAllBadges();
-    // ✅ FIX 4: Visitor badge — light count query only (role-aware)
-    try {
-      const lastSeenV = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
-      let vQuery = _supabase
-        .from('visitors')
-        .select('*', { count: 'exact', head: true })
-        .ilike('society', currentSociety)
-        .in('status', ['PENDING', 'IN'])
-        .gt('id', lastSeenV);
-
-      // Member ko sirf apne flat ke visitors dikhein
-      if (currentRole === 'Member') {
-        vQuery = vQuery.eq('flat_no', (currentUser || '').toUpperCase());
-      }
-
-      const { count: vCount } = await vQuery;
-      updateBadge('visitor-badge', vCount || 0);
-    } catch (vErr) {
-      console.log('[Badge] visitor count silent error:', vErr);
-    }
-
-    // ✅ FIX 5: Support badge refresh
-    if (typeof updateSupportBadge === 'function') updateSupportBadge();
-
-  } catch (e) {
-    console.log('Background sync error:', e);
-  }
-}
-
-function clearAllData() {
-  membersData = [];
-  maintenanceData = [];
-  expenseData = [];
-  customBankEntries = [];
-  journalVouchersData = [];
-  pollsData = [];
-  noticesData = [];
-  meetingsData = [];
-  complaintData = [];
-  assetData = [];
-  fdData = [];
-  societySettings = {};
-  visitors = [];
-  paymentProofs = [];
-  teamData = [];
-  allSocieties = [];
-  facilitiesData = [];
-  bookingsData = [];
-  eventsData = [];
-  amcContractsData = [];
-  deletionRequests = [];
-  marketplaceData = [];
-supportTicketsData = [];      // ⬅️ YE ADD KARO 
-  openingBalance = 0;
-  renderAllTables();
-}
-
-async function populateNoticeMemberSelect() {
-  const select = document.getElementById('notice-target-members');
-  if (!select) return;
-  select.innerHTML = '<option value="">⏳ Loading members...</option>';
-
-  if (!membersData || membersData.length === 0) {
-    const { data } = await _supabase.from('members').select('flat_no, name').eq('society_name', currentSociety).order('flat_no');
-    membersData = data || [];
-  }
-
-  select.innerHTML = '';
-  membersData.forEach(m => {
-    const flat = (m.flat_no || '').toUpperCase();
-    if (flat) {
-      const opt = document.createElement('option');
-      opt.value = flat;
-      opt.textContent = `${flat} - ${m.name || 'Unknown'}`;
-      select.appendChild(opt);
-    }
-  });
-}
-
-const defaultRulesCategories = [
-  { title: "📌 General & Common Rules", content: "1. प्रत्येक निवासी को सोसाइटी के सभी नियमों का पालन करना अनिवार्य रहेगा।\n2. कॉमन एरिया में कचरा न फेंके।" },
-  { title: "🚗 Parking Rules", content: "1. वाहन केवल निर्धारित पार्किंग स्लॉट में ही पार्क करें।" },
-  { title: "🏊‍♂️ Club House & Amenities", content: "1. क्लब हाउस का उपयोग करने से पहले परमिशन लें।" },
-  { title: "🚨 Maintenance & Payments", content: "1. हर महीने की 10 तारीख तक मेंटेनेंस जमा कराना अनिवार्य है।" }
-];
-
-function renderRules() {
-  const container = document.getElementById('rulesCategoriesContainer');
-  if (!container) return;
-
-  const editBtn = document.getElementById('editRulesBtn');
-  if (editBtn) {
-    if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
-      editBtn.style.display = 'inline-block';
-    } else {
-      editBtn.style.display = 'none';
-    }
-  }
-
-  let categories = defaultRulesCategories;
-  try {
-    if (societyRules && societyRules.trim() !== '') {
-      const parsed = JSON.parse(societyRules);
-      if (Array.isArray(parsed)) categories = parsed;
-    }
-  } catch (e) {
-    categories = [{ title: "📌 General Rules", content: societyRules }];
-  }
-
-  let html = '';
-  categories.forEach((cat) => {
-    const formattedContent = (cat.content || '').replace(/\n/g, '<br>');
-    html += `
+  `,document.body.appendChild(i),document.getElementById("btnAcceptConsent").onclick=function(e){e.preventDefault(),e.stopPropagation(),acceptConsent(s)}}async function acceptConsent(e){let{error:t}=await _supabase.from("user_master").update({consent_given:!0,consent_date:new Date().toISOString()}).eq("flat_no",e);if(t){alert("❌ Failed to save consent.");return}let a=document.getElementById("consentOverlay");a&&a.remove(),loadMainApp(currentRole)}function loadMainApp(e){document.getElementById("landing-section").style.display="none";let t=document.getElementById("login-section");t&&(t.style.display="none");let a=new URLSearchParams(window.location.search),n=a.get("tab");if(document.querySelectorAll("#sidebarMenu li").forEach(e=>{e.style.display="",e.classList.remove("d-none")}),document.querySelectorAll("#sidebarMenu .nav-link").forEach(e=>{e.style.display="",e.classList.remove("d-none");let t=e.closest("li");t&&(t.style.display="",t.classList.remove("d-none"))}),"visitor"===n){showVisitorPage();return}document.getElementById("visitor-section").style.display="none",document.getElementById("app-section").classList.remove("d-none"),updateFloatingButtonsVisibility(!1),document.getElementById("user-role-badge").innerText=e,document.getElementById("user-name-display").innerText=currentUser||"User";let s=document.getElementById("society-switcher");s&&("Admin"===e?(s.classList.remove("d-none"),loadSocietySwitcher()):s.classList.add("d-none"));let i=document.getElementById("admin-dashboard-stats"),r=document.getElementById("member-dashboard-stats");"Member"===e?(document.querySelectorAll(".admin-only, .chairman-only").forEach(e=>e.classList.add("d-none")),i.classList.add("d-none"),r.classList.remove("d-none")):"Chairman"===e?(document.querySelectorAll(".admin-only").forEach(e=>e.classList.add("d-none")),document.querySelectorAll(".chairman-only").forEach(e=>e.classList.remove("d-none")),i.classList.remove("d-none"),r.classList.add("d-none")):"SocietyAdmin"===e?(document.querySelectorAll(".admin-only, .chairman-only").forEach(e=>e.classList.remove("d-none")),i.classList.remove("d-none"),r.classList.add("d-none"),document.querySelectorAll('.nav-link[onclick*="manage-societies"]').forEach(e=>e.closest("li").style.display="none"),document.querySelectorAll('.nav-link[onclick*="settings"]').forEach(e=>e.closest("li").style.display="none"),document.querySelectorAll('.nav-link[onclick*="master-dashboard"]').forEach(e=>e.closest("li").style.display="none"),document.querySelectorAll('.nav-link[onclick*="deletion-requests"]').forEach(e=>e.closest("li").style.display="none"),s&&s.classList.add("d-none")):(document.querySelectorAll(".admin-only, .chairman-only").forEach(e=>e.classList.remove("d-none")),i.classList.remove("d-none"),r.classList.add("d-none"));let o=document.querySelector('a[onclick*="settings"]');o&&(o.closest("li").style.display="Admin"===e?"":"none");let l=document.querySelector('a[onclick*="proofs"]');l&&(l.closest("li").style.display="Admin"===e||"SocietyAdmin"===e?"":"none");let d=document.querySelector('a[onclick*="manage-societies"]');if(d&&(d.closest("li").style.display="Admin"===e?"":"none"),window.innerWidth<=768){let c=document.querySelector("#sidebarMenu");c&&(c.style.display="none");let m=a.has("tab");if(!m){let u=document.getElementById("mobileMenuOverlay");!u||(u.style.display="flex",document.body.style.overflow="hidden",renderGridCards(),history.state&&history.state.mobileMenuOpen||window.history.pushState({mobileMenuOpen:!0},"",window.location.href))}}else{let p=document.querySelector("#sidebarMenu");p&&(p.style.display="block")}clearAllData(),"marketplace"===n?fetchMarketplaceData().then(()=>{fetchSupabaseData()}):"community"===n?fetchEvents().then(()=>{fetchFacilityData().then(()=>{fetchSupabaseData()})}):"meetings"===n?_supabase.from("society_meetings").select("*").eq("society_name",currentSociety).then(({data:e})=>{meetingsData=e||[],fetchSupabaseData()}):fetchSupabaseData(),setTimeout(requestNotificationPermission,2e3),listenForSOSAlerts(),setupRealtimeSubscriptions(),setTimeout(()=>loadSecondaryData(),500),setTimeout(()=>checkSocietySubscriptionMode(),1200)}async function loadSocietySwitcher(){let e=document.getElementById("switch-society-dropdown");if(!e)return;let{data:t,error:a}=await _supabase.from("societies").select("name").eq("is_active",!0);a||(e.innerHTML='<option value="">-- Switch Society --</option>',t.forEach(t=>{let a=document.createElement("option");a.value=t.name,a.textContent=t.name,t.name===currentSociety&&(a.selected=!0),e.appendChild(a)}))}function switchSociety(e){if(!e||e===currentSociety||!confirm(`Switch to "${e}"? Data will reload.`))return;clearAllData(),currentSociety=e,localStorage.setItem("ps_user_society",e),"function"==typeof cleanupVisitorRealtimeForGuard&&cleanupVisitorRealtimeForGuard(),fetchSupabaseData(),setTimeout(()=>loadSecondaryData(),500),setupRealtimeSubscriptions(),listenForSOSAlerts(),setTimeout(()=>requestNotificationPermission(),1200);let t=document.getElementById("sidebar-society-name");t&&(t.innerText=e);let a=document.getElementById("switch-society-dropdown");a&&(a.value=e),updateMobileHeaderInfo(),setTimeout(()=>checkSocietySubscriptionMode(),1e3)}function markAllAsRead(){maintenanceData.length>0&&localStorage.setItem("ps_last_seen_maintenance",Math.max(...maintenanceData.map(e=>e.id||0)).toString()),paymentProofs.length>0&&localStorage.setItem("ps_last_seen_proofs",Math.max(...paymentProofs.map(e=>e.id||0)).toString()),complaintData.length>0&&localStorage.setItem("ps_last_seen_complaints",Math.max(...complaintData.map(e=>e.id||0)).toString()),pollsData.length>0&&localStorage.setItem("ps_last_seen_polls",Math.max(...pollsData.map(e=>e.id||0)).toString()),noticesData.length>0&&localStorage.setItem("ps_last_seen_notice",Math.max(...noticesData.map(e=>e.id||0)).toString()),visitors.length>0&&localStorage.setItem("ps_last_seen_visitors",Math.max(...visitors.map(e=>e.id||0)).toString());let e=0;eventsData.length>0&&(e=Math.max(e,...eventsData.map(e=>e.id||0))),noticesData.length>0&&(e=Math.max(e,...noticesData.map(e=>e.id||0))),localStorage.setItem("ps_last_community_read",e.toString()),updateBadge("maintenance-badge",0),updateBadge("proofs-badge",0),updateBadge("complaints-badge",0),updateBadge("polls-badge",0),updateBadge("community-badge",0),updateBadge("visitor-badge",0),updateBadge("support-badge",0),updateBadge("amc-badge",0),updateBadge("parking-badge",0),updateBadge("notification-badge",0)}function handleLogout(){markAllAsRead(),_supabase.auth.signOut(),localStorage.removeItem("ps_user_logged"),localStorage.removeItem("ps_user_role"),localStorage.removeItem("ps_user_id"),localStorage.removeItem("ps_user_society"),clearAllData(),currentRole="Member",currentUser="",currentSociety="Demo Society";let e=document.getElementById("landing-section");e&&(e.style.display="flex",e.style.visibility="visible");let t=document.getElementById("app-section");t&&t.classList.add("d-none");let a=document.getElementById("mobileMenuOverlay");if(a&&(a.style.display="none"),__proofRealtimeChannel){try{_supabase.removeChannel(__proofRealtimeChannel)}catch(n){}__proofRealtimeChannel=null}document.querySelectorAll(".modal-backdrop").forEach(e=>e.remove()),document.querySelectorAll(".modal").forEach(e=>e.classList.remove("show")),document.body.classList.remove("modal-open"),document.body.style.overflow="";let s=document.getElementById("tabOverlay");s&&s.remove(),["consentOverlay","visitorPasswordOverlay","aboutPSOverlay","privacyPolicyOverlay","termsOfServiceOverlay"].forEach(e=>{let t=document.getElementById(e);t&&(t.style.display="none")}),"function"==typeof cleanupVisitorRealtimeForGuard&&cleanupVisitorRealtimeForGuard(),localStorage.setItem("ps_logout_broadcast",Date.now().toString()),setTimeout(()=>localStorage.removeItem("ps_logout_broadcast"),1e3),setTimeout(()=>{let e=window.location.origin+window.location.pathname;window.location.replace(e+"?t="+Date.now())},400)}async function fetchSupabaseData(){try{let[{data:e},{data:t},{data:a},{data:n},{data:s},{data:i},{data:r},{data:o},{data:l},{data:d},{data:c}]=await Promise.all([_supabase.from("members").select("*").eq("society_name",currentSociety),_supabase.from("maintenance_payments").select("*").eq("society_name",currentSociety),_supabase.from("expenses").select("*").eq("society_name",currentSociety),_supabase.from("society_settings").select("*").eq("society_name",currentSociety),_supabase.from("marketplace_posts").select("*").eq("society_name",currentSociety),_supabase.from("notices").select("*").eq("society_name",currentSociety),_supabase.from("events").select("*").eq("society_name",currentSociety),_supabase.from("facilities").select("*").eq("society_name",currentSociety),_supabase.from("facility_bookings").select("*").eq("society_name",currentSociety),_supabase.from("society_meetings").select("*").eq("society_name",currentSociety),_supabase.from("parking_vehicles").select("*").eq("society_name",currentSociety)]);membersData=e||[],maintenanceData=t||[],expenseData=a||[],marketplaceData=s||[],noticesData=i||[],eventsData=r||[],facilitiesData=o||[],bookingsData=l||[],meetingsData=d||[],parkingData=c||[],societySettings={},n&&n.forEach(e=>{societySettings[e.key]=e.value}),societyRules=societySettings.society_rules||"नियम सेट नहीं हैं।",openingBalance=parseFloat(societySettings.opening_bank_balance)||0,renderAllTables(),renderMarketplace(),renderMeetings(),updateAllBadges(),renderNoticesCommunity(),updateMobileHeaderInfo()}catch(m){console.error("\uD83D\uDCA5 Error in fetchSupabaseData:",m)}}async function loadSecondaryData(){try{let e="Member"===currentRole||"Chairman"===currentRole?_supabase.from("support_tickets").select("*").eq("society_name",currentSociety).eq("raised_by_flat",(currentUser||"").toUpperCase()).order("created_at",{ascending:!1}):_supabase.from("support_tickets").select("*").eq("society_name",currentSociety).order("created_at",{ascending:!1}),[{data:t},{data:a},{data:n},{data:s},{data:i},{data:r},{data:o},{data:l},{data:d},{data:c},{data:m},{data:u},{data:p},{data:y}]=await Promise.all([_supabase.from("assets").select("*").eq("society_name",currentSociety),_supabase.from("sinking_fund_fd").select("*").eq("society_name",currentSociety),_supabase.from("complaints").select("*").eq("society_name",currentSociety),_supabase.from("polls").select("*").eq("society_name",currentSociety),_supabase.from("notices").select("*").eq("society_name",currentSociety),_supabase.from("society_meetings").select("*").eq("society_name",currentSociety),_supabase.from("parking_vehicles").select("*").eq("society_name",currentSociety),_supabase.from("amc_contracts").select("*").eq("society_name",currentSociety),_supabase.from("payment_proofs").select("*").eq("society_name",currentSociety),_supabase.from("journal_vouchers").select("*").eq("society_name",currentSociety).order("date",{ascending:!1}),_supabase.from("team").select("*").eq("society_name",currentSociety),_supabase.from("deletion_requests").select("*").eq("society_name",currentSociety).order("requested_at",{ascending:!1}),_supabase.from("bank_entries").select("*").eq("society_name",currentSociety).order("date",{ascending:!1}),e]);assetData=t||[],fdData=a||[],complaintData=n||[],pollsData=s||[],noticesData=i||[],meetingsData=r||[],parkingData=o||[],amcContractsData=l||[],paymentProofs=d||[],journalVouchersData=c||[],teamData=m||[],deletionRequests=u||[],customBankEntries=p||[],supportTicketsData=y||[],renderJournalVouchers(),"Admin"===currentRole&&renderDeletionRequests(),renderAllTables(),updateAllBadges();try{let g=parseInt(localStorage.getItem("ps_last_seen_visitors")||"0"),b=_supabase.from("visitors").select("*",{count:"exact",head:!0}).ilike("society",currentSociety).in("status",["PENDING","IN"]).gt("id",g);"Member"===currentRole&&(b=b.eq("flat_no",(currentUser||"").toUpperCase()));let{count:f}=await b;updateBadge("visitor-badge",f||0)}catch(h){console.log("[Badge] visitor count silent error:",h)}"function"==typeof updateSupportBadge&&updateSupportBadge()}catch(v){console.log("Background sync error:",v)}}function clearAllData(){membersData=[],maintenanceData=[],expenseData=[],customBankEntries=[],journalVouchersData=[],pollsData=[],noticesData=[],meetingsData=[],complaintData=[],assetData=[],fdData=[],societySettings={},visitors=[],paymentProofs=[],teamData=[],allSocieties=[],facilitiesData=[],bookingsData=[],eventsData=[],amcContractsData=[],deletionRequests=[],marketplaceData=[],supportTicketsData=[],openingBalance=0,renderAllTables()}async function populateNoticeMemberSelect(){let e=document.getElementById("notice-target-members");if(e){if(e.innerHTML='<option value="">⏳ Loading members...</option>',!membersData||0===membersData.length){let{data:t}=await _supabase.from("members").select("flat_no, name").eq("society_name",currentSociety).order("flat_no");membersData=t||[]}e.innerHTML="",membersData.forEach(t=>{let a=(t.flat_no||"").toUpperCase();if(a){let n=document.createElement("option");n.value=a,n.textContent=`${a} - ${t.name||"Unknown"}`,e.appendChild(n)}})}}const defaultRulesCategories=[{title:"\uD83D\uDCCC General & Common Rules",content:"1. प्रत्येक निवासी को सोसाइटी के सभी नियमों का पालन करना अनिवार्य रहेगा।\n2. कॉमन एरिया में कचरा न फेंके।"},{title:"\uD83D\uDE97 Parking Rules",content:"1. वाहन केवल निर्धारित पार्किंग स्लॉट में ही पार्क करें।"},{title:"\uD83C\uDFCA‍♂️ Club House & Amenities",content:"1. क्लब हाउस का उपयोग करने से पहले परमिशन लें।"},{title:"\uD83D\uDEA8 Maintenance & Payments",content:"1. हर महीने की 10 तारीख तक मेंटेनेंस जमा कराना अनिवार्य है।"}];function renderRules(){let e=document.getElementById("rulesCategoriesContainer");if(!e)return;let t=document.getElementById("editRulesBtn");t&&("Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole?t.style.display="inline-block":t.style.display="none");let a=defaultRulesCategories;try{if(societyRules&&""!==societyRules.trim()){let n=JSON.parse(societyRules);Array.isArray(n)&&(a=n)}}catch(s){a=[{title:"\uD83D\uDCCC General Rules",content:societyRules}]}let i="";a.forEach(e=>{let t=(e.content||"").replace(/\n/g,"<br>");i+=`
       <div class="col-md-6">
         <div class="card p-4 bg-white shadow-sm rounded-4 border-0 h-100">
           <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
-            <i class="fa-solid fa-layer-group text-warning me-2"></i>${cat.title}
+            <i class="fa-solid fa-layer-group text-warning me-2"></i>${e.title}
           </h5>
           <div style="white-space: pre-wrap; line-height: 1.8; color: #1e293b; font-size: 14px; font-family: inherit;">
-            ${formattedContent || '<span class="text-muted">कोई नियम दर्ज नहीं हैं।</span>'}
+            ${t||'<span class="text-muted">कोई नियम दर्ज नहीं हैं।</span>'}
           </div>
         </div>
       </div>
-    `;
-  });
-
-  container.innerHTML = html;
-}
-
-function openRulesEditor() {
-  if (currentRole !== 'Admin' && currentRole !== 'Chairman' && currentRole !== 'SocietyAdmin') {
-    alert('⛔ आपके पास नियम बदलने की अनुमति नहीं है।');
-    return;
-  }
-
-  let categories = defaultRulesCategories;
-  try {
-    if (societyRules && societyRules.trim() !== '') {
-      const parsed = JSON.parse(societyRules);
-      if (Array.isArray(parsed)) categories = parsed;
-    }
-  } catch (e) {
-    categories = [{ title: "📌 General Rules", content: societyRules }];
-  }
-
-  const editorContainer = document.getElementById('rulesEditorsContainer');
-  editorContainer.innerHTML = '';
-
-  categories.forEach((cat, index) => {
-    appendRuleCategoryRow(cat.title, cat.content, index);
-  });
-
-  const myModal = new bootstrap.Modal(document.getElementById('rulesModal'));
-  myModal.show();
-}
-
-function appendRuleCategoryRow(title = '', content = '', index = Date.now()) {
-  const editorContainer = document.getElementById('rulesEditorsContainer');
-  const div = document.createElement('div');
-  div.className = 'card p-3 mb-3 border bg-white shadow-sm rounded-3 rule-category-row';
-  div.innerHTML = `
+    `}),e.innerHTML=i}function openRulesEditor(){if("Admin"!==currentRole&&"Chairman"!==currentRole&&"SocietyAdmin"!==currentRole){alert("⛔ आपके पास नियम बदलने की अनुमति नहीं है।");return}let e=defaultRulesCategories;try{if(societyRules&&""!==societyRules.trim()){let t=JSON.parse(societyRules);Array.isArray(t)&&(e=t)}}catch(a){e=[{title:"\uD83D\uDCCC General Rules",content:societyRules}]}let n=document.getElementById("rulesEditorsContainer");n.innerHTML="",e.forEach((e,t)=>{appendRuleCategoryRow(e.title,e.content,t)});let s=new bootstrap.Modal(document.getElementById("rulesModal"));s.show()}function appendRuleCategoryRow(e="",t="",a=Date.now()){let n=document.getElementById("rulesEditorsContainer"),s=document.createElement("div");s.className="card p-3 mb-3 border bg-white shadow-sm rounded-3 rule-category-row",s.innerHTML=`
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <input type="text" class="form-control form-control-sm fw-bold rule-title-input w-75" placeholder="कैटेगरी का नाम (जैसे: Parking Rules)" value="${title}">
+      <input type="text" class="form-control form-control-sm fw-bold rule-title-input w-75" placeholder="कैटेगरी का नाम (जैसे: Parking Rules)" value="${e}">
       <button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('.rule-category-row').remove()">
         <i class="fa-solid fa-trash"></i> Delete
       </button>
     </div>
-    <textarea class="form-control rule-content-input" rows="4" placeholder="यहाँ नियम एक-एक करके लाइन से लिखें...">${content}</textarea>
-  `;
-  editorContainer.appendChild(div);
-}
-
-function addNewRuleCategoryField() {
-  appendRuleCategoryRow('📌 New Category', '');
-}
-
-async function saveRulesFromModal() {
-  const rows = document.querySelectorAll('.rule-category-row');
-  let newCategories = [];
-
-  rows.forEach(row => {
-    const title = row.querySelector('.rule-title-input').value.trim();
-    const content = row.querySelector('.rule-content-input').value.trim();
-    if (title) { newCategories.push({ title, content }); }
-  });
-
-  if (newCategories.length === 0) {
-    alert('❌ कम से कम एक कैटेगरी होना जरूरी है।');
-    return;
-  }
-
-  const rulesJsonString = JSON.stringify(newCategories);
-
-  if (!currentSociety) {
-    alert('❌ सोसायटी सेलेक्ट नहीं है।');
-    return;
-  }
-
-  try {
-    const { error } = await _supabase
-      .from('society_settings')
-      .upsert({ key: 'society_rules', value: rulesJsonString, society_name: currentSociety }, { onConflict: 'key,society_name' });
-
-    if (error) {
-      alert('❌ Rules Save करने में Error: ' + error.message);
-      return;
-    }
-
-    societyRules = rulesJsonString;
-    societySettings.society_rules = rulesJsonString;
-    alert('✅ Rules Successfully Updated!');
-
-    const modalEl = document.getElementById('rulesModal');
-    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) modalInstance.hide();
-
-    renderRules();
-  } catch (err) {
-    console.error('Save Rules Error:', err);
-    alert('❌ Something went wrong.');
-  }
-}
-
-function toggleMemberSelect(value) {
-  const div = document.getElementById('notice-member-select');
-  if (div) div.style.display = value === 'selected' ? 'block' : 'none';
-}
-
-async function fetchPollsData() {
-  const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
-  if (data) pollsData = data;
-}
-
-async function loadSocieties() {
-  const { data } = await _supabase.from('societies').select('*').eq('is_active', true);
-  return data || [];
-}
-
-async function loadSocietiesForDropdown(selectId) {
-  const select = document.getElementById(selectId);
-  if (!select) return;
-  const societies = await loadSocieties();
-  select.innerHTML = '<option value="">-- Select --</option>';
-  societies.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.name;
-    opt.textContent = s.name;
-    select.appendChild(opt);
-  });
-}
-
-// ============= VISITOR REALTIME (For Guard / Password Flow) =============
-let __visitorGuardChannel = null;
-
-function setupVisitorRealtimeForGuard() {
-  if (__visitorGuardChannel) {
-    try { _supabase.removeChannel(__visitorGuardChannel); } catch(e){}
-    __visitorGuardChannel = null;
-  }
-
-  if (!currentSociety) return;
-
-  const cleanName = currentSociety.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-  __visitorGuardChannel = _supabase
-    .channel(`visitor-guard-${cleanName}`)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'visitors' },
-      (payload) => {
-        console.log('[Visitor RT] Change:', payload.eventType, payload);
-        const row = payload.new || payload.old || {};
-        const rowSociety = (row.society || '').trim().toLowerCase();
-        const mySociety = (currentSociety || '').trim().toLowerCase();
-        
-        if (rowSociety === mySociety) {
-          console.log('[Visitor RT] Match found → reloading list');
-          if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
-        }
-      }
-    )
-    .subscribe((status, err) => {
-      console.log('[Visitor RT] Status:', status);
-      if (err) console.error('[Visitor RT] Error:', err);
-    });
-}
-
-function cleanupVisitorRealtimeForGuard() {
-  if (__visitorGuardChannel) {
-    try { _supabase.removeChannel(__visitorGuardChannel); } catch(e){}
-    __visitorGuardChannel = null;
-    console.log('[Visitor RT] Cleaned up');
-  }
-}
-
-async function loadTodayVisitors() {
-  const container = document.getElementById('visitorListContainer');
-  if (!container) return;
-  container.innerHTML = `<div class="alert alert-info">⏳ Loading visitors...</div>`;
-  
-  const today = new Date().toISOString().split('T')[0];
-  const activeSociety = (currentSociety || localStorage.getItem('ps_user_society') || 'Demo Society').trim();
-  const activeUser = (currentUser || localStorage.getItem('ps_user_id') || '').trim().toUpperCase();
-
-  try {
-    let query = _supabase.from('visitors').select('*').eq('visit_date', today).ilike('society', activeSociety).order('in_time', { ascending: false });
-
-    const { data, error } = await query;
-    if (error) { container.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`; return; }
-    
-    let allVisitors = data || [];
-    const isLogged = localStorage.getItem('ps_user_logged') === 'true';
-    if (isLogged && currentRole === 'Member' && activeUser) {
-      visitors = allVisitors.filter(v => (v.flat_no || '').trim().toUpperCase() === activeUser);
-    } else {
-      visitors = allVisitors;
-    }
-    renderVisitorList();
-    updateVisitorBadge();
-  } catch (err) {
-    console.error('Visitor fetch exception:', err);
-    container.innerHTML = `<div class="alert alert-danger">❌ Failed to load visitors.</div>`;
-  }
-}
-
-function renderVisitorList() {
-  const container = document.getElementById('visitorListContainer');
-  if (!container) return;
-  if (visitors.length === 0) { container.innerHTML = `<div class="alert alert-info">No visitors today.</div>`; return; }
-  
-  const isMemberOrAdmin = currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Member';
-
-  container.innerHTML = visitors.map(v => {
-    let statusBadge = '';
-    let actionButtons = '';
-
-    if (v.status === 'PENDING') {
-      statusBadge = `<span class="badge bg-warning text-dark">Pending Approval</span>`;
-      if (isMemberOrAdmin) {
-        actionButtons = `
-          <button class="btn btn-sm btn-success me-1" onclick="updateVisitorStatus(${v.id}, 'APPROVED')"><i class="fa-solid fa-check"></i> Approve</button>
-          <button class="btn btn-sm btn-danger" onclick="updateVisitorStatus(${v.id}, 'REJECTED')"><i class="fa-solid fa-times"></i> Reject</button>
-        `;
-      }
-    } else if (v.status === 'APPROVED' || v.status === 'IN') {
-      statusBadge = `<span class="badge bg-success">Approved / In</span>`;
-      actionButtons = `<button class="btn btn-sm btn-outline-danger" onclick="markVisitorOut(${v.id})">OUT</button>`;
-    } else if (v.status === 'REJECTED') {
-      statusBadge = `<span class="badge bg-danger">Rejected</span>`;
-    } else {
-      statusBadge = `<span class="badge bg-secondary">Out</span>`;
-    }
-
-    return `
-      <div class="visitor-card ${v.status === 'REJECTED' ? 'border border-danger' : ''}">
+    <textarea class="form-control rule-content-input" rows="4" placeholder="यहाँ नियम एक-एक करके लाइन से लिखें...">${t}</textarea>
+  `,n.appendChild(s)}function addNewRuleCategoryField(){appendRuleCategoryRow("\uD83D\uDCCC New Category","")}async function saveRulesFromModal(){let e=document.querySelectorAll(".rule-category-row"),t=[];if(e.forEach(e=>{let a=e.querySelector(".rule-title-input").value.trim(),n=e.querySelector(".rule-content-input").value.trim();a&&t.push({title:a,content:n})}),0===t.length){alert("❌ कम से कम एक कैटेगरी होना जरूरी है।");return}let a=JSON.stringify(t);if(!currentSociety){alert("❌ सोसायटी सेलेक्ट नहीं है।");return}try{let{error:n}=await _supabase.from("society_settings").upsert({key:"society_rules",value:a,society_name:currentSociety},{onConflict:"key,society_name"});if(n){alert("❌ Rules Save करने में Error: "+n.message);return}societyRules=a,societySettings.society_rules=a,alert("✅ Rules Successfully Updated!");let s=document.getElementById("rulesModal"),i=bootstrap.Modal.getInstance(s);i&&i.hide(),renderRules()}catch(r){console.error("Save Rules Error:",r),alert("❌ Something went wrong.")}}function toggleMemberSelect(e){let t=document.getElementById("notice-member-select");t&&(t.style.display="selected"===e?"block":"none")}async function fetchPollsData(){let{data:e}=await _supabase.from("polls").select("*").eq("society_name",currentSociety);e&&(pollsData=e)}async function loadSocieties(){let{data:e}=await _supabase.from("societies").select("*").eq("is_active",!0);return e||[]}async function loadSocietiesForDropdown(e){let t=document.getElementById(e);if(!t)return;let a=await loadSocieties();t.innerHTML='<option value="">-- Select --</option>',a.forEach(e=>{let a=document.createElement("option");a.value=e.name,a.textContent=e.name,t.appendChild(a)})}let __visitorGuardChannel=null;function setupVisitorRealtimeForGuard(){if(__visitorGuardChannel){try{_supabase.removeChannel(__visitorGuardChannel)}catch(e){}__visitorGuardChannel=null}if(!currentSociety)return;let t=currentSociety.replace(/[^a-z0-9]/gi,"_").toLowerCase();__visitorGuardChannel=_supabase.channel(`visitor-guard-${t}`).on("postgres_changes",{event:"*",schema:"public",table:"visitors"},e=>{console.log("[Visitor RT] Change:",e.eventType,e);let t=e.new||e.old||{},a=(t.society||"").trim().toLowerCase(),n=(currentSociety||"").trim().toLowerCase();a===n&&(console.log("[Visitor RT] Match found → reloading list"),"function"==typeof loadTodayVisitors&&loadTodayVisitors())}).subscribe((e,t)=>{console.log("[Visitor RT] Status:",e),t&&console.error("[Visitor RT] Error:",t)})}function cleanupVisitorRealtimeForGuard(){if(__visitorGuardChannel){try{_supabase.removeChannel(__visitorGuardChannel)}catch(e){}__visitorGuardChannel=null,console.log("[Visitor RT] Cleaned up")}}async function loadTodayVisitors(){let e=document.getElementById("visitorListContainer");if(!e)return;e.innerHTML=`<div class="alert alert-info">⏳ Loading visitors...</div>`;let t=new Date().toISOString().split("T")[0],a=(currentSociety||localStorage.getItem("ps_user_society")||"Demo Society").trim(),n=(currentUser||localStorage.getItem("ps_user_id")||"").trim().toUpperCase();try{let s=_supabase.from("visitors").select("*").eq("visit_date",t).ilike("society",a).order("in_time",{ascending:!1}),{data:i,error:r}=await s;if(r){e.innerHTML=`<div class="alert alert-danger">❌ Error: ${r.message}</div>`;return}let o=i||[],l="true"===localStorage.getItem("ps_user_logged");visitors=l&&"Member"===currentRole&&n?o.filter(e=>(e.flat_no||"").trim().toUpperCase()===n):o,renderVisitorList(),updateVisitorBadge()}catch(d){console.error("Visitor fetch exception:",d),e.innerHTML=`<div class="alert alert-danger">❌ Failed to load visitors.</div>`}}function renderVisitorList(){let e=document.getElementById("visitorListContainer");if(!e)return;if(0===visitors.length){e.innerHTML='<div class="alert alert-info">No visitors today.</div>';return}let t="Admin"===currentRole||"SocietyAdmin"===currentRole||"Member"===currentRole;e.innerHTML=visitors.map(e=>{let a="",n="";return"PENDING"===e.status?(a='<span class="badge bg-warning text-dark">Pending Approval</span>',t&&(n=`
+          <button class="btn btn-sm btn-success me-1" onclick="updateVisitorStatus(${e.id}, 'APPROVED')"><i class="fa-solid fa-check"></i> Approve</button>
+          <button class="btn btn-sm btn-danger" onclick="updateVisitorStatus(${e.id}, 'REJECTED')"><i class="fa-solid fa-times"></i> Reject</button>
+        `)):"APPROVED"===e.status||"IN"===e.status?(a='<span class="badge bg-success">Approved / In</span>',n=`<button class="btn btn-sm btn-outline-danger" onclick="markVisitorOut(${e.id})">OUT</button>`):a="REJECTED"===e.status?'<span class="badge bg-danger">Rejected</span>':'<span class="badge bg-secondary">Out</span>',`
+      <div class="visitor-card ${"REJECTED"===e.status?"border border-danger":""}">
         <div class="info">
-          <h6>${v.name} <small class="text-muted">(${v.category})</small></h6>
-          <small>Flat: ${v.flat_no} | ${v.society}</small><br>
-          <small>Mobile: ${v.mobile || 'N/A'} | 🚗 Vehicle: <strong>${v.vehicle_number || 'N/A'}</strong></small><br>
-          <small>In: ${v.in_time ? v.in_time.substring(0,5) : 'N/A'}</small> | ${statusBadge}
+          <h6>${e.name} <small class="text-muted">(${e.category})</small></h6>
+          <small>Flat: ${e.flat_no} | ${e.society}</small><br>
+          <small>Mobile: ${e.mobile||"N/A"} | 🚗 Vehicle: <strong>${e.vehicle_number||"N/A"}</strong></small><br>
+          <small>In: ${e.in_time?e.in_time.substring(0,5):"N/A"}</small> | ${a}
         </div>
-        <div>${actionButtons}</div>
+        <div>${n}</div>
       </div>
-    `;   
-  }).join('');
-}
-
-async function updateVisitorStatus(id, newStatus) {
-  const { error } = await _supabase.from('visitors').update({ status: newStatus }).eq('id', id);
-  if (error) { alert('❌ Error: ' + error.message); }
-  else { alert(`✅ Visitor ${newStatus.toLowerCase()} successfully!`); loadTodayVisitors(); }
-}
-
-async function submitVisitor(event) {
-  event.preventDefault();
-  const society = document.getElementById('visitor-society').value || currentSociety;
-  const name = document.getElementById('visitor-name').value.trim();
-  const mobile = document.getElementById('visitor-mobile').value.trim();
-  const vehicleNumber = document.getElementById('visitor-vehicle').value.trim().toUpperCase();
-  const flat = document.getElementById('visitor-flat').value;
-  const category = document.getElementById('visitor-category').value;
-  const purpose = document.getElementById('visitor-purpose').value.trim();
-  
-  if (!society || !name || !flat || !mobile) { alert('Please fill all required fields.'); return; }
-  
-  const now = new Date(); 
-  const timeStr = now.toTimeString().substring(0,8);
-  
-  const newVisitor = { 
-    society: society.trim(), 
-    visit_date: now.toISOString().split('T')[0], 
-    name, mobile, 
-    vehicle_number: vehicleNumber || 'N/A',
-    flat_no: flat.trim().toUpperCase(), 
-    category, 
-    purpose: purpose || '', 
-    in_time: timeStr, 
-    out_time: null, 
-    status: 'PENDING',
-    created_at: new Date().toISOString()
-  };
-
-  const { error } = await _supabase.from('visitors').insert([newVisitor]);
-  if (error) { alert('Error: ' + error.message); return; }
-  
-  alert('✅ Visitor entry recorded successfully!');
-  bootstrap.Modal.getInstance(document.getElementById('visitorModal')).hide();
-  document.getElementById('visitorForm').reset();
-  loadTodayVisitors();
-}
-
-async function markVisitorOut(id) {
-  if (!confirm('Mark this visitor as OUT?')) return;
-  const now = new Date(); const timeStr = now.toTimeString().substring(0,8);
-  try {
-    const { error } = await _supabase.from('visitors').update({ out_time: timeStr, status: 'OUT' }).eq('id', id);
-    if (error) { alert('Error: ' + error.message); return; }
-    const vIndex = visitors.findIndex(v => v.id === id);
-    if (vIndex !== -1) { visitors[vIndex].status = 'OUT'; visitors[vIndex].out_time = timeStr; }
-    renderVisitorList();
-  } catch (err) { alert('❌ Error: ' + err.message); }
-}
-
-function updateVisitorBadge() {
-  const lastSeen = parseInt(localStorage.getItem('ps_last_seen_visitors') || '0');
-  const count = visitors.filter(v => (v.status === 'PENDING' || v.status === 'IN') && (v.id || 0) > lastSeen).length;
-  updateBadge('visitor-badge', count);
-}
-
-function renderAMCTracker() {
-  const tbody = document.getElementById('amc-list');
-  if (!tbody) return;
-  if (!amcContractsData || amcContractsData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No AMC Contracts Found.</td></tr>`;
-    updateBadge('amc-badge', 0);
-    return;
-  }
-  
-  let expiringSoonCount = 0;
-  const today = new Date();
-  
-  tbody.innerHTML = amcContractsData.map(c => {
-    const expDate = new Date(c.expiry_date);
-    const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-    let statusBadge = '<span class="badge bg-success">Active</span>';
-    if (diffDays < 0) {
-      statusBadge = '<span class="badge bg-danger">Expired</span>';
-    } else if (diffDays <= 7) {
-      statusBadge = `<span class="badge bg-warning text-dark">Expiring in ${diffDays} days 🔔</span>`;
-      expiringSoonCount++;
-    }
-
-    return `
+    `}).join("")}async function updateVisitorStatus(e,t){let{error:a}=await _supabase.from("visitors").update({status:t}).eq("id",e);a?alert("❌ Error: "+a.message):(alert(`✅ Visitor ${t.toLowerCase()} successfully!`),loadTodayVisitors())}async function submitVisitor(e){e.preventDefault();let t=document.getElementById("visitor-society").value||currentSociety,a=document.getElementById("visitor-name").value.trim(),n=document.getElementById("visitor-mobile").value.trim(),s=document.getElementById("visitor-vehicle").value.trim().toUpperCase(),i=document.getElementById("visitor-flat").value,r=document.getElementById("visitor-category").value,o=document.getElementById("visitor-purpose").value.trim();if(!t||!a||!i||!n){alert("Please fill all required fields.");return}let l=new Date,d=l.toTimeString().substring(0,8),c={society:t.trim(),visit_date:l.toISOString().split("T")[0],name:a,mobile:n,vehicle_number:s||"N/A",flat_no:i.trim().toUpperCase(),category:r,purpose:o||"",in_time:d,out_time:null,status:"PENDING",created_at:new Date().toISOString()},{error:m}=await _supabase.from("visitors").insert([c]);if(m){alert("Error: "+m.message);return}alert("✅ Visitor entry recorded successfully!"),bootstrap.Modal.getInstance(document.getElementById("visitorModal")).hide(),document.getElementById("visitorForm").reset(),loadTodayVisitors()}async function markVisitorOut(e){if(!confirm("Mark this visitor as OUT?"))return;let t=new Date,a=t.toTimeString().substring(0,8);try{let{error:n}=await _supabase.from("visitors").update({out_time:a,status:"OUT"}).eq("id",e);if(n){alert("Error: "+n.message);return}let s=visitors.findIndex(t=>t.id===e);-1!==s&&(visitors[s].status="OUT",visitors[s].out_time=a),renderVisitorList()}catch(i){alert("❌ Error: "+i.message)}}function updateVisitorBadge(){let e=parseInt(localStorage.getItem("ps_last_seen_visitors")||"0"),t=visitors.filter(t=>("PENDING"===t.status||"IN"===t.status)&&(t.id||0)>e).length;updateBadge("visitor-badge",t)}function renderAMCTracker(){let e=document.getElementById("amc-list");if(!e)return;if(!amcContractsData||0===amcContractsData.length){e.innerHTML='<tr><td colspan="7" class="text-center text-muted">No AMC Contracts Found.</td></tr>',updateBadge("amc-badge",0);return}let t=0,a=new Date;e.innerHTML=amcContractsData.map(e=>{let n=new Date(e.expiry_date),s=Math.ceil((n-a)/864e5),i='<span class="badge bg-success">Active</span>';return s<0?i='<span class="badge bg-danger">Expired</span>':s<=7&&(i=`<span class="badge bg-warning text-dark">Expiring in ${s} days 🔔</span>`,t++),`
       <tr>
-        <td><b>${c.service_type}</b></td>
-        <td>${c.vendor_name}</td>
-        <td>${c.contact_person || '-'} <br><small class="text-muted"><a href="tel:${c.phone}">${c.phone || '-'}</a></small></td>
-        <td>${c.start_date} to ${c.expiry_date}</td>
-        <td>${c.cost || 0}</td>
-        <td>${statusBadge}</td>
+        <td><b>${e.service_type}</b></td>
+        <td>${e.vendor_name}</td>
+        <td>${e.contact_person||"-"} <br><small class="text-muted"><a href="tel:${e.phone}">${e.phone||"-"}</a></small></td>
+        <td>${e.start_date} to ${e.expiry_date}</td>
+        <td>${e.cost||0}</td>
+        <td>${i}</td>
         <td class="no-print">
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteAMCContract(${c.id})"><i class="fa-solid fa-trash"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteAMCContract(${e.id})"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>
-    `;
-  }).join('');
-
-  updateBadge('amc-badge', expiringSoonCount > 0 ? '🔔' : 0);
-}
-
-function renderParking() {
-  const tbody = document.getElementById('parking-list');
-  const pendingTbody = document.getElementById('pending-parking-list');
-  const pendingSection = document.getElementById('pending-parking-section');
-  if (!tbody) return;
-
-  const approvedList = parkingData.filter(p => p.status === 'Approved');
-  const pendingList = parkingData.filter(p => p.status === 'Pending');
-
-  if (approvedList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No approved vehicles registered yet.</td></tr>`;
-  } else {
-    const canManage = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
-    tbody.innerHTML = approvedList.map(p => `
+    `}).join(""),updateBadge("amc-badge",t>0?"\uD83D\uDD14":0)}function renderParking(){let e=document.getElementById("parking-list"),t=document.getElementById("pending-parking-list"),a=document.getElementById("pending-parking-section");if(!e)return;let n=parkingData.filter(e=>"Approved"===e.status),s=parkingData.filter(e=>"Pending"===e.status);if(0===n.length)e.innerHTML='<tr><td colspan="7" class="text-center text-muted">No approved vehicles registered yet.</td></tr>';else{let i="Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole;e.innerHTML=n.map(e=>`
       <tr>
-        <td><b>${p.flat_no}</b></td>
-        <td><span class="badge bg-info text-dark">${p.vehicle_type}</span></td>
-        <td>${p.vehicle_number}</td>
-        <td>${p.slot_number || '<span class="text-muted">Not Assigned</span>'}</td>
-        <td>${p.owner_name}</td>
+        <td><b>${e.flat_no}</b></td>
+        <td><span class="badge bg-info text-dark">${e.vehicle_type}</span></td>
+        <td>${e.vehicle_number}</td>
+        <td>${e.slot_number||'<span class="text-muted">Not Assigned</span>'}</td>
+        <td>${e.owner_name}</td>
         <td><span class="badge bg-success">Approved</span></td>
-        <td class="no-print admin-only chairman-only ${!canManage ? 'd-none' : ''}">
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteParking(${p.id})"><i class="fa-solid fa-trash"></i></button>
+        <td class="no-print admin-only chairman-only ${i?"":"d-none"}">
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteParking(${e.id})"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>
-    `).join('');
-  }
-
-  if (pendingSection && pendingTbody) {
-    if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
-      pendingSection.classList.remove('d-none');
-      if (pendingList.length === 0) {
-        pendingTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No pending parking requests.</td></tr>`;
-      } else {
-        pendingTbody.innerHTML = pendingList.map(p => `
+    `).join("")}a&&t&&("Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole?(a.classList.remove("d-none"),0===s.length?t.innerHTML='<tr><td colspan="6" class="text-center text-muted">No pending parking requests.</td></tr>':t.innerHTML=s.map(e=>`
           <tr>
-            <td><b>${p.flat_no}</b></td>
-            <td>${p.vehicle_type}</td>
-            <td>${p.vehicle_number}</td>
-            <td>${p.owner_name}</td>
-            <td>${p.remarks || '-'}</td>
+            <td><b>${e.flat_no}</b></td>
+            <td>${e.vehicle_type}</td>
+            <td>${e.vehicle_number}</td>
+            <td>${e.owner_name}</td>
+            <td>${e.remarks||"-"}</td>
             <td class="no-print">
-              <button class="btn btn-sm btn-success me-1" onclick="approveParking(${p.id}, 'Approved')"><i class="fa-solid fa-check"></i> Approve</button>
-              <button class="btn btn-sm btn-danger" onclick="approveParking(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i> Reject</button>
+              <button class="btn btn-sm btn-success me-1" onclick="approveParking(${e.id}, 'Approved')"><i class="fa-solid fa-check"></i> Approve</button>
+              <button class="btn btn-sm btn-danger" onclick="approveParking(${e.id}, 'Rejected')"><i class="fa-solid fa-times"></i> Reject</button>
             </td>
           </tr>
-        `).join('');
-      }
-    } else {
-      pendingSection.classList.add('d-none');
-    }
-  }
-
-  const pendingCount = pendingList.length;
-  updateBadge('parking-badge', pendingCount > 0 ? pendingCount : 0);
-}
-
-function resetParkingForm() {
-  const form = document.getElementById('parkingForm');
-  if (form) form.reset();
-  
-  const select = document.getElementById('park-flat');
-  if (select) {
-    if (currentRole === 'Member') {
-      select.innerHTML = `<option value="${currentUser}">${currentUser}</option>`;
-      select.disabled = true;
-      document.getElementById('park-owner').value = currentUser;
-    } else {
-      select.disabled = false;
-      select.innerHTML = '<option value="">-- Select Flat --</option>';
-      membersData.forEach(m => {
-        select.innerHTML += `<option value="${m.flat_no}">${m.flat_no} - ${m.name || ''}</option>`;
-      });
-    }
-  }
-}
-
-async function submitParkingVehicle(event) {
-  event.preventDefault();
-  const flatNo = currentRole === 'Member' ? currentUser : document.getElementById('park-flat').value;
-  const vehicleType = document.getElementById('park-type').value;
-  const vehicleNumber = document.getElementById('park-number').value.trim().toUpperCase();
-  const slotNumber = document.getElementById('park-slot')?.value.trim() || '';
-  const ownerName = document.getElementById('park-owner').value.trim();
-  const remarks = document.getElementById('park-remarks').value.trim();
-
-  const isMember = currentRole === 'Member';
-  const initialStatus = isMember ? 'Pending' : 'Approved';
-
-  const newVehicle = {
-    society_name: currentSociety,
-    flat_no: flatNo, vehicle_type: vehicleType, vehicle_number: vehicleNumber,
-    slot_number: slotNumber, owner_name: ownerName, remarks: remarks,
-    status: initialStatus,
-    submitted_at: new Date().toISOString()
-  };
-
-  const { error } = await _supabase.from('parking_vehicles').insert([newVehicle]);
-  if (error) { alert('❌ Error: ' + error.message); return; }
-
-  alert(isMember ? '✅ Vehicle submitted for admin approval!' : '✅ Vehicle registered & approved successfully!');
-  bootstrap.Modal.getInstance(document.getElementById('parkingModal')).hide();
-  fetchSupabaseData();
-}
-
-async function checkAndAutoApproveVisitors() {
-  if (!currentSociety) return;
-  const { data: pendingVisitors } = await _supabase.from('visitors').select('*').eq('society', currentSociety).eq('status', 'PENDING');
-
-  if (!pendingVisitors) return;
-
-  const now = new Date().getTime();
-  for (const v of pendingVisitors) {
-    const createdAt = new Date(v.created_at || v.visit_date).getTime();
-    if (now - createdAt > 30000) {
-      await _supabase.from('visitors').update({ status: 'APPROVED' }).eq('id', v.id);
-      loadTodayVisitors();
-    }
-  }
-}
-
-setInterval(checkAndAutoApproveVisitors, 5000);
-
-async function approveParking(id, status) {
-  if (!confirm(`Are you sure you want to ${status.toLowerCase()} this vehicle?`)) return;
-  const { error } = await _supabase.from('parking_vehicles').update({ status: status }).eq('id', id);
-  if (error) { alert('❌ Error: ' + error.message); }
-  else { alert(`✅ Vehicle ${status} successfully!`); fetchSupabaseData(); }
-}
-
-async function deleteParking(id) {
-  if (!confirm('⚠️ Delete this vehicle record permanently?')) return;
-  const { error } = await _supabase.from('parking_vehicles').delete().eq('id', id);
-  if (error) alert('Error: ' + error.message);
-  else fetchSupabaseData();
-}
-
-async function submitAMCContract(event) {
-  event.preventDefault();
-  const newAMC = {
-    society_name: currentSociety,
-    service_type: document.getElementById('amc-service').value.trim(),
-    vendor_name: document.getElementById('amc-vendor').value.trim(),
-    contact_person: document.getElementById('amc-person').value.trim(),
-    phone: document.getElementById('amc-phone').value.trim(),
-    start_date: document.getElementById('amc-start').value,
-    expiry_date: document.getElementById('amc-expiry').value,
-    cost: Number(document.getElementById('amc-cost').value || 0),
-    status: 'Active'
-  };
-
-  const { error } = await _supabase.from('amc_contracts').insert([newAMC]);
-  if (error) { alert('❌ Error: ' + error.message); return; }
-  alert('✅ AMC Contract Saved!');
-  bootstrap.Modal.getInstance(document.getElementById('amcModal')).hide();
-  document.getElementById('amcForm').reset();
-  fetchSupabaseData();
-}
-
-async function deleteAMCContract(id) {
-  if (!confirm('⚠️ Delete this AMC Contract permanently?')) return;
-  const { error } = await _supabase.from('amc_contracts').delete().eq('id', id);
-  if (error) alert('Error: ' + error.message);
-  else fetchSupabaseData();
-}
-
-function renderBankDetails() {
-  // ✅ Demo Society ke liye purane defaults rakho, baaki ke liye empty
-  const isDemo = (currentSociety === 'Demo Society');
-
-  const accName    = societySettings.bank_acc_name        || (isDemo ? 'M/S. Aakruti Heights CHS' : '');
-  const bankName   = societySettings.bank_name            || (isDemo ? 'ICICI Bank' : '');
-  const accNo      = societySettings.bank_acc_no          || (isDemo ? '000000000000' : '');
-  const ifsc       = societySettings.bank_ifsc            || (isDemo ? 'ICIC0000000' : '');
-  const upiId      = societySettings.bank_upi_id          || (isDemo ? '8866376056@icici' : '');
-  const qrUrl      = societySettings.society_qr_url       || (isDemo ? 'qr-payment.png' : '');
-  const openBalVal = societySettings.opening_bank_balance || '0';
-
-  // Display text — khaali ho to "— Not Set —" dikhao
-  const showOrNotSet = (val) => val ? val : '<span class="text-muted">— Not Set —</span>';
-
-  if (document.getElementById('bank-acc-name'))     document.getElementById('bank-acc-name').innerHTML = showOrNotSet(accName);
-  if (document.getElementById('bank-name-display')) document.getElementById('bank-name-display').innerHTML = showOrNotSet(bankName);
-  if (document.getElementById('bank-acc-no'))       document.getElementById('bank-acc-no').innerHTML = showOrNotSet(accNo);
-  if (document.getElementById('bank-ifsc'))         document.getElementById('bank-ifsc').innerHTML = showOrNotSet(ifsc);
-  if (document.getElementById('bank-upi-id'))       document.getElementById('bank-upi-id').innerHTML = showOrNotSet(upiId);
-
-  // ✅ QR image — khaali ho to placeholder SVG dikhao (no GitHub upload needed)
-  const placeholderQr = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220">' +
-    '<rect width="220" height="220" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="12"/>' +
-    '<text x="110" y="100" font-family="sans-serif" font-size="14" fill="#64748b" text-anchor="middle">QR Not Uploaded</text>' +
-    '<text x="110" y="122" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">Click Edit to upload</text>' +
-    '</svg>'
-  );
-
-  const finalQr = qrUrl || placeholderQr;
-  if (document.getElementById('society-dynamic-qr'))  document.getElementById('society-dynamic-qr').src = finalQr;
-  // ✅ Member Dashboard — icon + society name + UPI ID (QR nahi)
-const paySocietyNameEl = document.getElementById('pay-society-name');
-const paySocietyUpiEl = document.getElementById('pay-society-upi');
-
-if (paySocietyNameEl) {
-  paySocietyNameEl.innerText = societySettings.society_name || currentSociety || 'Society';
-}
-if (paySocietyUpiEl) {
-  if (upiId) {
-    paySocietyUpiEl.innerText = `UPI: ${upiId}`;
-    paySocietyUpiEl.className = 'text-muted small mb-0';
-  } else {
-    paySocietyUpiEl.innerText = '⚠️ UPI not set';
-    paySocietyUpiEl.className = 'text-warning small fw-bold mb-0';
-  }
-}
-  if (document.getElementById('modal-qr-img'))        document.getElementById('modal-qr-img').src = finalQr;
-
-  // Edit modal pre-fill — khaali ho to blank input rakho
-  if (document.getElementById('edit-bank-acc-name'))   document.getElementById('edit-bank-acc-name').value = accName;
-  if (document.getElementById('edit-bank-name'))       document.getElementById('edit-bank-name').value = bankName;
-  if (document.getElementById('edit-bank-acc-no'))     document.getElementById('edit-bank-acc-no').value = accNo;
-  if (document.getElementById('edit-bank-ifsc'))       document.getElementById('edit-bank-ifsc').value = ifsc;
-  if (document.getElementById('edit-bank-upi'))        document.getElementById('edit-bank-upi').value = upiId;
-  if (document.getElementById('edit-opening-balance')) document.getElementById('edit-opening-balance').value = openBalVal;
-}
-
-async function saveBankDetailsAndQR(event) {
-  event.preventDefault();
-  const btn = document.getElementById('btn-save-bank-qr');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
-
-  const accName = document.getElementById('edit-bank-acc-name').value.trim();
-  const bankName = document.getElementById('edit-bank-name').value.trim();
-  const accNo = document.getElementById('edit-bank-acc-no').value.trim();
-  const ifsc = document.getElementById('edit-bank-ifsc').value.trim();
-  const upiId = document.getElementById('edit-bank-upi').value.trim();
-  const openingBal = parseFloat(document.getElementById('edit-opening-balance')?.value) || 0;
-
-  const fileInput = document.getElementById('edit-bank-qr-file');
-  const file = fileInput?.files?.[0];
-
-  let qrUrl = societySettings.society_qr_url || 'qr-payment.png';
-
-  if (file) {
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${currentSociety}/qr_${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await _supabase.storage.from('qr_codes').upload(filePath, file);
-    if (!uploadError) {
-      const { data: urlData } = _supabase.storage.from('qr_codes').getPublicUrl(filePath);
-      qrUrl = urlData?.publicUrl || qrUrl;
-    }
-  }
-
-  const updates = [
-    { key: 'bank_acc_name', value: accName, society_name: currentSociety },
-    { key: 'bank_name', value: bankName, society_name: currentSociety },
-    { key: 'bank_acc_no', value: accNo, society_name: currentSociety },
-    { key: 'bank_ifsc', value: ifsc, society_name: currentSociety },
-    { key: 'bank_upi_id', value: upiId, society_name: currentSociety },
-    { key: 'society_qr_url', value: qrUrl, society_name: currentSociety },
-    { key: 'opening_bank_balance', value: openingBal.toString(), society_name: currentSociety }
-  ];
-
-  for (const item of updates) {
-    await _supabase.from('society_settings').upsert(item, { onConflict: 'key,society_name' });
-  }
-
-  alert('✅ Bank Details & Opening Balance updated successfully!');
-  bootstrap.Modal.getInstance(document.getElementById('editBankDetailsModal')).hide();
-  btn.disabled = false;
-  btn.innerHTML = 'Save & Upload';
-  fetchSupabaseData();
-}
-
-function renderSOSContacts() {
-  const container = document.getElementById('sos-contacts-list');
-  if (!container) return;
-  const sosList = teamData.filter(t => t.type === 'Emergency');
-  if (sosList.length === 0) {
-    container.innerHTML = `<div class="col-12 text-muted">No emergency contacts configured yet. Add them in Committee/Team under Type: "Emergency Contact (SOS)".</div>`;
-    return;
-  }
-
-  container.innerHTML = sosList.map(item => `
+        `).join("")):a.classList.add("d-none"));let r=s.length;updateBadge("parking-badge",r>0?r:0)}function resetParkingForm(){let e=document.getElementById("parkingForm");e&&e.reset();let t=document.getElementById("park-flat");t&&("Member"===currentRole?(t.innerHTML=`<option value="${currentUser}">${currentUser}</option>`,t.disabled=!0,document.getElementById("park-owner").value=currentUser):(t.disabled=!1,t.innerHTML='<option value="">-- Select Flat --</option>',membersData.forEach(e=>{t.innerHTML+=`<option value="${e.flat_no}">${e.flat_no} - ${e.name||""}</option>`})))}async function submitParkingVehicle(e){e.preventDefault();let t="Member"===currentRole?currentUser:document.getElementById("park-flat").value,a=document.getElementById("park-type").value,n=document.getElementById("park-number").value.trim().toUpperCase(),s=document.getElementById("park-slot")?.value.trim()||"",i=document.getElementById("park-owner").value.trim(),r=document.getElementById("park-remarks").value.trim(),o="Member"===currentRole,l={society_name:currentSociety,flat_no:t,vehicle_type:a,vehicle_number:n,slot_number:s,owner_name:i,remarks:r,status:o?"Pending":"Approved",submitted_at:new Date().toISOString()},{error:d}=await _supabase.from("parking_vehicles").insert([l]);if(d){alert("❌ Error: "+d.message);return}alert(o?"✅ Vehicle submitted for admin approval!":"✅ Vehicle registered & approved successfully!"),bootstrap.Modal.getInstance(document.getElementById("parkingModal")).hide(),fetchSupabaseData()}async function checkAndAutoApproveVisitors(){if(!currentSociety)return;let{data:e}=await _supabase.from("visitors").select("*").eq("society",currentSociety).eq("status","PENDING");if(!e)return;let t=new Date().getTime();for(let a of e){let n=new Date(a.created_at||a.visit_date).getTime();t-n>3e4&&(await _supabase.from("visitors").update({status:"APPROVED"}).eq("id",a.id),loadTodayVisitors())}}async function approveParking(e,t){if(!confirm(`Are you sure you want to ${t.toLowerCase()} this vehicle?`))return;let{error:a}=await _supabase.from("parking_vehicles").update({status:t}).eq("id",e);a?alert("❌ Error: "+a.message):(alert(`✅ Vehicle ${t} successfully!`),fetchSupabaseData())}async function deleteParking(e){if(!confirm("⚠️ Delete this vehicle record permanently?"))return;let{error:t}=await _supabase.from("parking_vehicles").delete().eq("id",e);t?alert("Error: "+t.message):fetchSupabaseData()}async function submitAMCContract(e){e.preventDefault();let t={society_name:currentSociety,service_type:document.getElementById("amc-service").value.trim(),vendor_name:document.getElementById("amc-vendor").value.trim(),contact_person:document.getElementById("amc-person").value.trim(),phone:document.getElementById("amc-phone").value.trim(),start_date:document.getElementById("amc-start").value,expiry_date:document.getElementById("amc-expiry").value,cost:Number(document.getElementById("amc-cost").value||0),status:"Active"},{error:a}=await _supabase.from("amc_contracts").insert([t]);if(a){alert("❌ Error: "+a.message);return}alert("✅ AMC Contract Saved!"),bootstrap.Modal.getInstance(document.getElementById("amcModal")).hide(),document.getElementById("amcForm").reset(),fetchSupabaseData()}async function deleteAMCContract(e){if(!confirm("⚠️ Delete this AMC Contract permanently?"))return;let{error:t}=await _supabase.from("amc_contracts").delete().eq("id",e);t?alert("Error: "+t.message):fetchSupabaseData()}function renderBankDetails(){var e,t,a,n,s;let i="Demo Society"===currentSociety,r=societySettings.bank_acc_name||(i?"M/S. Aakruti Heights CHS":""),o=societySettings.bank_name||(i?"ICICI Bank":""),l=societySettings.bank_acc_no||(i?"000000000000":""),d=societySettings.bank_ifsc||(i?"ICIC0000000":""),c=societySettings.bank_upi_id||(i?"8866376056@icici":""),m=societySettings.society_qr_url||(i?"qr-payment.png":""),u=societySettings.opening_bank_balance||"0";document.getElementById("bank-acc-name")&&(document.getElementById("bank-acc-name").innerHTML=r||'<span class="text-muted">— Not Set —</span>'),document.getElementById("bank-name-display")&&(document.getElementById("bank-name-display").innerHTML=o||'<span class="text-muted">— Not Set —</span>'),document.getElementById("bank-acc-no")&&(document.getElementById("bank-acc-no").innerHTML=l||'<span class="text-muted">— Not Set —</span>'),document.getElementById("bank-ifsc")&&(document.getElementById("bank-ifsc").innerHTML=d||'<span class="text-muted">— Not Set —</span>'),document.getElementById("bank-upi-id")&&(document.getElementById("bank-upi-id").innerHTML=c||'<span class="text-muted">— Not Set —</span>');let p="data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><rect width="220" height="220" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2" rx="12"/><text x="110" y="100" font-family="sans-serif" font-size="14" fill="#64748b" text-anchor="middle">QR Not Uploaded</text><text x="110" y="122" font-family="sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">Click Edit to upload</text></svg>'),y=m||p;document.getElementById("society-dynamic-qr")&&(document.getElementById("society-dynamic-qr").src=y);let g=document.getElementById("pay-society-name"),b=document.getElementById("pay-society-upi");g&&(g.innerText=societySettings.society_name||currentSociety||"Society"),b&&(c?(b.innerText=`UPI: ${c}`,b.className="text-muted small mb-0"):(b.innerText="⚠️ UPI not set",b.className="text-warning small fw-bold mb-0")),document.getElementById("modal-qr-img")&&(document.getElementById("modal-qr-img").src=y),document.getElementById("edit-bank-acc-name")&&(document.getElementById("edit-bank-acc-name").value=r),document.getElementById("edit-bank-name")&&(document.getElementById("edit-bank-name").value=o),document.getElementById("edit-bank-acc-no")&&(document.getElementById("edit-bank-acc-no").value=l),document.getElementById("edit-bank-ifsc")&&(document.getElementById("edit-bank-ifsc").value=d),document.getElementById("edit-bank-upi")&&(document.getElementById("edit-bank-upi").value=c),document.getElementById("edit-opening-balance")&&(document.getElementById("edit-opening-balance").value=u)}async function saveBankDetailsAndQR(e){e.preventDefault();let t=document.getElementById("btn-save-bank-qr");t.disabled=!0,t.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';let a=document.getElementById("edit-bank-acc-name").value.trim(),n=document.getElementById("edit-bank-name").value.trim(),s=document.getElementById("edit-bank-acc-no").value.trim(),i=document.getElementById("edit-bank-ifsc").value.trim(),r=document.getElementById("edit-bank-upi").value.trim(),o=parseFloat(document.getElementById("edit-opening-balance")?.value)||0,l=document.getElementById("edit-bank-qr-file"),d=l?.files?.[0],c=societySettings.society_qr_url||"qr-payment.png";if(d){let m=d.name.split(".").pop(),u=`${currentSociety}/qr_${Date.now()}.${m}`,{error:p}=await _supabase.storage.from("qr_codes").upload(u,d);if(!p){let{data:y}=_supabase.storage.from("qr_codes").getPublicUrl(u);c=y?.publicUrl||c}}let g=[{key:"bank_acc_name",value:a,society_name:currentSociety},{key:"bank_name",value:n,society_name:currentSociety},{key:"bank_acc_no",value:s,society_name:currentSociety},{key:"bank_ifsc",value:i,society_name:currentSociety},{key:"bank_upi_id",value:r,society_name:currentSociety},{key:"society_qr_url",value:c,society_name:currentSociety},{key:"opening_bank_balance",value:o.toString(),society_name:currentSociety}];for(let b of g)await _supabase.from("society_settings").upsert(b,{onConflict:"key,society_name"});alert("✅ Bank Details & Opening Balance updated successfully!"),bootstrap.Modal.getInstance(document.getElementById("editBankDetailsModal")).hide(),t.disabled=!1,t.innerHTML="Save & Upload",fetchSupabaseData()}function renderSOSContacts(){let e=document.getElementById("sos-contacts-list");if(!e)return;let t=teamData.filter(e=>"Emergency"===e.type);if(0===t.length){e.innerHTML='<div class="col-12 text-muted">No emergency contacts configured yet. Add them in Committee/Team under Type: "Emergency Contact (SOS)".</div>';return}e.innerHTML=t.map(e=>`
     <div class="col-md-6 col-lg-4">
       <div class="card p-3 shadow-sm rounded-4 border-0 border-start border-4 border-danger h-100 bg-white">
         <div class="d-flex justify-content-between align-items-start">
           <div>
-            <h5 class="fw-bold text-dark mb-1">${item.name}</h5>
-            <span class="badge bg-danger-subtle text-danger mb-2">${item.role}</span>
+            <h5 class="fw-bold text-dark mb-1">${e.name}</h5>
+            <span class="badge bg-danger-subtle text-danger mb-2">${e.role}</span>
           </div>
-          <a href="tel:${item.mobile}" class="btn btn-danger btn-sm rounded-circle p-2" title="Call Now">
+          <a href="tel:${e.mobile}" class="btn btn-danger btn-sm rounded-circle p-2" title="Call Now">
             <i class="fa-solid fa-phone"></i>
           </a>
         </div>
-        <p class="mb-0 text-muted small"><i class="fa-solid fa-phone me-1"></i> ${item.mobile}</p>
+        <p class="mb-0 text-muted small"><i class="fa-solid fa-phone me-1"></i> ${e.mobile}</p>
       </div>
     </div>
-  `).join('');
-}
+  `).join("")}setInterval(checkAndAutoApproveVisitors,5e3);const firebaseConfig={apiKey:"AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",authDomain:"ps-society-solutions.firebaseapp.com",projectId:"ps-society-solutions",storageBucket:"ps-society-solutions.firebasestorage.app",messagingSenderId:"345202451409",appId:"1:345202451409:web:d72246d863c4131e7036f0",measurementId:"G-8CZMXHWK5M"};firebase.apps.length||firebase.initializeApp(firebaseConfig);const messaging=firebase.messaging();async function requestNotificationPermission(){try{let e=await Notification.requestPermission();if("granted"===e){let t=await navigator.serviceWorker.register("/ps-society-app/firebase-messaging-sw.js",{scope:"/ps-society-app/"});await navigator.serviceWorker.ready;let a=await messaging.getToken({vapidKey:"BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4",serviceWorkerRegistration:t});a&&await saveFCMTokenToSupabase(a)}}catch(n){console.error("Error in notification setup:",n)}}async function saveFCMTokenToSupabase(e){if(currentUser&&currentSociety)try{let t={society_name:currentSociety,flat_no:currentUser,role:currentRole,token:e,updated_at:new Date().toISOString()};await _supabase.from("fcm_tokens").upsert([t],{onConflict:"token"}),console.log("✅ FCM Token saved for:",currentUser,currentRole)}catch(a){console.error("Error saving FCM token:",a)}}function sendWhatsAppReminder(e,t){if(!e){alert("❌ No phone number found.");return}let a=e.replace(/[^0-9]/g,""),n=10===a.length?"91"+a:a;window.open(`https://wa.me/${n}?text=${encodeURIComponent(t)}`,"_blank")}function sendBulkWhatsAppReminder(){let e=membersData.filter(e=>{let t=(e.flat_no||"").toUpperCase(),a=maintenanceData.filter(e=>(e.flat_no||"").toUpperCase()===t).reduce((e,t)=>e+Number(t.amount_paid||0),0),n=Number(e.monthly_rate||600);return Number(e.opening_due||0)+MONTHS_IN_FY_SO_FAR*n-a>0}),t=e.filter(e=>e.phone&&""!==e.phone.trim());if(0===t.length){alert("✅ No pending dues with valid phone numbers!");return}let a=`📢 ${t.length} members ko reminder bhejna hai?`;if(t.length>5&&(a+=`
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",
-  authDomain: "ps-society-solutions.firebaseapp.com",
-  projectId: "ps-society-solutions",
-  storageBucket: "ps-society-solutions.firebasestorage.app",
-  messagingSenderId: "345202451409",
-  appId: "1:345202451409:web:d72246d863c4131e7036f0",
-  measurementId: "G-8CZMXHWK5M"
-};
+⚠️ NOTE: Browser ek baar mein sirf 5-6 tabs allow karta hai.
+Isliye reminders batch mein bhejne padenge.
 
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-const messaging = firebase.messaging();
+Har batch ke baad aapko "Next Batch" button dabana hoga.`),!confirm(a))return;let n=t.map(e=>{let t=(e.flat_no||"").toUpperCase(),a=maintenanceData.filter(e=>(e.flat_no||"").toUpperCase()===t).reduce((e,t)=>e+Number(t.amount_paid||0),0),n=Number(e.monthly_rate||600),s=Number(e.opening_due||0)+MONTHS_IN_FY_SO_FAR*n-a,i=`Dear ${e.name||"Member"} (Flat ${t}),
 
-messaging.onMessage((payload) => {
-  console.log('Message received in foreground: ', payload);
-  alert(`📢 ${payload.notification?.title || 'Notification'}\n${payload.notification?.body || ''}`);
-});
+Your maintenance dues of ₹${s.toFixed(0)} are pending. Please clear them at the earliest.
 
-async function requestNotificationPermission() {
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      const registration = await navigator.serviceWorker.register(
-        '/ps-society-app/firebase-messaging-sw.js',
-        { scope: '/ps-society-app/' }
-      );
-      await navigator.serviceWorker.ready;
-      
-      const token = await messaging.getToken({
-        vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
-        serviceWorkerRegistration: registration
-      });
-
-      if (token) { await saveFCMTokenToSupabase(token); }
-    }
-  } catch (err) { console.error('Error in notification setup:', err); }
-}
-
-async function saveFCMTokenToSupabase(token) {
-  if (!currentUser || !currentSociety) return;
-  try {
-    const payload = { 
-      society_name: currentSociety, 
-      flat_no: currentUser, 
-      role: currentRole,
-      token: token,
-      updated_at: new Date().toISOString()
-    };
-    await _supabase.from('fcm_tokens').upsert([payload], { onConflict: 'token' });
-    console.log('✅ FCM Token saved for:', currentUser, currentRole);
-  } catch (err) { 
-    console.error('Error saving FCM token:', err); 
-  }
-}
-
-function sendWhatsAppReminder(phone, message) {
-  if (!phone) { alert('❌ No phone number found.'); return; }
-  const cleanPhone = phone.replace(/[^0-9]/g, '');
-  let finalPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
-  window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
-}
-
-function sendBulkWhatsAppReminder() {
-  const pendingMembers = membersData.filter(m => {
-    const flatNo = (m.flat_no || '').toUpperCase();
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-    const rate = Number(m.monthly_rate || 600);
-    const totalDue = MONTHS_IN_FY_SO_FAR * rate;
-    return (Number(m.opening_due || 0) + totalDue - flatPaid) > 0;
-  });
-
-  // Filter members with valid phone numbers
-  const membersWithPhone = pendingMembers.filter(m => m.phone && m.phone.trim() !== '');
-
-  if (membersWithPhone.length === 0) {
-    alert('✅ No pending dues with valid phone numbers!');
-    return;
-  }
-
-  // Show a warning if count is high
-  const WARN_THRESHOLD = 5;
-  let proceedMessage = `📢 ${membersWithPhone.length} members ko reminder bhejna hai?`;
-  if (membersWithPhone.length > WARN_THRESHOLD) {
-    proceedMessage += `\n\n⚠️ NOTE: Browser ek baar mein sirf ${WARN_THRESHOLD}-6 tabs allow karta hai.\nIsliye reminders batch mein bhejne padenge.\n\nHar batch ke baad aapko "Next Batch" button dabana hoga.`;
-  }
-
-  if (!confirm(proceedMessage)) return;
-
-  // Build list of members with personalized messages
-  const reminderList = membersWithPhone.map(m => {
-    const flatNo = (m.flat_no || '').toUpperCase();
-    const flatPaid = maintenanceData
-      .filter(r => (r.flat_no || '').toUpperCase() === flatNo)
-      .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-    const rate = Number(m.monthly_rate || 600);
-    const totalDue = MONTHS_IN_FY_SO_FAR * rate;
-    const pendingAmt = Number(m.opening_due || 0) + totalDue - flatPaid;
-
-    const message = `Dear ${m.name || 'Member'} (Flat ${flatNo}),\n\nYour maintenance dues of ₹${pendingAmt.toFixed(0)} are pending. Please clear them at the earliest.\n\n- PS Society Solutions`;
-
-    return { name: m.name || flatNo, flatNo, phone: m.phone, message };
-  });
-
-  // Open first batch (5 tabs max at once)
-  sendReminderBatch(reminderList, 0, WARN_THRESHOLD);
-}
-
-// Helper: Send a batch of reminders and show "Next Batch" button
-function sendReminderBatch(list, startIndex, batchSize) {
-  const batch = list.slice(startIndex, startIndex + batchSize);
-  const remaining = list.length - (startIndex + batchSize);
-
-  // Open each WhatsApp in this batch with 800ms gap
-  batch.forEach((item, i) => {
-    setTimeout(() => {
-      const cleanPhone = item.phone.replace(/[^0-9]/g, '');
-      const finalPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
-      window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(item.message)}`, '_blank');
-    }, i * 800);
-  });
-
-  // If more members remain, show a floating "Next Batch" button
-  if (remaining > 0) {
-    // Remove old button if any
-    const oldBtn = document.getElementById('nextBatchBtn');
-    if (oldBtn) oldBtn.remove();
-
-    const btn = document.createElement('button');
-    btn.id = 'nextBatchBtn';
-    btn.style.cssText = `
+- PS Society Solutions`;return{name:e.name||t,flatNo:t,phone:e.phone,message:i}});sendReminderBatch(n,0,5)}function sendReminderBatch(e,t,a){let n=e.slice(t,t+a),s=e.length-(t+a);if(n.forEach((e,t)=>{setTimeout(()=>{let t=e.phone.replace(/[^0-9]/g,""),a=10===t.length?"91"+t:t;window.open(`https://wa.me/${a}?text=${encodeURIComponent(e.message)}`,"_blank")},800*t)}),s>0){let i=document.getElementById("nextBatchBtn");i&&i.remove();let r=document.createElement("button");r.id="nextBatchBtn",r.style.cssText=`
       position: fixed; bottom: 100px; right: 25px; z-index: 99999;
       background: linear-gradient(135deg, #25d366, #1da851); color: white;
       border: none; padding: 14px 26px; font-size: 15px;
       font-weight: 700; border-radius: 50px; cursor: pointer;
       box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
       font-family: 'Plus Jakarta Sans', sans-serif;
-    `;
-    btn.innerHTML = `📤 Next Batch (${remaining} left) →`;
-    btn.onclick = () => {
-      btn.remove();
-      sendReminderBatch(list, startIndex + batchSize, batchSize);
-    };
-    document.body.appendChild(btn);
+    `,r.innerHTML=`📤 Next Batch (${s} left) →`,r.onclick=()=>{r.remove(),sendReminderBatch(e,t+a,a)},document.body.appendChild(r),alert(`✅ Batch-1 bhej diya (${n.length} members).
 
-    alert(`✅ Batch-1 bhej diya (${batch.length} members).\n\n📤 Ab "${remaining} remaining" ke liye screen pe "Next Batch" button dabao.`);
-  } else {
-    // All done — cleanup
-    const oldBtn = document.getElementById('nextBatchBtn');
-    if (oldBtn) oldBtn.remove();
-    alert(`✅ All ${list.length} reminders sent successfully!`);
-  }
-}
-
-// ══════════════════════════════════════════════════
-// 🎬 LIVE DEMO MODE — Read-only, no login
-// Society: "PS Live Demo"
-// ══════════════════════════════════════════════════
-const DEMO_SOCIETY_NAME = 'PS Live Demo';
-
-function isDemoMode() {
-  return localStorage.getItem('ps_demo_mode') === 'true';
-}
-
-function blockDemoWrite() {
-  if (isDemoMode()) {
-    alert('🔒 Demo Mode mein changes allowed nahi hain.\n\nPlease login to make changes.');
-    return true;
-  }
-  return false;
-}
-
-async function startLiveDemo() {
-  if (isDemoMode()) {
-    alert('✅ You are already in Demo Mode.');
-    return;
-  }
-
-  if (!confirm('🎬 Start Live Demo?\n\nSample society ka data dekh sakenge (read-only).\nKoi login zaroori nahi.')) {
-    return;
-  }
-
-  localStorage.setItem('ps_demo_mode', 'true');
-  localStorage.setItem('ps_demo_society', DEMO_SOCIETY_NAME);
-
-  currentSociety = DEMO_SOCIETY_NAME;
-  currentRole = 'Member';
-  currentUser = 'DEMO-VIEWER';
-  clearAllData();
-
-  document.getElementById('landing-section').style.display = 'none';
-  document.getElementById('login-section').style.display = 'none';
-  document.getElementById('visitor-section').style.display = 'none';
-  document.getElementById('app-section').classList.remove('d-none');
-  document.body.classList.add('demo-mode');
-
-  showDemoBanner();
-
-  const socElem = document.getElementById('sidebar-society-name');
-  if (socElem) socElem.innerText = DEMO_SOCIETY_NAME + ' 🎬';
-  const roleBadge = document.getElementById('user-role-badge');
-  if (roleBadge) roleBadge.innerText = 'DEMO';
-
-  try {
-    await fetchSupabaseData();
-    setTimeout(() => loadSecondaryData(), 500);
-  } catch (e) { console.error('Demo load error:', e); }
-
-  if (window.innerWidth <= 768) {
-    setTimeout(() => toggleMobileMenu(), 400);
-  }
-}
-
-function showDemoBanner() {
-  const existing = document.getElementById('demoModeBanner');
-  if (existing) existing.remove();
-
-  const banner = document.createElement('div');
-  banner.id = 'demoModeBanner';
-  banner.style.cssText = `
+📤 Ab "${s} remaining" ke liye screen pe "Next Batch" button dabao.`)}else{let o=document.getElementById("nextBatchBtn");o&&o.remove(),alert(`✅ All ${e.length} reminders sent successfully!`)}}messaging.onMessage(e=>{console.log("Message received in foreground: ",e),alert(`📢 ${e.notification?.title||"Notification"}
+${e.notification?.body||""}`)});const DEMO_SOCIETY_NAME="PS Live Demo";function isDemoMode(){return"true"===localStorage.getItem("ps_demo_mode")}function blockDemoWrite(){return!!isDemoMode()&&(alert("\uD83D\uDD12 Demo Mode mein changes allowed nahi hain.\n\nPlease login to make changes."),!0)}async function startLiveDemo(){if(isDemoMode()){alert("✅ You are already in Demo Mode.");return}if(!confirm("\uD83C\uDFAC Start Live Demo?\n\nSample society ka data dekh sakenge (read-only).\nKoi login zaroori nahi."))return;localStorage.setItem("ps_demo_mode","true"),localStorage.setItem("ps_demo_society",DEMO_SOCIETY_NAME),currentSociety=DEMO_SOCIETY_NAME,currentRole="Member",currentUser="DEMO-VIEWER",clearAllData(),document.getElementById("landing-section").style.display="none",document.getElementById("login-section").style.display="none",document.getElementById("visitor-section").style.display="none",document.getElementById("app-section").classList.remove("d-none"),document.body.classList.add("demo-mode"),showDemoBanner();let e=document.getElementById("sidebar-society-name");e&&(e.innerText=DEMO_SOCIETY_NAME+" \uD83C\uDFAC");let t=document.getElementById("user-role-badge");t&&(t.innerText="DEMO");try{await fetchSupabaseData(),setTimeout(()=>loadSecondaryData(),500)}catch(a){console.error("Demo load error:",a)}window.innerWidth<=768&&setTimeout(()=>toggleMobileMenu(),400)}function showDemoBanner(){let e=document.getElementById("demoModeBanner");e&&e.remove();let t=document.createElement("div");t.id="demoModeBanner",t.style.cssText=`
     position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
     background: linear-gradient(90deg, #f59e0b, #ea580c);
     color: #fff; padding: 10px 16px; text-align: center;
     font-weight: 700; font-size: 13px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.25);
     font-family: 'Plus Jakarta Sans', sans-serif;
-  `;
-  banner.innerHTML = `
+  `,t.innerHTML=`
     🎬 DEMO MODE — Read Only Preview (PS Live Demo)
     <button onclick="exitDemoMode()" style="
       background: #fff; color: #ea580c; border: none;
@@ -1999,1345 +155,113 @@ function showDemoBanner() {
       font-weight: 700; font-size: 12px;
       cursor: pointer; margin-left: 12px;
     ">Exit Demo</button>
-  `;
-  document.body.appendChild(banner);
-  document.body.style.paddingTop = '42px';
-}
-
-function exitDemoMode() {
-  if (!confirm('Exit Demo Mode?')) return;
-  localStorage.removeItem('ps_demo_mode');
-  localStorage.removeItem('ps_demo_society');
-  const baseUrl = window.location.origin + window.location.pathname;
-  window.location.replace(baseUrl + '?t=' + Date.now());
-}
-
-function renderPaymentProofs() {
-  const containers = document.querySelectorAll('#proofs-container');
-  if (containers.length === 0) return;
-
-  let html = '';
-  let pendingText = '0 Pending';
-
-  if (paymentProofs.length === 0) {
-    html = `<tr><td colspan="6" class="text-center text-muted">No payment details submitted yet.</td></tr>`;
-  } else {
-    const pending = paymentProofs.filter(p => p.status === 'Pending').length;
-    pendingText = `${pending} Pending`;
-
-    html = paymentProofs.map(p => {
-      const member = membersData.find(m => (m.flat_no || '').toUpperCase() === (p.flat_no || '').toUpperCase());
-      const memberPhone = member?.phone || '';
-      const hasImage = p.image_url && p.image_url.trim() !== '';
-      const isPending = p.status === 'Pending';
-      const statusBadge = isPending
-        ? '<span class="badge bg-warning text-dark">Pending</span>'
-        : (p.status === 'Verified' ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-danger">Rejected</span>');
-
-      return `
+  `,document.body.appendChild(t),document.body.style.paddingTop="42px"}function exitDemoMode(){if(!confirm("Exit Demo Mode?"))return;localStorage.removeItem("ps_demo_mode"),localStorage.removeItem("ps_demo_society");let e=window.location.origin+window.location.pathname;window.location.replace(e+"?t="+Date.now())}function renderPaymentProofs(){let e=document.querySelectorAll("#proofs-container");if(0===e.length)return;let t="",a="0 Pending";if(0===paymentProofs.length)t='<tr><td colspan="6" class="text-center text-muted">No payment details submitted yet.</td></tr>';else{let n=paymentProofs.filter(e=>"Pending"===e.status).length;a=`${n} Pending`,t=paymentProofs.map(e=>{let t=membersData.find(t=>(t.flat_no||"").toUpperCase()===(e.flat_no||"").toUpperCase()),a=t?.phone||"",n=e.image_url&&""!==e.image_url.trim(),s="Pending"===e.status,i=s?'<span class="badge bg-warning text-dark">Pending</span>':"Verified"===e.status?'<span class="badge bg-success">Verified</span>':'<span class="badge bg-danger">Rejected</span>';return`
         <tr>
-          <td><b>${p.flat_no}</b></td>
-          <td>${p.amount}</td>
-          <td>${p.payment_date}</td>
-          <td>${statusBadge}</td>
-          <td>${hasImage ? `<img src="${p.image_url}" alt="Proof" style="height:45px; width:45px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${p.image_url}','_blank')">` : '<span class="text-muted">-</span>'}</td>
+          <td><b>${e.flat_no}</b></td>
+          <td>${e.amount}</td>
+          <td>${e.payment_date}</td>
+          <td>${i}</td>
+          <td>${n?`<img src="${e.image_url}" alt="Proof" style="height:45px; width:45px; object-fit:cover; border-radius:8px; cursor:pointer;" onclick="window.open('${e.image_url}','_blank')">`:'<span class="text-muted">-</span>'}</td>
           <td class="no-print">
-            ${isPending && (currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
-              <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${p.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
-              <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${p.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
-            ` : '<span class="text-muted">-</span>'}
-            ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') && memberPhone ? `
-              <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Regarding your payment of ${p.amount} for Flat ${p.flat_no}.')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>
-            ` : ''}
+            ${s&&("Admin"===currentRole||"SocietyAdmin"===currentRole)?`
+              <button class="btn btn-sm btn-success me-1" onclick="verifyProof(${e.id}, 'Verified')"><i class="fa-solid fa-check"></i></button>
+              <button class="btn btn-sm btn-danger me-1" onclick="verifyProof(${e.id}, 'Rejected')"><i class="fa-solid fa-times"></i></button>
+            `:'<span class="text-muted">-</span>'}
+            ${("Admin"===currentRole||"SocietyAdmin"===currentRole)&&a?`
+              <button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${a}', 'Regarding your payment of ${e.amount} for Flat ${e.flat_no}.')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>
+            `:""}
           </td>
         </tr>
-      `;
-    }).join('');
-  }
+      `}).join("")}e.forEach(e=>{e.innerHTML=t}),document.querySelectorAll("#pending-proof-count").forEach(e=>{e.innerText=a})}async function deleteSingleImage({table:e,rowId:t,column:a,bucket:n,imageUrl:s,refreshFn:i,label:r}){if("Admin"!==currentRole&&"SocietyAdmin"!==currentRole){alert("⛔ Only Admin can delete images.");return}if(confirm(`⚠️ Delete this ${r||"image"}?
 
-  containers.forEach(container => { container.innerHTML = html; });
-
-  document.querySelectorAll('#pending-proof-count').forEach(el => {
-    el.innerText = pendingText;
-  });
-}
-
-// ═══════════════════════════════════════════════════
-// 🗑️ DELETE SINGLE IMAGE (DB row stays, only image removed)
-// ═══════════════════════════════════════════════════
-async function deleteSingleImage({ table, rowId, column, bucket, imageUrl, refreshFn, label }) {
-  if (currentRole !== 'Admin' && currentRole !== 'SocietyAdmin') {
-    alert('⛔ Only Admin can delete images.');
-    return;
-  }
-  if (!confirm(`⚠️ Delete this ${label || 'image'}?\n\n(Data will stay — only image removed)`)) return;
-  if (!imageUrl) { alert('No image found.'); return; }
-
-  try {
-    const parts = imageUrl.split(`/${bucket}/`);
-    if (parts.length < 2) { alert('❌ Invalid image URL'); return; }
-    const filePath = decodeURIComponent(parts[1]);
-
-    const { error: delErr } = await _supabase.storage.from(bucket).remove([filePath]);
-    if (delErr) { alert('❌ Storage delete failed: ' + delErr.message); return; }
-
-    const { error: updErr } = await _supabase
-      .from(table)
-      .update({ [column]: null })
-      .eq('id', rowId);
-
-    if (updErr) { alert('❌ DB update failed: ' + updErr.message); return; }
-
-    console.log(`[ImgDelete] ${table}.${column} nulled for id=${rowId}`);
-    alert('✅ Image deleted (data safe)');
-
-    if (typeof refreshFn === 'function') refreshFn();
-  } catch (e) {
-    alert('❌ Error: ' + e.message);
-  }
-}
-
-async function verifyProof(id, status) {
-  if (!confirm(`Are you sure you want to mark this proof as ${status}?`)) return;
-  const proof = paymentProofs.find(p => p.id === id);
-  if (!proof) return;
-
-  try {
-    // ✅ STEP 1: Agar Verified, pehle maintenance payment insert karo
-    if (status === 'Verified') {
-      const paymentDate = new Date(proof.payment_date);
-      const newReceipt = {
-        receipt_no: `AUTO-${Date.now()}`,
-        flat_no: proof.flat_no,
-        payment_date: proof.payment_date,
-        amount_paid: Number(proof.amount),
-        mode_of_payment: proof.mode || 'UPI',
-        month_accounted: paymentDate.toLocaleString('default', { month: 'short', year: 'numeric' }),
-        remarks: `Auto-verified from UTR: ${proof.utr || 'N/A'}`,
-        society_name: proof.society_name || currentSociety
-      };
-
-      const { error: mpErr } = await _supabase
-        .from('maintenance_payments')
-        .insert([newReceipt]);
-
-      if (mpErr) {
-        alert('❌ Failed to add maintenance record: ' + mpErr.message);
-        return;
-      }
-    }
-
-    // ✅ STEP 2: DB update karo (status change) — image_url abhi mat chhero
-    const { error: updErr } = await _supabase
-      .from('payment_proofs')
-      .update({
-        status: status,
-        verified_at: new Date().toISOString(),
-        verified_by: currentUser
-      })
-      .eq('id', id);
-
-    if (updErr) {
-      alert('❌ DB update failed: ' + updErr.message);
-      // Maintenance payment already added — admin ko batao
-      if (status === 'Verified') {
-        alert('⚠️ NOTE: Maintenance entry was added, but proof status could not be updated. Please refresh and check.');
-        fetchSupabaseData();
-      }
-      return;
-    }
-
-    // ✅ STEP 3: DB safe hai ab. Ab storage se image delete karo
-    if (proof.image_url && proof.image_url.trim() !== '') {
-      try {
-        const urlParts = proof.image_url.split('/payment_proofs/');
-        if (urlParts.length > 1) {
-          const filePath = decodeURIComponent(urlParts[1]);
-          const { error: delErr } = await _supabase.storage
-            .from('payment_proofs')
-            .remove([filePath]);
-
-          if (delErr) {
-            console.warn('[Verify] Image delete failed:', delErr.message);
-            // Image delete fail hui, but DB safe hai — orphan file rahegi, koi issue nahi
-          } else {
-            console.log('[Verify] Image deleted from storage:', filePath);
-
-            // ✅ STEP 4: Storage delete success → ab DB mein image_url = null karo
-            const { error: nullErr } = await _supabase
-              .from('payment_proofs')
-              .update({ image_url: null })
-              .eq('id', id);
-
-            if (nullErr) {
-              console.warn('[Verify] Could not null image_url:', nullErr.message);
-            }
-          }
-        }
-      } catch (imgErr) {
-        console.warn('[Verify] Image cleanup error:', imgErr);
-      }
-    }
-
-    // ✅ STEP 5: Member ko notify karo
-    await sendProofNotificationToMember(
-      proof.flat_no,
-      Number(proof.amount),
-      status,
-      proof.society_name || currentSociety
-    );
-
-    alert(status === 'Verified'
-      ? '✅ Payment verified! Member notified.'
-      : '❌ Proof rejected! Member notified.'
-    );
-
-    // ✅ STEP 6: Fresh data fetch karo aur render
-    const { data: freshProofs } = await _supabase
-      .from('payment_proofs')
-      .select('*')
-      .eq('society_name', currentSociety);
-    if (freshProofs) paymentProofs = freshProofs;
-
-    const { data: freshMaint } = await _supabase
-      .from('maintenance_payments')
-      .select('*')
-      .eq('society_name', currentSociety);
-    if (freshMaint) maintenanceData = freshMaint;
-
-    renderPaymentProofs();
-    renderMyPaymentSubmissions();
-    renderMaintenance();
-    renderMembers();
-    updateAllBadges();
-
-  } catch (err) {
-    alert('❌ Error: ' + err.message);
-    console.error('verifyProof error:', err);
-  }
-}
-
-async function submitPaymentDetails(event) {
-  event.preventDefault();
-  const paymentDate = document.getElementById('pay-form-date').value;
-  const amount = document.getElementById('pay-form-amount').value;
-  const mode = document.getElementById('pay-form-mode').value;
-  const bank = document.getElementById('pay-form-bank').value;
-  const utr = document.getElementById('pay-form-utr').value;
-  const app = document.getElementById('pay-form-app').value;
-  const notes = document.getElementById('pay-form-notes').value;
-  const file = document.getElementById('pay-form-image')?.files?.[0];
-
-  let imageUrl = null;
-  if (file) {
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${currentSociety}/proof_${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await _supabase.storage
-      .from('payment_proofs')
-      .upload(filePath, file);
-    if (!uploadError) {
-      const { data: urlData } = _supabase.storage
-        .from('payment_proofs')
-        .getPublicUrl(filePath);
-      imageUrl = urlData?.publicUrl || null;
-    }
-  }
-
-  const newProof = {
-    flat_no: currentUser,
-    payment_date: paymentDate,
-    amount: parseFloat(amount),
-    mode, bank, utr,
-    app: app || '',
-    notes: notes || '',
-    image_url: imageUrl,
-    status: 'Pending',
-    submitted_at: new Date().toISOString(),
-    society_name: currentSociety
-  };
-
-  const { error } = await _supabase.from('payment_proofs').insert([newProof]);
-  if (error) { alert('❌ Error: ' + error.message); return; }
-
-  try {
-    const { data: adminUsers, error: adminErr } = await _supabase
-      .from('user_master')
-      .select('flat_no, role')
-      .eq('society_name', currentSociety)
-      .in('role', ['Admin', 'SocietyAdmin', 'Chairman']);
-
-    if (adminErr) console.warn('[PaymentProof] Admin query error:', adminErr.message);
-
-    const adminFlats = (adminUsers || [])
-      .map(u => (u.flat_no || '').trim().toUpperCase())
-      .filter(Boolean);
-
-    const memberInfo = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === currentUser.toUpperCase());
-    const memberName = memberInfo?.name || 'Member';
-    const memberPhone = memberInfo?.phone || '';
-
-    console.log('[PaymentProof] Admin flats to notify:', adminFlats);
-
-    if (adminFlats.length > 0) {
-      const noticePayload = {
-        society_name: currentSociety,
-        title: `💰 ₹${amount} - Flat ${currentUser}`,
-        content: `${memberName} (Flat ${currentUser}${memberPhone ? ', ' + memberPhone : ''}) submitted payment of ₹${amount}. UTR: ${utr || 'N/A'}.`,
-        date: new Date().toISOString().split('T')[0],
-        author: currentUser,
-        priority: 'High',
-        target_members: adminFlats,
-        attachment_url: null,
-        deep_link: '/?tab=proofs'
-      };
-
-      const { error: noticeErr } = await _supabase.from('notices').insert([noticePayload]);
-
-      if (noticeErr) {
-        console.warn('[PaymentProof] First insert failed, retry without deep_link:', noticeErr.message);
-        delete noticePayload.deep_link;
-        const { error: noticeErr2 } = await _supabase.from('notices').insert([noticePayload]);
-        if (noticeErr2) {
-          console.error('[PaymentProof] Fallback insert also failed:', noticeErr2.message);
-        } else {
-          console.log('[PaymentProof] Inserted WITHOUT deep_link');
-        }
-      } else {
-        console.log('[PaymentProof] Admin notice inserted for:', adminFlats);
-      }
-    } else {
-      console.warn('[PaymentProof] No admin users found for society:', currentSociety);
-    }
-  } catch (notifyErr) {
-    console.error('[PaymentProof] Admin notify error:', notifyErr);
-  }
-
-  alert('✅ Submitted successfully! Admin will verify soon.');
-  bootstrap.Modal.getInstance(document.getElementById('paymentDetailsModal')).hide();
-  document.getElementById('paymentProofForm').reset();
-  fetchSupabaseData();
-}
-
-let __proofRealtimeChannel = null;
-
-function setupRealtimeSubscriptions() {
-  // Cleanup old channel
-  if (__proofRealtimeChannel) {
-    try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
-    __proofRealtimeChannel = null;
-  }
-
-  if (!currentSociety) return;
-
-  const cleanName = currentSociety.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const encodedSociety = encodeURIComponent(currentSociety);
-  const socFilter = `society_name=eq.${encodedSociety}`;
-
-  __proofRealtimeChannel = _supabase
-    .channel(`society-rt-${cleanName}`)
-
-    // 1. PAYMENT PROOFS (with Admin notification)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'payment_proofs', filter: socFilter },
-      async (payload) => {
-        console.log('[RT] payment_proofs:', payload.eventType);
-        const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
-        paymentProofs = data || [];
-        renderPaymentProofs();
-        renderMyPaymentSubmissions();
-        updateAllBadges();
-
-        if (payload.eventType === 'INSERT' &&
-            (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman')) {
-          try {
-            if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
-              navigator.serviceWorker.ready.then(reg => {
-                reg.showNotification('💰 New Payment Proof Submitted', {
-                  body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`,
-                  icon: '/ps-society-app/icon-192.png',
-                  badge: '/ps-society-app/icon-192.png',
-                  tag: `proof-${payload.new.id}`,
-                  renotify: true,
-                  data: { url: '/ps-society-app/?tab=proofs' }
-                });
-              });
-            }
-          } catch (e) { console.log('Notify err:', e); }
-        }
-      })
-
-    // 2. MEMBERS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'members', filter: socFilter },
-      async () => {
-        console.log('[RT] members changed');
-        const { data } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
-        membersData = data || [];
-        renderMembers();
-        renderMemberPersonalView();
-        renderTenantAgreementWarnings();
-        renderCelebrations();
-      })
-
-    // 3. COMPLAINTS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'complaints', filter: socFilter },
-      async () => {
-        console.log('[RT] complaints changed');
-        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-        complaintData = data || [];
-        renderComplaints();
-        updateAllBadges();
-      })
-
-    // 4. NOTICES
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'notices', filter: socFilter },
-      async () => {
-        console.log('[RT] notices changed');
-        const { data } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-        noticesData = data || [];
-        renderNoticesCommunity();
-        updateAllBadges();
-      })
-
-    // 5. POLLS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'polls', filter: socFilter },
-      async () => {
-        console.log('[RT] polls changed');
-        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
-        pollsData = data || [];
-        renderPolls();
-        updateAllBadges();
-      })
-
-    // 6. VISITORS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'visitors', filter: `society=eq.${encodedSociety}` },
-      async () => {
-        console.log('[RT] visitors changed');
-        if (typeof loadTodayVisitors === 'function') loadTodayVisitors();
-      })
-
-    // 7. MAINTENANCE PAYMENTS
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'maintenance_payments', filter: socFilter },
-      async () => {
-        console.log('[RT] maintenance_payments changed');
-        const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
-        maintenanceData = data || [];
-        renderMaintenance();
-        renderMembers();
-        renderMemberPersonalView();
-        renderMyPaymentHistory();
-        renderTallyBankBook();
-      })
-
-    // 8. EXPENSES
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'expenses', filter: socFilter },
-      async () => {
-        console.log('[RT] expenses changed');
-        const { data } = await _supabase.from('expenses').select('*').eq('society_name', currentSociety);
-        expenseData = data || [];
-        renderExpenses();
-        renderTallyBankBook();
-        renderBankReconciliation();
-      })
-
-    // 9. BANK ENTRIES (Tally Bank + BRS)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'bank_entries', filter: socFilter },
-      async () => {
-        console.log('[RT] bank_entries changed');
-        const { data } = await _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
-        customBankEntries = data || [];
-        renderTallyBankBook();
-        renderBankReconciliation();
-      })
-
-    // 10. ASSETS (CA Audit)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'assets', filter: socFilter },
-      async () => {
-        console.log('[RT] assets changed');
-        const { data } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
-        assetData = data || [];
-        renderAssets();
-        renderCAAuditReport();
-      })
-
-    // 11. FDs (CA Audit)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'sinking_fund_fd', filter: socFilter },
-      async () => {
-        console.log('[RT] sinking_fund_fd changed');
-        const { data } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
-        fdData = data || [];
-        renderFDs();
-        renderCAAuditReport();
-      })
-
-    // 12. JOURNAL VOUCHERS (Member Ledger + CA Audit)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'journal_vouchers', filter: socFilter },
-      async () => {
-        console.log('[RT] journal_vouchers changed');
-        const { data } = await _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
-        journalVouchersData = data || [];
-        renderJournalVouchers();
-        renderMembers();
-        renderMemberPersonalView();
-      })
-
-        // 13. SUPPORT TICKETS (Society-isolated real-time)
-    .on('postgres_changes',
-      { event: '*', schema: 'public', table: 'support_tickets', filter: socFilter },
-      async (payload) => {
-        console.log('[RT] support_tickets changed:', payload.eventType);
-        await loadSupportTickets();
-        renderSupportTickets();
-        updateSupportBadge();
-      })
-
-    .subscribe((status) => {
-      console.log('[RT] channel status:', status);
-      if (status === 'SUBSCRIBED') console.log('✅ Realtime connected for', currentSociety);
-      if (status === 'CHANNEL_ERROR') console.warn('⚠️ Realtime channel error');
-    });
-}
-
-function renderMemberPersonalView() {
-  if (currentRole !== 'Member') return;
-  const userFlat = (currentUser || '').trim().toUpperCase();
-  
-  const ledgerContainer = document.getElementById('my-member-ledger-list');
-  if (!ledgerContainer) return;
-
-  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === userFlat);
-  const myFlatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === userFlat);
-  const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === userFlat);
-  
-  const rate = member ? Number(member.monthly_rate || 600) : 600;
-  const openingDue = member ? Number(member.opening_due || 0) : 0;
-  
-  const fyStartDateStr = getCurrentFYStartDate(); // ✅ Helper
-  
-  let runningBalance = openingDue;
-  let ledgerRows = [{ date: fyStartDateStr, particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
-  
-  const fyStartDate = new Date(fyStartDateStr);
-  let currentIterDate = new Date(fyStartDate);
-  
-  let monthlyDueEntries = [];
-  for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
-    const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
-    const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-10`;
-    monthlyDueEntries.push({ date: dueDate, type: 'monthly_due', particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`, amount: rate });
-    currentIterDate.setMonth(currentIterDate.getMonth() + 1);
-  }
-
-  let combinedTransactions = [
-    ...monthlyDueEntries.map(m => ({ date: m.date, type: 'due', data: m })),
-    ...myFlatData.map(r => ({ date: r.payment_date, type: 'receipt', data: r })),
-    ...myFlatJVs.map(jv => ({ date: jv.date, type: 'jv', data: jv }))
-  ];
-  combinedTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  combinedTransactions.forEach(item => {
-    if (item.type === 'due') {
-      const d = item.data;
-      runningBalance += d.amount;
-      ledgerRows.push({ date: d.date, particulars: d.particulars, debit: d.amount, credit: 0, balance: runningBalance });
-    } else if (item.type === 'receipt') {
-      const r = item.data;
-      const amt = Number(r.amount_paid || 0);
-      runningBalance -= amt; 
-      ledgerRows.push({ date: r.payment_date || '-', particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`, debit: 0, credit: amt, balance: runningBalance });
-    } else if (item.type === 'jv') {
-      const jv = item.data;
-      const amt = Number(jv.amount || 0);
-      if (jv.type === 'Debit') {
-        runningBalance += amt;
-        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`, debit: amt, credit: 0, balance: runningBalance });
-      } else {
-        runningBalance -= amt;
-        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`, debit: 0, credit: amt, balance: runningBalance });
-      }
-    }
-  });
-
-  const finalPendingBeforeLateFee = Math.max(0, runningBalance);
-  const lateFee = calculateLateFee(finalPendingBeforeLateFee, rate);
-  if (lateFee > 0) {
-    runningBalance += lateFee;
-    ledgerRows.push({ date: new Date().toISOString().split('T')[0], particulars: `Auto Late Fee / Interest Penalty`, debit: lateFee, credit: 0, balance: runningBalance });
-  }
-
-  const myTotalPaid = myFlatData.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-  if (document.getElementById('my-flat-pending')) {
-    if (lateFee > 0) {
-      document.getElementById('my-flat-pending').innerHTML = `${runningBalance} <br><small class="text-warning" style="font-size: 12px; font-weight: 600;">(Incl. Late Fee: ₹${lateFee})</small>`;
-    } else {
-      document.getElementById('my-flat-pending').innerText = runningBalance;
-    }
-  }
-  if (document.getElementById('my-flat-paid')) document.getElementById('my-flat-paid').innerText = myTotalPaid;
-
-  ledgerContainer.innerHTML = ledgerRows.map(row => `
+(Data will stay — only image removed)`)){if(!s){alert("No image found.");return}try{let o=s.split(`/${n}/`);if(o.length<2){alert("❌ Invalid image URL");return}let l=decodeURIComponent(o[1]),{error:d}=await _supabase.storage.from(n).remove([l]);if(d){alert("❌ Storage delete failed: "+d.message);return}let{error:c}=await _supabase.from(e).update({[a]:null}).eq("id",t);if(c){alert("❌ DB update failed: "+c.message);return}console.log(`[ImgDelete] ${e}.${a} nulled for id=${t}`),alert("✅ Image deleted (data safe)"),"function"==typeof i&&i()}catch(m){alert("❌ Error: "+m.message)}}}async function verifyProof(e,t){if(!confirm(`Are you sure you want to mark this proof as ${t}?`))return;let a=paymentProofs.find(t=>t.id===e);if(a)try{if("Verified"===t){let n=new Date(a.payment_date),s={receipt_no:`AUTO-${Date.now()}`,flat_no:a.flat_no,payment_date:a.payment_date,amount_paid:Number(a.amount),mode_of_payment:a.mode||"UPI",month_accounted:n.toLocaleString("default",{month:"short",year:"numeric"}),remarks:`Auto-verified from UTR: ${a.utr||"N/A"}`,society_name:a.society_name||currentSociety},{error:i}=await _supabase.from("maintenance_payments").insert([s]);if(i){alert("❌ Failed to add maintenance record: "+i.message);return}}let{error:r}=await _supabase.from("payment_proofs").update({status:t,verified_at:new Date().toISOString(),verified_by:currentUser}).eq("id",e);if(r){alert("❌ DB update failed: "+r.message),"Verified"===t&&(alert("⚠️ NOTE: Maintenance entry was added, but proof status could not be updated. Please refresh and check."),fetchSupabaseData());return}if(a.image_url&&""!==a.image_url.trim())try{let o=a.image_url.split("/payment_proofs/");if(o.length>1){let l=decodeURIComponent(o[1]),{error:d}=await _supabase.storage.from("payment_proofs").remove([l]);if(d)console.warn("[Verify] Image delete failed:",d.message);else{console.log("[Verify] Image deleted from storage:",l);let{error:c}=await _supabase.from("payment_proofs").update({image_url:null}).eq("id",e);c&&console.warn("[Verify] Could not null image_url:",c.message)}}}catch(m){console.warn("[Verify] Image cleanup error:",m)}await sendProofNotificationToMember(a.flat_no,Number(a.amount),t,a.society_name||currentSociety),alert("Verified"===t?"✅ Payment verified! Member notified.":"❌ Proof rejected! Member notified.");let{data:u}=await _supabase.from("payment_proofs").select("*").eq("society_name",currentSociety);u&&(paymentProofs=u);let{data:p}=await _supabase.from("maintenance_payments").select("*").eq("society_name",currentSociety);p&&(maintenanceData=p),renderPaymentProofs(),renderMyPaymentSubmissions(),renderMaintenance(),renderMembers(),updateAllBadges()}catch(y){alert("❌ Error: "+y.message),console.error("verifyProof error:",y)}}async function submitPaymentDetails(e){e.preventDefault();let t=document.getElementById("pay-form-date").value,a=document.getElementById("pay-form-amount").value,n=document.getElementById("pay-form-mode").value,s=document.getElementById("pay-form-bank").value,i=document.getElementById("pay-form-utr").value,r=document.getElementById("pay-form-app").value,o=document.getElementById("pay-form-notes").value,l=document.getElementById("pay-form-image")?.files?.[0],d=null;if(l){let c=l.name.split(".").pop(),m=`${currentSociety}/proof_${Date.now()}.${c}`,{error:u}=await _supabase.storage.from("payment_proofs").upload(m,l);if(!u){let{data:p}=_supabase.storage.from("payment_proofs").getPublicUrl(m);d=p?.publicUrl||null}}let y={flat_no:currentUser,payment_date:t,amount:parseFloat(a),mode:n,bank:s,utr:i,app:r||"",notes:o||"",image_url:d,status:"Pending",submitted_at:new Date().toISOString(),society_name:currentSociety},{error:g}=await _supabase.from("payment_proofs").insert([y]);if(g){alert("❌ Error: "+g.message);return}try{let{data:b,error:f}=await _supabase.from("user_master").select("flat_no, role").eq("society_name",currentSociety).in("role",["Admin","SocietyAdmin","Chairman"]);f&&console.warn("[PaymentProof] Admin query error:",f.message);let h=(b||[]).map(e=>(e.flat_no||"").trim().toUpperCase()).filter(Boolean),v=membersData.find(e=>(e.flat_no||"").trim().toUpperCase()===currentUser.toUpperCase()),w=v?.name||"Member",S=v?.phone||"";if(console.log("[PaymentProof] Admin flats to notify:",h),h.length>0){let $={society_name:currentSociety,title:`💰 ₹${a} - Flat ${currentUser}`,content:`${w} (Flat ${currentUser}${S?", "+S:""}) submitted payment of ₹${a}. UTR: ${i||"N/A"}.`,date:new Date().toISOString().split("T")[0],author:currentUser,priority:"High",target_members:h,attachment_url:null,deep_link:"/?tab=proofs"},{error:k}=await _supabase.from("notices").insert([$]);if(k){console.warn("[PaymentProof] First insert failed, retry without deep_link:",k.message),delete $.deep_link;let{error:I}=await _supabase.from("notices").insert([$]);I?console.error("[PaymentProof] Fallback insert also failed:",I.message):console.log("[PaymentProof] Inserted WITHOUT deep_link")}else console.log("[PaymentProof] Admin notice inserted for:",h)}else console.warn("[PaymentProof] No admin users found for society:",currentSociety)}catch(E){console.error("[PaymentProof] Admin notify error:",E)}alert("✅ Submitted successfully! Admin will verify soon."),bootstrap.Modal.getInstance(document.getElementById("paymentDetailsModal")).hide(),document.getElementById("paymentProofForm").reset(),fetchSupabaseData()}let __proofRealtimeChannel=null;function setupRealtimeSubscriptions(){if(__proofRealtimeChannel){try{_supabase.removeChannel(__proofRealtimeChannel)}catch(e){}__proofRealtimeChannel=null}if(!currentSociety)return;let t=currentSociety.replace(/[^a-z0-9]/gi,"_").toLowerCase(),a=encodeURIComponent(currentSociety),n=`society_name=eq.${a}`;__proofRealtimeChannel=_supabase.channel(`society-rt-${t}`).on("postgres_changes",{event:"*",schema:"public",table:"payment_proofs",filter:n},async e=>{console.log("[RT] payment_proofs:",e.eventType);let{data:t}=await _supabase.from("payment_proofs").select("*").eq("society_name",currentSociety);if(paymentProofs=t||[],renderPaymentProofs(),renderMyPaymentSubmissions(),updateAllBadges(),"INSERT"===e.eventType&&("Admin"===currentRole||"SocietyAdmin"===currentRole||"Chairman"===currentRole))try{"granted"===Notification.permission&&"serviceWorker"in navigator&&navigator.serviceWorker.ready.then(t=>{t.showNotification("\uD83D\uDCB0 New Payment Proof Submitted",{body:`Flat ${e.new.flat_no} — ₹${e.new.amount}`,icon:"/ps-society-app/icon-192.png",badge:"/ps-society-app/icon-192.png",tag:`proof-${e.new.id}`,renotify:!0,data:{url:"/ps-society-app/?tab=proofs"}})})}catch(a){console.log("Notify err:",a)}}).on("postgres_changes",{event:"*",schema:"public",table:"members",filter:n},async()=>{console.log("[RT] members changed");let{data:e}=await _supabase.from("members").select("*").eq("society_name",currentSociety);membersData=e||[],renderMembers(),renderMemberPersonalView(),renderTenantAgreementWarnings(),renderCelebrations()}).on("postgres_changes",{event:"*",schema:"public",table:"complaints",filter:n},async()=>{console.log("[RT] complaints changed");let{data:e}=await _supabase.from("complaints").select("*").eq("society_name",currentSociety);complaintData=e||[],renderComplaints(),updateAllBadges()}).on("postgres_changes",{event:"*",schema:"public",table:"notices",filter:n},async()=>{console.log("[RT] notices changed");let{data:e}=await _supabase.from("notices").select("*").eq("society_name",currentSociety);noticesData=e||[],renderNoticesCommunity(),updateAllBadges()}).on("postgres_changes",{event:"*",schema:"public",table:"polls",filter:n},async()=>{console.log("[RT] polls changed");let{data:e}=await _supabase.from("polls").select("*").eq("society_name",currentSociety);pollsData=e||[],renderPolls(),updateAllBadges()}).on("postgres_changes",{event:"*",schema:"public",table:"visitors",filter:`society=eq.${a}`},async()=>{console.log("[RT] visitors changed"),loadTodayVisitors()}).on("postgres_changes",{event:"*",schema:"public",table:"maintenance_payments",filter:n},async()=>{console.log("[RT] maintenance_payments changed");let{data:e}=await _supabase.from("maintenance_payments").select("*").eq("society_name",currentSociety);maintenanceData=e||[],renderMaintenance(),renderMembers(),renderMemberPersonalView(),renderMyPaymentHistory(),renderTallyBankBook()}).on("postgres_changes",{event:"*",schema:"public",table:"expenses",filter:n},async()=>{console.log("[RT] expenses changed");let{data:e}=await _supabase.from("expenses").select("*").eq("society_name",currentSociety);expenseData=e||[],renderExpenses(),renderTallyBankBook(),renderBankReconciliation()}).on("postgres_changes",{event:"*",schema:"public",table:"bank_entries",filter:n},async()=>{console.log("[RT] bank_entries changed");let{data:e}=await _supabase.from("bank_entries").select("*").eq("society_name",currentSociety).order("date",{ascending:!1});customBankEntries=e||[],renderTallyBankBook(),renderBankReconciliation()}).on("postgres_changes",{event:"*",schema:"public",table:"assets",filter:n},async()=>{console.log("[RT] assets changed");let{data:e}=await _supabase.from("assets").select("*").eq("society_name",currentSociety);assetData=e||[],renderAssets(),renderCAAuditReport()}).on("postgres_changes",{event:"*",schema:"public",table:"sinking_fund_fd",filter:n},async()=>{console.log("[RT] sinking_fund_fd changed");let{data:e}=await _supabase.from("sinking_fund_fd").select("*").eq("society_name",currentSociety);fdData=e||[],renderFDs(),renderCAAuditReport()}).on("postgres_changes",{event:"*",schema:"public",table:"journal_vouchers",filter:n},async()=>{console.log("[RT] journal_vouchers changed");let{data:e}=await _supabase.from("journal_vouchers").select("*").eq("society_name",currentSociety).order("date",{ascending:!1});journalVouchersData=e||[],renderJournalVouchers(),renderMembers(),renderMemberPersonalView()}).on("postgres_changes",{event:"*",schema:"public",table:"support_tickets",filter:n},async e=>{console.log("[RT] support_tickets changed:",e.eventType),await loadSupportTickets(),renderSupportTickets(),updateSupportBadge()}).subscribe(e=>{console.log("[RT] channel status:",e),"SUBSCRIBED"===e&&console.log("✅ Realtime connected for",currentSociety),"CHANNEL_ERROR"===e&&console.warn("⚠️ Realtime channel error")})}function renderMemberPersonalView(){if("Member"!==currentRole)return;let e=(currentUser||"").trim().toUpperCase(),t=document.getElementById("my-member-ledger-list");if(!t)return;let a=maintenanceData.filter(t=>(t.flat_no||"").trim().toUpperCase()===e),n=journalVouchersData.filter(t=>(t.flat_no||"").trim().toUpperCase()===e),s=membersData.find(t=>(t.flat_no||"").trim().toUpperCase()===e),i=s?Number(s.monthly_rate||600):600,r=s?Number(s.opening_due||0):0,o=getCurrentFYStartDate(),l=r,d=[{date:o,particulars:"Opening Balance Due",debit:r,credit:0,balance:l}],c=new Date(o),m=new Date(c),u=[];for(let p=0;p<MONTHS_IN_FY_SO_FAR;p++){let y=m.toLocaleString("default",{month:"short",year:"numeric"}),g=`${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,"0")}-10`;u.push({date:g,type:"monthly_due",particulars:`Monthly Maintenance Due (${y}) [Rate: ₹${i}]`,amount:i}),m.setMonth(m.getMonth()+1)}let b=[...u.map(e=>({date:e.date,type:"due",data:e})),...a.map(e=>({date:e.payment_date,type:"receipt",data:e})),...n.map(e=>({date:e.date,type:"jv",data:e}))];b.sort((e,t)=>new Date(e.date)-new Date(t.date)),b.forEach(e=>{if("due"===e.type){let t=e.data;l+=t.amount,d.push({date:t.date,particulars:t.particulars,debit:t.amount,credit:0,balance:l})}else if("receipt"===e.type){let a=e.data,n=Number(a.amount_paid||0);l-=n,d.push({date:a.payment_date||"-",particulars:`Maintenance Payment Received (Receipt: ${a.receipt_no||"-"})`,debit:0,credit:n,balance:l})}else if("jv"===e.type){let s=e.data,i=Number(s.amount||0);"Debit"===s.type?(l+=i,d.push({date:s.date||"-",particulars:`Journal Voucher [Debit] (${s.jv_no}): ${s.reason}`,debit:i,credit:0,balance:l})):(l-=i,d.push({date:s.date||"-",particulars:`Journal Voucher [Credit/Waiver] (${s.jv_no}): ${s.reason}`,debit:0,credit:i,balance:l}))}});let f=Math.max(0,l),h=calculateLateFee(f,i);h>0&&(l+=h,d.push({date:new Date().toISOString().split("T")[0],particulars:"Auto Late Fee / Interest Penalty",debit:h,credit:0,balance:l}));let v=a.reduce((e,t)=>e+Number(t.amount_paid||0),0);document.getElementById("my-flat-pending")&&(h>0?document.getElementById("my-flat-pending").innerHTML=`${l} <br><small class="text-warning" style="font-size: 12px; font-weight: 600;">(Incl. Late Fee: ₹${h})</small>`:document.getElementById("my-flat-pending").innerText=l),document.getElementById("my-flat-paid")&&(document.getElementById("my-flat-paid").innerText=v),t.innerHTML=d.map(e=>`
     <tr>
-      <td>${row.date}</td>
-      <td>${row.particulars}</td>
-      <td class="text-danger">${row.debit > 0 ? row.debit : '-'}</td>
-      <td class="text-success">${row.credit > 0 ? row.credit : '-'}</td>
-      <td class="fw-bold ${row.balance > 0 ? 'text-danger' : 'text-success'}">${row.balance}</td>
+      <td>${e.date}</td>
+      <td>${e.particulars}</td>
+      <td class="text-danger">${e.debit>0?e.debit:"-"}</td>
+      <td class="text-success">${e.credit>0?e.credit:"-"}</td>
+      <td class="fw-bold ${e.balance>0?"text-danger":"text-success"}">${e.balance}</td>
     </tr>
-  `).join('');
-
-  renderMyPaymentHistory();
-  renderMyPaymentSubmissions();
-}
-
-function renderTallyBankBook() {
-  const tbody = document.getElementById('tally-bank-entries');
-  if (!tbody) return;
-  
-  const fyStartDate = getCurrentFYStartDate(); // ✅ Helper use karo
-  
-  let runningBalance = openingBalance;
-  let totalMoneyIn = 0, totalMoneyOut = 0;
-  let bankEntries = [{ date: fyStartDate, ref: 'OPENING-BAL', head: 'Opening Bank Balance', type: 'Receipt', deposit: openingBalance, withdraw: 0, source: null, id: null }];
-  
-  maintenanceData.forEach(r => {
-    const amt = Number(r.amount_paid || 0);
-    totalMoneyIn += amt;
-    bankEntries.push({ date: r.payment_date || fyStartDate, ref: r.receipt_no || 'REC-001', head: `Maintenance - ${r.flat_no}`, type: 'Receipt (Bank In)', deposit: amt, withdraw: 0, source: 'maintenance', id: r.id });
-  });
-  expenseData.forEach(e => {
-    const amt = Number(e.amount || 0);
-    totalMoneyOut += amt;
-    bankEntries.push({ date: e.expense_date || fyStartDate, ref: e.voucher_no || 'VOU-001', head: `${e.category} - ${e.paid_to}`, type: 'Payment Voucher', deposit: 0, withdraw: amt, source: 'expense', id: e.id });
-  });
-  customBankEntries.forEach(cb => { 
-    cb.source = 'custom'; 
-    bankEntries.push(cb); 
-    totalMoneyIn += Number(cb.deposit || 0); 
-    totalMoneyOut += Number(cb.withdraw || 0); 
-  });
-  
-  bankEntries.sort((a, b) => new Date(a.date) - new Date(b.date));
-  tbody.innerHTML = bankEntries.map((entry, idx) => {
-    if (entry.ref !== 'OPENING-BAL') runningBalance += (entry.deposit - entry.withdraw);
-    return `
+  `).join(""),renderMyPaymentHistory(),renderMyPaymentSubmissions()}function renderTallyBankBook(){let e=document.getElementById("tally-bank-entries");if(!e)return;let t=getCurrentFYStartDate(),a=openingBalance,n=0,s=0,i=[{date:t,ref:"OPENING-BAL",head:"Opening Bank Balance",type:"Receipt",deposit:openingBalance,withdraw:0,source:null,id:null}];maintenanceData.forEach(e=>{let a=Number(e.amount_paid||0);n+=a,i.push({date:e.payment_date||t,ref:e.receipt_no||"REC-001",head:`Maintenance - ${e.flat_no}`,type:"Receipt (Bank In)",deposit:a,withdraw:0,source:"maintenance",id:e.id})}),expenseData.forEach(e=>{let a=Number(e.amount||0);s+=a,i.push({date:e.expense_date||t,ref:e.voucher_no||"VOU-001",head:`${e.category} - ${e.paid_to}`,type:"Payment Voucher",deposit:0,withdraw:a,source:"expense",id:e.id})}),customBankEntries.forEach(e=>{e.source="custom",i.push(e),n+=Number(e.deposit||0),s+=Number(e.withdraw||0)}),i.sort((e,t)=>new Date(e.date)-new Date(t.date)),e.innerHTML=i.map((e,t)=>("OPENING-BAL"!==e.ref&&(a+=e.deposit-e.withdraw),`
       <tr>
-        <td>${entry.date}</td>
-        <td><b>${entry.ref}</b></td>
-        <td>${entry.head}</td>
-        <td><span class="badge ${entry.deposit > 0 ? 'bg-success' : 'bg-danger'}">${entry.type}</span></td>
-        <td class="text-success fw-bold">${entry.deposit > 0 ? entry.deposit : '-'}</td>
-        <td class="text-danger fw-bold">${entry.withdraw > 0 ? entry.withdraw : '-'}</td>
-        <td class="fw-bold text-primary">${runningBalance.toFixed(2)}</td>
-        <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
-          ${entry.source ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteBankEntry('${entry.source}', ${entry.id})"><i class="fa-solid fa-trash"></i></button>` : '-'}
+        <td>${e.date}</td>
+        <td><b>${e.ref}</b></td>
+        <td>${e.head}</td>
+        <td><span class="badge ${e.deposit>0?"bg-success":"bg-danger"}">${e.type}</span></td>
+        <td class="text-success fw-bold">${e.deposit>0?e.deposit:"-"}</td>
+        <td class="text-danger fw-bold">${e.withdraw>0?e.withdraw:"-"}</td>
+        <td class="fw-bold text-primary">${a.toFixed(2)}</td>
+        <td class="no-print admin-only ${"Admin"!==currentRole&&"SocietyAdmin"!==currentRole?"d-none":""}">
+          ${e.source?`<button class="btn btn-sm btn-outline-danger" onclick="deleteBankEntry('${e.source}', ${e.id})"><i class="fa-solid fa-trash"></i></button>`:"-"}
         </td>
       </tr>
-    `;
-  }).join('');
-  document.getElementById('tally-tot-in').innerText = totalMoneyIn.toFixed(2);
-  document.getElementById('tally-tot-out').innerText = totalMoneyOut.toFixed(2);
-  document.getElementById('tally-calc-balance').innerText = runningBalance.toFixed(2);
-  document.getElementById('tally-opening-balance').innerText = openingBalance.toFixed(2);
-}
-
-async function deleteBankEntry(source, id) {
-  if (!confirm('⚠️ Delete this entry permanently?')) return;
-  if (source === 'maintenance') { await deleteMaintenance(id); }
-  else if (source === 'expense') { await deleteExpense(id); }
-  else if (source === 'custom') {
-    const { error } = await _supabase
-  .from('bank_entries')
-  .delete()
-  .eq('id', id)
-  .eq('society_name', currentSociety);
-    if (error) { alert('❌ Error: ' + error.message); return; }
-    fetchSupabaseData();
-    setTimeout(() => loadSecondaryData(), 500);
-  }
-}
-
-function switchTab(tabId, element) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
-  const target = document.getElementById(`tab-${tabId}`);
-  if (target) target.classList.remove('d-none');
-
-  document.querySelectorAll('#sidebarMenu .nav-link').forEach(link => link.classList.remove('active'));
-  if (element) element.classList.add('active');
-
-  if (tabId === 'about') renderAboutTab();
-  if (tabId === 'rules') renderRules();
-  if (tabId === 'bills') { initBillsTab(); }
-if (tabId === 'ca-audit') { 
-  // Re-fetch settings to ensure fresh opening_capital
-  _supabase.from('society_settings').select('*').eq('society_name', currentSociety).then(({ data }) => {
-    if (data) {
-      societySettings = {};
-      data.forEach(s => { societySettings[s.key] = s.value; });
-    }
-    renderCAAuditReport();
-  });
-}
-
-  if (tabId === 'visitor') {
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-  document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
-
-  const visitorSection = document.getElementById('visitor-section');
-  if (visitorSection) { 
-    visitorSection.style.display = 'block'; 
-    // ✅ History state push karo taaki native back kaam kare
-    if (!history.state || !history.state.visitorOpen) {
-      window.history.pushState({ visitorOpen: true }, "", window.location.href);
-    }
-  }
-
-  const appSection = document.getElementById('app-section');
-  if (appSection) appSection.classList.add('d-none');
-
-  const backBtn = document.getElementById('visitorBackBtn');
-  if (backBtn) backBtn.onclick = goBackFromVisitor;
-
-  loadTodayVisitors();
-  if (visitors.length > 0) { localStorage.setItem('ps_last_seen_visitors', Math.max(...visitors.map(v => v.id || 0)).toString()); }
-  updateBadge('visitor-badge', 0);
-  setupVisitorRealtimeForGuard();
-}
-
-  if (tabId === 'marketplace') { fetchMarketplaceData().then(renderMarketplace); }
-  if (tabId === 'master-dashboard') { 
-    renderSuperAdminMasterDashboard(); 
-    setTimeout(() => loadSubscriptionInvoices(), 300);
-  }
-  if (tabId === 'bank-reconciliation') { renderBankReconciliation(); }
-
-  if (tabId === 'parking') {
-    _supabase.from('parking_vehicles').select('*').eq('society_name', currentSociety).then(({ data }) => {
-      parkingData = data || [];
-      renderParking();
-    });
-  }
-
-  if (tabId === 'polls') {
-    const maxPoll = pollsData.length > 0 ? Math.max(...pollsData.map(p => p.id || 0)) : 0;
-    localStorage.setItem('ps_last_seen_polls', maxPoll.toString());
-    updateAllBadges();
-    renderPolls();
-  }
-
-  if (tabId === 'meetings') {
-    _supabase.from('society_meetings').select('*').eq('society_name', currentSociety).then(({ data }) => {
-      meetingsData = data || [];
-      renderMeetings();
-    });
-  }
-
-  if (tabId === 'activity-logs') { fetchActivityLogs(); }
-
-  if (tabId === 'maintenance') {
-    if (maintenanceData.length > 0) { localStorage.setItem('ps_last_seen_maintenance', Math.max(...maintenanceData.map(r => r.id || 0)).toString()); }
-    updateBadge('maintenance-badge', 0);
-  }
-
-  if (tabId === 'chairman-report' || tabId === 'monthly-summary') {
-    if (typeof generateMonthlySummary === 'function') { generateMonthlySummary(); }
-  }
-
-  if (tabId === 'proofs') {
-    if (paymentProofs.length > 0) { localStorage.setItem('ps_last_seen_proofs', Math.max(...paymentProofs.map(p => p.id || 0)).toString()); }
-    updateBadge('proofs-badge', 0);
-    renderPaymentProofs();
-  }
-
-  if (tabId === 'complaints') {
-    if (complaintData.length > 0) { localStorage.setItem('ps_last_seen_complaints', Math.max(...complaintData.map(c => c.id || 0)).toString()); }
-    updateBadge('complaints-badge', 0);
-  }
-
-  if (tabId === 'support') {
-    loadSupportTickets().then(() => {
-      renderSupportTickets();
-      updateSupportBadge();
-    });
-  }
-
-  if (tabId === 'manage-societies') { loadSocietiesList(); }
-  if (tabId === 'deletion-requests') { renderDeletionRequests(); }
-  if (tabId === 'community') { markCommunityRead(); renderCommunity(); }
-  if (tabId === 'amc-tracker') renderAMCTracker();
-  if (tabId === 'bank-details') renderBankDetails();
-  if (tabId === 'sos-contacts') renderSOSContacts();
-  if (tabId === 'user-management') { initUserManagementTab(); }
-  if (tabId === 'settings') { loadSettingsToForm(); }
-
-  if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank', 'ca-audit'].includes(tabId)) {
-  refreshTabData(tabId);
-}
-}
-
-async function refreshTabData(tabId) {
-  if (!currentSociety) return;
-  try {
-    switch(tabId) {
-      case 'dashboard':
-      case 'members': {
-        const { data } = await _supabase.from('members').select('*').eq('society_name', currentSociety);
-        if (data) membersData = data;
-        renderMembers();
-        if (tabId === 'dashboard') {
-          const [{ data: mnt }, { data: exp }] = await Promise.all([
-            _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
-            _supabase.from('expenses').select('*').eq('society_name', currentSociety)
-          ]);
-          if (mnt) maintenanceData = mnt;
-          if (exp) expenseData = exp;
-          renderMaintenance(); renderExpenses(); renderMemberPersonalView(); renderMyPaymentHistory(); renderMyPaymentSubmissions();
-        }
-        break;
-      }
-      case 'maintenance': {
-        const { data } = await _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety);
-        if (data) maintenanceData = data;
-        renderMaintenance(); renderMemberPersonalView(); renderMyPaymentHistory();
-        break;
-      }
-      case 'expenses': {
-        const { data } = await _supabase.from('expenses').select('*').eq('society_name', currentSociety);
-        if (data) expenseData = data;
-        renderExpenses(); break;
-      }
-      case 'polls': {
-        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
-        if (data) pollsData = data;
-        renderPolls(); break;
-      }
-      case 'complaints': {
-        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-        if (data) complaintData = data;
-        renderComplaints(); break;
-      }
-      case 'proofs': {
-        const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
-        if (data) paymentProofs = data;
-        renderPaymentProofs(); renderMyPaymentSubmissions(); break;
-      }
-      case 'amc-tracker': {
-        const { data } = await _supabase.from('amc_contracts').select('*').eq('society_name', currentSociety);
-        if (data) amcContractsData = data;
-        renderAMCTracker(); break;
-      }
-      case 'assets': {
-        const { data } = await _supabase.from('assets').select('*').eq('society_name', currentSociety);
-        if (data) assetData = data;
-        renderAssets(); break;
-      }
-      case 'fds': {
-        const { data } = await _supabase.from('sinking_fund_fd').select('*').eq('society_name', currentSociety);
-        if (data) fdData = data;
-        renderFDs(); break;
-      }
-      case 'team': {
-        const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
-        if (data) teamData = data;
-        renderTeam(); renderSOSContacts(); break;
-      }
-      case 'journal-voucher': {
-        const { data } = await _supabase.from('journal_vouchers').select('*').eq('society_name', currentSociety).order('date', { ascending: false });
-        if (data) journalVouchersData = data;
-        renderJournalVouchers(); break;
-      }
-      case 'deletion-requests': { await loadDeletionRequests(); renderDeletionRequests(); break; }
-      case 'sos-contacts': {
-        const { data } = await _supabase.from('team').select('*').eq('society_name', currentSociety);
-        if (data) teamData = data;
-        renderSOSContacts(); break;
-      }
-      case 'bank-details': {
-        const { data } = await _supabase.from('society_settings').select('*').eq('society_name', currentSociety);
-        if (data) {
-          societySettings = {};
-          data.forEach(s => { societySettings[s.key] = s.value; });
-        }
-        renderBankDetails(); break;
-      }
-case 'ca-audit': {
-  const { data } = await _supabase.from('society_settings').select('*').eq('society_name', currentSociety);
-  if (data) {
-    societySettings = {};
-    data.forEach(s => { societySettings[s.key] = s.value; });
-  }
-  await renderCAAuditReport();
-  break;
-}
-      case 'tally-bank': {
-        const [{ data: bankEnt }, { data: mnt }, { data: exp }] = await Promise.all([
-          _supabase.from('bank_entries').select('*').eq('society_name', currentSociety).order('date', { ascending: false }),
-          _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety),
-          _supabase.from('expenses').select('*').eq('society_name', currentSociety)
-        ]);
-        if (bankEnt) customBankEntries = bankEnt;
-        if (mnt) maintenanceData = mnt;
-        if (exp) expenseData = exp;
-        renderTallyBankBook(); break;
-      }
-    }
-  } catch(e) { console.log('refreshTabData error for', tabId, e); }
-}
-
-async function sendProofNotificationToMember(flatNo, amount, status, societyName) {
-  try {
-    const title = status === 'Verified' ? '✅ Payment Verified' : '❌ Payment Rejected';
-    const content = status === 'Verified'
-      ? `Dear Member, aapka ₹${amount} ka payment society admin dwara VERIFY kar diya gaya hai. Thank you!`
-      : `Dear Member, aapka ₹${amount} ka payment REJECT ho gaya hai. Kripya admin se sampark karein ya sahi receipt dobara submit karein.`;
-
-    try {
-      await _supabase.from('notices').insert([{
-        society_name: societyName, title, content,
-        date: new Date().toISOString().split('T')[0],
-        author: currentUser || 'Admin',
-        priority: status === 'Verified' ? 'Low' : 'High',
-        target_members: [flatNo],
-        attachment_url: null,
-        deep_link: '/?tab=dashboard&section=myPaymentSubmissionsCard'
-      }]);
-    } catch (colErr) {
-      await _supabase.from('notices').insert([{
-        society_name: societyName, title, content,
-        date: new Date().toISOString().split('T')[0],
-        author: currentUser || 'Admin',
-        priority: status === 'Verified' ? 'Low' : 'High',
-        target_members: [flatNo],
-        attachment_url: null
-      }]);
-    }
-  } catch (e) { console.log('Member notification error:', e); }
-}
-
-function renderMyPaymentSubmissions() {
-  const tbody = document.getElementById('my-payment-submissions-list');
-  const card = document.getElementById('myPaymentSubmissionsCard');
-  if (!tbody) return;
-
-  if (currentRole !== 'Member') {
-    if (card) card.style.display = 'none';
-    return;
-  }
-  if (card) card.style.display = 'block';
-
-  const userFlat = (currentUser || '').trim().toUpperCase();
-  const myProofs = paymentProofs.filter(p => (p.flat_no || '').trim().toUpperCase() === userFlat);
-
-  if (myProofs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No payment submissions yet.</td></tr>`;
-    return;
-  }
-
-  myProofs.sort((a, b) => new Date(b.submitted_at || b.payment_date) - new Date(a.submitted_at || a.payment_date));
-
-  tbody.innerHTML = myProofs.map(p => {
-    let statusBadge = '<span class="badge bg-warning text-dark">⏳ Pending</span>';
-    let remarks = '<small class="text-muted">Awaiting admin review</small>';
-
-    if (p.status === 'Verified') {
-      statusBadge = '<span class="badge bg-success">✅ Verified</span>';
-      remarks = p.verified_at ? `<small class="text-success">Verified on ${new Date(p.verified_at).toLocaleDateString()}</small>` : '<small class="text-success">Verified</small>';
-    } else if (p.status === 'Rejected') {
-      statusBadge = '<span class="badge bg-danger">❌ Rejected</span>';
-      remarks = '<small class="text-danger">Please contact admin</small>';
-    }
-
-    return `
+    `)).join(""),document.getElementById("tally-tot-in").innerText=n.toFixed(2),document.getElementById("tally-tot-out").innerText=s.toFixed(2),document.getElementById("tally-calc-balance").innerText=a.toFixed(2),document.getElementById("tally-opening-balance").innerText=openingBalance.toFixed(2)}async function deleteBankEntry(e,t){if(confirm("⚠️ Delete this entry permanently?")){if("maintenance"===e)await deleteMaintenance(t);else if("expense"===e)await deleteExpense(t);else if("custom"===e){let{error:a}=await _supabase.from("bank_entries").delete().eq("id",t).eq("society_name",currentSociety);if(a){alert("❌ Error: "+a.message);return}fetchSupabaseData(),setTimeout(()=>loadSecondaryData(),500)}}}function switchTab(e,t){document.querySelectorAll(".tab-content").forEach(e=>e.classList.add("d-none"));let a=document.getElementById(`tab-${e}`);if(a&&a.classList.remove("d-none"),document.querySelectorAll("#sidebarMenu .nav-link").forEach(e=>e.classList.remove("active")),t&&t.classList.add("active"),"about"===e&&renderAboutTab(),"rules"===e&&renderRules(),"bills"===e&&initBillsTab(),"ca-audit"===e&&_supabase.from("society_settings").select("*").eq("society_name",currentSociety).then(({data:e})=>{e&&(societySettings={},e.forEach(e=>{societySettings[e.key]=e.value})),renderCAAuditReport()}),"visitor"===e){document.querySelectorAll(".modal-backdrop").forEach(e=>e.remove()),document.body.classList.remove("modal-open"),document.body.style.overflow="";let n=document.getElementById("visitor-section");!n||(n.style.display="block",history.state&&history.state.visitorOpen||window.history.pushState({visitorOpen:!0},"",window.location.href));let s=document.getElementById("app-section");s&&s.classList.add("d-none");let i=document.getElementById("visitorBackBtn");i&&(i.onclick=goBackFromVisitor),loadTodayVisitors(),visitors.length>0&&localStorage.setItem("ps_last_seen_visitors",Math.max(...visitors.map(e=>e.id||0)).toString()),updateBadge("visitor-badge",0),setupVisitorRealtimeForGuard()}if("marketplace"===e&&fetchMarketplaceData().then(renderMarketplace),"master-dashboard"===e&&(renderSuperAdminMasterDashboard(),setTimeout(()=>loadSubscriptionInvoices(),300)),"bank-reconciliation"===e&&renderBankReconciliation(),"parking"===e&&_supabase.from("parking_vehicles").select("*").eq("society_name",currentSociety).then(({data:e})=>{parkingData=e||[],renderParking()}),"polls"===e){let r=pollsData.length>0?Math.max(...pollsData.map(e=>e.id||0)):0;localStorage.setItem("ps_last_seen_polls",r.toString()),updateAllBadges(),renderPolls()}"meetings"===e&&_supabase.from("society_meetings").select("*").eq("society_name",currentSociety).then(({data:e})=>{meetingsData=e||[],renderMeetings()}),"activity-logs"===e&&fetchActivityLogs(),"maintenance"===e&&(maintenanceData.length>0&&localStorage.setItem("ps_last_seen_maintenance",Math.max(...maintenanceData.map(e=>e.id||0)).toString()),updateBadge("maintenance-badge",0)),("chairman-report"===e||"monthly-summary"===e)&&"function"==typeof generateMonthlySummary&&generateMonthlySummary(),"proofs"===e&&(paymentProofs.length>0&&localStorage.setItem("ps_last_seen_proofs",Math.max(...paymentProofs.map(e=>e.id||0)).toString()),updateBadge("proofs-badge",0),renderPaymentProofs()),"complaints"===e&&(complaintData.length>0&&localStorage.setItem("ps_last_seen_complaints",Math.max(...complaintData.map(e=>e.id||0)).toString()),updateBadge("complaints-badge",0)),"support"===e&&loadSupportTickets().then(()=>{renderSupportTickets(),updateSupportBadge()}),"manage-societies"===e&&loadSocietiesList(),"deletion-requests"===e&&renderDeletionRequests(),"community"===e&&(markCommunityRead(),renderCommunity()),"amc-tracker"===e&&renderAMCTracker(),"bank-details"===e&&renderBankDetails(),"sos-contacts"===e&&renderSOSContacts(),"user-management"===e&&initUserManagementTab(),"settings"===e&&loadSettingsToForm(),["dashboard","members","maintenance","expenses","polls","complaints","proofs","amc-tracker","assets","fds","team","journal-voucher","deletion-requests","sos-contacts","bank-details","tally-bank","ca-audit"].includes(e)&&refreshTabData(e)}async function refreshTabData(e){if(currentSociety)try{switch(e){case"dashboard":case"members":{let{data:t}=await _supabase.from("members").select("*").eq("society_name",currentSociety);if(t&&(membersData=t),renderMembers(),"dashboard"===e){let[{data:a},{data:n}]=await Promise.all([_supabase.from("maintenance_payments").select("*").eq("society_name",currentSociety),_supabase.from("expenses").select("*").eq("society_name",currentSociety)]);a&&(maintenanceData=a),n&&(expenseData=n),renderMaintenance(),renderExpenses(),renderMemberPersonalView(),renderMyPaymentHistory(),renderMyPaymentSubmissions()}break}case"maintenance":{let{data:s}=await _supabase.from("maintenance_payments").select("*").eq("society_name",currentSociety);s&&(maintenanceData=s),renderMaintenance(),renderMemberPersonalView(),renderMyPaymentHistory();break}case"expenses":{let{data:i}=await _supabase.from("expenses").select("*").eq("society_name",currentSociety);i&&(expenseData=i),renderExpenses();break}case"polls":{let{data:r}=await _supabase.from("polls").select("*").eq("society_name",currentSociety);r&&(pollsData=r),renderPolls();break}case"complaints":{let{data:o}=await _supabase.from("complaints").select("*").eq("society_name",currentSociety);o&&(complaintData=o),renderComplaints();break}case"proofs":{let{data:l}=await _supabase.from("payment_proofs").select("*").eq("society_name",currentSociety);l&&(paymentProofs=l),renderPaymentProofs(),renderMyPaymentSubmissions();break}case"amc-tracker":{let{data:d}=await _supabase.from("amc_contracts").select("*").eq("society_name",currentSociety);d&&(amcContractsData=d),renderAMCTracker();break}case"assets":{let{data:c}=await _supabase.from("assets").select("*").eq("society_name",currentSociety);c&&(assetData=c),renderAssets();break}case"fds":{let{data:m}=await _supabase.from("sinking_fund_fd").select("*").eq("society_name",currentSociety);m&&(fdData=m),renderFDs();break}case"team":{let{data:u}=await _supabase.from("team").select("*").eq("society_name",currentSociety);u&&(teamData=u),renderTeam(),renderSOSContacts();break}case"journal-voucher":{let{data:p}=await _supabase.from("journal_vouchers").select("*").eq("society_name",currentSociety).order("date",{ascending:!1});p&&(journalVouchersData=p),renderJournalVouchers();break}case"deletion-requests":await loadDeletionRequests(),renderDeletionRequests();break;case"sos-contacts":{let{data:y}=await _supabase.from("team").select("*").eq("society_name",currentSociety);y&&(teamData=y),renderSOSContacts();break}case"bank-details":{let{data:g}=await _supabase.from("society_settings").select("*").eq("society_name",currentSociety);g&&(societySettings={},g.forEach(e=>{societySettings[e.key]=e.value})),renderBankDetails();break}case"ca-audit":{let{data:b}=await _supabase.from("society_settings").select("*").eq("society_name",currentSociety);b&&(societySettings={},b.forEach(e=>{societySettings[e.key]=e.value})),await renderCAAuditReport();break}case"tally-bank":{let[{data:f},{data:h},{data:v}]=await Promise.all([_supabase.from("bank_entries").select("*").eq("society_name",currentSociety).order("date",{ascending:!1}),_supabase.from("maintenance_payments").select("*").eq("society_name",currentSociety),_supabase.from("expenses").select("*").eq("society_name",currentSociety)]);f&&(customBankEntries=f),h&&(maintenanceData=h),v&&(expenseData=v),renderTallyBankBook()}}}catch(w){console.log("refreshTabData error for",e,w)}}async function sendProofNotificationToMember(e,t,a,n){try{let s="Verified"===a?"✅ Payment Verified":"❌ Payment Rejected",i="Verified"===a?`Dear Member, aapka ₹${t} ka payment society admin dwara VERIFY kar diya gaya hai. Thank you!`:`Dear Member, aapka ₹${t} ka payment REJECT ho gaya hai. Kripya admin se sampark karein ya sahi receipt dobara submit karein.`;try{await _supabase.from("notices").insert([{society_name:n,title:s,content:i,date:new Date().toISOString().split("T")[0],author:currentUser||"Admin",priority:"Verified"===a?"Low":"High",target_members:[e],attachment_url:null,deep_link:"/?tab=dashboard&section=myPaymentSubmissionsCard"}])}catch(r){await _supabase.from("notices").insert([{society_name:n,title:s,content:i,date:new Date().toISOString().split("T")[0],author:currentUser||"Admin",priority:"Verified"===a?"Low":"High",target_members:[e],attachment_url:null}])}}catch(o){console.log("Member notification error:",o)}}function renderMyPaymentSubmissions(){let e=document.getElementById("my-payment-submissions-list"),t=document.getElementById("myPaymentSubmissionsCard");if(!e)return;if("Member"!==currentRole){t&&(t.style.display="none");return}t&&(t.style.display="block");let a=(currentUser||"").trim().toUpperCase(),n=paymentProofs.filter(e=>(e.flat_no||"").trim().toUpperCase()===a);if(0===n.length){e.innerHTML='<tr><td colspan="5" class="text-center text-muted">No payment submissions yet.</td></tr>';return}n.sort((e,t)=>new Date(t.submitted_at||t.payment_date)-new Date(e.submitted_at||e.payment_date)),e.innerHTML=n.map(e=>{let t='<span class="badge bg-warning text-dark">⏳ Pending</span>',a='<small class="text-muted">Awaiting admin review</small>';return"Verified"===e.status?(t='<span class="badge bg-success">✅ Verified</span>',a=e.verified_at?`<small class="text-success">Verified on ${new Date(e.verified_at).toLocaleDateString()}</small>`:'<small class="text-success">Verified</small>'):"Rejected"===e.status&&(t='<span class="badge bg-danger">❌ Rejected</span>',a='<small class="text-danger">Please contact admin</small>'),`
       <tr>
-        <td>${p.payment_date || '-'}</td>
-        <td class="fw-bold">${p.amount || 0}</td>
-        <td>${p.utr || '-'}</td>
-        <td>${statusBadge}</td>
-        <td>${remarks}</td>
+        <td>${e.payment_date||"-"}</td>
+        <td class="fw-bold">${e.amount||0}</td>
+        <td>${e.utr||"-"}</td>
+        <td>${t}</td>
+        <td>${a}</td>
       </tr>
-    `;
-  }).join('');
-}
-
-async function submitMeetingMinutes(event) {
-  event.preventDefault();
-  const title = document.getElementById('meet-title').value.trim();
-  const date = document.getElementById('meet-date').value;
-  const type = document.getElementById('meet-type').value;
-  const venue = document.getElementById('meet-venue').value.trim();
-  const attendees = document.getElementById('meet-attendees').value.trim();
-  const content = document.getElementById('meet-content').value.trim();
-
-  const newMeeting = {
-    society_name: currentSociety,
-    meeting_title: title, meeting_date: date, meeting_type: type,
-    venue: venue || 'Society Clubhouse',
-    attendees: attendees || 'All Members',
-    minutes_content: content,
-    created_by: currentUser,
-    created_at: new Date().toISOString()
-  };
-
-  const { error } = await _supabase.from('society_meetings').insert([newMeeting]);
-  if (error) { alert('❌ Error saving meeting: ' + error.message); return; }
-
-  const noticeData = {
-    society_name: currentSociety,
-    title: `📋 New ${type} Recorded`,
-    content: `${title} — held on ${date}. कृपया Meeting Minutes देखें।`,
-    date: new Date().toISOString().split('T')[0],
-    author: currentUser || 'Admin',
-    priority: type === 'AGM' ? 'High' : 'Medium',
-    target_members: [],
-    attachment_url: null
-  };
-
-  const { error: noticeErr1 } = await _supabase
-    .from('notices')
-    .insert([{ ...noticeData, deep_link: '/?tab=meetings' }]);
-
-  if (noticeErr1) {
-    console.warn('[Meeting Notice] First insert failed:', noticeErr1.message);
-    const { error: noticeErr2 } = await _supabase.from('notices').insert([noticeData]);
-    if (noticeErr2) {
-      console.error('[Meeting Notice] Fallback also failed:', noticeErr2.message);
-      alert('⚠️ Meeting saved but notification notice failed: ' + noticeErr2.message);
-    } else {
-      console.log('[Meeting Notice] Inserted WITHOUT deep_link (run SQL to add column)');
-    }
-  } else {
-    console.log('[Meeting Notice] Inserted successfully WITH deep_link');
-  }
-
-  alert('✅ Meeting Minutes Recorded & Members Notified!');
-  bootstrap.Modal.getInstance(document.getElementById('meetingModal')).hide();
-  document.getElementById('meetingForm').reset();
-  fetchSupabaseData();
-}
-
-function renderAllTables() {
-  renderCelebrations();
-  renderMembers();
-  renderMaintenance();
-  renderExpenses();
-  renderTallyBankBook();
-  renderCAAuditReport();
-  renderChairmanReport();
-  generateMonthlySummary();
-  renderComplaints();
-  renderParking();
-  renderPolls();
-  renderAssets();
-  renderFDs();
-  renderTeam();
-  renderMemberPersonalView();
-  renderMyPaymentHistory();
-  renderMyPaymentSubmissions();
-  renderBankDetails();
-  renderAMCTracker();
-  renderSOSContacts();
-  renderDeletionRequests();
-  renderPaymentProofs();
-  renderTenantAgreementWarnings();
-  if (document.getElementById('tab-community') && !document.getElementById('tab-community').classList.contains('d-none')) {
-    renderCommunity();
-  }
-}
-
-function exportMonthlySummaryExcel() {
-  const month = document.getElementById('summary-month-picker')?.value || 'Monthly_Report';
-  exportTableToExcel('monthly-summary-table', `Financial_Summary_${month}`);
-}
-
-function exportMonthlySummaryPDF() {
-  if (typeof window.jspdf === 'undefined') return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const month = document.getElementById('summary-month-picker')?.value || '';
-  const societyName = societySettings.society_name || currentSociety;
-  
-  doc.setFontSize(16);
-  doc.text(societyName, 105, 15, { align: 'center' });
-  doc.setFontSize(12);
-  doc.text(`Monthly Financial Statement - ${month}`, 105, 23, { align: 'center' });
-  
-  doc.autoTable({ 
-    html: '#monthly-summary-table', startY: 30, theme: 'grid',
-    didParseCell: function(data) {
-      if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
-    }
-  });
-  doc.save(`Monthly_Summary_${month}.pdf`);
-}
-
-function exportCAAuditExcel() { exportTableToExcel('ca-gst-summary-table', 'CA_Audit_GST_Summary'); }
-
-function exportCAAuditPDF() {
-  if (typeof window.jspdf === 'undefined') return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const societyName = societySettings.society_name || currentSociety;
-  
-  doc.setFontSize(16);
-  doc.text(societyName, 105, 15, { align: 'center' });
-  doc.setFontSize(12);
-  doc.text('CA Audit Report — GST Summary', 105, 23, { align: 'center' });
-  doc.setFontSize(10);
-  doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 105, 29, { align: 'center' });
-  
-  doc.autoTable({
-    html: '#ca-gst-summary-table', startY: 35, theme: 'grid',
-    didParseCell: function(data) {
-      if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
-    }
-  });
-  doc.save(`CA_Audit_${currentSociety}_${Date.now()}.pdf`);
-}
-
-function loadSettingsToForm() {
-  const s = societySettings || {};
-  const setVal = (id, val) => {
-    document.querySelectorAll(`#${id}`).forEach(el => {
-      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT')) { el.value = val; }
-    });
-  };
-  
-  setVal('settings-name', s.society_name || currentSociety || '');
-  setVal('settings-phone', s.society_phone || '');
-  setVal('settings-address', s.society_address || '');
-  setVal('settings-email', s.society_email || '');
-  setVal('settings-pan', s.society_pan || '');
-  setVal('settings-enable-late-fee', s.enable_late_fee || 'false');
-  setVal('settings-late-fee-type', s.late_fee_type || 'fixed');
-  setVal('settings-late-fee-amount', s.late_fee_amount || '');
-  setVal('settings-enable-gst', s.enable_gst || 'false');
-  setVal('settings-society-gstin', s.society_gstin || '');
-  
-  if (typeof toggleGSTFields === 'function') { toggleGSTFields(s.enable_gst || 'false'); }
-}
-
-function renderCommunity() {
-  renderEventsCommunity();
-  renderNoticesCommunity();
-  renderFacilitiesCommunity();
-  renderMyBookingsCommunity();
-  if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') {
-    renderManageFacilities();
-    renderPendingBookings();
-    renderAllBookings();
-  }
-}
-
-function renderEventsCommunity() {
-  const container = document.getElementById('events-community-container');
-  if (!container) return;
-  if (!eventsData || eventsData.length === 0) {
-    container.innerHTML = `<div class="col-12 text-muted text-center">No upcoming events.</div>`;
-    return;
-  }
-  container.innerHTML = eventsData.map(ev => `
-    <div class="col-md-6 col-lg-4" data-event-id="${ev.id}">
+    `}).join("")}async function submitMeetingMinutes(e){e.preventDefault();let t=document.getElementById("meet-title").value.trim(),a=document.getElementById("meet-date").value,n=document.getElementById("meet-type").value,s=document.getElementById("meet-venue").value.trim(),i=document.getElementById("meet-attendees").value.trim(),r=document.getElementById("meet-content").value.trim(),o={society_name:currentSociety,meeting_title:t,meeting_date:a,meeting_type:n,venue:s||"Society Clubhouse",attendees:i||"All Members",minutes_content:r,created_by:currentUser,created_at:new Date().toISOString()},{error:l}=await _supabase.from("society_meetings").insert([o]);if(l){alert("❌ Error saving meeting: "+l.message);return}let d={society_name:currentSociety,title:`📋 New ${n} Recorded`,content:`${t} — held on ${a}. कृपया Meeting Minutes देखें।`,date:new Date().toISOString().split("T")[0],author:currentUser||"Admin",priority:"AGM"===n?"High":"Medium",target_members:[],attachment_url:null},{error:c}=await _supabase.from("notices").insert([{...d,deep_link:"/?tab=meetings"}]);if(c){console.warn("[Meeting Notice] First insert failed:",c.message);let{error:m}=await _supabase.from("notices").insert([d]);m?(console.error("[Meeting Notice] Fallback also failed:",m.message),alert("⚠️ Meeting saved but notification notice failed: "+m.message)):console.log("[Meeting Notice] Inserted WITHOUT deep_link (run SQL to add column)")}else console.log("[Meeting Notice] Inserted successfully WITH deep_link");alert("✅ Meeting Minutes Recorded & Members Notified!"),bootstrap.Modal.getInstance(document.getElementById("meetingModal")).hide(),document.getElementById("meetingForm").reset(),fetchSupabaseData()}function renderAllTables(){renderCelebrations(),renderMembers(),renderMaintenance(),renderExpenses(),renderTallyBankBook(),renderCAAuditReport(),renderChairmanReport(),generateMonthlySummary(),renderComplaints(),renderParking(),renderPolls(),renderAssets(),renderFDs(),renderTeam(),renderMemberPersonalView(),renderMyPaymentHistory(),renderMyPaymentSubmissions(),renderBankDetails(),renderAMCTracker(),renderSOSContacts(),renderDeletionRequests(),renderPaymentProofs(),renderTenantAgreementWarnings(),document.getElementById("tab-community")&&!document.getElementById("tab-community").classList.contains("d-none")&&renderCommunity()}function exportMonthlySummaryExcel(){let e=document.getElementById("summary-month-picker")?.value||"Monthly_Report";exportTableToExcel("monthly-summary-table",`Financial_Summary_${e}`)}function exportMonthlySummaryPDF(){if(void 0===window.jspdf)return;let{jsPDF:e}=window.jspdf,t=new e("p","mm","a4"),a=document.getElementById("summary-month-picker")?.value||"",n=societySettings.society_name||currentSociety;t.setFontSize(16),t.text(n,105,15,{align:"center"}),t.setFontSize(12),t.text(`Monthly Financial Statement - ${a}`,105,23,{align:"center"}),t.autoTable({html:"#monthly-summary-table",startY:30,theme:"grid",didParseCell:function(e){"body"===e.section&&(e.cell.text=e.cell.text.map(e=>e.replace(/[₹Rs\.]/g,"").trim()))}}),t.save(`Monthly_Summary_${a}.pdf`)}function exportCAAuditExcel(){exportTableToExcel("ca-gst-summary-table","CA_Audit_GST_Summary")}function exportCAAuditPDF(){if(void 0===window.jspdf)return;let{jsPDF:e}=window.jspdf,t=new e("p","mm","a4"),a=societySettings.society_name||currentSociety;t.setFontSize(16),t.text(a,105,15,{align:"center"}),t.setFontSize(12),t.text("CA Audit Report — GST Summary",105,23,{align:"center"}),t.setFontSize(10),t.text(`Generated: ${new Date().toLocaleString("en-IN")}`,105,29,{align:"center"}),t.autoTable({html:"#ca-gst-summary-table",startY:35,theme:"grid",didParseCell:function(e){"body"===e.section&&(e.cell.text=e.cell.text.map(e=>e.replace(/[₹Rs\.]/g,"").trim()))}}),t.save(`CA_Audit_${currentSociety}_${Date.now()}.pdf`)}function loadSettingsToForm(){let e=societySettings||{},t=(e,t)=>{document.querySelectorAll(`#${e}`).forEach(e=>{e&&("INPUT"===e.tagName||"TEXTAREA"===e.tagName||"SELECT"===e.tagName)&&(e.value=t)})};t("settings-name",e.society_name||currentSociety||""),t("settings-phone",e.society_phone||""),t("settings-address",e.society_address||""),t("settings-email",e.society_email||""),t("settings-pan",e.society_pan||""),t("settings-enable-late-fee",e.enable_late_fee||"false"),t("settings-late-fee-type",e.late_fee_type||"fixed"),t("settings-late-fee-amount",e.late_fee_amount||""),t("settings-enable-gst",e.enable_gst||"false"),t("settings-society-gstin",e.society_gstin||""),"function"==typeof toggleGSTFields&&toggleGSTFields(e.enable_gst||"false")}function renderCommunity(){renderEventsCommunity(),renderNoticesCommunity(),renderFacilitiesCommunity(),renderMyBookingsCommunity(),("Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole)&&(renderManageFacilities(),renderPendingBookings(),renderAllBookings())}function renderEventsCommunity(){let e=document.getElementById("events-community-container");if(e){if(!eventsData||0===eventsData.length){e.innerHTML='<div class="col-12 text-muted text-center">No upcoming events.</div>';return}e.innerHTML=eventsData.map(e=>`
+    <div class="col-md-6 col-lg-4" data-event-id="${e.id}">
       <div class="card border-0 shadow-sm rounded-4 p-3 h-100">
         <div class="d-flex align-items-center mb-2">
           <i class="fa-regular fa-calendar-circle-plus" style="color:#2563eb; font-size:24px;"></i>
-          <h6 class="fw-bold ms-2 mb-0">${ev.title}</h6>
+          <h6 class="fw-bold ms-2 mb-0">${e.title}</h6>
         </div>
-        <p class="small text-muted"><i class="fa-regular fa-clock me-1"></i> ${ev.date} | ${ev.time}</p>
-        ${ev.location ? `<p class="small text-muted"><i class="fa-regular fa-location-dot me-1"></i> ${ev.location}</p>` : ''}
-        ${ev.description ? `<p class="small">${ev.description}</p>` : ''}
-        ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? 
-          `<button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteEvent(${ev.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
+        <p class="small text-muted"><i class="fa-regular fa-clock me-1"></i> ${e.date} | ${e.time}</p>
+        ${e.location?`<p class="small text-muted"><i class="fa-regular fa-location-dot me-1"></i> ${e.location}</p>`:""}
+        ${e.description?`<p class="small">${e.description}</p>`:""}
+        ${"Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole?`<button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteEvent(${e.id})"><i class="fa-solid fa-trash"></i></button>`:""}
       </div>
     </div>
-  `).join('');
-}
-
-function renderNoticesCommunity() {
-  const container = document.getElementById('notices-community-container');
-  if (!container) return;
-  if (!noticesData || noticesData.length === 0) {
-    container.innerHTML = `<div class="col-12 text-muted text-center">No notices.</div>`;
-    return;
-  }
-
-  const visibleNotices = noticesData.filter(n => {
-    if (n.deep_link && String(n.deep_link).trim() !== '') return false;
-
-    // ✅ FIXED
-const systemTitlePatterns = [
-  'Payment Verified',
-  'Payment Rejected',
-  'New Payment Proof',
-  'New AGM',
-  'New Managing Committee',
-  'New Special Meeting',
-  'Admin replied to your ticket',    // ✅ ADD
-  'New Support Ticket'                // ✅ ADD
-];
-    if (n.title && systemTitlePatterns.some(p => n.title.includes(p))) return false;
-
-    if (currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') return true;
-
-    if (!n.target_members || n.target_members.length === 0) return true;
-
-    let targets = n.target_members;
-    if (typeof targets === 'string') {
-      try { targets = JSON.parse(targets); } catch (e) { targets = []; }
-    }
-
-    if (Array.isArray(targets) && targets.length > 0) {
-      return targets.map(t => t.toUpperCase()).includes((currentUser || '').toUpperCase());
-    }
-
-    return true;
-  });
-
-
-  if (visibleNotices.length === 0) {
-    container.innerHTML = `<div class="col-12 text-muted text-center">No notices for you.</div>`;
-    return;
-  }
-
-  container.innerHTML = visibleNotices.map(n => {
-    const priorityColor = n.priority === 'High' ? 'danger' : (n.priority === 'Medium' ? 'warning' : 'secondary');
-    
-    let targets = n.target_members;
-    if (typeof targets === 'string') {
-      try { targets = JSON.parse(targets); } catch (e) { targets = []; }
-    }
-    const isTargeted = Array.isArray(targets) && targets.length > 0;
-
-    return `
-      <div class="col-md-6 col-lg-4" data-notice-id="${n.id}">
-        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 border-start border-4 border-${priorityColor}">
+  `).join("")}}function renderNoticesCommunity(){let e=document.getElementById("notices-community-container");if(!e)return;if(!noticesData||0===noticesData.length){e.innerHTML='<div class="col-12 text-muted text-center">No notices.</div>';return}let t=noticesData.filter(e=>{if(e.deep_link&&""!==String(e.deep_link).trim()||e.title&&["Payment Verified","Payment Rejected","New Payment Proof","New AGM","New Managing Committee","New Special Meeting","Admin replied to your ticket","New Support Ticket"].some(t=>e.title.includes(t)))return!1;if("Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole||!e.target_members||0===e.target_members.length)return!0;let t=e.target_members;if("string"==typeof t)try{t=JSON.parse(t)}catch(a){t=[]}return!Array.isArray(t)||!(t.length>0)||t.map(e=>e.toUpperCase()).includes((currentUser||"").toUpperCase())});if(0===t.length){e.innerHTML='<div class="col-12 text-muted text-center">No notices for you.</div>';return}e.innerHTML=t.map(e=>{let t="High"===e.priority?"danger":"Medium"===e.priority?"warning":"secondary",a=e.target_members;if("string"==typeof a)try{a=JSON.parse(a)}catch(n){a=[]}let s=Array.isArray(a)&&a.length>0;return`
+      <div class="col-md-6 col-lg-4" data-notice-id="${e.id}">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 border-start border-4 border-${t}">
           <div class="d-flex justify-content-between align-items-start">
-            <h6 class="fw-bold">${n.title}</h6>
-            <span class="badge bg-${priorityColor}">${n.priority || 'Medium'}</span>
+            <h6 class="fw-bold">${e.title}</h6>
+            <span class="badge bg-${t}">${e.priority||"Medium"}</span>
           </div>
           <div class="d-flex gap-3 small text-muted">
-            <span><i class="fa-regular fa-calendar me-1"></i> ${n.date || '-'}</span>
-            <span><i class="fa-regular fa-user me-1"></i> ${n.author || 'Admin'}</span>
+            <span><i class="fa-regular fa-calendar me-1"></i> ${e.date||"-"}</span>
+            <span><i class="fa-regular fa-user me-1"></i> ${e.author||"Admin"}</span>
           </div>
           <div class="mt-1">
-            ${isTargeted ? `<span class="badge bg-info text-dark">Selected: ${targets.join(', ')}</span>` : `<span class="badge bg-secondary">All Members</span>`}
+            ${s?`<span class="badge bg-info text-dark">Selected: ${a.join(", ")}</span>`:'<span class="badge bg-secondary">All Members</span>'}
           </div>
-          <p class="mt-2 text-secondary mb-2">${n.content}</p>
-          ${n.attachment_url ? `
+          <p class="mt-2 text-secondary mb-2">${e.content}</p>
+          ${e.attachment_url?`
   <div class="mb-2">
-    <a href="${n.attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-paperclip me-1"></i> View</a>
-    ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+    <a href="${e.attachment_url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-paperclip me-1"></i> View</a>
+    ${"Admin"===currentRole||"SocietyAdmin"===currentRole?`
       <button class="btn btn-sm btn-outline-danger ms-1"
-        onclick="deleteSingleImage({table:'notices',rowId:${n.id},column:'attachment_url',bucket:'notice_attachments',imageUrl:'${n.attachment_url}',refreshFn:()=>fetchSupabaseData(),label:'notice attachment'})">
+        onclick="deleteSingleImage({table:'notices',rowId:${e.id},column:'attachment_url',bucket:'notice_attachments',imageUrl:'${e.attachment_url}',refreshFn:()=>fetchSupabaseData(),label:'notice attachment'})">
         <i class="fa-solid fa-trash"></i>
-      </button>` : ''}
-  </div>` : ''}
-          ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') ? `<button class="btn btn-link text-danger btn-sm p-0" onclick="deleteNotice(${n.id})">Delete</button>` : ''}
+      </button>`:""}
+  </div>`:""}
+          ${"Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole?`<button class="btn btn-link text-danger btn-sm p-0" onclick="deleteNotice(${e.id})">Delete</button>`:""}
         </div>
       </div>
-    `;
-  }).join('');
-}
-
-async function renderSuperAdminMasterDashboard() {
-  if (currentRole !== 'Admin') {
-    alert('⛔ Access Denied! Only Admin can view Master Dashboard.');
-    return;
-  }
-  
-  const container = document.getElementById('super-admin-master-container');
-  if (!container) return;
-
-  container.innerHTML = `<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="text-muted mt-2">Fetching master data across all active societies...</p></div>`;
-
-  try {
-    const { data: societiesList, error: socError } = await _supabase.from('societies').select('*').eq('is_active', true);
-
-    if (socError || !societiesList || societiesList.length === 0) {
-      container.innerHTML = `<div class="alert alert-warning">No active societies found.</div>`;
-      return;
-    }
-
-    let masterRows = '';
-    let grandTotalCollection = 0;
-    let grandTotalPending = 0;
-    let grandTotalSubDue = 0;
-
-    for (const soc of societiesList) {
-      const socName = soc.name;
-      const [{ data: members }, { data: payments }] = await Promise.all([
-        _supabase.from('members').select('*').eq('society_name', socName),
-        _supabase.from('maintenance_payments').select('*').eq('society_name', socName)
-      ]);
-
-      const socMembers = members || [];
-      const socPayments = payments || [];
-      
-      const totalCollected = socPayments.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-      grandTotalCollection += totalCollected;
-
-      let socPending = 0;
-      socMembers.forEach(m => {
-        const rate = Number(m.monthly_rate || 600);
-        const opening = Number(m.opening_due || 0);
-        const dueTillDate = MONTHS_IN_FY_SO_FAR * rate;
-        const paid = socPayments.filter(r => (r.flat_no || '').toUpperCase() === (m.flat_no || '').toUpperCase()).reduce((s, r) => s + Number(r.amount_paid || 0), 0);
-        const flatPending = Math.max(0, opening + dueTillDate - paid);
-        socPending += flatPending;
-      });
-      grandTotalPending += socPending;
-
-      const housesCount = socMembers.length;
-      const subRatePerHouse = Number(soc.per_house_rate || 79); 
-      const monthlySubDue = housesCount * subRatePerHouse;
-      grandTotalSubDue += monthlySubDue;
-
-            // ✅ Status badge
-      const subStatus = soc.subscription_status || 'active';
-      let statusBadge = '';
-      if (subStatus === 'suspended') {
-        statusBadge = '<span class="badge bg-danger">🔴 Suspended</span>';
-      } else if (subStatus === 'grace') {
-        statusBadge = '<span class="badge bg-warning text-dark">🟡 Grace</span>';
-      } else {
-        statusBadge = '<span class="badge bg-success">🟢 Active</span>';
-      }
-
-      const reactivateBtn = (subStatus === 'suspended') 
-        ? `<button class="btn btn-sm btn-success ms-1" onclick="reactivateSociety('${socName}')" title="Reactivate"><i class="fa-solid fa-power-off"></i></button>` 
-        : '';
-
-      masterRows += `
+    `}).join("")}async function renderSuperAdminMasterDashboard(){if("Admin"!==currentRole){alert("⛔ Access Denied! Only Admin can view Master Dashboard.");return}let e=document.getElementById("super-admin-master-container");if(e){e.innerHTML='<div class="text-center p-5"><i class="fa-solid fa-spinner fa-spin fa-2x text-primary"></i><p class="text-muted mt-2">Fetching master data across all active societies...</p></div>';try{let{data:t,error:a}=await _supabase.from("societies").select("*").eq("is_active",!0);if(a||!t||0===t.length){e.innerHTML='<div class="alert alert-warning">No active societies found.</div>';return}let n="",s=0,i=0,r=0;for(let o of t){let l=o.name,[{data:d},{data:c}]=await Promise.all([_supabase.from("members").select("*").eq("society_name",l),_supabase.from("maintenance_payments").select("*").eq("society_name",l)]),m=d||[],u=c||[],p=u.reduce((e,t)=>e+Number(t.amount_paid||0),0);s+=p;let y=0;m.forEach(e=>{let t=Number(e.monthly_rate||600),a=Number(e.opening_due||0),n=MONTHS_IN_FY_SO_FAR*t,s=u.filter(t=>(t.flat_no||"").toUpperCase()===(e.flat_no||"").toUpperCase()).reduce((e,t)=>e+Number(t.amount_paid||0),0),i=Math.max(0,a+n-s);y+=i}),i+=y;let g=m.length,b=Number(o.per_house_rate||79),f=g*b;r+=f;let h=o.subscription_status||"active",v="";v="suspended"===h?'<span class="badge bg-danger">\uD83D\uDD34 Suspended</span>':"grace"===h?'<span class="badge bg-warning text-dark">\uD83D\uDFE1 Grace</span>':'<span class="badge bg-success">\uD83D\uDFE2 Active</span>';let w="suspended"===h?`<button class="btn btn-sm btn-success ms-1" onclick="reactivateSociety('${l}')" title="Reactivate"><i class="fa-solid fa-power-off"></i></button>`:"";n+=`
         <tr>
-          <td><strong>${socName}</strong><br><small class="text-muted">${soc.address || '-'}</small></td>
-          <td><span class="badge bg-primary">${housesCount} Houses</span></td>
-          <td class="text-success fw-bold">₹ ${totalCollected.toLocaleString('en-IN')}</td>
-          <td class="text-danger fw-bold">₹ ${socPending.toLocaleString('en-IN')}</td>
-          <td><span class="badge bg-warning text-dark">${soc.subscription_plan || 'Gold'} (₹${subRatePerHouse}/h)</span></td>
-          <td class="text-primary fw-bold">₹ ${monthlySubDue.toLocaleString('en-IN')} /mo</td>
-          <td>${statusBadge}</td>
+          <td><strong>${l}</strong><br><small class="text-muted">${o.address||"-"}</small></td>
+          <td><span class="badge bg-primary">${g} Houses</span></td>
+          <td class="text-success fw-bold">₹ ${p.toLocaleString("en-IN")}</td>
+          <td class="text-danger fw-bold">₹ ${y.toLocaleString("en-IN")}</td>
+          <td><span class="badge bg-warning text-dark">${o.subscription_plan||"Gold"} (₹${b}/h)</span></td>
+          <td class="text-primary fw-bold">₹ ${f.toLocaleString("en-IN")} /mo</td>
+          <td>${v}</td>
           <td>
-            <button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${socName}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch</button>
-            ${reactivateBtn}
+            <button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${l}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch</button>
+            ${w}
           </td>
         </tr>
-      `;
-    }
-
-    const htmlContent = `
+      `}let S=`
       <div class="row g-3 mb-4">
-        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-success-subtle"><h6 class="text-success mb-1">Total Societies Collection</h6><h3 class="fw-bold mb-0 text-success">₹ ${grandTotalCollection.toLocaleString('en-IN')}</h3></div></div>
-        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-danger-subtle"><h6 class="text-danger mb-1">Total Societies Pending Dues</h6><h3 class="fw-bold mb-0 text-danger">₹ ${grandTotalPending.toLocaleString('en-IN')}</h3></div></div>
-        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-primary-subtle"><h6 class="text-primary mb-1">Your Monthly Agency Revenue</h6><h3 class="fw-bold mb-0 text-primary">₹ ${grandTotalSubDue.toLocaleString('en-IN')}</h3></div></div>
+        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-success-subtle"><h6 class="text-success mb-1">Total Societies Collection</h6><h3 class="fw-bold mb-0 text-success">₹ ${s.toLocaleString("en-IN")}</h3></div></div>
+        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-danger-subtle"><h6 class="text-danger mb-1">Total Societies Pending Dues</h6><h3 class="fw-bold mb-0 text-danger">₹ ${i.toLocaleString("en-IN")}</h3></div></div>
+        <div class="col-md-4"><div class="card p-3 border-0 shadow-sm rounded-4 bg-primary-subtle"><h6 class="text-primary mb-1">Your Monthly Agency Revenue</h6><h3 class="fw-bold mb-0 text-primary">₹ ${r.toLocaleString("en-IN")}</h3></div></div>
       </div>
       <div class="card border-0 shadow-sm rounded-4 p-3 border">
         <h5 class="fw-bold mb-3">🏢 All Managed Societies Overview</h5>
@@ -3346,2737 +270,452 @@ async function renderSuperAdminMasterDashboard() {
                         <thead class="table-light">
               <tr><th>Society Name</th><th>Total Flats</th><th>Total Collection</th><th>Total Pending</th><th>Subscription Plan</th><th>Your Revenue / Mo</th><th>Status</th><th>Action</th></tr>
             </thead>
-            <tbody>${masterRows}</tbody>
+            <tbody>${n}</tbody>
           </table>
         </div>
       </div>
-    `;
-
-       document.querySelectorAll('#super-admin-master-container').forEach(el => { el.innerHTML = htmlContent; });
-  } catch (err) {
-    console.error('Master dashboard error:', err);
-    container.innerHTML = `<div class="alert alert-danger">Error loading master dashboard: ${err.message}</div>`;
-  }
-
-  // ✅ Subscription billing load करो (async, background में)
-  try { await loadSubscriptionInvoices(); } catch(e) { console.log('[Subscription] auto-load error:', e); }
-}
-
-async function submitNotice(event) {
-  event.preventDefault();
-  const btn = document.getElementById('btn-submit-notice');
-  btn.disabled = true;
-  btn.innerText = 'Publishing...';
-
-  const sendTo = document.getElementById('notice-send-to').value;
-  let targetMembers = [];
-  if (sendTo === 'selected') {
-    const select = document.getElementById('notice-target-members');
-    if (select) targetMembers = Array.from(select.selectedOptions).map(opt => opt.value);
-  }
-
-  const fileInput = document.getElementById('notice-attachment');
-  const file = fileInput?.files?.[0];
-  let attachmentUrl = null;
-
-  if (file) {
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${currentSociety}/notice_${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await _supabase.storage.from('notice_attachments').upload(filePath, file);
-    if (!uploadError) {
-      const { data: urlData } = _supabase.storage.from('notice_attachments').getPublicUrl(filePath);
-      attachmentUrl = urlData?.publicUrl || null;
-    }
-  }
-
-  const newNotice = {
-    title: document.getElementById('notice-title').value,
-    date: document.getElementById('notice-date').value || new Date().toISOString().split('T')[0],
-    author: document.getElementById('notice-author').value || 'Admin',
-    priority: document.getElementById('notice-priority').value,
-    content: document.getElementById('notice-content').value,
-    society_name: currentSociety,
-    target_members: targetMembers,
-    attachment_url: attachmentUrl
-  };
-
-  const { error } = await _supabase.from('notices').insert([newNotice]);
-  btn.disabled = false;
-  btn.innerText = 'Publish Notice';
-
-  if (error) { alert('❌ Error: ' + error.message); return; }
-  alert('✅ Notice Published Successfully!');
-  bootstrap.Modal.getInstance(document.getElementById('noticeModal')).hide();
-  document.getElementById('noticeForm').reset();
-  document.getElementById('notice-member-select').style.display = 'none';
-  fetchSupabaseData();
-}
-
-async function deleteNotice(noticeId) {
-  if (!confirm('⚠️ Delete this notice permanently?')) return;
-  await _supabase.from('notices').delete().eq('id', noticeId);
-  fetchSupabaseData();
-}
-
-async function logActivity(actionType, details) {
-  try {
-    const newLog = {
-      society_name: currentSociety,
-      user_flat: currentUser || 'SYSTEM',
-      user_role: currentRole || 'Admin',
-      action_type: actionType, details: details,
-      created_at: new Date().toISOString()
-    };
-    await _supabase.from('activity_logs').insert([newLog]);
-  } catch (err) { console.error('Failed to write activity log:', err); }
-}
-
-async function fetchActivityLogs() {
-  const { data, error } = await _supabase.from('activity_logs').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false }).limit(100);
-  if (!error) { activityLogs = data || []; renderActivityLogs(); }
-}
-
-function renderActivityLogs() {
-  const tbody = document.getElementById('activity-logs-list');
-  if (!tbody) return;
-  if (activityLogs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No activity logs recorded yet.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = activityLogs.map(log => {
-    const formattedDate = new Date(log.created_at).toLocaleString('en-IN');
-    return `
+    `;document.querySelectorAll("#super-admin-master-container").forEach(e=>{e.innerHTML=S})}catch($){console.error("Master dashboard error:",$),e.innerHTML=`<div class="alert alert-danger">Error loading master dashboard: ${$.message}</div>`}try{await loadSubscriptionInvoices()}catch(k){console.log("[Subscription] auto-load error:",k)}}}async function submitNotice(e){e.preventDefault();let t=document.getElementById("btn-submit-notice");t.disabled=!0,t.innerText="Publishing...";let a=document.getElementById("notice-send-to").value,n=[];if("selected"===a){let s=document.getElementById("notice-target-members");s&&(n=Array.from(s.selectedOptions).map(e=>e.value))}let i=document.getElementById("notice-attachment"),r=i?.files?.[0],o=null;if(r){let l=r.name.split(".").pop(),d=`${currentSociety}/notice_${Date.now()}.${l}`,{error:c}=await _supabase.storage.from("notice_attachments").upload(d,r);if(!c){let{data:m}=_supabase.storage.from("notice_attachments").getPublicUrl(d);o=m?.publicUrl||null}}let u={title:document.getElementById("notice-title").value,date:document.getElementById("notice-date").value||new Date().toISOString().split("T")[0],author:document.getElementById("notice-author").value||"Admin",priority:document.getElementById("notice-priority").value,content:document.getElementById("notice-content").value,society_name:currentSociety,target_members:n,attachment_url:o},{error:p}=await _supabase.from("notices").insert([u]);if(t.disabled=!1,t.innerText="Publish Notice",p){alert("❌ Error: "+p.message);return}alert("✅ Notice Published Successfully!"),bootstrap.Modal.getInstance(document.getElementById("noticeModal")).hide(),document.getElementById("noticeForm").reset(),document.getElementById("notice-member-select").style.display="none",fetchSupabaseData()}async function deleteNotice(e){confirm("⚠️ Delete this notice permanently?")&&(await _supabase.from("notices").delete().eq("id",e),fetchSupabaseData())}async function logActivity(e,t){try{let a={society_name:currentSociety,user_flat:currentUser||"SYSTEM",user_role:currentRole||"Admin",action_type:e,details:t,created_at:new Date().toISOString()};await _supabase.from("activity_logs").insert([a])}catch(n){console.error("Failed to write activity log:",n)}}async function fetchActivityLogs(){let{data:e,error:t}=await _supabase.from("activity_logs").select("*").eq("society_name",currentSociety).order("created_at",{ascending:!1}).limit(100);t||(activityLogs=e||[],renderActivityLogs())}function renderActivityLogs(){let e=document.getElementById("activity-logs-list");if(e){if(0===activityLogs.length){e.innerHTML='<tr><td colspan="5" class="text-center text-muted">No activity logs recorded yet.</td></tr>';return}e.innerHTML=activityLogs.map(e=>{let t=new Date(e.created_at).toLocaleString("en-IN");return`
       <tr>
-        <td><small class="text-muted">${formattedDate}</small></td>
-        <td><b>${log.user_flat}</b></td>
-        <td><span class="badge bg-secondary">${log.user_role}</span></td>
-        <td><span class="badge bg-info text-dark">${log.action_type}</span></td>
-        <td>${log.details}</td>
+        <td><small class="text-muted">${t}</small></td>
+        <td><b>${e.user_flat}</b></td>
+        <td><span class="badge bg-secondary">${e.user_role}</span></td>
+        <td><span class="badge bg-info text-dark">${e.action_type}</span></td>
+        <td>${e.details}</td>
       </tr>
-    `;
-  }).join('');
-}
-
-function insertNotice(payload) {
-  const systemPatterns = ['Admin replied', 'New Support Ticket', 'Payment Verified', 'Payment Rejected', 'New AGM'];
-  const isSystem = systemPatterns.some(p => (payload.title || '').includes(p));
-  
-  if (isSystem && !payload.deep_link) {
-    console.error('❌ System notice must have deep_link:', payload.title);
-    return Promise.reject(new Error('System notice requires deep_link'));
-  }
-  return _supabase.from('notices').insert([payload]);
-}
-
-function renderFacilitiesCommunity() {
-  const container = document.getElementById('facilities-community-container');
-  if (!container) return;
-  if (!facilitiesData || facilitiesData.length === 0) {
-    container.innerHTML = `<div class="col-12 text-muted text-center">No facilities available for booking.</div>`;
-    return;
-  }
-  container.innerHTML = facilitiesData.map(f => `
+    `}).join("")}}function insertNotice(e){let t=["Admin replied","New Support Ticket","Payment Verified","Payment Rejected","New AGM"].some(t=>(e.title||"").includes(t));return t&&!e.deep_link?(console.error("❌ System notice must have deep_link:",e.title),Promise.reject(Error("System notice requires deep_link"))):_supabase.from("notices").insert([e])}function renderFacilitiesCommunity(){let e=document.getElementById("facilities-community-container");if(e){if(!facilitiesData||0===facilitiesData.length){e.innerHTML='<div class="col-12 text-muted text-center">No facilities available for booking.</div>';return}e.innerHTML=facilitiesData.map(e=>`
     <div class="col-md-6 col-lg-4">
       <div class="card border-0 shadow-sm rounded-4 h-100 p-3">
         <div class="d-flex align-items-center mb-2">
           <i class="fa-solid fa-building" style="color:#2563eb; font-size:24px;"></i>
-          <h6 class="fw-bold ms-2 mb-0">${f.name}</h6>
+          <h6 class="fw-bold ms-2 mb-0">${e.name}</h6>
         </div>
-        <p class="text-muted small mb-1">${f.description || 'No description'}</p>
+        <p class="text-muted small mb-1">${e.description||"No description"}</p>
         <div class="d-flex justify-content-between small text-muted">
-          <span><i class="fa-regular fa-user me-1"></i> Capacity: ${f.capacity || 'N/A'}</span>
-          <span>Fee: ${f.fee || 0}</span>
+          <span><i class="fa-regular fa-user me-1"></i> Capacity: ${e.capacity||"N/A"}</span>
+          <span>Fee: ${e.fee||0}</span>
         </div>
-        <button class="btn btn-outline-primary btn-sm mt-3" onclick="openBookingModal(${f.id})">Book Now</button>
+        <button class="btn btn-outline-primary btn-sm mt-3" onclick="openBookingModal(${e.id})">Book Now</button>
       </div>
     </div>
-  `).join('');
-}
-
-function renderMyBookingsCommunity() {
-  const container = document.getElementById('my-bookings-community-container');
-  if (!container) return;
-  const myBookings = bookingsData.filter(b => b.flat_no === currentUser);
-  if (myBookings.length === 0) {
-    container.innerHTML = `<div class="alert alert-info">You have no bookings.</div>`;
-    return;
-  }
-  container.innerHTML = myBookings.map(b => {
-    const facility = facilitiesData.find(f => f.id === b.facility_id);
-    const statusColor = b.status === 'Pending' ? 'warning text-dark' : (b.status === 'Approved' ? 'success' : 'danger');
-    return `
+  `).join("")}}function renderMyBookingsCommunity(){let e=document.getElementById("my-bookings-community-container");if(!e)return;let t=bookingsData.filter(e=>e.flat_no===currentUser);if(0===t.length){e.innerHTML='<div class="alert alert-info">You have no bookings.</div>';return}e.innerHTML=t.map(e=>{let t=facilitiesData.find(t=>t.id===e.facility_id),a="Pending"===e.status?"warning text-dark":"Approved"===e.status?"success":"danger";return`
       <div class="card border-0 shadow-sm rounded-4 p-3 mb-2">
         <div class="row align-items-center">
-          <div class="col-md-6"><strong>${facility?.name || 'Unknown'}</strong> <span class="badge bg-${statusColor}">${b.status}</span></div>
-          <div class="col-md-3">${b.booking_date} | ${b.start_time} - ${b.end_time}</div>
-          <div class="col-md-3 text-md-end"><small class="text-muted">${b.purpose}</small></div>
+          <div class="col-md-6"><strong>${t?.name||"Unknown"}</strong> <span class="badge bg-${a}">${e.status}</span></div>
+          <div class="col-md-3">${e.booking_date} | ${e.start_time} - ${e.end_time}</div>
+          <div class="col-md-3 text-md-end"><small class="text-muted">${e.purpose}</small></div>
         </div>
       </div>
-    `;
-  }).join('');
-}
-
-async function fetchEvents() {
-  const { data } = await _supabase.from('events').select('*').eq('society_name', currentSociety).order('date', { ascending: true });
-  eventsData = data || [];
-}
-
-async function submitEvent(event) {
-  event.preventDefault();
-  const newEvent = {
-    title: document.getElementById('event-title').value.trim(),
-    date: document.getElementById('event-date').value,
-    time: document.getElementById('event-time').value,
-    location: document.getElementById('event-location').value.trim(),
-    description: document.getElementById('event-desc').value.trim(),
-    society_name: currentSociety,
-    created_by: currentUser,
-    created_at: new Date().toISOString()
-  };
-  await _supabase.from('events').insert([newEvent]);
-  bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
-  fetchEvents();
-  renderCommunity();
-}
-
-async function deleteEvent(eventId) {
-  if (!confirm('⚠️ Delete this event?')) return;
-  await _supabase.from('events').delete().eq('id', eventId);
-  fetchEvents();
-  renderCommunity();
-}
-
-async function fetchFacilityData() {
-  const { data: fData } = await _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true);
-  facilitiesData = fData || [];
-  const { data: bData } = await _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true });
-  bookingsData = bData || [];
-}
-
-async function openBookingModal(facilityId) {
-  await fetchFacilityData();
-  const select = document.getElementById('book-facility');
-  if (!select) return;
-  select.innerHTML = facilitiesData.map(f => `<option value="${f.id}" ${f.id === facilityId ? 'selected' : ''}>${f.name}</option>`).join('');
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  document.getElementById('book-date').value = tomorrow.toISOString().split('T')[0];
-  new bootstrap.Modal(document.getElementById('bookingModal')).show();
-}
-
-async function resetBookingForm() {
-  const form = document.getElementById('bookingForm');
-  if (form) form.reset();
-
-  try {
-    await fetchFacilityData();
-    const select = document.getElementById('book-facility');
-    if (select) {
-      if (facilitiesData.length === 0) {
-        select.innerHTML = '<option value="">⚠️ No facilities available. Contact Admin.</option>';
-      } else {
-        select.innerHTML = facilitiesData.map(f => 
-          `<option value="${f.id}">${f.name}${f.fee ? ' — ₹' + f.fee : ''}</option>`
-        ).join('');
-      }
-    }
-  } catch (e) { console.log('Facility dropdown error:', e); }
-}
-
-async function submitBooking(event) {
-  event.preventDefault();
-  const newBooking = {
-    facility_id: parseInt(document.getElementById('book-facility').value),
-    flat_no: currentUser,
-    booking_date: document.getElementById('book-date').value,
-    start_time: document.getElementById('book-start').value,
-    end_time: document.getElementById('book-end').value,
-    purpose: document.getElementById('book-purpose').value.trim() || 'General',
-    status: 'Pending',
-    society_name: currentSociety,
-    booked_at: new Date().toISOString()
-  };
-  await _supabase.from('facility_bookings').insert([newBooking]);
-  alert('✅ Booking request submitted!');
-  bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
-  fetchFacilityData();
-}
-
-function renderManageFacilities() {
-  const container = document.getElementById('manage-facilities-container');
-  if (!container) return;
-  container.innerHTML = facilitiesData.map(f => `
+    `}).join("")}async function fetchEvents(){let{data:e}=await _supabase.from("events").select("*").eq("society_name",currentSociety).order("date",{ascending:!0});eventsData=e||[]}async function submitEvent(e){e.preventDefault();let t={title:document.getElementById("event-title").value.trim(),date:document.getElementById("event-date").value,time:document.getElementById("event-time").value,location:document.getElementById("event-location").value.trim(),description:document.getElementById("event-desc").value.trim(),society_name:currentSociety,created_by:currentUser,created_at:new Date().toISOString()};await _supabase.from("events").insert([t]),bootstrap.Modal.getInstance(document.getElementById("eventModal")).hide(),fetchEvents(),renderCommunity()}async function deleteEvent(e){confirm("⚠️ Delete this event?")&&(await _supabase.from("events").delete().eq("id",e),fetchEvents(),renderCommunity())}async function fetchFacilityData(){let{data:e}=await _supabase.from("facilities").select("*").eq("society_name",currentSociety).eq("is_active",!0);facilitiesData=e||[];let{data:t}=await _supabase.from("facility_bookings").select("*").eq("society_name",currentSociety).order("booking_date",{ascending:!0});bookingsData=t||[]}async function openBookingModal(e){await fetchFacilityData();let t=document.getElementById("book-facility");if(!t)return;t.innerHTML=facilitiesData.map(t=>`<option value="${t.id}" ${t.id===e?"selected":""}>${t.name}</option>`).join("");let a=new Date;a.setDate(a.getDate()+1),document.getElementById("book-date").value=a.toISOString().split("T")[0],new bootstrap.Modal(document.getElementById("bookingModal")).show()}async function resetBookingForm(){let e=document.getElementById("bookingForm");e&&e.reset();try{await fetchFacilityData();let t=document.getElementById("book-facility");t&&(0===facilitiesData.length?t.innerHTML='<option value="">⚠️ No facilities available. Contact Admin.</option>':t.innerHTML=facilitiesData.map(e=>`<option value="${e.id}">${e.name}${e.fee?" — ₹"+e.fee:""}</option>`).join(""))}catch(a){console.log("Facility dropdown error:",a)}}async function submitBooking(e){e.preventDefault();let t={facility_id:parseInt(document.getElementById("book-facility").value),flat_no:currentUser,booking_date:document.getElementById("book-date").value,start_time:document.getElementById("book-start").value,end_time:document.getElementById("book-end").value,purpose:document.getElementById("book-purpose").value.trim()||"General",status:"Pending",society_name:currentSociety,booked_at:new Date().toISOString()};await _supabase.from("facility_bookings").insert([t]),alert("✅ Booking request submitted!"),bootstrap.Modal.getInstance(document.getElementById("bookingModal")).hide(),fetchFacilityData()}function renderManageFacilities(){let e=document.getElementById("manage-facilities-container");e&&(e.innerHTML=facilitiesData.map(e=>`
     <div class="col-md-4 col-lg-3">
       <div class="card border-0 shadow-sm rounded-4 p-3">
-        <h6 class="fw-bold">${f.name}</h6>
-        <p class="small text-muted mb-1">${f.description || '--'}</p>
+        <h6 class="fw-bold">${e.name}</h6>
+        <p class="small text-muted mb-1">${e.description||"--"}</p>
         <div class="d-flex justify-content-between">
-          <span class="badge bg-secondary">${f.fee || 0}</span>
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteFacility(${f.id})"><i class="fa-solid fa-trash"></i></button>
+          <span class="badge bg-secondary">${e.fee||0}</span>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteFacility(${e.id})"><i class="fa-solid fa-trash"></i></button>
         </div>
       </div>
     </div>
-  `).join('');
-}
-
-async function addFacility(event) {
-  event.preventDefault();
-  const newFac = {
-    name: document.getElementById('fac-name').value.trim(),
-    description: document.getElementById('fac-desc').value.trim(),
-    capacity: parseInt(document.getElementById('fac-capacity').value) || 0,
-    fee: parseFloat(document.getElementById('fac-fee').value) || 0,
-    is_active: true,
-    society_name: currentSociety,
-    created_at: new Date().toISOString()
-  };
-  await _supabase.from('facilities').insert([newFac]);
-  bootstrap.Modal.getInstance(document.getElementById('addFacilityModal')).hide();
-  fetchFacilityData();
-}
-
-async function deleteFacility(id) {
-  if (!confirm('Delete facility?')) return;
-  await _supabase.from('facilities').delete().eq('id', id);
-  fetchFacilityData();
-}
-
-function renderPendingBookings() {
-  const container = document.getElementById('pending-bookings-container');
-  if (!container) return;
-  const pending = bookingsData.filter(b => b.status === 'Pending');
-  if (pending.length === 0) {
-    container.innerHTML = `<div class="alert alert-success">🎉 No pending requests!</div>`;
-    return;
-  }
-  container.innerHTML = pending.map(b => {
-    const facility = facilitiesData.find(f => f.id === b.facility_id);
-    return `
+  `).join(""))}async function addFacility(e){e.preventDefault();let t={name:document.getElementById("fac-name").value.trim(),description:document.getElementById("fac-desc").value.trim(),capacity:parseInt(document.getElementById("fac-capacity").value)||0,fee:parseFloat(document.getElementById("fac-fee").value)||0,is_active:!0,society_name:currentSociety,created_at:new Date().toISOString()};await _supabase.from("facilities").insert([t]),bootstrap.Modal.getInstance(document.getElementById("addFacilityModal")).hide(),fetchFacilityData()}async function deleteFacility(e){confirm("Delete facility?")&&(await _supabase.from("facilities").delete().eq("id",e),fetchFacilityData())}function renderPendingBookings(){let e=document.getElementById("pending-bookings-container");if(!e)return;let t=bookingsData.filter(e=>"Pending"===e.status);if(0===t.length){e.innerHTML=`<div class="alert alert-success">🎉 No pending requests!</div>`;return}e.innerHTML=t.map(e=>{let t=facilitiesData.find(t=>t.id===e.facility_id);return`
       <div class="card border-0 shadow-sm rounded-4 p-3 mb-2">
         <div class="row align-items-center">
-          <div class="col-md-4"><strong>${facility?.name || 'Unknown'}</strong> <span class="badge bg-warning text-dark">Pending</span></div>
-          <div class="col-md-3">${b.flat_no} | ${b.booking_date}</div>
-          <div class="col-md-3">${b.start_time} - ${b.end_time}</div>
+          <div class="col-md-4"><strong>${t?.name||"Unknown"}</strong> <span class="badge bg-warning text-dark">Pending</span></div>
+          <div class="col-md-3">${e.flat_no} | ${e.booking_date}</div>
+          <div class="col-md-3">${e.start_time} - ${e.end_time}</div>
           <div class="col-md-2 text-end">
-            <button class="btn btn-sm btn-success me-1" onclick="approveBooking(${b.id})"><i class="fa-solid fa-check"></i></button>
-            <button class="btn btn-sm btn-danger" onclick="rejectBooking(${b.id})"><i class="fa-solid fa-times"></i></button>
+            <button class="btn btn-sm btn-success me-1" onclick="approveBooking(${e.id})"><i class="fa-solid fa-check"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="rejectBooking(${e.id})"><i class="fa-solid fa-times"></i></button>
           </div>
         </div>
       </div>
-    `;
-  }).join('');
-}
-
-async function approveBooking(id) {
-  await _supabase.from('facility_bookings').update({ status: 'Approved', approved_by: currentUser, approved_at: new Date().toISOString() }).eq('id', id);
-  fetchFacilityData();
-}
-
-async function rejectBooking(id) {
-  await _supabase.from('facility_bookings').update({ status: 'Rejected', approved_by: currentUser, approved_at: new Date().toISOString() }).eq('id', id);
-  fetchFacilityData();
-}
-
-function renderAllBookings() {
-  const container = document.getElementById('all-bookings-container');
-  if (!container) return;
-  container.innerHTML = bookingsData.map(b => {
-    const facility = facilitiesData.find(f => f.id === b.facility_id);
-    const statusColor = b.status === 'Pending' ? 'warning text-dark' : (b.status === 'Approved' ? 'success' : 'danger');
-    return `
+    `}).join("")}async function approveBooking(e){await _supabase.from("facility_bookings").update({status:"Approved",approved_by:currentUser,approved_at:new Date().toISOString()}).eq("id",e),fetchFacilityData()}async function rejectBooking(e){await _supabase.from("facility_bookings").update({status:"Rejected",approved_by:currentUser,approved_at:new Date().toISOString()}).eq("id",e),fetchFacilityData()}function renderAllBookings(){let e=document.getElementById("all-bookings-container");e&&(e.innerHTML=bookingsData.map(e=>{let t=facilitiesData.find(t=>t.id===e.facility_id),a="Pending"===e.status?"warning text-dark":"Approved"===e.status?"success":"danger";return`
       <div class="card border-0 shadow-sm rounded-4 p-3 mb-2">
         <div class="row align-items-center">
-          <div class="col-md-3"><strong>${facility?.name || 'Unknown'}</strong></div>
-          <div class="col-md-2">${b.flat_no}</div>
-          <div class="col-md-2">${b.booking_date}</div>
-          <div class="col-md-2"><span class="badge bg-${statusColor}">${b.status}</span></div>
-          <div class="col-md-3 text-md-end"><small class="text-muted">${b.purpose}</small></div>
+          <div class="col-md-3"><strong>${t?.name||"Unknown"}</strong></div>
+          <div class="col-md-2">${e.flat_no}</div>
+          <div class="col-md-2">${e.booking_date}</div>
+          <div class="col-md-2"><span class="badge bg-${a}">${e.status}</span></div>
+          <div class="col-md-3 text-md-end"><small class="text-muted">${e.purpose}</small></div>
         </div>
       </div>
-    `;
-  }).join('');
-}
-
-function renderMembers() {
-  const tbody = document.getElementById('members-list');
-  if (!tbody) return;
-  let grandTotalPending = 0;
-  if (!membersData || membersData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No Members Found</td></tr>`;
-    document.getElementById('dash-pending').innerText = `0`;
-    return;
-  }
-
-  const canEdit = currentRole === 'Admin' || currentRole === 'SocietyAdmin';
-  const canViewLedger = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
-
-  tbody.innerHTML = membersData.map((m, index) => {
-    const flatNo = (m.flat_no || '').trim().toUpperCase();
-    const ownerName = m.name || '-';
-    const phone = m.phone || '-';
-    const status = m.status || 'Owner';
-    const rate = Number(m.monthly_rate || 600);
-    const openingDue = Number(m.opening_due || 0);
-    
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-    const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
-    
-    const flatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === flatNo);
-    const totalDebitJV = flatJVs.filter(jv => jv.type === 'Debit').reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
-    const totalCreditJV = flatJVs.filter(jv => jv.type === 'Credit').reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
-    const netJVEffect = totalDebitJV - totalCreditJV;
-
-    let rawPending = openingDue + totalDueTillDate + totalDebitJV - totalCreditJV - flatPaid;
-    let pendingDue = Math.max(0, rawPending);
-    
-    const lateFee = calculateLateFee(pendingDue, rate);
-    pendingDue += lateFee;
-
-    grandTotalPending += pendingDue;
-    const showWhatsApp = (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && phone;
-
-    return `
+    `}).join(""))}function renderMembers(){let e=document.getElementById("members-list");if(!e)return;let t=0;if(!membersData||0===membersData.length){e.innerHTML='<tr><td colspan="9" class="text-center text-muted">No Members Found</td></tr>',document.getElementById("dash-pending").innerText="0";return}let a="Admin"===currentRole||"SocietyAdmin"===currentRole,n="Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole;e.innerHTML=membersData.map((e,s)=>{let i=(e.flat_no||"").trim().toUpperCase(),r=e.name||"-",o=e.phone||"-",l=e.status||"Owner",d=Number(e.monthly_rate||600),c=Number(e.opening_due||0),m=maintenanceData.filter(e=>(e.flat_no||"").trim().toUpperCase()===i).reduce((e,t)=>e+Number(t.amount_paid||0),0),u=journalVouchersData.filter(e=>(e.flat_no||"").trim().toUpperCase()===i),p=u.filter(e=>"Debit"===e.type).reduce((e,t)=>e+Number(t.amount||0),0),y=u.filter(e=>"Credit"===e.type).reduce((e,t)=>e+Number(t.amount||0),0),g=p-y,b=Math.max(0,c+MONTHS_IN_FY_SO_FAR*d+p-y-m),f=calculateLateFee(b,d);b+=f,t+=b;let h=("Admin"===currentRole||"SocietyAdmin"===currentRole||"Chairman"===currentRole)&&o;return`
       <tr>
-        <td><b>${flatNo}</b></td>
-        <td>${ownerName}</td>
-        <td>${phone !== '-' ? `<a href="tel:${phone}">${phone}</a>` : '-'}</td>
-        <td><span class="badge bg-success">${status}</span></td>
-        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">${rate}</td>
-        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">${openingDue}</td>
-        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">${flatPaid}</td>
-        <td class="role-restricted admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">
-          <span class="badge ${pendingDue > 0 ? 'bg-danger' : 'bg-success'}">${pendingDue}</span>
-          ${lateFee > 0 ? `<br><small class="text-warning fw-bold">(Incl. Late Fee: ₹${lateFee})</small>` : ''}
-          ${netJVEffect !== 0 ? `<br><small class="text-info fw-bold">(Net JV: ₹${netJVEffect})</small>` : ''}
+        <td><b>${i}</b></td>
+        <td>${r}</td>
+        <td>${"-"!==o?`<a href="tel:${o}">${o}</a>`:"-"}</td>
+        <td><span class="badge bg-success">${l}</span></td>
+        <td class="role-restricted admin-only chairman-only ${"Member"===currentRole?"d-none":""}">${d}</td>
+        <td class="role-restricted admin-only chairman-only ${"Member"===currentRole?"d-none":""}">${c}</td>
+        <td class="role-restricted admin-only chairman-only ${"Member"===currentRole?"d-none":""}">${m}</td>
+        <td class="role-restricted admin-only chairman-only ${"Member"===currentRole?"d-none":""}">
+          <span class="badge ${b>0?"bg-danger":"bg-success"}">${b}</span>
+          ${f>0?`<br><small class="text-warning fw-bold">(Incl. Late Fee: ₹${f})</small>`:""}
+          ${0!==g?`<br><small class="text-info fw-bold">(Net JV: ₹${g})</small>`:""}
         </td>
         <td class="no-print">
-          ${canViewLedger ? `<button class="btn btn-sm btn-outline-primary me-1" onclick="openAdminMemberLedger('${flatNo}')" title="View Ledger"><i class="fa-solid fa-file-lines"></i></button>` : ''}
-          ${canEdit ? `
-            <button class="btn btn-sm btn-outline-warning me-1" onclick="openEditMemberModal(${m.id})" title="Edit Member"><i class="fa-solid fa-pen"></i></button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          ` : ''}
-          ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. - PS Society')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>` : ''}
+          ${n?`<button class="btn btn-sm btn-outline-primary me-1" onclick="openAdminMemberLedger('${i}')" title="View Ledger"><i class="fa-solid fa-file-lines"></i></button>`:""}
+          ${a?`
+            <button class="btn btn-sm btn-outline-warning me-1" onclick="openEditMemberModal(${e.id})" title="Edit Member"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${e.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          `:""}
+          ${h?`<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${o}', 'Dear ${r}, your maintenance dues are pending. - PS Society')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>`:""}
         </td>
       </tr>
-    `;
-  }).join('');
-  document.getElementById('dash-pending').innerText = grandTotalPending;
-}
+    `}).join(""),document.getElementById("dash-pending").innerText=t}let billsData=[];async function loadBillsData(){try{let{data:e,error:t}=await _supabase.from("maintenance_bills").select("*").eq("society_name",currentSociety).order("bill_month",{ascending:!1}).order("flat_no",{ascending:!0});if(t){console.error("[Bills] Load error:",t.message),billsData=[];return}billsData=e||[]}catch(a){console.error("[Bills] Exception:",a),billsData=[]}}async function generateMonthlyBills(){let e=document.getElementById("bill-month-picker"),t=e?.value;if(!t){alert("❌ Pehle month select karo.");return}if(0===membersData.length){alert("❌ Koi member nahi mila. Pehle members add karo.");return}if(!confirm(`📢 ${membersData.length} flats ke liye ${t} ke bills generate karne hain?`))return;try{let{data:a,error:n}=await _supabase.from("maintenance_bills").select("*").eq("society_name",currentSociety);if(n){alert("❌ Failed to fetch existing bills: "+n.message);return}billsData=a||[]}catch(s){console.warn("[Bills] Fresh fetch failed, using cache:",s)}let i=currentSociety.replace(/[^a-zA-Z]/g,"").substring(0,4).toUpperCase()||"SOC",[r,o]=t.split("-"),l=`${r}-${o}-10`,d=[],c=0;for(let m of membersData){let u=(m.flat_no||"").toUpperCase();if(!u)continue;let p=billsData.find(e=>(e.flat_no||"").toUpperCase()===u&&e.bill_month===t);if(p){c++;continue}let y=Number(m.monthly_rate||600),g=`${i}-${u.replace(/[^a-zA-Z0-9]/g,"")}-${t.replace("-","")}`;d.push({society_name:currentSociety,flat_no:u,bill_no:g,bill_month:t,amount:y,due_date:l,status:"Pending",paid_amount:0,created_by:currentUser||"Admin"})}if(0===d.length){alert(`✅ Sabhi bills already generated hain ${t} ke liye.
 
-// ============================================================
-// FEATURE 1: MAINTENANCE BILL AUTO-GENERATION
-// ============================================================
+(Skipped: ${c})`);return}let{error:b}=await _supabase.from("maintenance_bills").upsert(d,{onConflict:"society_name,flat_no,bill_month",ignoreDuplicates:!0});if(b){alert("❌ Bill generation failed: "+b.message),console.error("[Bills] Insert error:",b);return}let{data:f}=await _supabase.from("maintenance_bills").select("id").eq("society_name",currentSociety).eq("bill_month",t),h=f?.length||0;alert(`✅ Bills ready!
 
-// Global cache
-let billsData = [];
-
-// ═══════════════════════════════════════════════════════
-// 1. Load Bills from DB
-// ═══════════════════════════════════════════════════════
-async function loadBillsData() {
-  try {
-    const { data, error } = await _supabase
-      .from('maintenance_bills')
-      .select('*')
-      .eq('society_name', currentSociety)
-      .order('bill_month', { ascending: false })
-      .order('flat_no', { ascending: true });
-
-    if (error) {
-      console.error('[Bills] Load error:', error.message);
-      billsData = [];
-      return;
-    }
-    billsData = data || [];
-  } catch (e) {
-    console.error('[Bills] Exception:', e);
-    billsData = [];
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// 2. Generate Bills for a Month
-// ═══════════════════════════════════════════════════════
-async function generateMonthlyBills() {
-  const picker = document.getElementById('bill-month-picker');
-  const selectedMonth = picker?.value;
-
-  if (!selectedMonth) {
-    alert('❌ Pehle month select karo.');
-    return;
-  }
-
-  if (membersData.length === 0) {
-    alert('❌ Koi member nahi mila. Pehle members add karo.');
-    return;
-  }
-
-  if (!confirm(`📢 ${membersData.length} flats ke liye ${selectedMonth} ke bills generate karne hain?`)) return;
-
-  // ✅ Step 1: FRESH data load करो DB से (stale cache issue fix)
-  try {
-    const { data: freshBills, error: fetchErr } = await _supabase
-      .from('maintenance_bills')
-      .select('*')
-      .eq('society_name', currentSociety);
-
-    if (fetchErr) {
-      alert('❌ Failed to fetch existing bills: ' + fetchErr.message);
-      return;
-    }
-
-    billsData = freshBills || [];
-  } catch (e) {
-    console.warn('[Bills] Fresh fetch failed, using cache:', e);
-  }
-
-  // Bill no prefix
-  const societyPrefix = currentSociety
-    .replace(/[^a-zA-Z]/g, '')
-    .substring(0, 4)
-    .toUpperCase() || 'SOC';
-
-  // Due date = 10th of selected month
-  const [year, month] = selectedMonth.split('-');
-  const dueDate = `${year}-${month}-10`;
-
-  const billsToInsert = [];
-  let skippedCount = 0;
-
-  for (const m of membersData) {
-    const flatNo = (m.flat_no || '').toUpperCase();
-    if (!flatNo) continue;
-
-    // Check if bill already exists for this flat+month
-    const existing = billsData.find(b =>
-      (b.flat_no || '').toUpperCase() === flatNo &&
-      b.bill_month === selectedMonth
-    );
-
-    if (existing) {
-      skippedCount++;
-      continue;
-    }
-
-    const rate = Number(m.monthly_rate || 600);
-    const billNo = `${societyPrefix}-${flatNo.replace(/[^a-zA-Z0-9]/g, '')}-${selectedMonth.replace('-', '')}`;
-
-    billsToInsert.push({
-      society_name: currentSociety,
-      flat_no: flatNo,
-      bill_no: billNo,
-      bill_month: selectedMonth,
-      amount: rate,
-      due_date: dueDate,
-      status: 'Pending',
-      paid_amount: 0,
-      created_by: currentUser || 'Admin'
-    });
-  }
-
-  if (billsToInsert.length === 0) {
-    alert(`✅ Sabhi bills already generated hain ${selectedMonth} ke liye.\n\n(Skipped: ${skippedCount})`);
-    return;
-  }
-
-  // ✅ Step 2: UPSERT with ignoreDuplicates — DB level protection
-  const { error } = await _supabase
-    .from('maintenance_bills')
-    .upsert(billsToInsert, {
-      onConflict: 'society_name,flat_no,bill_month',
-      ignoreDuplicates: true
-    });
-
-  if (error) {
-    alert('❌ Bill generation failed: ' + error.message);
-    console.error('[Bills] Insert error:', error);
-    return;
-  }
-
-  // ✅ Step 3: Count actual new bills
-  const { data: finalBills } = await _supabase
-    .from('maintenance_bills')
-    .select('id')
-    .eq('society_name', currentSociety)
-    .eq('bill_month', selectedMonth);
-
-  const finalCount = finalBills?.length || 0;
-
-  alert(
-    `✅ Bills ready!\n\n` +
-    `📊 Total bills for ${selectedMonth}: ${finalCount}\n` +
-    `➕ New bills created: ${billsToInsert.length}\n` +
-    `⏭️ Skipped (already existed): ${skippedCount}`
-  );
-
-  // Reload fresh
-  await loadBillsData();
-  renderBillsTable();
-}
-
-
-// ═══════════════════════════════════════════════════════
-// 3. Render Bills Table
-// ═══════════════════════════════════════════════════════
-function renderBillsTable() {
-  const tbody = document.getElementById('bills-list');
-  if (!tbody) return;
-
-  const picker = document.getElementById('bill-month-picker');
-  const selectedMonth = picker?.value;
-
-  // Auto-select current month if not set
-  if (!selectedMonth) {
-    const now = new Date();
-    const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    if (picker) picker.value = defaultMonth;
-    renderBillsTable();
-    return;
-  }
-
-  const monthBills = billsData.filter(b => b.bill_month === selectedMonth);
-
-  // Stats
-  let totalAmount = 0, totalPaid = 0, totalPending = 0;
-  monthBills.forEach(b => {
-    totalAmount += Number(b.amount || 0);
-    if (b.status === 'Paid') totalPaid += Number(b.paid_amount || b.amount || 0);
-    else totalPending += Number(b.amount || 0);
-  });
-
-  const statTotal = document.getElementById('bill-stat-total');
-  const statAmount = document.getElementById('bill-stat-amount');
-  const statPaid = document.getElementById('bill-stat-paid');
-  const statPending = document.getElementById('bill-stat-pending');
-
-  if (statTotal) statTotal.innerText = monthBills.length;
-  if (statAmount) statAmount.innerText = '₹' + totalAmount;
-  if (statPaid) statPaid.innerText = '₹' + totalPaid;
-  if (statPending) statPending.innerText = '₹' + totalPending;
-
-  if (monthBills.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No bills for ${selectedMonth}. Click "Generate Bills" to create.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = monthBills.map(b => {
-    const statusColor = b.status === 'Paid' ? 'bg-success'
-                     : b.status === 'Partial' ? 'bg-warning text-dark'
-                     : 'bg-danger';
-
-    return `
+📊 Total bills for ${t}: ${h}
+➕ New bills created: ${d.length}
+⏭️ Skipped (already existed): ${c}`),await loadBillsData(),renderBillsTable()}function renderBillsTable(){let e=document.getElementById("bills-list");if(!e)return;let t=document.getElementById("bill-month-picker"),a=t?.value;if(!a){let n=new Date,s=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;t&&(t.value=s),renderBillsTable();return}let i=billsData.filter(e=>e.bill_month===a),r=0,o=0,l=0;i.forEach(e=>{r+=Number(e.amount||0),"Paid"===e.status?o+=Number(e.paid_amount||e.amount||0):l+=Number(e.amount||0)});let d=document.getElementById("bill-stat-total"),c=document.getElementById("bill-stat-amount"),m=document.getElementById("bill-stat-paid"),u=document.getElementById("bill-stat-pending");if(d&&(d.innerText=i.length),c&&(c.innerText="₹"+r),m&&(m.innerText="₹"+o),u&&(u.innerText="₹"+l),0===i.length){e.innerHTML=`<tr><td colspan="7" class="text-center text-muted">No bills for ${a}. Click "Generate Bills" to create.</td></tr>`;return}e.innerHTML=i.map(e=>{let t="Paid"===e.status?"bg-success":"Partial"===e.status?"bg-warning text-dark":"bg-danger";return`
       <tr>
-        <td><b>${b.bill_no}</b></td>
-        <td><b>${b.flat_no}</b></td>
-        <td><span class="badge bg-secondary">${b.bill_month}</span></td>
-        <td class="fw-bold">${b.amount}</td>
-        <td>${b.due_date}</td>
-        <td><span class="badge ${statusColor}">${b.status}</span></td>
+        <td><b>${e.bill_no}</b></td>
+        <td><b>${e.flat_no}</b></td>
+        <td><span class="badge bg-secondary">${e.bill_month}</span></td>
+        <td class="fw-bold">${e.amount}</td>
+        <td>${e.due_date}</td>
+        <td><span class="badge ${t}">${e.status}</span></td>
         <td class="no-print">
-          <button class="btn btn-sm btn-outline-primary me-1" onclick="generateBillPDF(${b.id})" title="Download PDF">
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="generateBillPDF(${e.id})" title="Download PDF">
             <i class="fa-solid fa-file-pdf"></i>
           </button>
-          <button class="btn btn-sm btn-whatsapp me-1" onclick="sendBillWhatsApp(${b.id})" title="Send WhatsApp">
+          <button class="btn btn-sm btn-whatsapp me-1" onclick="sendBillWhatsApp(${e.id})" title="Send WhatsApp">
             <i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i>
           </button>
-          ${b.status !== 'Paid' ? `
-            <button class="btn btn-sm btn-success" onclick="markBillPaid(${b.id})" title="Mark as Paid">
+          ${"Paid"!==e.status?`
+            <button class="btn btn-sm btn-success" onclick="markBillPaid(${e.id})" title="Mark as Paid">
               <i class="fa-solid fa-check"></i>
             </button>
-          ` : ''}
+          `:""}
         </td>
       </tr>
-    `;
-  }).join('');
-}
+    `}).join("")}function generateBillPDF(e){if(void 0===window.jspdf){alert("PDF library not loaded");return}let t=billsData.find(t=>t.id===e);if(!t)return;let{jsPDF:a}=window.jspdf,n=new a("p","mm","a4"),s=societySettings.society_name||currentSociety,i=societySettings.bank_acc_name||s,r=societySettings.bank_acc_no||"-",o=societySettings.bank_ifsc||"-",l=societySettings.bank_upi_id||"-";n.setFontSize(18),n.setFont(void 0,"bold"),n.text(s,105,18,{align:"center"}),n.setFontSize(11),n.setFont(void 0,"normal"),n.setTextColor(100),n.text("MAINTENANCE BILL",105,25,{align:"center"}),n.setTextColor(0),n.setDrawColor(200),n.line(14,30,196,30),n.setFontSize(10),n.text(`Bill No: ${t.bill_no}`,14,38),n.text(`Bill Date: ${new Date().toLocaleDateString("en-IN")}`,14,44),n.text(`Due Date: ${t.due_date}`,14,50),n.text(`Flat No: ${t.flat_no}`,130,38),n.text(`Billing Month: ${t.bill_month}`,130,44),n.text(`Status: ${t.status}`,130,50),n.autoTable({startY:58,head:[["Particulars","Amount (₹)"]],body:[[`Monthly Maintenance - ${t.bill_month}`,Number(t.amount).toFixed(2)],["",""],[{content:"TOTAL AMOUNT",styles:{fontStyle:"bold"}},{content:Number(t.amount).toFixed(2),styles:{fontStyle:"bold"}}]],theme:"grid",styles:{fontSize:10},headStyles:{fillColor:[22,163,74]}});let d=n.lastAutoTable.finalY+10;n.setFontSize(11),n.setFont(void 0,"bold"),n.text("Payment Options:",14,d),n.setFontSize(9),n.setFont(void 0,"normal"),n.text(`🏦 Bank: ${i}`,14,d+7),n.text(`Account No: ${r}`,14,d+13),n.text(`IFSC: ${o}`,14,d+19),n.text(`📱 UPI: ${l}`,14,d+25),n.text(`Amount: ₹${Number(t.amount).toFixed(2)}`,130,d+7),n.text(`Ref: ${t.bill_no}`,130,d+13),n.setFontSize(9),n.setTextColor(100),n.text("This is a computer-generated bill. No signature required.",105,280,{align:"center"}),n.save(`Bill_${t.flat_no}_${t.bill_month}.pdf`)}function sendBillWhatsApp(e){let t=billsData.find(t=>t.id===e);if(!t)return;let a=membersData.find(e=>(e.flat_no||"").toUpperCase()===t.flat_no.toUpperCase());if(!a||!a.phone){alert("❌ Member ka phone number nahi mila.");return}let n=societySettings.society_name||currentSociety,s=societySettings.bank_upi_id||"",i=societySettings.bank_acc_name||n,r=`Dear ${a.name||"Member"} (Flat ${t.flat_no}),
 
-// ═══════════════════════════════════════════════════════
-// 4. Generate Single Bill PDF
-// ═══════════════════════════════════════════════════════
-function generateBillPDF(billId) {
-  if (typeof window.jspdf === 'undefined') {
-    alert('PDF library not loaded');
-    return;
-  }
+📄 *${n} — Maintenance Bill*
 
-  const bill = billsData.find(b => b.id === billId);
-  if (!bill) return;
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF('p', 'mm', 'a4');
-
-  const societyName = societySettings.society_name || currentSociety;
-  const accName = societySettings.bank_acc_name || societyName;
-  const accNo = societySettings.bank_acc_no || '-';
-  const ifsc = societySettings.bank_ifsc || '-';
-  const upiId = societySettings.bank_upi_id || '-';
-
-  // Header
-  doc.setFontSize(18);
-  doc.setFont(undefined, 'bold');
-  doc.text(societyName, 105, 18, { align: 'center' });
-
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'normal');
-  doc.setTextColor(100);
-  doc.text('MAINTENANCE BILL', 105, 25, { align: 'center' });
-  doc.setTextColor(0);
-
-  doc.setDrawColor(200);
-  doc.line(14, 30, 196, 30);
-
-  // Bill details
-  doc.setFontSize(10);
-  doc.text(`Bill No: ${bill.bill_no}`, 14, 38);
-  doc.text(`Bill Date: ${new Date().toLocaleDateString('en-IN')}`, 14, 44);
-  doc.text(`Due Date: ${bill.due_date}`, 14, 50);
-
-  doc.text(`Flat No: ${bill.flat_no}`, 130, 38);
-  doc.text(`Billing Month: ${bill.bill_month}`, 130, 44);
-  doc.text(`Status: ${bill.status}`, 130, 50);
-
-  // Table
-  doc.autoTable({
-    startY: 58,
-    head: [['Particulars', 'Amount (₹)']],
-    body: [
-      [`Monthly Maintenance - ${bill.bill_month}`, Number(bill.amount).toFixed(2)],
-      ['', ''],
-      [{ content: 'TOTAL AMOUNT', styles: { fontStyle: 'bold' } },
-       { content: Number(bill.amount).toFixed(2), styles: { fontStyle: 'bold' } }]
-    ],
-    theme: 'grid',
-    styles: { fontSize: 10 },
-    headStyles: { fillColor: [22, 163, 74] }
-  });
-
-  // Payment Info
-  const tableEnd = doc.lastAutoTable.finalY + 10;
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'bold');
-  doc.text('Payment Options:', 14, tableEnd);
-
-  doc.setFontSize(9);
-  doc.setFont(undefined, 'normal');
-  doc.text(`🏦 Bank: ${accName}`, 14, tableEnd + 7);
-  doc.text(`Account No: ${accNo}`, 14, tableEnd + 13);
-  doc.text(`IFSC: ${ifsc}`, 14, tableEnd + 19);
-  doc.text(`📱 UPI: ${upiId}`, 14, tableEnd + 25);
-
-  // UPI QR info
-  doc.text(`Amount: ₹${Number(bill.amount).toFixed(2)}`, 130, tableEnd + 7);
-  doc.text(`Ref: ${bill.bill_no}`, 130, tableEnd + 13);
-
-  // Footer
-  doc.setFontSize(9);
-  doc.setTextColor(100);
-  doc.text('This is a computer-generated bill. No signature required.', 105, 280, { align: 'center' });
-
-  doc.save(`Bill_${bill.flat_no}_${bill.bill_month}.pdf`);
-}
-
-// ═══════════════════════════════════════════════════════
-// 5. Send Single Bill via WhatsApp
-// ═══════════════════════════════════════════════════════
-function sendBillWhatsApp(billId) {
-  const bill = billsData.find(b => b.id === billId);
-  if (!bill) return;
-
-  const member = membersData.find(m => (m.flat_no || '').toUpperCase() === bill.flat_no.toUpperCase());
-  if (!member || !member.phone) {
-    alert('❌ Member ka phone number nahi mila.');
-    return;
-  }
-
-  const societyName = societySettings.society_name || currentSociety;
-  const upiId = societySettings.bank_upi_id || '';
-  const accName = societySettings.bank_acc_name || societyName;
-
-  const message =
-`Dear ${member.name || 'Member'} (Flat ${bill.flat_no}),
-
-📄 *${societyName} — Maintenance Bill*
-
-Bill No: ${bill.bill_no}
-Month: ${bill.bill_month}
-Amount: ₹${bill.amount}
-Due Date: ${bill.due_date}
+Bill No: ${t.bill_no}
+Month: ${t.bill_month}
+Amount: ₹${t.amount}
+Due Date: ${t.due_date}
 
 💳 *Pay via UPI:*
-UPI ID: ${upiId}
-Name: ${accName}
-Amount: ₹${bill.amount}
+UPI ID: ${s}
+Name: ${i}
+Amount: ₹${t.amount}
 
 Or scan the society QR code.
 
 Please clear your dues before the due date.
 
-- ${societyName}`;
+- ${n}`;sendWhatsAppReminder(a.phone,r)}function sendBulkBillsWhatsApp(){let e=document.getElementById("bill-month-picker"),t=e?.value;if(!t){alert("❌ Pehle month select karo.");return}let a=billsData.filter(e=>e.bill_month===t&&"Paid"!==e.status);if(0===a.length){alert(`✅ Koi pending bill nahi ${t} ke liye.`);return}let n=a.map(e=>{let t=membersData.find(t=>(t.flat_no||"").toUpperCase()===e.flat_no.toUpperCase());return t&&t.phone?{bill:e,member:t}:null}).filter(Boolean);if(0===n.length){alert("❌ Koi bhi pending bill member ke paas phone number nahi hai.");return}let s=`📢 ${n.length} members ko bill bhejne hain?`+(n.length>5?`
 
-  sendWhatsAppReminder(member.phone, message);
-}
+⚠️ Reminders batch mein bhejne padenge. Har batch ke baad "Next Batch" button dabao.`:"");if(!confirm(s))return;let i=societySettings.society_name||currentSociety,r=societySettings.bank_upi_id||"",o=societySettings.bank_acc_name||i,l=n.map(({bill:e,member:t})=>{let a=`Dear ${t.name||"Member"} (Flat ${e.flat_no}),
 
-// ═══════════════════════════════════════════════════════
-// 6. Bulk WhatsApp — All Pending Bills
-// ═══════════════════════════════════════════════════════
-function sendBulkBillsWhatsApp() {
-  const picker = document.getElementById('bill-month-picker');
-  const selectedMonth = picker?.value;
+📄 *${i} — Maintenance Bill*
 
-  if (!selectedMonth) {
-    alert('❌ Pehle month select karo.');
-    return;
-  }
+Bill No: ${e.bill_no}
+Month: ${e.bill_month}
+Amount: ₹${e.amount}
+Due Date: ${e.due_date}
 
-  const pendingBills = billsData.filter(b =>
-    b.bill_month === selectedMonth && b.status !== 'Paid'
-  );
-
-  if (pendingBills.length === 0) {
-    alert(`✅ Koi pending bill nahi ${selectedMonth} ke liye.`);
-    return;
-  }
-
-  // Attach member info
-  const billsWithPhone = pendingBills
-    .map(b => {
-      const m = membersData.find(x => (x.flat_no || '').toUpperCase() === b.flat_no.toUpperCase());
-      return m && m.phone ? { bill: b, member: m } : null;
-    })
-    .filter(Boolean);
-
-  if (billsWithPhone.length === 0) {
-    alert('❌ Koi bhi pending bill member ke paas phone number nahi hai.');
-    return;
-  }
-
-  const WARN_THRESHOLD = 5;
-  const message = `📢 ${billsWithPhone.length} members ko bill bhejne hain?` +
-    (billsWithPhone.length > WARN_THRESHOLD ? `\n\n⚠️ Reminders batch mein bhejne padenge. Har batch ke baad "Next Batch" button dabao.` : '');
-
-  if (!confirm(message)) return;
-
-  const societyName = societySettings.society_name || currentSociety;
-  const upiId = societySettings.bank_upi_id || '';
-  const accName = societySettings.bank_acc_name || societyName;
-
-  const reminderList = billsWithPhone.map(({ bill, member }) => {
-    const msg =
-`Dear ${member.name || 'Member'} (Flat ${bill.flat_no}),
-
-📄 *${societyName} — Maintenance Bill*
-
-Bill No: ${bill.bill_no}
-Month: ${bill.bill_month}
-Amount: ₹${bill.amount}
-Due Date: ${bill.due_date}
-
-💳 UPI: ${upiId}
-Name: ${accName}
+💳 UPI: ${r}
+Name: ${o}
 
 Please clear your dues before the due date.
 
-- ${societyName}`;
-    return { phone: member.phone, message: msg };
-  });
-
-  sendBillBatch(reminderList, 0, WARN_THRESHOLD);
-}
-
-function sendBillBatch(list, startIndex, batchSize) {
-  const batch = list.slice(startIndex, startIndex + batchSize);
-  const remaining = list.length - (startIndex + batchSize);
-
-  batch.forEach((item, i) => {
-    setTimeout(() => {
-      const cleanPhone = item.phone.replace(/[^0-9]/g, '');
-      const finalPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
-      window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(item.message)}`, '_blank');
-    }, i * 800);
-  });
-
-  if (remaining > 0) {
-    const oldBtn = document.getElementById('nextBillBatchBtn');
-    if (oldBtn) oldBtn.remove();
-
-    const btn = document.createElement('button');
-    btn.id = 'nextBillBatchBtn';
-    btn.style.cssText = `
+- ${i}`;return{phone:t.phone,message:a}});sendBillBatch(l,0,5)}function sendBillBatch(e,t,a){let n=e.slice(t,t+a),s=e.length-(t+a);if(n.forEach((e,t)=>{setTimeout(()=>{let t=e.phone.replace(/[^0-9]/g,""),a=10===t.length?"91"+t:t;window.open(`https://wa.me/${a}?text=${encodeURIComponent(e.message)}`,"_blank")},800*t)}),s>0){let i=document.getElementById("nextBillBatchBtn");i&&i.remove();let r=document.createElement("button");r.id="nextBillBatchBtn",r.style.cssText=`
       position: fixed; bottom: 100px; right: 25px; z-index: 99999;
       background: linear-gradient(135deg, #25d366, #1da851); color: white;
       border: none; padding: 14px 26px; font-size: 15px;
       font-weight: 700; border-radius: 50px; cursor: pointer;
       box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5);
-    `;
-    btn.innerHTML = `📤 Next Bill Batch (${remaining} left) →`;
-    btn.onclick = () => {
-      btn.remove();
-      sendBillBatch(list, startIndex + batchSize, batchSize);
-    };
-    document.body.appendChild(btn);
+    `,r.innerHTML=`📤 Next Bill Batch (${s} left) →`,r.onclick=()=>{r.remove(),sendBillBatch(e,t+a,a)},document.body.appendChild(r),alert(`✅ Batch-1 bhej diya (${n.length}). Ab "Next Bill Batch" button dabao.`)}else{let o=document.getElementById("nextBillBatchBtn");o&&o.remove(),alert(`✅ All ${e.length} bills sent successfully!`)}}async function markBillPaid(e){let t=billsData.find(t=>t.id===e);if(!t||!confirm(`Bill ${t.bill_no} ko PAID mark karna hai?
 
-    alert(`✅ Batch-1 bhej diya (${batch.length}). Ab "Next Bill Batch" button dabao.`);
-  } else {
-    const oldBtn = document.getElementById('nextBillBatchBtn');
-    if (oldBtn) oldBtn.remove();
-    alert(`✅ All ${list.length} bills sent successfully!`);
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// 7. Mark Bill as Paid (Link to Payment)
-// ═══════════════════════════════════════════════════════
-async function markBillPaid(billId) {
-  const bill = billsData.find(b => b.id === billId);
-  if (!bill) return;
-
-  if (!confirm(`Bill ${bill.bill_no} ko PAID mark karna hai?\n\nAmount: ₹${bill.amount}\nFlat: ${bill.flat_no}`)) return;
-
-  const today = new Date().toISOString().split('T')[0];
-
-  const { error } = await _supabase
-    .from('maintenance_bills')
-    .update({
-      status: 'Paid',
-      paid_amount: bill.amount,
-      paid_date: today
-    })
-    .eq('id', billId);
-
-  if (error) {
-    alert('❌ Error: ' + error.message);
-    return;
-  }
-
-  // Also insert payment record
-  const { error: payErr } = await _supabase
-    .from('maintenance_payments')
-    .insert([{
-      receipt_no: `BILL-${bill.bill_no}`,
-      flat_no: bill.flat_no,
-      payment_date: today,
-      amount_paid: Number(bill.amount),
-      mode_of_payment: 'Bill Payment',
-      month_accounted: bill.bill_month,
-      remarks: `Auto-recorded from bill ${bill.bill_no}`,
-      society_name: currentSociety
-    }]);
-
-  if (payErr) {
-    console.warn('[Bills] Payment record failed:', payErr.message);
-  }
-
-  await logActivity('BILL_PAID', `Bill ${bill.bill_no} (₹${bill.amount}) marked paid for Flat ${bill.flat_no}`);
-
-  alert('✅ Bill marked as paid & payment recorded!');
-  await loadBillsData();
-  renderBillsTable();
-  if (typeof fetchSupabaseData === 'function') fetchSupabaseData();
-}
-
-// ═══════════════════════════════════════════════════════
-// 8. Export Bills to Excel
-// ═══════════════════════════════════════════════════════
-function exportBillsExcel() {
-  const picker = document.getElementById('bill-month-picker');
-  const selectedMonth = picker?.value || 'All';
-
-  const monthBills = selectedMonth === 'All' ? billsData : billsData.filter(b => b.bill_month === selectedMonth);
-
-  if (monthBills.length === 0) {
-    alert('Koi bill nahi hai export karne ke liye.');
-    return;
-  }
-
-  const data = monthBills.map(b => ({
-    'Bill No': b.bill_no,
-    'Flat No': b.flat_no,
-    'Month': b.bill_month,
-    'Amount (₹)': b.amount,
-    'Due Date': b.due_date,
-    'Status': b.status,
-    'Paid Amount': b.paid_amount,
-    'Paid Date': b.paid_date || ''
-  }));
-
-  const ws = XLSX.utils.json_to_sheet(data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Bills');
-  XLSX.writeFile(wb, `Bills_${currentSociety}_${selectedMonth}.xlsx`);
-}
-
-// ═══════════════════════════════════════════════════════
-// 9. Month Picker Change Handler
-// ═══════════════════════════════════════════════════════
-document.addEventListener('change', function(e) {
-  if (e.target && e.target.id === 'bill-month-picker') {
-    renderBillsTable();
-  }
-});
-
-// ═══════════════════════════════════════════════════════
-// 10. Hook into switchTab — auto-load bills when tab opens
-// ═══════════════════════════════════════════════════════
-function initBillsTab() {
-  // Set default month
-  const picker = document.getElementById('bill-month-picker');
-  if (picker && !picker.value) {
-    const now = new Date();
-    picker.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  }
-
-  loadBillsData().then(() => {
-    renderBillsTable();
-  });
-}
-
-function renderMaintenance() {
-  const tbody = document.getElementById('maintenance-list');
-  if (!tbody) return;
-  let total = 0;
-  const filteredData = currentRole === 'Member' ? maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === currentUser.toUpperCase()) : maintenanceData;
-  if (!filteredData || filteredData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No Receipts Found</td></tr>`;
-    document.getElementById('dash-collected').innerText = `0`;
-    return;
-  }
-  tbody.innerHTML = filteredData.map((r) => {
-    const amt = Number(r.amount_paid || 0);
-    total += amt;
-    const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === (r.flat_no || '').trim().toUpperCase());
-    const memberPhone = member?.phone || '';
-    const showWhatsApp = (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone;
-    return `
+Amount: ₹${t.amount}
+Flat: ${t.flat_no}`))return;let a=new Date().toISOString().split("T")[0],{error:n}=await _supabase.from("maintenance_bills").update({status:"Paid",paid_amount:t.amount,paid_date:a}).eq("id",e);if(n){alert("❌ Error: "+n.message);return}let{error:s}=await _supabase.from("maintenance_payments").insert([{receipt_no:`BILL-${t.bill_no}`,flat_no:t.flat_no,payment_date:a,amount_paid:Number(t.amount),mode_of_payment:"Bill Payment",month_accounted:t.bill_month,remarks:`Auto-recorded from bill ${t.bill_no}`,society_name:currentSociety}]);s&&console.warn("[Bills] Payment record failed:",s.message),await logActivity("BILL_PAID",`Bill ${t.bill_no} (₹${t.amount}) marked paid for Flat ${t.flat_no}`),alert("✅ Bill marked as paid & payment recorded!"),await loadBillsData(),renderBillsTable(),fetchSupabaseData()}function exportBillsExcel(){let e=document.getElementById("bill-month-picker"),t=e?.value||"All",a="All"===t?billsData:billsData.filter(e=>e.bill_month===t);if(0===a.length){alert("Koi bill nahi hai export karne ke liye.");return}let n=a.map(e=>({"Bill No":e.bill_no,"Flat No":e.flat_no,Month:e.bill_month,"Amount (₹)":e.amount,"Due Date":e.due_date,Status:e.status,"Paid Amount":e.paid_amount,"Paid Date":e.paid_date||""})),s=XLSX.utils.json_to_sheet(n),i=XLSX.utils.book_new();XLSX.utils.book_append_sheet(i,s,"Bills"),XLSX.writeFile(i,`Bills_${currentSociety}_${t}.xlsx`)}function initBillsTab(){let e=document.getElementById("bill-month-picker");if(e&&!e.value){let t=new Date;e.value=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}`}loadBillsData().then(()=>{renderBillsTable()})}function renderMaintenance(){let e=document.getElementById("maintenance-list");if(!e)return;let t=0,a="Member"===currentRole?maintenanceData.filter(e=>(e.flat_no||"").trim().toUpperCase()===currentUser.toUpperCase()):maintenanceData;if(!a||0===a.length){e.innerHTML='<tr><td colspan="7" class="text-center text-muted">No Receipts Found</td></tr>',document.getElementById("dash-collected").innerText="0";return}e.innerHTML=a.map(e=>{let a=Number(e.amount_paid||0);t+=a;let n=membersData.find(t=>(t.flat_no||"").trim().toUpperCase()===(e.flat_no||"").trim().toUpperCase()),s=n?.phone||"",i=("Admin"===currentRole||"SocietyAdmin"===currentRole||"Chairman"===currentRole)&&s;return`
       <tr>
-        <td>${r.receipt_no || '-'}</td>
-        <td><b>${r.flat_no || '-'}</b></td>
-        <td>${r.payment_date || '-'}</td>
-        <td><span class="badge bg-secondary">${r.month_accounted || "-"}</span></td>
-        <td>${amt}</td>
-        <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
+        <td>${e.receipt_no||"-"}</td>
+        <td><b>${e.flat_no||"-"}</b></td>
+        <td>${e.payment_date||"-"}</td>
+        <td><span class="badge bg-secondary">${e.month_accounted||"-"}</span></td>
+        <td>${a}</td>
+        <td><span class="badge bg-info text-dark">${e.mode_of_payment||"UPI"}</span></td>
         <td class="no-print">
-          <button class="btn btn-sm btn-outline-primary" onclick="generateTaxInvoicePDF(${r.id})" title="Tax Invoice PDF"><i class="fa-solid fa-file-pdf"></i></button>
-          ${currentRole === 'Admin' || currentRole === 'SocietyAdmin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMaintenance(${r.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
-          ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Reminder: Your maintenance for ${r.month_accounted || ''} is due. - PS Society')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>` : ''}
+          <button class="btn btn-sm btn-outline-primary" onclick="generateTaxInvoicePDF(${e.id})" title="Tax Invoice PDF"><i class="fa-solid fa-file-pdf"></i></button>
+          ${"Admin"===currentRole||"SocietyAdmin"===currentRole?`<button class="btn btn-sm btn-outline-danger" onclick="deleteMaintenance(${e.id})"><i class="fa-solid fa-trash"></i></button>`:""}
+          ${i?`<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${s}', 'Reminder: Your maintenance for ${e.month_accounted||""} is due. - PS Society')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>`:""}
         </td>
       </tr>
-    `;
-  }).join('');
-  document.getElementById('dash-collected').innerText = total;
-}
-
-function renderMyPaymentHistory() {
-  const tbody = document.getElementById('my-payment-history-list');
-  if (!tbody) return;
-  const userFlat = (currentUser || '').trim().toUpperCase();
-  const myPayments = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === userFlat);
-  
-  if (myPayments.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No payment history found.</td></tr>`;
-    return;
-  }
-  
-  tbody.innerHTML = myPayments.map(r => `
+    `}).join(""),document.getElementById("dash-collected").innerText=t}function renderMyPaymentHistory(){let e=document.getElementById("my-payment-history-list");if(!e)return;let t=(currentUser||"").trim().toUpperCase(),a=maintenanceData.filter(e=>(e.flat_no||"").trim().toUpperCase()===t);if(0===a.length){e.innerHTML='<tr><td colspan="4" class="text-center text-muted">No payment history found.</td></tr>';return}e.innerHTML=a.map(e=>`
     <tr>
-      <td><b>${r.receipt_no || '-'}</b></td>
-      <td>${r.payment_date || '-'}</td>
-      <td class="text-success fw-bold">${r.amount_paid || 0}</td>
-      <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
+      <td><b>${e.receipt_no||"-"}</b></td>
+      <td>${e.payment_date||"-"}</td>
+      <td class="text-success fw-bold">${e.amount_paid||0}</td>
+      <td><span class="badge bg-info text-dark">${e.mode_of_payment||"UPI"}</span></td>
     </tr>
-  `).join('');
-}
-
-function renderExpenses() {
-  const tbody = document.getElementById('expense-list');
-  if (!tbody) return;
-  let total = 0;
-  if (!expenseData || expenseData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No Expenses</td></tr>`;
-    document.getElementById('dash-expenses').innerText = `0`;
-    return;
-  }
-  tbody.innerHTML = expenseData.map((e) => {
-    const amt = Number(e.amount || 0);
-    total += amt;
-    return `
+  `).join("")}function renderExpenses(){let e=document.getElementById("expense-list");if(!e)return;let t=0;if(!expenseData||0===expenseData.length){e.innerHTML='<tr><td colspan="7" class="text-center text-muted">No Expenses</td></tr>',document.getElementById("dash-expenses").innerText="0";return}e.innerHTML=expenseData.map(e=>{let a=Number(e.amount||0);return t+=a,`
       <tr>
-        <td>${e.voucher_no || '-'}</td>
-        <td>${e.expense_date || '-'}</td>
-        <td>${e.category || '-'}</td>
-        <td>${e.paid_to || '-'}</td>
-        <td><span class="badge bg-secondary">${e.mode || 'Bank Transfer'}</span></td>
-        <td>${amt}</td>
+        <td>${e.voucher_no||"-"}</td>
+        <td>${e.expense_date||"-"}</td>
+        <td>${e.category||"-"}</td>
+        <td>${e.paid_to||"-"}</td>
+        <td><span class="badge bg-secondary">${e.mode||"Bank Transfer"}</span></td>
+        <td>${a}</td>
         <td class="no-print">
           <button class="btn btn-sm btn-outline-primary" onclick="generateReceiptPDF('expense', ${e.id})" title="PDF"><i class="fa-solid fa-file-pdf"></i></button>
-          ${currentRole === 'Admin' || currentRole === 'SocietyAdmin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${e.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
+          ${"Admin"===currentRole||"SocietyAdmin"===currentRole?`<button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${e.id})"><i class="fa-solid fa-trash"></i></button>`:""}
         </td>
       </tr>
-    `;
-  }).join('');
-  document.getElementById('dash-expenses').innerText = total;
-}
-
-async function renderCAAuditReport() {
-  // ─────────── FY Dates ───────────
-  const __now = new Date();
-  const __currentYear = __now.getFullYear();
-  const __currentMonth = __now.getMonth();
-  const __fyStartYear = __currentMonth >= 3 ? __currentYear : __currentYear - 1;
-  const __fyStartDate = `${__fyStartYear}-04-01`;
-  const __fyEndDate = `${__fyStartYear + 1}-03-31`;
-
-  // ─────────── OPENING (Day 1) Balances ───────────
-  const openingBank = parseFloat(openingBalance) || 0;
-
-  const totalMembersOpeningDue = membersData.reduce(
-    (sum, m) => sum + Number(m.opening_due || 0), 0
-  );
-  const totalAssets = assetData.reduce(
-    (sum, a) => sum + Number(a.cost || 0), 0
-  );
-  const totalFDs = fdData.reduce(
-    (sum, f) => sum + Number(f.principal_amount || 0), 0
-  );
-  const totalAdvanceLiability = 0;
-
-  // ✅ AUTO-COMPUTED Opening Capital — No manual entry needed!
-  const openingCapital =
-    openingBank + totalMembersOpeningDue + totalAssets + totalFDs - totalAdvanceLiability;
-
-  // ─────────── CURRENT FY INCOME ───────────
-  const fyIncome = maintenanceData
-    .filter(r => {
-      const d = (r.payment_date || '').trim();
-      return d >= __fyStartDate && d <= __fyEndDate;
-    })
-    .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-
-  // ─────────── CURRENT FY EXPENSES ───────────
-  const fyExpenses = expenseData
-    .filter(e => {
-      const d = (e.expense_date || '').trim();
-      return d >= __fyStartDate && d <= __fyEndDate;
-    })
-    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-
-  // ─────────── JOURNAL VOUCHERS ───────────
-  const fyJVs = journalVouchersData.filter(jv => {
-    const d = (jv.date || '').trim();
-    return d >= __fyStartDate && d <= __fyEndDate;
-  });
-  const jvDebitTotal = fyJVs
-    .filter(jv => jv.type === 'Debit')
-    .reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
-  const jvCreditTotal = fyJVs
-    .filter(jv => jv.type === 'Credit')
-    .reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
-
-  // ─────────── ✅ CLOSING BALANCES (auto-computed) ───────────
-  const closingBank = openingBank + fyIncome - fyExpenses;
-  const closingReceivable = totalMembersOpeningDue + jvDebitTotal - jvCreditTotal;
-
-  const totalIncome = fyIncome + jvDebitTotal;
-  const totalExpenses = fyExpenses + jvCreditTotal;
-
-  // ─────────── TRIAL BALANCE TOTALS ───────────
-  const totalDebit = closingBank + closingReceivable + totalAssets + totalFDs + totalExpenses;
-  const totalCredit = totalIncome + openingCapital + totalAdvanceLiability;
-  const variance = totalDebit - totalCredit; // Should always be 0
-
-  const currentFYSurplus = totalIncome - totalExpenses;
-
-  // ─────────── RENDER TRIAL BALANCE ───────────
-  const tbody = document.getElementById('ca-trial-balance-rows');
-  if (tbody) {
-    tbody.innerHTML = `
-      <tr><td>Closing Bank Balance</td><td>Asset</td><td class="text-success fw-bold">${closingBank.toFixed(2)}</td><td>-</td></tr>
-      <tr><td>Members Dues Receivable</td><td>Asset / Receivable</td><td class="text-success fw-bold">${closingReceivable.toFixed(2)}</td><td>-</td></tr>
-      <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${totalAssets.toFixed(2)}</td><td>-</td></tr>
-      <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${totalFDs.toFixed(2)}</td><td>-</td></tr>
-      <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${fyIncome.toFixed(2)}</td></tr>
-      ${jvDebitTotal > 0 ? `<tr><td>&nbsp;&nbsp;+ JV (Debit — Penalties / Extra Charges)</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${jvDebitTotal.toFixed(2)}</td></tr>` : ''}
-      <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${fyExpenses.toFixed(2)}</td><td>-</td></tr>
-      ${jvCreditTotal > 0 ? `<tr><td>&nbsp;&nbsp;+ JV (Credit — Waivers / Discounts)</td><td>Expense</td><td class="text-danger fw-bold">${jvCreditTotal.toFixed(2)}</td><td>-</td></tr>` : ''}
-      <tr><td>Advance Maintenance Received (Liability)</td><td>Current Liability</td><td>-</td><td class="text-warning fw-bold">${totalAdvanceLiability.toFixed(2)}</td></tr>
-      <tr><td>Opening Capital / Corpus Fund <span class="badge bg-info-subtle text-info ms-1" style="font-size: 9px;">AUTO</span></td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${openingCapital.toFixed(2)}</td></tr>
-      ${Math.abs(variance) > 0.01 ? `<tr class="table-warning"><td>⚠️ Variance (should be 0)</td><td>Check</td><td class="text-danger fw-bold">${variance > 0 ? variance.toFixed(2) : '-'}</td><td class="text-danger fw-bold">${variance < 0 ? Math.abs(variance).toFixed(2) : '-'}</td></tr>` : ''}
+    `}).join(""),document.getElementById("dash-expenses").innerText=t}async function renderCAAuditReport(){let e=new Date,t=e.getFullYear(),a=e.getMonth(),n=a>=3?t:t-1,s=`${n}-04-01`,i=`${n+1}-03-31`,r=parseFloat(openingBalance)||0,o=membersData.reduce((e,t)=>e+Number(t.opening_due||0),0),l=assetData.reduce((e,t)=>e+Number(t.cost||0),0),d=fdData.reduce((e,t)=>e+Number(t.principal_amount||0),0),c=r+o+l+d-0,m=maintenanceData.filter(e=>{let t=(e.payment_date||"").trim();return t>=s&&t<=i}).reduce((e,t)=>e+Number(t.amount_paid||0),0),u=expenseData.filter(e=>{let t=(e.expense_date||"").trim();return t>=s&&t<=i}).reduce((e,t)=>e+Number(t.amount||0),0),p=journalVouchersData.filter(e=>{let t=(e.date||"").trim();return t>=s&&t<=i}),y=p.filter(e=>"Debit"===e.type).reduce((e,t)=>e+Number(t.amount||0),0),g=p.filter(e=>"Credit"===e.type).reduce((e,t)=>e+Number(t.amount||0),0),b=r+m-u,f=o+y-g,h=m+y,v=u+g,w=b+f+l+d+v,S=h+c+0,$=w-S,k=h-v,I=document.getElementById("ca-trial-balance-rows");I&&(I.innerHTML=`
+      <tr><td>Closing Bank Balance</td><td>Asset</td><td class="text-success fw-bold">${b.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Members Dues Receivable</td><td>Asset / Receivable</td><td class="text-success fw-bold">${f.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${l.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${d.toFixed(2)}</td><td>-</td></tr>
+      <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${m.toFixed(2)}</td></tr>
+      ${y>0?`<tr><td>&nbsp;&nbsp;+ JV (Debit — Penalties / Extra Charges)</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${y.toFixed(2)}</td></tr>`:""}
+      <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${u.toFixed(2)}</td><td>-</td></tr>
+      ${g>0?`<tr><td>&nbsp;&nbsp;+ JV (Credit — Waivers / Discounts)</td><td>Expense</td><td class="text-danger fw-bold">${g.toFixed(2)}</td><td>-</td></tr>`:""}
+      <tr><td>Advance Maintenance Received (Liability)</td><td>Current Liability</td><td>-</td><td class="text-warning fw-bold">0</td></tr>
+      <tr><td>Opening Capital / Corpus Fund <span class="badge bg-info-subtle text-info ms-1" style="font-size: 9px;">AUTO</span></td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${c.toFixed(2)}</td></tr>
+      ${Math.abs($)>.01?`<tr class="table-warning"><td>⚠️ Variance (should be 0)</td><td>Check</td><td class="text-danger fw-bold">${$>0?$.toFixed(2):"-"}</td><td class="text-danger fw-bold">${$<0?Math.abs($).toFixed(2):"-"}</td></tr>`:""}
       <tr class="table-info fw-bold">
-        <td><i class="fa-solid fa-info-circle me-1"></i>Current FY ${currentFYSurplus >= 0 ? 'Surplus' : 'Deficit'} — Memo</td>
-        <td>${currentFYSurplus >= 0 ? 'Surplus' : 'Deficit'}</td>
-        <td colspan="2" class="${currentFYSurplus >= 0 ? 'text-success' : 'text-danger'} text-center">
-          ${Math.abs(currentFYSurplus).toFixed(2)} ${currentFYSurplus < 0 ? '(Deficit)' : '(Surplus)'}
+        <td><i class="fa-solid fa-info-circle me-1"></i>Current FY ${k>=0?"Surplus":"Deficit"} — Memo</td>
+        <td>${k>=0?"Surplus":"Deficit"}</td>
+        <td colspan="2" class="${k>=0?"text-success":"text-danger"} text-center">
+          ${Math.abs(k).toFixed(2)} ${k<0?"(Deficit)":"(Surplus)"}
         </td>
       </tr>
       <tr class="table-secondary fw-bold">
         <td colspan="2">GRAND TOTAL (BALANCED)</td>
-        <td class="text-success">${totalDebit.toFixed(2)}</td>
-        <td class="text-primary">${totalCredit.toFixed(2)}</td>
+        <td class="text-success">${w.toFixed(2)}</td>
+        <td class="text-primary">${S.toFixed(2)}</td>
       </tr>
-    `;
-  }
-
-  // ─────────── GST Summary (unchanged) ───────────
-  const gstTbody = document.getElementById('ca-gst-summary-rows');
-  const gstCardContainer = gstTbody?.closest('.card');
-  const isGstOn = societySettings.enable_gst === true || societySettings.enable_gst === 'true';
-
-  if (!isGstOn) {
-    if (gstCardContainer) gstCardContainer.style.display = 'none';
-  } else {
-    if (gstCardContainer) gstCardContainer.style.display = 'block';
-    try {
-      const { data: invData, error } = await _supabase
-        .from('society_invoices')
-        .select('*')
-        .eq('society_name', currentSociety);
-
-      if (!gstTbody) return;
-
-      if (error || !invData || invData.length === 0) {
-        gstTbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No GST Invoices recorded for this society yet.</td></tr>`;
-        return;
-      }
-
-      let totalBase = 0, totalCgst = 0, totalSgst = 0, totalInvoiceVal = 0;
-      invData.forEach(inv => {
-        totalBase += Number(inv.base_amount || 0);
-        totalCgst += Number(inv.cgst_amount || 0);
-        totalSgst += Number(inv.sgst_amount || 0);
-        totalInvoiceVal += Number(inv.total_amount || 0);
-      });
-
-      gstTbody.innerHTML = `
-        <tr><td><strong>Central Goods & Services Tax (CGST)</strong></td><td>9%</td><td>₹ ${totalBase.toFixed(2)}</td><td class="text-primary fw-bold">₹ ${totalCgst.toFixed(2)}</td></tr>
-        <tr><td><strong>State Goods & Services Tax (SGST)</strong></td><td>9%</td><td>₹ ${totalBase.toFixed(2)}</td><td class="text-primary fw-bold">₹ ${totalSgst.toFixed(2)}</td></tr>
-        <tr class="table-primary fw-bold"><td colspan="2">TOTAL GST OUTPUT LIABILITY (CGST + SGST)</td><td>₹ ${totalBase.toFixed(2)}</td><td class="text-success">₹ ${(totalCgst + totalSgst).toFixed(2)}</td></tr>
-        <tr class="table-secondary fw-bold"><td colspan="2">TOTAL GROSS TAXABLE TURNOVER (Incl. GST)</td><td colspan="2" class="text-dark">₹ ${totalInvoiceVal.toFixed(2)}</td></tr>
-      `;
-    } catch (err) {
-      console.error('Error loading CA GST summary:', err);
-    }
-  }
-}
-
-function renderChairmanReport() { generateMonthlySummary(); }
-
-function renderAssets() {
-  const tbody = document.getElementById('assets-list');
-  if (!tbody) return;
-  if (!assetData || assetData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No Assets</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = assetData.map((a, index) => `
+    `);let E=document.getElementById("ca-gst-summary-rows"),B=E?.closest(".card"),x=!0===societySettings.enable_gst||"true"===societySettings.enable_gst;if(x){B&&(B.style.display="block");try{let{data:M,error:D}=await _supabase.from("society_invoices").select("*").eq("society_name",currentSociety);if(!E)return;if(D||!M||0===M.length){E.innerHTML='<tr><td colspan="4" class="text-center text-muted">No GST Invoices recorded for this society yet.</td></tr>';return}let T=0,A=0,R=0,P=0;M.forEach(e=>{T+=Number(e.base_amount||0),A+=Number(e.cgst_amount||0),R+=Number(e.sgst_amount||0),P+=Number(e.total_amount||0)}),E.innerHTML=`
+        <tr><td><strong>Central Goods & Services Tax (CGST)</strong></td><td>9%</td><td>₹ ${T.toFixed(2)}</td><td class="text-primary fw-bold">₹ ${A.toFixed(2)}</td></tr>
+        <tr><td><strong>State Goods & Services Tax (SGST)</strong></td><td>9%</td><td>₹ ${T.toFixed(2)}</td><td class="text-primary fw-bold">₹ ${R.toFixed(2)}</td></tr>
+        <tr class="table-primary fw-bold"><td colspan="2">TOTAL GST OUTPUT LIABILITY (CGST + SGST)</td><td>₹ ${T.toFixed(2)}</td><td class="text-success">₹ ${(A+R).toFixed(2)}</td></tr>
+        <tr class="table-secondary fw-bold"><td colspan="2">TOTAL GROSS TAXABLE TURNOVER (Incl. GST)</td><td colspan="2" class="text-dark">₹ ${P.toFixed(2)}</td></tr>
+      `}catch(C){console.error("Error loading CA GST summary:",C)}}else B&&(B.style.display="none")}function renderChairmanReport(){generateMonthlySummary()}function renderAssets(){let e=document.getElementById("assets-list");if(e){if(!assetData||0===assetData.length){e.innerHTML='<tr><td colspan="8" class="text-center text-muted">No Assets</td></tr>';return}e.innerHTML=assetData.map((e,t)=>`
     <tr>
-      <td><b>${a.asset_code || '-'}</b></td>
-      <td>${a.name || '-'}</td>
-      <td>${a.location || 'Terrace'}</td>
-      <td>${a.quantity || 1}</td>
-      <td>${a.cost || 0}</td>
-      <td><span class="badge bg-success">${a.condition_status || 'Good'}</span></td>
-      <td>${a.details || '-'}</td>
-      <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset(${a.id || index})"><i class="fa-solid fa-trash"></i></button>
+      <td><b>${e.asset_code||"-"}</b></td>
+      <td>${e.name||"-"}</td>
+      <td>${e.location||"Terrace"}</td>
+      <td>${e.quantity||1}</td>
+      <td>${e.cost||0}</td>
+      <td><span class="badge bg-success">${e.condition_status||"Good"}</span></td>
+      <td>${e.details||"-"}</td>
+      <td class="no-print admin-only ${"Admin"!==currentRole&&"SocietyAdmin"!==currentRole?"d-none":""}">
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset(${e.id||t})"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
-  `).join('');
-}
-
-function renderFDs() {
-  const tbody = document.getElementById('fds-list');
-  if (!tbody) return;
-  if (!fdData || fdData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No FDs</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = fdData.map((f, index) => `
+  `).join("")}}function renderFDs(){let e=document.getElementById("fds-list");if(e){if(!fdData||0===fdData.length){e.innerHTML='<tr><td colspan="7" class="text-center text-muted">No FDs</td></tr>';return}e.innerHTML=fdData.map((e,t)=>`
     <tr>
-      <td><b>${f.bank_name || '-'}</b></td>
-      <td>${f.account_number || '-'}</td>
-      <td>${f.principal_amount || 0}</td>
-      <td>${f.interest_rate || '7.5%'}</td>
-      <td>${f.maturity_amount || 0}</td>
-      <td><span class="badge bg-success">${f.status || 'Active'}</span></td>
-      <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteFD(${f.id || index})"><i class="fa-solid fa-trash"></i></button>
+      <td><b>${e.bank_name||"-"}</b></td>
+      <td>${e.account_number||"-"}</td>
+      <td>${e.principal_amount||0}</td>
+      <td>${e.interest_rate||"7.5%"}</td>
+      <td>${e.maturity_amount||0}</td>
+      <td><span class="badge bg-success">${e.status||"Active"}</span></td>
+      <td class="no-print admin-only ${"Admin"!==currentRole&&"SocietyAdmin"!==currentRole?"d-none":""}">
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteFD(${e.id||t})"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
-  `).join('');
-}
-
-async function populateComplaintFlatDropdown() {
-  const select = document.getElementById('cmp-flat');
-  if (!select) return;
-  select.innerHTML = '<option value="">⏳ Loading flats...</option>';
-
-  if (currentRole === 'Member') {
-    select.innerHTML = `<option value="${currentUser}">${currentUser}</option>`;
-    select.disabled = true;
-    return;
-  }
-
-  if (!membersData || membersData.length === 0) {
-    const { data } = await _supabase.from('members').select('flat_no, name').eq('society_name', currentSociety).order('flat_no');
-    membersData = data || [];
-  }
-
-  if (membersData.length === 0) {
-    select.innerHTML = '<option value="">⚠️ No flats found</option>';
-    return;
-  }
-
-  select.innerHTML = '<option value="">-- Select Flat --</option>';
-  membersData.forEach(m => {
-    const flat = (m.flat_no || '').toUpperCase();
-    if (flat) {
-      const opt = document.createElement('option');
-      opt.value = flat;
-      opt.textContent = `${flat} ${m.name ? '- ' + m.name : ''}`;
-      select.appendChild(opt);
-    }
-  });
-  select.disabled = false;
-}
-
-function renderComplaints() {
-  const tbody = document.getElementById('complaint-list');
-  if (!tbody) return;
-  const visibleComplaints = (currentRole === 'Member') ? complaintData.filter(c => c.flat_no === currentUser) : complaintData;
-  if (!visibleComplaints || visibleComplaints.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No Complaints</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = visibleComplaints.map((c, index) => {
-    const hasImage = c.image_url && c.image_url.trim() !== '';
-    const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === (c.flat_no || '').trim().toUpperCase());
-    const memberPhone = c.phone || member?.phone || '';
-    return `
-      <tr data-complaint-id="${c.id || index+1}">
-        <td><b>CMP-${c.id || index+1}</b></td>
-        <td>${c.flat_no || '-'}</td>
-        <td>${memberPhone ? `<a href="tel:${memberPhone}">${memberPhone}</a>` : '-'}</td>
-        <td>${c.category || '-'}</td>
-        <td>${c.description || '-'}</td>
-        <td><span class="badge ${c.status === 'Resolved' ? 'bg-success' : 'bg-warning text-dark'}">${c.status || 'Pending'}</span></td>
+  `).join("")}}async function populateComplaintFlatDropdown(){let e=document.getElementById("cmp-flat");if(e){if(e.innerHTML='<option value="">⏳ Loading flats...</option>',"Member"===currentRole){e.innerHTML=`<option value="${currentUser}">${currentUser}</option>`,e.disabled=!0;return}if(!membersData||0===membersData.length){let{data:t}=await _supabase.from("members").select("flat_no, name").eq("society_name",currentSociety).order("flat_no");membersData=t||[]}if(0===membersData.length){e.innerHTML='<option value="">⚠️ No flats found</option>';return}e.innerHTML='<option value="">-- Select Flat --</option>',membersData.forEach(t=>{let a=(t.flat_no||"").toUpperCase();if(a){let n=document.createElement("option");n.value=a,n.textContent=`${a} ${t.name?"- "+t.name:""}`,e.appendChild(n)}}),e.disabled=!1}}function renderComplaints(){let e=document.getElementById("complaint-list");if(!e)return;let t="Member"===currentRole?complaintData.filter(e=>e.flat_no===currentUser):complaintData;if(!t||0===t.length){e.innerHTML='<tr><td colspan="8" class="text-center text-muted">No Complaints</td></tr>';return}e.innerHTML=t.map((e,t)=>{let a=e.image_url&&""!==e.image_url.trim(),n=membersData.find(t=>(t.flat_no||"").trim().toUpperCase()===(e.flat_no||"").trim().toUpperCase()),s=e.phone||n?.phone||"";return`
+      <tr data-complaint-id="${e.id||t+1}">
+        <td><b>CMP-${e.id||t+1}</b></td>
+        <td>${e.flat_no||"-"}</td>
+        <td>${s?`<a href="tel:${s}">${s}</a>`:"-"}</td>
+        <td>${e.category||"-"}</td>
+        <td>${e.description||"-"}</td>
+        <td><span class="badge ${"Resolved"===e.status?"bg-success":"bg-warning text-dark"}">${e.status||"Pending"}</span></td>
         <td>
-  ${hasImage ? `
-    <a href="${c.image_url}" target="_blank" class="btn btn-sm btn-outline-primary me-1" title="View"><i class="fa-solid fa-image"></i></a>
-    ${(currentRole === 'Admin' || currentRole === 'SocietyAdmin') ? `
+  ${a?`
+    <a href="${e.image_url}" target="_blank" class="btn btn-sm btn-outline-primary me-1" title="View"><i class="fa-solid fa-image"></i></a>
+    ${"Admin"===currentRole||"SocietyAdmin"===currentRole?`
       <button class="btn btn-sm btn-outline-danger" title="Delete image only"
-        onclick="deleteSingleImage({table:'complaints',rowId:${c.id},column:'image_url',bucket:'complaint_images',imageUrl:'${c.image_url}',refreshFn:()=>fetchSupabaseData(),label:'complaint photo'})">
+        onclick="deleteSingleImage({table:'complaints',rowId:${e.id},column:'image_url',bucket:'complaint_images',imageUrl:'${e.image_url}',refreshFn:()=>fetchSupabaseData(),label:'complaint photo'})">
         <i class="fa-solid fa-trash"></i>
-      </button>` : ''}
-  ` : '-'}
+      </button>`:""}
+  `:"-"}
 </td>
-        <td class="no-print admin-only chairman-only ${currentRole === 'Member' ? 'd-none' : ''}">
-          ${c.status !== 'Resolved' ? `<button class="btn btn-sm btn-success" onclick="resolveComplaint(${index})">Resolve</button>` : '-'}
+        <td class="no-print admin-only chairman-only ${"Member"===currentRole?"d-none":""}">
+          ${"Resolved"!==e.status?`<button class="btn btn-sm btn-success" onclick="resolveComplaint(${t})">Resolve</button>`:"-"}
         </td>
       </tr>
-    `;
-  }).join('');
-}
-
-function openComplaintModal() {
-  populateComplaintFlatDropdown();
-  const modalEl = document.getElementById('complaintModal');
-  if (modalEl) { new bootstrap.Modal(modalEl).show(); }
-}
-
-async function submitComplaint(event) {
-  event.preventDefault();
-  const flat = document.getElementById('cmp-flat').value;
-  const phone = document.getElementById('cmp-phone').value;
-  const category = document.getElementById('cmp-category').value;
-  const desc = document.getElementById('cmp-desc').value;
-  const file = document.getElementById('cmp-image')?.files?.[0];
-  let imageUrl = null;
-
-  if (file) {
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${currentSociety}/${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await _supabase.storage.from('complaint_images').upload(filePath, file);
-    if (!uploadError) {
-      const { data: urlData } = _supabase.storage.from('complaint_images').getPublicUrl(filePath);
-      imageUrl = urlData?.publicUrl || null;
-    }
-  }
-
-  const newComplaint = {
-    flat_no: flat, phone: phone, category: category, description: desc,
-    status: 'Pending',
-    complaint_date: new Date().toISOString().split('T')[0],
-    created_at: new Date().toISOString(),
-    society_name: currentSociety, image_url: imageUrl
-  };
-
-  await _supabase.from('complaints').insert([newComplaint]);
-  alert('✅ Complaint submitted!');
-  bootstrap.Modal.getInstance(document.getElementById('complaintModal')).hide();
-  fetchSupabaseData();
-}
-
-function openEditMemberModal(id) {
-  const member = membersData.find(m => m.id === id);
-  if (!member) return;
-
-  document.getElementById('edit-mem-id').value = member.id;
-  document.getElementById('edit-mem-flat').value = member.flat_no;
-  document.getElementById('edit-mem-name').value = member.name || '';
-  document.getElementById('edit-mem-phone').value = member.phone || '';
-  document.getElementById('edit-mem-is-tenant').value = member.is_tenant || 'No';
-  document.getElementById('edit-mem-tenant-name').value = member.tenant_name || '';
-  document.getElementById('edit-mem-tenant-phone').value = member.tenant_phone || '';
-  
-  toggleTenantFormFields(member.is_tenant || 'No', 'edit');
-  new bootstrap.Modal(document.getElementById('editMemberModal')).show();
-}
-
-async function updateMember(event) {
-  event.preventDefault();
-  const id = document.getElementById('edit-mem-id').value;
-  const is_tenant = document.getElementById('edit-mem-is-tenant').value;
-  const originalFlat = document.getElementById('edit-mem-flat').value.trim().toUpperCase();
-  
-  // ══════════════════════════════════════════════
-  // ✅ Safety: Flat No edit protection
-  // ══════════════════════════════════════════════
-  const currentFlat = document.getElementById('edit-mem-flat').value.trim().toUpperCase();
-  if (currentFlat !== originalFlat) {
-    alert('⚠️ Flat No बदला नहीं जा सकता। इसे delete करके नया member add करें।');
-    return;
-  }
-
-  // ══════════════════════════════════════════════
-  // ✅ Build update payload
-  // ══════════════════════════════════════════════
-  let updatePayload = {
-    name: document.getElementById('edit-mem-name').value.trim(),
-    phone: document.getElementById('edit-mem-phone').value.trim(),
-    is_tenant: is_tenant,
-    status: is_tenant === 'Yes' ? 'Tenant' : 'Owner',
-    tenant_name: is_tenant === 'Yes' ? document.getElementById('edit-mem-tenant-name').value.trim() : null,
-    tenant_phone: is_tenant === 'Yes' ? document.getElementById('edit-mem-tenant-phone').value.trim() : null,
-    monthly_rate: Number(document.getElementById('edit-mem-rate').value),
-    opening_due: Number(document.getElementById('edit-mem-opening-due').value)
-  };
-
-  // ══════════════════════════════════════════════
-  // ✅ Rent agreement upload
-  // ══════════════════════════════════════════════
-  const fileInput = document.getElementById('edit-mem-rent-agreement-file');
-  const file = fileInput?.files?.[0];
-  if (file) {
-    const fileExt = file.name.split('.').pop();
-    const filePath = `${currentSociety}/agreement_${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await _supabase.storage.from('notice_attachments').upload(filePath, file);
-    if (!uploadError) {
-      const { data: urlData } = _supabase.storage.from('notice_attachments').getPublicUrl(filePath);
-      updatePayload.rent_agreement_url = urlData?.publicUrl || null;
-    }
-  }
-
-  // ══════════════════════════════════════════════
-  // ✅ Update
-  // ══════════════════════════════════════════════
-  const { error } = await _supabase.from('members').update(updatePayload).eq('id', id);
-  
-  if (error) {
-    if (error.code === '23505' || (error.message && error.message.includes('unique'))) {
-      alert(`❌ Duplicate flat detected। DB ने रोका।`);
-      return;
-    }
-    alert('❌ Error: ' + error.message);
-    return;
-  }
-
-  alert('✅ Member details updated successfully!');
-  bootstrap.Modal.getInstance(document.getElementById('editMemberModal')).hide();
-  fetchSupabaseData();
-}
-
-function renderTenantAgreementWarnings() {
-  const containers = document.querySelectorAll('.tenant-warning-banner');
-  if (containers.length === 0) return;
-
-  const pendingAgreements = membersData.filter(m => 
-    (m.is_tenant === 'Yes' || m.status === 'Tenant') && 
-    (!m.rent_agreement_url || m.rent_agreement_url.trim() === '')
-  );
-
-  let htmlContent = '';
-
-  if (pendingAgreements.length > 0) {
-    if (currentRole === 'Member') {
-      const myPending = pendingAgreements.find(m => (m.flat_no || '').toUpperCase() === (currentUser || '').toUpperCase());
-      if (myPending) {
-        htmlContent = `
+    `}).join("")}function openComplaintModal(){populateComplaintFlatDropdown();let e=document.getElementById("complaintModal");e&&new bootstrap.Modal(e).show()}async function submitComplaint(e){e.preventDefault();let t=document.getElementById("cmp-flat").value,a=document.getElementById("cmp-phone").value,n=document.getElementById("cmp-category").value,s=document.getElementById("cmp-desc").value,i=document.getElementById("cmp-image")?.files?.[0],r=null;if(i){let o=i.name.split(".").pop(),l=`${currentSociety}/${Date.now()}.${o}`,{error:d}=await _supabase.storage.from("complaint_images").upload(l,i);if(!d){let{data:c}=_supabase.storage.from("complaint_images").getPublicUrl(l);r=c?.publicUrl||null}}let m={flat_no:t,phone:a,category:n,description:s,status:"Pending",complaint_date:new Date().toISOString().split("T")[0],created_at:new Date().toISOString(),society_name:currentSociety,image_url:r};await _supabase.from("complaints").insert([m]),alert("✅ Complaint submitted!"),bootstrap.Modal.getInstance(document.getElementById("complaintModal")).hide(),fetchSupabaseData()}function openEditMemberModal(e){let t=membersData.find(t=>t.id===e);t&&(document.getElementById("edit-mem-id").value=t.id,document.getElementById("edit-mem-flat").value=t.flat_no,document.getElementById("edit-mem-name").value=t.name||"",document.getElementById("edit-mem-phone").value=t.phone||"",document.getElementById("edit-mem-is-tenant").value=t.is_tenant||"No",document.getElementById("edit-mem-tenant-name").value=t.tenant_name||"",document.getElementById("edit-mem-tenant-phone").value=t.tenant_phone||"",toggleTenantFormFields(t.is_tenant||"No","edit"),new bootstrap.Modal(document.getElementById("editMemberModal")).show())}async function updateMember(e){e.preventDefault();let t=document.getElementById("edit-mem-id").value,a=document.getElementById("edit-mem-is-tenant").value,n=document.getElementById("edit-mem-flat").value.trim().toUpperCase(),s=document.getElementById("edit-mem-flat").value.trim().toUpperCase();if(s!==n){alert("⚠️ Flat No बदला नहीं जा सकता। इसे delete करके नया member add करें।");return}let i={name:document.getElementById("edit-mem-name").value.trim(),phone:document.getElementById("edit-mem-phone").value.trim(),is_tenant:a,status:"Yes"===a?"Tenant":"Owner",tenant_name:"Yes"===a?document.getElementById("edit-mem-tenant-name").value.trim():null,tenant_phone:"Yes"===a?document.getElementById("edit-mem-tenant-phone").value.trim():null,monthly_rate:Number(document.getElementById("edit-mem-rate").value),opening_due:Number(document.getElementById("edit-mem-opening-due").value)},r=document.getElementById("edit-mem-rent-agreement-file"),o=r?.files?.[0];if(o){let l=o.name.split(".").pop(),d=`${currentSociety}/agreement_${Date.now()}.${l}`,{error:c}=await _supabase.storage.from("notice_attachments").upload(d,o);if(!c){let{data:m}=_supabase.storage.from("notice_attachments").getPublicUrl(d);i.rent_agreement_url=m?.publicUrl||null}}let{error:u}=await _supabase.from("members").update(i).eq("id",t);if(u){if("23505"===u.code||u.message&&u.message.includes("unique")){alert(`❌ Duplicate flat detected। DB ने रोका।`);return}alert("❌ Error: "+u.message);return}alert("✅ Member details updated successfully!"),bootstrap.Modal.getInstance(document.getElementById("editMemberModal")).hide(),fetchSupabaseData()}function renderTenantAgreementWarnings(){let e=document.querySelectorAll(".tenant-warning-banner");if(0===e.length)return;let t=membersData.filter(e=>("Yes"===e.is_tenant||"Tenant"===e.status)&&(!e.rent_agreement_url||""===e.rent_agreement_url.trim())),a="";if(t.length>0){if("Member"===currentRole){let n=t.find(e=>(e.flat_no||"").toUpperCase()===(currentUser||"").toUpperCase());n&&(a=`
           <div class="alert alert-danger fw-semibold d-flex align-items-center justify-content-between shadow-sm rounded-4 mb-3">
             <div><i class="fa-solid fa-triangle-exclamation me-2"></i> आपकी रेंट एग्रीमेंट की कॉपी अभी तक सोसाइटी चेयरमैन को नहीं मिली है। कृपया जल्द सबमिट करवाएं।</div>
           </div>
-        `;
-      }
-    } 
-    else if (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') {
-      const listHtml = pendingAgreements.map(m => `<li>Flat <b>${m.flat_no}</b> (Tenant: ${m.tenant_name || m.name || 'N/A'})</li>`).join('');
-      htmlContent = `
+        `)}else if("Admin"===currentRole||"SocietyAdmin"===currentRole||"Chairman"===currentRole){let s=t.map(e=>`<li>Flat <b>${e.flat_no}</b> (Tenant: ${e.tenant_name||e.name||"N/A"})</li>`).join("");a=`
         <div class="alert alert-danger shadow-sm rounded-4 mb-3">
           <h6 class="fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-2"></i> Pending Rent Agreements Follow-up:</h6>
-          <ul class="mb-0 small">${listHtml}</ul>
+          <ul class="mb-0 small">${s}</ul>
         </div>
-      `;
-    }
-  }
-
-  containers.forEach(container => { container.innerHTML = htmlContent; });
-}
-
-function openAdminMemberLedger(flatNo) {
-  const targetFlat = flatNo.trim().toUpperCase();
-  document.getElementById('ledger-flat-title').innerText = targetFlat;
-  
-  const ledgerContainer = document.getElementById('admin-member-ledger-list');
-  if (!ledgerContainer) return;
-
-  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === targetFlat);
-  const myFlatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === targetFlat);
-  const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === targetFlat);
-  
-  const rate = member ? Number(member.monthly_rate || 600) : 600;
-  const openingDue = member ? Number(member.opening_due || 0) : 0;
-  
-  const fyStartDateStr = getCurrentFYStartDate(); // ✅ Helper
-  
-  let runningBalance = openingDue;
-  let ledgerRows = [{ date: fyStartDateStr, particulars: 'Opening Balance Due', debit: openingDue, credit: 0, balance: runningBalance }];
-  
-  const fyStartDate = new Date(fyStartDateStr);
-  let currentIterDate = new Date(fyStartDate);
-  
-  let monthlyDueEntries = [];
-  for (let i = 0; i < MONTHS_IN_FY_SO_FAR; i++) {
-    // ... baaki code same rahega
-    const monthName = currentIterDate.toLocaleString('default', { month: 'short', year: 'numeric' });
-    const dueDate = `${currentIterDate.getFullYear()}-${String(currentIterDate.getMonth() + 1).padStart(2, '0')}-05`;
-    monthlyDueEntries.push({ date: dueDate, type: 'monthly_due', particulars: `Monthly Maintenance Due (${monthName}) [Rate: ₹${rate}]`, amount: rate });
-    currentIterDate.setMonth(currentIterDate.getMonth() + 1);
-  }
-
-  let combinedTransactions = [
-    ...monthlyDueEntries.map(m => ({ date: m.date, type: 'due', data: m })),
-    ...myFlatData.map(r => ({ date: r.payment_date, type: 'receipt', data: r })),
-    ...myFlatJVs.map(jv => ({ date: jv.date, type: 'jv', data: jv }))
-  ];
-  combinedTransactions.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  combinedTransactions.forEach(item => {
-    if (item.type === 'due') {
-      const d = item.data;
-      runningBalance += d.amount;
-      ledgerRows.push({ date: d.date, particulars: d.particulars, debit: d.amount, credit: 0, balance: runningBalance });
-    } else if (item.type === 'receipt') {
-      const r = item.data;
-      const amt = Number(r.amount_paid || 0);
-      runningBalance -= amt; 
-      ledgerRows.push({ date: r.payment_date || '-', particulars: `Maintenance Payment Received (Receipt: ${r.receipt_no || '-'})`, debit: 0, credit: amt, balance: runningBalance });
-    } else if (item.type === 'jv') {
-      const jv = item.data;
-      const amt = Number(jv.amount || 0);
-      if (jv.type === 'Debit') {
-        runningBalance += amt;
-        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Debit] (${jv.jv_no}): ${jv.reason}`, debit: amt, credit: 0, balance: runningBalance });
-      } else {
-        runningBalance -= amt;
-        ledgerRows.push({ date: jv.date || '-', particulars: `Journal Voucher [Credit/Waiver] (${jv.jv_no}): ${jv.reason}`, debit: 0, credit: amt, balance: runningBalance });
-      }
-    }
-  });
-
-  const finalPendingBeforeLateFee = Math.max(0, runningBalance);
-  const lateFee = calculateLateFee(finalPendingBeforeLateFee, rate);
-  if (lateFee > 0) {
-    runningBalance += lateFee;
-    ledgerRows.push({ date: new Date().toISOString().split('T')[0], particulars: `Auto Late Fee / Interest Penalty`, debit: lateFee, credit: 0, balance: runningBalance });
-  }
-
-  ledgerContainer.innerHTML = ledgerRows.map(row => `
+      `}}e.forEach(e=>{e.innerHTML=a})}function openAdminMemberLedger(e){let t=e.trim().toUpperCase();document.getElementById("ledger-flat-title").innerText=t;let a=document.getElementById("admin-member-ledger-list");if(!a)return;let n=maintenanceData.filter(e=>(e.flat_no||"").trim().toUpperCase()===t),s=journalVouchersData.filter(e=>(e.flat_no||"").trim().toUpperCase()===t),i=membersData.find(e=>(e.flat_no||"").trim().toUpperCase()===t),r=i?Number(i.monthly_rate||600):600,o=i?Number(i.opening_due||0):0,l=getCurrentFYStartDate(),d=o,c=[{date:l,particulars:"Opening Balance Due",debit:o,credit:0,balance:d}],m=new Date(l),u=new Date(m),p=[];for(let y=0;y<MONTHS_IN_FY_SO_FAR;y++){let g=u.toLocaleString("default",{month:"short",year:"numeric"}),b=`${u.getFullYear()}-${String(u.getMonth()+1).padStart(2,"0")}-05`;p.push({date:b,type:"monthly_due",particulars:`Monthly Maintenance Due (${g}) [Rate: ₹${r}]`,amount:r}),u.setMonth(u.getMonth()+1)}let f=[...p.map(e=>({date:e.date,type:"due",data:e})),...n.map(e=>({date:e.payment_date,type:"receipt",data:e})),...s.map(e=>({date:e.date,type:"jv",data:e}))];f.sort((e,t)=>new Date(e.date)-new Date(t.date)),f.forEach(e=>{if("due"===e.type){let t=e.data;d+=t.amount,c.push({date:t.date,particulars:t.particulars,debit:t.amount,credit:0,balance:d})}else if("receipt"===e.type){let a=e.data,n=Number(a.amount_paid||0);d-=n,c.push({date:a.payment_date||"-",particulars:`Maintenance Payment Received (Receipt: ${a.receipt_no||"-"})`,debit:0,credit:n,balance:d})}else if("jv"===e.type){let s=e.data,i=Number(s.amount||0);"Debit"===s.type?(d+=i,c.push({date:s.date||"-",particulars:`Journal Voucher [Debit] (${s.jv_no}): ${s.reason}`,debit:i,credit:0,balance:d})):(d-=i,c.push({date:s.date||"-",particulars:`Journal Voucher [Credit/Waiver] (${s.jv_no}): ${s.reason}`,debit:0,credit:i,balance:d}))}});let h=Math.max(0,d),v=calculateLateFee(h,r);v>0&&(d+=v,c.push({date:new Date().toISOString().split("T")[0],particulars:"Auto Late Fee / Interest Penalty",debit:v,credit:0,balance:d})),a.innerHTML=c.map(e=>`
     <tr>
-      <td>${row.date}</td>
-      <td>${row.particulars}</td>
-      <td class="text-danger">${row.debit > 0 ? row.debit : '-'}</td>
-      <td class="text-success">${row.credit > 0 ? row.credit : '-'}</td>
-      <td class="fw-bold ${row.balance > 0 ? 'text-danger' : 'text-success'}">${row.balance}</td>
+      <td>${e.date}</td>
+      <td>${e.particulars}</td>
+      <td class="text-danger">${e.debit>0?e.debit:"-"}</td>
+      <td class="text-success">${e.credit>0?e.credit:"-"}</td>
+      <td class="fw-bold ${e.balance>0?"text-danger":"text-success"}">${e.balance}</td>
     </tr>
-  `).join('');
-
-  new bootstrap.Modal(document.getElementById('adminMemberLedgerModal')).show();
-}
-
-function renderMeetings() {
-  const container = document.getElementById('meetings-container');
-  if (!container) return;
-  
-  if (!meetingsData || meetingsData.length === 0) {
-    container.innerHTML = `<div class="col-12 text-center text-muted p-4">No meeting minutes recorded yet.</div>`;
-    return;
-  }
-
-  const canDelete = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
-
-  container.innerHTML = meetingsData.map(m => `
-    <div class="col-md-6 col-lg-4" data-meeting-id="${m.id}">
+  `).join(""),new bootstrap.Modal(document.getElementById("adminMemberLedgerModal")).show()}function renderMeetings(){let e=document.getElementById("meetings-container");if(!e)return;if(!meetingsData||0===meetingsData.length){e.innerHTML='<div class="col-12 text-center text-muted p-4">No meeting minutes recorded yet.</div>';return}let t="Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole;e.innerHTML=meetingsData.map(e=>`
+    <div class="col-md-6 col-lg-4" data-meeting-id="${e.id}">
       <div class="card border-0 shadow-sm rounded-4 p-4 h-100 border-start border-4 border-primary bg-white">
         <div class="d-flex justify-content-between align-items-start mb-2">
-          <span class="badge bg-primary-subtle text-primary fw-semibold">${m.meeting_type}</span>
-          <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> ${m.meeting_date}</small>
+          <span class="badge bg-primary-subtle text-primary fw-semibold">${e.meeting_type}</span>
+          <small class="text-muted"><i class="fa-regular fa-calendar me-1"></i> ${e.meeting_date}</small>
         </div>
-        <h5 class="fw-bold text-dark mb-2">${m.meeting_title}</h5>
-        <p class="small text-muted mb-1"><i class="fa-solid fa-location-dot me-1"></i> <strong>Venue:</strong> ${m.venue || 'N/A'}</p>
-        <p class="small text-muted mb-3"><i class="fa-solid fa-users me-1"></i> <strong>Attendees:</strong> ${m.attendees || 'N/A'}</p>
+        <h5 class="fw-bold text-dark mb-2">${e.meeting_title}</h5>
+        <p class="small text-muted mb-1"><i class="fa-solid fa-location-dot me-1"></i> <strong>Venue:</strong> ${e.venue||"N/A"}</p>
+        <p class="small text-muted mb-3"><i class="fa-solid fa-users me-1"></i> <strong>Attendees:</strong> ${e.attendees||"N/A"}</p>
         <div class="p-3 bg-light rounded-3 small text-secondary mb-3" style="white-space: pre-line; max-height: 150px; overflow-y: auto;">
-          ${m.minutes_content}
+          ${e.minutes_content}
         </div>
         <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
-          <small class="text-muted">By: ${m.created_by || 'Admin'}</small>
+          <small class="text-muted">By: ${e.created_by||"Admin"}</small>
           <div class="d-flex gap-2">
             <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="fa-solid fa-print"></i></button>
-            ${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMeeting(${m.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
+            ${t?`<button class="btn btn-sm btn-outline-danger" onclick="deleteMeeting(${e.id})"><i class="fa-solid fa-trash"></i></button>`:""}
           </div>
         </div>
       </div>
     </div>
-  `).join('');
-}
-
-async function deleteMeeting(id) {
-  if (!confirm('⚠️ Delete these meeting minutes permanently?')) return;
-  const { error } = await _supabase.from('society_meetings').delete().eq('id', id);
-  if (error) alert('Error: ' + error.message);
-  else fetchSupabaseData();
-}
-
-async function resolveComplaint(index) {
-  if (!confirm('✅ Mark complaint as resolved?')) return;
-  const complaint = complaintData[index];
-  if (!complaint?.id) return;
-  await _supabase.from('complaints').update({ status: 'Resolved', resolved_date: new Date().toISOString().split('T')[0], resolved_by: currentUser }).eq('id', complaint.id);
-  fetchSupabaseData();
-}
-
-function renderBankReconciliation() {
-  const tbody = document.getElementById('brs-entries-list');
-  if (!tbody) return;
-
-  let softwareBalance = openingBalance;
-  let allEntries = [];
-
-  maintenanceData.forEach(r => {
-    const amt = Number(r.amount_paid || 0);
-    softwareBalance += amt;
-    allEntries.push({ date: r.payment_date || '-', ref: r.receipt_no || 'REC', head: `Maintenance - ${r.flat_no}`, amount: amt, type: 'Deposit (+)' });
-  });
-
-  expenseData.forEach(e => {
-    const amt = Number(e.amount || 0);
-    softwareBalance -= amt;
-    allEntries.push({ date: e.expense_date || '-', ref: e.voucher_no || 'VOU', head: `${e.category} - ${e.paid_to}`, amount: amt, type: 'Withdrawal (-)' });
-  });
-
-  // ✅ NEW: Manual Bank Entries (from bank_entries table)
-  customBankEntries.forEach(cb => {
-    const depositAmt = Number(cb.deposit || 0);
-    const withdrawAmt = Number(cb.withdraw || 0);
-    
-    if (depositAmt > 0) {
-      softwareBalance += depositAmt;
-      allEntries.push({
-        date: cb.date || '-',
-        ref: cb.ref || 'BNK',
-        head: cb.head || 'Manual Bank Entry',
-        amount: depositAmt,
-        type: 'Deposit (+)'
-      });
-    }
-    
-    if (withdrawAmt > 0) {
-      softwareBalance -= withdrawAmt;
-      allEntries.push({
-        date: cb.date || '-',
-        ref: cb.ref || 'BNK',
-        head: cb.head || 'Manual Bank Entry',
-        amount: withdrawAmt,
-        type: 'Withdrawal (-)'
-      });
-    }
-  });
-
-  document.getElementById('brs-software-balance').innerText = `₹${softwareBalance.toFixed(2)}`;
-
-  const balanceInput = document.getElementById('actual-bank-balance-input');
-  if (balanceInput) { balanceInput.disabled = (currentRole === 'Chairman'); }
-
-  const isChairman = (currentRole === 'Chairman');
-
-  tbody.innerHTML = allEntries.map((item, idx) => `
+  `).join("")}async function deleteMeeting(e){if(!confirm("⚠️ Delete these meeting minutes permanently?"))return;let{error:t}=await _supabase.from("society_meetings").delete().eq("id",e);t?alert("Error: "+t.message):fetchSupabaseData()}async function resolveComplaint(e){if(!confirm("✅ Mark complaint as resolved?"))return;let t=complaintData[e];t?.id&&(await _supabase.from("complaints").update({status:"Resolved",resolved_date:new Date().toISOString().split("T")[0],resolved_by:currentUser}).eq("id",t.id),fetchSupabaseData())}function renderBankReconciliation(){let e=document.getElementById("brs-entries-list");if(!e)return;let t=openingBalance,a=[];maintenanceData.forEach(e=>{let n=Number(e.amount_paid||0);t+=n,a.push({date:e.payment_date||"-",ref:e.receipt_no||"REC",head:`Maintenance - ${e.flat_no}`,amount:n,type:"Deposit (+)"})}),expenseData.forEach(e=>{let n=Number(e.amount||0);t-=n,a.push({date:e.expense_date||"-",ref:e.voucher_no||"VOU",head:`${e.category} - ${e.paid_to}`,amount:n,type:"Withdrawal (-)"})}),customBankEntries.forEach(e=>{let n=Number(e.deposit||0),s=Number(e.withdraw||0);n>0&&(t+=n,a.push({date:e.date||"-",ref:e.ref||"BNK",head:e.head||"Manual Bank Entry",amount:n,type:"Deposit (+)"})),s>0&&(t-=s,a.push({date:e.date||"-",ref:e.ref||"BNK",head:e.head||"Manual Bank Entry",amount:s,type:"Withdrawal (-)"}))}),document.getElementById("brs-software-balance").innerText=`₹${t.toFixed(2)}`;let n=document.getElementById("actual-bank-balance-input");n&&(n.disabled="Chairman"===currentRole);let s="Chairman"===currentRole;e.innerHTML=a.map((e,t)=>`
     <tr>
-      <td>${item.date}</td>
-      <td><b>${item.ref}</b></td>
-      <td>${item.head}</td>
-      <td class="fw-bold ${item.type.includes('Deposit') ? 'text-success' : 'text-danger'}">${item.amount}</td>
-      <td><span class="badge ${item.type.includes('Deposit') ? 'bg-success' : 'bg-danger'}">${item.type}</span></td>
+      <td>${e.date}</td>
+      <td><b>${e.ref}</b></td>
+      <td>${e.head}</td>
+      <td class="fw-bold ${e.type.includes("Deposit")?"text-success":"text-danger"}">${e.amount}</td>
+      <td><span class="badge ${e.type.includes("Deposit")?"bg-success":"bg-danger"}">${e.type}</span></td>
       <td>
-        <select class="form-select form-select-sm" onchange="calculateBRS()" ${isChairman ? 'disabled' : ''}>
+        <select class="form-select form-select-sm" onchange="calculateBRS()" ${s?"disabled":""}>
           <option value="cleared">Cleared in Bank</option>
           <option value="pending">Not Reflected Yet (Pending)</option>
         </select>
       </td>
     </tr>
-  `).join('');
-
-  window.currentSoftwareBalance = softwareBalance;
-  calculateBRS();
-}
-
-function calculateBRS() {
-  const inputElem = document.querySelector('#tabOverlay #actual-bank-balance-input') || document.getElementById('actual-bank-balance-input');
-  const actualBankInput = parseFloat(inputElem?.value) || window.currentSoftwareBalance || 0;
-  const softwareBal = window.currentSoftwareBalance || 0;
-  const diff = actualBankInput - softwareBal;
-
-  document.querySelectorAll('#brs-difference').forEach(diffElem => {
-    diffElem.innerText = `₹${diff.toFixed(2)}`;
-    diffElem.className = diff === 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
-  });
-}
-
-function renderPolls() {
-  const container = document.getElementById('polls-container');
-  if (!container) return;
-  if (!pollsData || pollsData.length === 0) {
-    container.innerHTML = `<div class="col-12"><p class="text-muted text-center">No Polls Available</p></div>`;
-    return;
-  }
-  container.innerHTML = pollsData.map((p, index) => {
-    const options = p.options || [];
-    const votes = p.votes || new Array(options.length).fill(0);
-    const totalVotes = votes.reduce((a, b) => a + b, 0);
-    const hasVoted = p.voters && p.voters.includes(currentUser);
-    return `
-      <div class="col-md-6" data-poll-id="${p.id}">
+  `).join(""),window.currentSoftwareBalance=t,calculateBRS()}function calculateBRS(){let e=document.querySelector("#tabOverlay #actual-bank-balance-input")||document.getElementById("actual-bank-balance-input"),t=parseFloat(e?.value)||window.currentSoftwareBalance||0,a=window.currentSoftwareBalance||0,n=t-a;document.querySelectorAll("#brs-difference").forEach(e=>{e.innerText=`₹${n.toFixed(2)}`,e.className=0===n?"text-success fw-bold":"text-danger fw-bold"})}function renderPolls(){let e=document.getElementById("polls-container");if(e){if(!pollsData||0===pollsData.length){e.innerHTML='<div class="col-12"><p class="text-muted text-center">No Polls Available</p></div>';return}e.innerHTML=pollsData.map((e,t)=>{let a=e.options||[],n=e.votes||Array(a.length).fill(0),s=n.reduce((e,t)=>e+t,0),i=e.voters&&e.voters.includes(currentUser);return`
+      <div class="col-md-6" data-poll-id="${e.id}">
         <div class="card p-3 bg-white shadow-sm border-0 rounded-3">
-          <h6 class="fw-bold">${p.question}</h6>
+          <h6 class="fw-bold">${e.question}</h6>
           <div class="mt-2">
-            ${options.map((opt, i) => {
-              const percent = totalVotes === 0 ? 0 : Math.round((votes[i] / totalVotes) * 100);
-              return `
+            ${a.map((t,a)=>{let r=0===s?0:Math.round(n[a]/s*100);return`
                 <div class="d-flex align-items-center gap-2 mb-1">
-                  <input type="radio" name="poll_radio_${p.id}" value="${i}" onchange="handlePollVote(${p.id}, ${i})" ${hasVoted ? 'disabled' : ''} ${hasVoted && p.voter_choices && p.voter_choices[currentUser] === i ? 'checked' : ''}>
-                  <span style="flex:1;">${opt}</span>
-                  <span class="badge bg-secondary">${votes[i]} votes</span>
+                  <input type="radio" name="poll_radio_${e.id}" value="${a}" onchange="handlePollVote(${e.id}, ${a})" ${i?"disabled":""} ${i&&e.voter_choices&&e.voter_choices[currentUser]===a?"checked":""}>
+                  <span style="flex:1;">${t}</span>
+                  <span class="badge bg-secondary">${n[a]} votes</span>
                 </div>
-                <div class="poll-bar"><div class="poll-bar-fill" style="width:${percent}%;"></div></div>
-              `;
-            }).join('')}
+                <div class="poll-bar"><div class="poll-bar-fill" style="width:${r}%;"></div></div>
+              `}).join("")}
           </div>
           <div class="mt-3 d-flex justify-content-between align-items-center">
             <div>
-              ${hasVoted 
-                ? `<span class="badge bg-success me-2"><i class="fa-solid fa-check-circle me-1"></i> Voted</span>
-                   <button class="btn btn-sm btn-outline-warning" onclick="withdrawVote(${index})"><i class="fa-solid fa-undo me-1"></i> Withdraw</button>` 
-                : `<span class="badge bg-secondary">Select an option to vote</span>`}
+              ${i?`<span class="badge bg-success me-2"><i class="fa-solid fa-check-circle me-1"></i> Voted</span>
+                   <button class="btn btn-sm btn-outline-warning" onclick="withdrawVote(${t})"><i class="fa-solid fa-undo me-1"></i> Withdraw</button>`:'<span class="badge bg-secondary">Select an option to vote</span>'}
             </div>
-            <span class="text-muted small">Total: ${totalVotes}</span>
+            <span class="text-muted small">Total: ${s}</span>
           </div>
-          ${(currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin') 
-            ? `<button class="btn btn-link text-danger btn-sm p-0 mt-2" onclick="deletePoll(${index})">Delete Poll</button>` 
-            : ''}
+          ${"Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole?`<button class="btn btn-link text-danger btn-sm p-0 mt-2" onclick="deletePoll(${t})">Delete Poll</button>`:""}
         </div>
       </div>
-    `;
-  }).join('');
-}
+    `}).join("")}}function handlePollVote(e,t){let a=pollsData.findIndex(t=>t.id==e);-1!==a&&votePoll(a,t)}async function votePoll(e,t){let a=pollsData[e];if(a&&a.id){if(a.voters&&a.voters.includes(currentUser)){alert("⚠️ आप पहले ही इस Poll में वोट कर चुके हैं!"),renderPolls();return}a.voters||(a.voters=[]),a.voter_choices||(a.voter_choices={}),a.votes||(a.votes=Array(a.options.length).fill(0)),a.votes[t]=(a.votes[t]||0)+1,a.voters.push(currentUser),a.voter_choices[currentUser]=t;try{let{error:n}=await _supabase.from("polls").update({votes:a.votes,voters:a.voters,voter_choices:a.voter_choices}).eq("id",a.id);if(n){alert("❌ Error: "+n.message),await fetchPollsData(),renderPolls();return}await fetchPollsData(),renderPolls(),alert("✅ आपका वोट दर्ज कर लिया गया!")}catch(s){alert("❌ Error saving vote.")}}}async function withdrawVote(e){let t=pollsData[e];if(!t||!t.id||!confirm("⚠️ क्या आप अपना वोट वापस लेना चाहते हैं?"))return;let a=t.voter_choices?t.voter_choices[currentUser]:void 0;void 0!==a&&(t.votes[a]=Math.max(0,(t.votes[a]||1)-1)),t.voters=(t.voters||[]).filter(e=>e!==currentUser),t.voter_choices&&delete t.voter_choices[currentUser];let{error:n}=await _supabase.from("polls").update({votes:t.votes,voters:t.voters,voter_choices:t.voter_choices}).eq("id",t.id);n?alert("Error: "+n.message):(alert("✅ वोट वापस ले लिया गया!"),fetchPollsData().then(renderPolls))}async function deletePoll(e){if(!confirm("⚠️ Delete this Poll?"))return;let t=pollsData[e];t?.id&&(await _supabase.from("polls").delete().eq("id",t.id),fetchPollsData().then(renderPolls))}async function submitPoll(e){e.preventDefault();let t=document.getElementById("poll-question").value.trim(),a=[document.getElementById("poll-opt1").value.trim(),document.getElementById("poll-opt2").value.trim(),document.getElementById("poll-opt3").value.trim(),document.getElementById("poll-opt4").value.trim()].filter(e=>""!==e);if(a.length<2){alert("❌ Please add at least 2 options.");return}let n={question:t,options:a,votes:Array(a.length).fill(0),voters:[],voter_choices:{},created_by:currentUser,created_at:new Date().toISOString(),society_name:currentSociety},{error:s}=await _supabase.from("polls").insert([n]);if(s){alert("❌ Error creating poll: "+s.message);return}bootstrap.Modal.getInstance(document.getElementById("pollModal")).hide(),document.getElementById("pollModal").querySelector("form").reset(),fetchSupabaseData()}function generateReceiptPDF(e,t){if(void 0===window.jspdf)return;let a="maintenance"===e?maintenanceData.find(e=>e.id===t):expenseData.find(e=>e.id===t);if(!a)return;let{jsPDF:n}=window.jspdf,s=new n("p","mm","a4"),i=societySettings.society_name||currentSociety;s.setFontSize(16),s.text(i,105,20,{align:"center"}),s.text("maintenance"===e?"MAINTENANCE RECEIPT":"PAYMENT VOUCHER",105,30,{align:"center"});let r="maintenance"===e?[[a.receipt_no,a.flat_no,a.payment_date,a.amount_paid]]:[[a.voucher_no,a.expense_date,a.category,a.amount]];s.autoTable({startY:45,head:["maintenance"===e?["Receipt No","Flat No","Date","Amount"]:["Voucher No","Date","Category","Amount"]],body:r}),s.save(`${e}-${t}.pdf`)}async function updateSocietySettings(e){e.preventDefault();let t=document.getElementById("settings-signature-file")?.files?.[0],a=societySettings.digital_signature_url||"";if(t){let n=t.name.split(".").pop(),s=`${currentSociety}/signature_${Date.now()}.${n}`,{error:i}=await _supabase.storage.from("qr_codes").upload(s,t);if(!i){let{data:r}=_supabase.storage.from("qr_codes").getPublicUrl(s);a=r?.publicUrl||a}}let o={society_name:document.getElementById("settings-name").value,society_address:document.getElementById("settings-address").value,society_phone:document.getElementById("settings-phone").value,society_email:document.getElementById("settings-email").value,society_pan:document.getElementById("settings-pan").value,enable_late_fee:document.getElementById("settings-enable-late-fee").value,late_fee_type:document.getElementById("settings-late-fee-type").value,late_fee_amount:document.getElementById("settings-late-fee-amount").value,enable_gst:document.getElementById("settings-enable-gst").value,society_gstin:document.getElementById("settings-society-gstin").value.trim(),digital_signature_url:a};for(let[l,d]of Object.entries(o))await _supabase.from("society_settings").upsert({key:l,value:String(d),society_name:currentSociety},{onConflict:"key,society_name"});alert("✅ Society Settings & GST Details Updated Successfully!"),fetchSupabaseData()}function __sanitizeFilename(e){return(e||"Society").replace(/[^a-zA-Z0-9]/g,"_").replace(/_+/g,"_")}function __getBackupTimestamp(){let e=new Date,t=e=>String(e).padStart(2,"0");return`${e.getFullYear()}-${t(e.getMonth()+1)}-${t(e.getDate())}_${t(e.getHours())}-${t(e.getMinutes())}`}async function __fetchAllBackupData(){let e=currentSociety,t={},a=[{key:"members",table:"members"},{key:"maintenance_payments",table:"maintenance_payments"},{key:"maintenance_bills",table:"maintenance_bills"},{key:"expenses",table:"expenses"},{key:"journal_vouchers",table:"journal_vouchers"},{key:"bank_entries",table:"bank_entries"},{key:"sinking_fund_fd",table:"sinking_fund_fd"},{key:"assets",table:"assets"},{key:"visitors",table:"visitors"},{key:"complaints",table:"complaints"},{key:"polls",table:"polls"},{key:"notices",table:"notices"},{key:"society_meetings",table:"society_meetings"},{key:"parking_vehicles",table:"parking_vehicles"},{key:"payment_proofs",table:"payment_proofs"},{key:"team",table:"team"},{key:"amc_contracts",table:"amc_contracts"},{key:"marketplace_posts",table:"marketplace_posts"},{key:"facilities",table:"facilities"},{key:"facility_bookings",table:"facility_bookings"},{key:"events",table:"events"},{key:"society_settings",table:"society_settings"},{key:"activity_logs",table:"activity_logs"},{key:"deletion_requests",table:"deletion_requests"}].map(async({key:a,table:n})=>{try{let{data:s,error:i}=await _supabase.from(n).select("*").eq("society_name",e);i?(console.warn(`[Backup] ${n} error:`,i.message),t[a]=[]):t[a]=s||[]}catch(r){console.warn(`[Backup] ${n} exception:`,r),t[a]=[]}});await Promise.all(a);try{let{data:n}=await _supabase.from("societies").select("*").eq("name",e).maybeSingle();t.society_info=n||null}catch(s){t.society_info=null}return t}function __flattenForExcel(e){let t={};for(let[a,n]of Object.entries(e||{}))null==n?t[a]="":"object"==typeof n?t[a]=JSON.stringify(n):t[a]=n;return t}async function downloadFullBackupJSON(){if("Admin"!==currentRole){alert("⛔ Only Admin can download full backup.");return}if(!confirm(`📦 Full society data का JSON backup download करना है?
 
-function handlePollVote(pollId, optIndex) {
-  const pollIdx = pollsData.findIndex(p => p.id == pollId);
-  if (pollIdx !== -1) { votePoll(pollIdx, optIndex); }
-}
+Society: ${currentSociety}
 
-async function votePoll(pollIndex, optIndex) {
-  const poll = pollsData[pollIndex];
-  if (!poll || !poll.id) return;
-  if (poll.voters && poll.voters.includes(currentUser)) {
-    alert('⚠️ आप पहले ही इस Poll में वोट कर चुके हैं!');
-    renderPolls();
-    return;
-  }
-  if (!poll.voters) poll.voters = [];
-  if (!poll.voter_choices) poll.voter_choices = {};
-  if (!poll.votes) poll.votes = new Array(poll.options.length).fill(0);
-  
-  poll.votes[optIndex] = (poll.votes[optIndex] || 0) + 1;
-  poll.voters.push(currentUser);
-  poll.voter_choices[currentUser] = optIndex;
+ये process 20-40 seconds ले सकता है।`))return;let e=document.getElementById("btn-backup-json"),t=e.innerHTML;e.disabled=!0,e.innerHTML='<i class="fa-solid fa-spinner fa-spin me-2"></i> Preparing Backup...';try{let a=await __fetchAllBackupData(),n=0;Object.keys(a).forEach(e=>{Array.isArray(a[e])&&(n+=a[e].length)});let s={_meta:{app:"PS Society Solutions",version:"1.0",backup_type:"FULL_JSON",society_name:currentSociety,generated_at:new Date().toISOString(),generated_by:currentUser||"Admin",total_records:n,tables_count:Object.keys(a).length},data:a},i=JSON.stringify(s,null,2),r=new Blob([i],{type:"application/json"}),o=URL.createObjectURL(r),l=__sanitizeFilename(currentSociety),d=__getBackupTimestamp(),c=`PS_Backup_${l}_${d}.json`,m=document.createElement("a");m.href=o,m.download=c,document.body.appendChild(m),m.click(),document.body.removeChild(m),URL.revokeObjectURL(o);try{await logActivity("FULL_BACKUP_JSON",`Downloaded JSON backup — ${n} records`)}catch(u){}alert(`✅ JSON Backup downloaded successfully!
 
-  try {
-    const { error } = await _supabase.from('polls').update({ votes: poll.votes, voters: poll.voters, voter_choices: poll.voter_choices }).eq('id', poll.id);
-    if (error) {
-      alert('❌ Error: ' + error.message);
-      await fetchPollsData();
-      renderPolls();
-      return;
-    }
-    await fetchPollsData();
-    renderPolls();
-    alert('✅ आपका वोट दर्ज कर लिया गया!');
-  } catch (err) { alert('❌ Error saving vote.'); }
-}
+📁 File: ${c}
+📊 Total records: ${n}
+🗂️ Tables: ${Object.keys(a).length}`)}catch(p){console.error("[Backup] JSON error:",p),alert("❌ Backup failed: "+p.message)}finally{e.disabled=!1,e.innerHTML=t}}async function downloadFullBackupExcel(){if("Admin"!==currentRole){alert("⛔ Only Admin can download full backup.");return}if("undefined"==typeof XLSX){alert("❌ Excel library not loaded. Please refresh page.");return}if(!confirm(`📊 Full society data का Excel backup download करना है?
 
-async function withdrawVote(pollIndex) {
-  const poll = pollsData[pollIndex];
-  if (!poll || !poll.id) return;
-  if (!confirm('⚠️ क्या आप अपना वोट वापस लेना चाहते हैं?')) return;
-  
-  const choiceIndex = poll.voter_choices ? poll.voter_choices[currentUser] : undefined;
-  if (choiceIndex !== undefined) { poll.votes[choiceIndex] = Math.max(0, (poll.votes[choiceIndex] || 1) - 1); }
-  poll.voters = (poll.voters || []).filter(v => v !== currentUser);
-  if (poll.voter_choices) delete poll.voter_choices[currentUser];
+Society: ${currentSociety}
 
-  const { error } = await _supabase.from('polls').update({ votes: poll.votes, voters: poll.voters, voter_choices: poll.voter_choices }).eq('id', poll.id);
-  if (error) alert('Error: ' + error.message);
-  else { alert('✅ वोट वापस ले लिया गया!'); fetchPollsData().then(renderPolls); }
-}
+ये process 30-60 seconds ले सकता है।`))return;let e=document.getElementById("btn-backup-excel"),t=e.innerHTML;e.disabled=!0,e.innerHTML='<i class="fa-solid fa-spinner fa-spin me-2"></i> Preparing Excel...';try{let a=await __fetchAllBackupData(),n=XLSX.utils.book_new(),s=0,i=0,r=XLSX.utils.json_to_sheet([{App:"PS Society Solutions","Backup Type":"FULL_EXCEL","Society Name":currentSociety,"Generated At":new Date().toLocaleString("en-IN"),"Generated By":currentUser||"Admin",Version:"1.0"}]);for(let{key:o,name:l}of(XLSX.utils.book_append_sheet(n,r,"1_Overview"),i++,[{key:"society_settings",name:"2_Settings"},{key:"members",name:"3_Members"},{key:"maintenance_payments",name:"4_Maintenance"},{key:"maintenance_bills",name:"5_Bills"},{key:"expenses",name:"6_Expenses"},{key:"journal_vouchers",name:"7_Journal_Vouchers"},{key:"bank_entries",name:"8_Bank_Entries"},{key:"sinking_fund_fd",name:"9_FDs"},{key:"assets",name:"10_Assets"},{key:"visitors",name:"11_Visitors"},{key:"complaints",name:"12_Complaints"},{key:"polls",name:"13_Polls"},{key:"notices",name:"14_Notices"},{key:"society_meetings",name:"15_Meetings"},{key:"parking_vehicles",name:"16_Parking"},{key:"payment_proofs",name:"17_Payment_Proofs"},{key:"team",name:"18_Team"},{key:"amc_contracts",name:"19_AMC"},{key:"marketplace_posts",name:"20_Marketplace"},{key:"facilities",name:"21_Facilities"},{key:"facility_bookings",name:"22_Bookings"},{key:"events",name:"23_Events"},{key:"activity_logs",name:"24_Activity_Logs"},{key:"deletion_requests",name:"25_Deletion_Requests"}])){let d=a[o];if(Array.isArray(d)){if(0===d.length){let c=XLSX.utils.json_to_sheet([{_info:"No records"}]);XLSX.utils.book_append_sheet(n,c,l.substring(0,31))}else{let m=d.map(e=>__flattenForExcel(e)),u=XLSX.utils.json_to_sheet(m);XLSX.utils.book_append_sheet(n,u,l.substring(0,31)),s+=d.length}i++}}let p=__sanitizeFilename(currentSociety),y=__getBackupTimestamp(),g=`PS_Backup_${p}_${y}.xlsx`;XLSX.writeFile(n,g);try{await logActivity("FULL_BACKUP_EXCEL",`Downloaded Excel backup — ${s} records across ${i} sheets`)}catch(b){}alert(`✅ Excel Backup downloaded successfully!
 
-async function deletePoll(index) {
-  if (!confirm('⚠️ Delete this Poll?')) return;
-  const poll = pollsData[index];
-  if (!poll?.id) return;
-  await _supabase.from('polls').delete().eq('id', poll.id);
-  fetchPollsData().then(renderPolls);
-}
-
-async function submitPoll(event) {
-  event.preventDefault();
-  const question = document.getElementById('poll-question').value.trim();
-  const opts = [
-    document.getElementById('poll-opt1').value.trim(),
-    document.getElementById('poll-opt2').value.trim(),
-    document.getElementById('poll-opt3').value.trim(),
-    document.getElementById('poll-opt4').value.trim()
-  ].filter(o => o !== '');
-  if (opts.length < 2) { alert('❌ Please add at least 2 options.'); return; }
-
-  const newPoll = {
-    question: question, options: opts,
-    votes: new Array(opts.length).fill(0),
-    voters: [], voter_choices: {},
-    created_by: currentUser,
-    created_at: new Date().toISOString(),
-    society_name: currentSociety
-  };
-
-  const { error } = await _supabase.from('polls').insert([newPoll]);
-  if (error) { alert('❌ Error creating poll: ' + error.message); return; }
-
-  bootstrap.Modal.getInstance(document.getElementById('pollModal')).hide();
-  document.getElementById('pollModal').querySelector('form').reset();
-  fetchSupabaseData();
-}
-
-function generateReceiptPDF(type, id) {
-  if (typeof window.jspdf === 'undefined') return;
-  let data = type === 'maintenance' ? maintenanceData.find(r => r.id === id) : expenseData.find(r => r.id === id);
-  if (!data) return;
-  const { jsPDF } = window.jspdf; 
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const societyName = societySettings.society_name || currentSociety;
-  doc.setFontSize(16); doc.text(societyName, 105, 20, { align: 'center' });
-  doc.text(type === 'maintenance' ? 'MAINTENANCE RECEIPT' : 'PAYMENT VOUCHER', 105, 30, { align: 'center' });
-  
-  let headers = type === 'maintenance' ? ['Receipt No', 'Flat No', 'Date', 'Amount'] : ['Voucher No', 'Date', 'Category', 'Amount'];
-  let rows = type === 'maintenance' ? [[data.receipt_no, data.flat_no, data.payment_date, data.amount_paid]] : [[data.voucher_no, data.expense_date, data.category, data.amount]];
-  doc.autoTable({ startY: 45, head: [headers], body: rows });
-  doc.save(`${type}-${id}.pdf`);
-}
-
-async function updateSocietySettings(event) {
-  event.preventDefault();
-  
-  const sigFile = document.getElementById('settings-signature-file')?.files?.[0];
-  let sigUrl = societySettings.digital_signature_url || '';
-
-  if (sigFile) {
-    const fileExt = sigFile.name.split('.').pop();
-    const filePath = `${currentSociety}/signature_${Date.now()}.${fileExt}`;
-    const { error: uploadError } = await _supabase.storage.from('qr_codes').upload(filePath, sigFile);
-    if (!uploadError) {
-      const { data: urlData } = _supabase.storage.from('qr_codes').getPublicUrl(filePath);
-      sigUrl = urlData?.publicUrl || sigUrl;
-    }
-  }
-
-  const settings = {
-    society_name: document.getElementById('settings-name').value,
-    society_address: document.getElementById('settings-address').value,
-    society_phone: document.getElementById('settings-phone').value,
-    society_email: document.getElementById('settings-email').value,
-    society_pan: document.getElementById('settings-pan').value,
-    enable_late_fee: document.getElementById('settings-enable-late-fee').value,
-    late_fee_type: document.getElementById('settings-late-fee-type').value,
-    late_fee_amount: document.getElementById('settings-late-fee-amount').value,
-    enable_gst: document.getElementById('settings-enable-gst').value,
-    society_gstin: document.getElementById('settings-society-gstin').value.trim(),
-    digital_signature_url: sigUrl
-  };
-
-  for (const [key, value] of Object.entries(settings)) {
-    await _supabase.from('society_settings').upsert({ key, value: String(value), society_name: currentSociety }, { onConflict: 'key,society_name' });
-  }
-
-  alert('✅ Society Settings & GST Details Updated Successfully!');
-  fetchSupabaseData();
-}
-
-// ══════════════════════════════════════════════════════════════
-// 🛡️ FULL DATA BACKUP & EXPORT (Admin Only)
-// ══════════════════════════════════════════════════════════════
-
-/**
- * Sanitize filename (remove special chars)
- */
-function __sanitizeFilename(name) {
-  return (name || 'Society').replace(/[^a-zA-Z0-9]/g, '_').replace(/_+/g, '_');
-}
-
-/**
- * Generate timestamp string for filenames
- */
-function __getBackupTimestamp() {
-  const d = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}`;
-}
-
-/**
- * Fetch ALL society data from all tables
- */
-async function __fetchAllBackupData() {
-  const soc = currentSociety;
-  const results = {};
-
-  const tables = [
-    { key: 'members', table: 'members' },
-    { key: 'maintenance_payments', table: 'maintenance_payments' },
-    { key: 'maintenance_bills', table: 'maintenance_bills' },
-    { key: 'expenses', table: 'expenses' },
-    { key: 'journal_vouchers', table: 'journal_vouchers' },
-    { key: 'bank_entries', table: 'bank_entries' },
-    { key: 'sinking_fund_fd', table: 'sinking_fund_fd' },
-    { key: 'assets', table: 'assets' },
-    { key: 'visitors', table: 'visitors' },
-    { key: 'complaints', table: 'complaints' },
-    { key: 'polls', table: 'polls' },
-    { key: 'notices', table: 'notices' },
-    { key: 'society_meetings', table: 'society_meetings' },
-    { key: 'parking_vehicles', table: 'parking_vehicles' },
-    { key: 'payment_proofs', table: 'payment_proofs' },
-    { key: 'team', table: 'team' },
-    { key: 'amc_contracts', table: 'amc_contracts' },
-    { key: 'marketplace_posts', table: 'marketplace_posts' },
-    { key: 'facilities', table: 'facilities' },
-    { key: 'facility_bookings', table: 'facility_bookings' },
-    { key: 'events', table: 'events' },
-    { key: 'society_settings', table: 'society_settings' },
-    { key: 'activity_logs', table: 'activity_logs' },
-    { key: 'deletion_requests', table: 'deletion_requests' }
-  ];
-
-  const promises = tables.map(async ({ key, table }) => {
-    try {
-      const { data, error } = await _supabase
-        .from(table)
-        .select('*')
-        .eq('society_name', soc);
-
-      if (error) {
-        console.warn(`[Backup] ${table} error:`, error.message);
-        results[key] = [];
-      } else {
-        results[key] = data || [];
-      }
-    } catch (e) {
-      console.warn(`[Backup] ${table} exception:`, e);
-      results[key] = [];
-    }
-  });
-
-  await Promise.all(promises);
-
-  // Also fetch society master info (no society_name column filter)
-  try {
-    const { data: socInfo } = await _supabase
-      .from('societies')
-      .select('*')
-      .eq('name', soc)
-      .maybeSingle();
-    results.society_info = socInfo || null;
-  } catch (e) {
-    results.society_info = null;
-  }
-
-  return results;
-}
-
-/**
- * Convert nested objects/arrays to string for Excel compatibility
- */
-function __flattenForExcel(obj) {
-  const flat = {};
-  for (const [key, val] of Object.entries(obj || {})) {
-    if (val === null || val === undefined) {
-      flat[key] = '';
-    } else if (typeof val === 'object') {
-      flat[key] = JSON.stringify(val);
-    } else {
-      flat[key] = val;
-    }
-  }
-  return flat;
-}
-
-// ──────────────────────────────────────────────────────────────
-// 📥 JSON Backup
-// ──────────────────────────────────────────────────────────────
-async function downloadFullBackupJSON() {
-  // ─── Role check ───
-  if (currentRole !== 'Admin') {
-    alert('⛔ Only Admin can download full backup.');
-    return;
-  }
-
-  if (!confirm(`📦 Full society data का JSON backup download करना है?\n\nSociety: ${currentSociety}\n\nये process 20-40 seconds ले सकता है।`)) {
-    return;
-  }
-
-  const btn = document.getElementById('btn-backup-json');
-  const originalHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Preparing Backup...';
-
-  try {
-    const data = await __fetchAllBackupData();
-
-    // Count total records
-    let totalRecords = 0;
-    Object.keys(data).forEach(k => {
-      if (Array.isArray(data[k])) totalRecords += data[k].length;
-    });
-
-    const backup = {
-      _meta: {
-        app: 'PS Society Solutions',
-        version: '1.0',
-        backup_type: 'FULL_JSON',
-        society_name: currentSociety,
-        generated_at: new Date().toISOString(),
-        generated_by: currentUser || 'Admin',
-        total_records: totalRecords,
-        tables_count: Object.keys(data).length
-      },
-      data: data
-    };
-
-    const jsonString = JSON.stringify(backup, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-
-    const socSafe = __sanitizeFilename(currentSociety);
-    const ts = __getBackupTimestamp();
-    const filename = `PS_Backup_${socSafe}_${ts}.json`;
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    // Log activity
-    try {
-      await logActivity('FULL_BACKUP_JSON', `Downloaded JSON backup — ${totalRecords} records`);
-    } catch (e) {}
-
-    alert(`✅ JSON Backup downloaded successfully!\n\n📁 File: ${filename}\n📊 Total records: ${totalRecords}\n🗂️ Tables: ${Object.keys(data).length}`);
-
-  } catch (err) {
-    console.error('[Backup] JSON error:', err);
-    alert('❌ Backup failed: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
-}
-
-// ──────────────────────────────────────────────────────────────
-// 📥 Excel Backup (Multi-sheet)
-// ──────────────────────────────────────────────────────────────
-async function downloadFullBackupExcel() {
-  // ─── Role check ───
-  if (currentRole !== 'Admin') {
-    alert('⛔ Only Admin can download full backup.');
-    return;
-  }
-
-  if (typeof XLSX === 'undefined') {
-    alert('❌ Excel library not loaded. Please refresh page.');
-    return;
-  }
-
-  if (!confirm(`📊 Full society data का Excel backup download करना है?\n\nSociety: ${currentSociety}\n\nये process 30-60 seconds ले सकता है।`)) {
-    return;
-  }
-
-  const btn = document.getElementById('btn-backup-excel');
-  const originalHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Preparing Excel...';
-
-  try {
-    const data = await __fetchAllBackupData();
-
-    const wb = XLSX.utils.book_new();
-    let totalRecords = 0;
-    let sheetsAdded = 0;
-
-    // ─── Sheet 0: Meta / Overview ───
-    const metaSheet = XLSX.utils.json_to_sheet([{
-      'App': 'PS Society Solutions',
-      'Backup Type': 'FULL_EXCEL',
-      'Society Name': currentSociety,
-      'Generated At': new Date().toLocaleString('en-IN'),
-      'Generated By': currentUser || 'Admin',
-      'Version': '1.0'
-    }]);
-    XLSX.utils.book_append_sheet(wb, metaSheet, '1_Overview');
-    sheetsAdded++;
-
-    // ─── Sheet order for readability ───
-    const sheetOrder = [
-      { key: 'society_settings', name: '2_Settings' },
-      { key: 'members', name: '3_Members' },
-      { key: 'maintenance_payments', name: '4_Maintenance' },
-      { key: 'maintenance_bills', name: '5_Bills' },
-      { key: 'expenses', name: '6_Expenses' },
-      { key: 'journal_vouchers', name: '7_Journal_Vouchers' },
-      { key: 'bank_entries', name: '8_Bank_Entries' },
-      { key: 'sinking_fund_fd', name: '9_FDs' },
-      { key: 'assets', name: '10_Assets' },
-      { key: 'visitors', name: '11_Visitors' },
-      { key: 'complaints', name: '12_Complaints' },
-      { key: 'polls', name: '13_Polls' },
-      { key: 'notices', name: '14_Notices' },
-      { key: 'society_meetings', name: '15_Meetings' },
-      { key: 'parking_vehicles', name: '16_Parking' },
-      { key: 'payment_proofs', name: '17_Payment_Proofs' },
-      { key: 'team', name: '18_Team' },
-      { key: 'amc_contracts', name: '19_AMC' },
-      { key: 'marketplace_posts', name: '20_Marketplace' },
-      { key: 'facilities', name: '21_Facilities' },
-      { key: 'facility_bookings', name: '22_Bookings' },
-      { key: 'events', name: '23_Events' },
-      { key: 'activity_logs', name: '24_Activity_Logs' },
-      { key: 'deletion_requests', name: '25_Deletion_Requests' }
-    ];
-
-    for (const { key, name } of sheetOrder) {
-      const rows = data[key];
-      if (!Array.isArray(rows)) continue;
-
-      if (rows.length === 0) {
-        // Empty sheet with placeholder
-        const ws = XLSX.utils.json_to_sheet([{ _info: 'No records' }]);
-        XLSX.utils.book_append_sheet(wb, ws, name.substring(0, 31));
-      } else {
-        const flatRows = rows.map(r => __flattenForExcel(r));
-        const ws = XLSX.utils.json_to_sheet(flatRows);
-        XLSX.utils.book_append_sheet(wb, ws, name.substring(0, 31));
-        totalRecords += rows.length;
-      }
-      sheetsAdded++;
-    }
-
-    // ─── Write file ───
-    const socSafe = __sanitizeFilename(currentSociety);
-    const ts = __getBackupTimestamp();
-    const filename = `PS_Backup_${socSafe}_${ts}.xlsx`;
-
-    XLSX.writeFile(wb, filename);
-
-    // Log activity
-    try {
-      await logActivity('FULL_BACKUP_EXCEL', `Downloaded Excel backup — ${totalRecords} records across ${sheetsAdded} sheets`);
-    } catch (e) {}
-
-    alert(`✅ Excel Backup downloaded successfully!\n\n📁 File: ${filename}\n📊 Total records: ${totalRecords}\n🗂️ Sheets: ${sheetsAdded}`);
-
-  } catch (err) {
-    console.error('[Backup] Excel error:', err);
-    alert('❌ Backup failed: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// 💰 SUBSCRIPTION BILLING SYSTEM (Super Admin Only)
-// ══════════════════════════════════════════════════════════════
-
-let subscriptionInvoicesData = [];
-
-/**
- * Fetch ALL subscription invoices (across all societies)
- */
-async function loadSubscriptionInvoices() {
-  const tbody = document.getElementById('subscription-invoices-list');
-  if (!tbody) return;
-
-  tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> Loading invoices...</td></tr>`;
-
-  try {
-    const { data, error } = await _supabase
-      .from('subscription_invoices')
-      .select('*')
-      .order('billing_month', { ascending: false })
-      .order('society_name', { ascending: true });
-
-    if (error) {
-      console.error('[Subscription] Load error:', error.message);
-      tbody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">❌ Error: ${error.message}</td></tr>`;
-      return;
-    }
-
-        subscriptionInvoicesData = data || [];
-
-    // Set default month picker if empty
-    const picker = document.getElementById('sub-invoice-month-picker');
-    if (picker && !picker.value) {
-      const now = new Date();
-      picker.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    }
-
-    renderSubscriptionInvoices();
-    renderSubscriptionStats();
-    renderSubscriptionOverdueBanner();
-
-    // ✅ Step 6: Status check + banner
-    try {
-      await checkAndUpdateSubscriptionStatus();
-      renderSubscriptionStatusBanner();
-    } catch (e) { console.log('[Status Check] error:', e); }
-
-  } catch (err) {
-    console.error('[Subscription] Exception:', err);
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">❌ Failed to load invoices.</td></tr>`;
-  }
-}
-
-/**
- * Render invoices table (respects month filter)
- */
-function renderSubscriptionInvoices() {
-  const tbody = document.getElementById('subscription-invoices-list');
-  if (!tbody) return;
-
-  const picker = document.getElementById('sub-invoice-month-picker');
-  const selectedMonth = picker?.value;
-
-  let filtered = subscriptionInvoicesData;
-  if (selectedMonth) {
-    filtered = subscriptionInvoicesData.filter(inv => inv.billing_month === selectedMonth);
-  }
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No invoices found${selectedMonth ? ` for ${selectedMonth}` : ''}.<br><small>Click "Generate Invoices" to create, or "Show All".</small></td></tr>`;
-    return;
-  }
-
-  const today = new Date().toISOString().split('T')[0];
-
-  tbody.innerHTML = filtered.map(inv => {
-    let statusBadge = '';
-    const isOverdue = inv.status === 'Pending' && inv.due_date && inv.due_date < today;
-
-    if (inv.status === 'Paid') {
-      statusBadge = '<span class="badge bg-success">✅ Paid</span>';
-    } else if (inv.status === 'Waived') {
-      statusBadge = '<span class="badge bg-secondary">⚪ Waived</span>';
-    } else if (isOverdue) {
-      statusBadge = '<span class="badge bg-danger">🚨 Overdue</span>';
-    } else {
-      statusBadge = '<span class="badge bg-warning text-dark">⏳ Pending</span>';
-    }
-
-    return `
+📁 File: ${g}
+📊 Total records: ${s}
+🗂️ Sheets: ${i}`)}catch(f){console.error("[Backup] Excel error:",f),alert("❌ Backup failed: "+f.message)}finally{e.disabled=!1,e.innerHTML=t}}document.addEventListener("change",function(e){e.target&&"bill-month-picker"===e.target.id&&renderBillsTable()});let subscriptionInvoicesData=[];async function loadSubscriptionInvoices(){let e=document.getElementById("subscription-invoices-list");if(e){e.innerHTML='<tr><td colspan="9" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> Loading invoices...</td></tr>';try{let{data:t,error:a}=await _supabase.from("subscription_invoices").select("*").order("billing_month",{ascending:!1}).order("society_name",{ascending:!0});if(a){console.error("[Subscription] Load error:",a.message),e.innerHTML=`<tr><td colspan="9" class="text-center text-danger">❌ Error: ${a.message}</td></tr>`;return}subscriptionInvoicesData=t||[];let n=document.getElementById("sub-invoice-month-picker");if(n&&!n.value){let s=new Date;n.value=`${s.getFullYear()}-${String(s.getMonth()+1).padStart(2,"0")}`}renderSubscriptionInvoices(),renderSubscriptionStats(),renderSubscriptionOverdueBanner();try{await checkAndUpdateSubscriptionStatus(),renderSubscriptionStatusBanner()}catch(i){console.log("[Status Check] error:",i)}}catch(r){console.error("[Subscription] Exception:",r),e.innerHTML=`<tr><td colspan="9" class="text-center text-danger">❌ Failed to load invoices.</td></tr>`}}}function renderSubscriptionInvoices(){let e=document.getElementById("subscription-invoices-list");if(!e)return;let t=document.getElementById("sub-invoice-month-picker"),a=t?.value,n=subscriptionInvoicesData;if(a&&(n=subscriptionInvoicesData.filter(e=>e.billing_month===a)),0===n.length){e.innerHTML=`<tr><td colspan="9" class="text-center text-muted">No invoices found${a?` for ${a}`:""}.<br><small>Click "Generate Invoices" to create, or "Show All".</small></td></tr>`;return}let s=new Date().toISOString().split("T")[0];e.innerHTML=n.map(e=>{let t="",a="Pending"===e.status&&e.due_date&&e.due_date<s;return`
       <tr>
-        <td><b>${inv.invoice_no}</b></td>
-        <td>${inv.society_name}</td>
-        <td><span class="badge bg-secondary">${inv.billing_month}</span></td>
-        <td>${inv.houses_count}</td>
-        <td>₹${inv.rate_per_house}</td>
-        <td class="fw-bold">₹${Number(inv.total_amount).toLocaleString('en-IN')}</td>
-        <td>${inv.due_date}</td>
-        <td>${statusBadge}</td>
+        <td><b>${e.invoice_no}</b></td>
+        <td>${e.society_name}</td>
+        <td><span class="badge bg-secondary">${e.billing_month}</span></td>
+        <td>${e.houses_count}</td>
+        <td>₹${e.rate_per_house}</td>
+        <td class="fw-bold">₹${Number(e.total_amount).toLocaleString("en-IN")}</td>
+        <td>${e.due_date}</td>
+        <td>${t="Paid"===e.status?'<span class="badge bg-success">✅ Paid</span>':"Waived"===e.status?'<span class="badge bg-secondary">⚪ Waived</span>':a?'<span class="badge bg-danger">\uD83D\uDEA8 Overdue</span>':'<span class="badge bg-warning text-dark">⏳ Pending</span>'}</td>
         <td class="no-print">
-          ${inv.status !== 'Paid' ? `
-            <button class="btn btn-sm btn-success me-1" onclick="markSubscriptionPaid(${inv.id})" title="Mark Paid">
+          ${"Paid"!==e.status?`
+            <button class="btn btn-sm btn-success me-1" onclick="markSubscriptionPaid(${e.id})" title="Mark Paid">
               <i class="fa-solid fa-check"></i>
             </button>
-            <button class="btn btn-sm btn-whatsapp" onclick="sendSubscriptionReminder(${inv.id})" title="WhatsApp">
+            <button class="btn btn-sm btn-whatsapp" onclick="sendSubscriptionReminder(${e.id})" title="WhatsApp">
               <i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i>
             </button>
-          ` : '<span class="text-muted small">-</span>'}
+          `:'<span class="text-muted small">-</span>'}
         </td>
       </tr>
-    `;
-  }).join('');
-}
-
-/**
- * Render 4 stat cards (Pending, Overdue, Collected, Expected)
- */
-function renderSubscriptionStats() {
-  const today = new Date().toISOString().split('T')[0];
-
-  let pendingCount = 0;
-  let overdueAmount = 0;
-  let collectedTotal = 0;
-  let expectedAmount = 0;
-
-  subscriptionInvoicesData.forEach(inv => {
-    const amt = Number(inv.total_amount || 0);
-    if (inv.status === 'Paid') {
-      collectedTotal += Number(inv.paid_amount || amt);
-    } else if (inv.status === 'Pending') {
-      if (inv.due_date && inv.due_date < today) {
-        overdueAmount += amt;
-      } else {
-        pendingCount++;
-      }
-      expectedAmount += amt;
-    }
-  });
-
-  const setText = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.innerText = val;
-  };
-
-  setText('sub-stat-pending-count', pendingCount);
-  setText('sub-stat-overdue', `₹${overdueAmount.toLocaleString('en-IN')}`);
-  setText('sub-stat-collected', `₹${collectedTotal.toLocaleString('en-IN')}`);
-  setText('sub-stat-expected', `₹${expectedAmount.toLocaleString('en-IN')}`);
-}
-
-/**
- * Render overdue alert banner
- */
-function renderSubscriptionOverdueBanner() {
-  const banner = document.getElementById('subscription-overdue-banner');
-  if (!banner) return;
-
-  const today = new Date().toISOString().split('T')[0];
-  const overdue = subscriptionInvoicesData.filter(inv =>
-    inv.status === 'Pending' && inv.due_date && inv.due_date < today
-  );
-
-  if (overdue.length === 0) {
-    banner.innerHTML = '';
-    return;
-  }
-
-  const totalOverdue = overdue.reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0);
-
-  banner.innerHTML = `
+    `}).join("")}function renderSubscriptionStats(){let e=new Date().toISOString().split("T")[0],t=0,a=0,n=0,s=0;subscriptionInvoicesData.forEach(i=>{let r=Number(i.total_amount||0);"Paid"===i.status?n+=Number(i.paid_amount||r):"Pending"===i.status&&(i.due_date&&i.due_date<e?a+=r:t++,s+=r)});let i=(e,t)=>{let a=document.getElementById(e);a&&(a.innerText=t)};i("sub-stat-pending-count",t),i("sub-stat-overdue",`₹${a.toLocaleString("en-IN")}`),i("sub-stat-collected",`₹${n.toLocaleString("en-IN")}`),i("sub-stat-expected",`₹${s.toLocaleString("en-IN")}`)}function renderSubscriptionOverdueBanner(){let e=document.getElementById("subscription-overdue-banner");if(!e)return;let t=new Date().toISOString().split("T")[0],a=subscriptionInvoicesData.filter(e=>"Pending"===e.status&&e.due_date&&e.due_date<t);if(0===a.length){e.innerHTML="";return}let n=a.reduce((e,t)=>e+Number(t.total_amount||0),0);e.innerHTML=`
     <div class="alert alert-danger d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-sm" style="border-radius: 12px;">
       <div>
         <i class="fa-solid fa-triangle-exclamation me-2"></i>
-        <strong>${overdue.length} ${overdue.length === 1 ? 'society has' : 'societies have'} overdue payment!</strong>
-        <span class="ms-2">Total: ₹${totalOverdue.toLocaleString('en-IN')}</span>
+        <strong>${a.length} ${1===a.length?"society has":"societies have"} overdue payment!</strong>
+        <span class="ms-2">Total: ₹${n.toLocaleString("en-IN")}</span>
       </div>
       <button class="btn btn-sm btn-danger fw-semibold" onclick="showAllOverdueInvoices()">
         <i class="fa-solid fa-bolt me-1"></i> View Overdue
       </button>
     </div>
-  `;
-}
-
-/**
- * Show all invoices (clear month filter)
- */
-function showAllSubscriptionInvoices() {
-  const picker = document.getElementById('sub-invoice-month-picker');
-  if (picker) picker.value = '';
-  renderSubscriptionInvoices();
-}
-
-/**
- * Show only overdue invoices
- */
-function showAllOverdueInvoices() {
-  const picker = document.getElementById('sub-invoice-month-picker');
-  if (picker) picker.value = '';
-
-  const tbody = document.getElementById('subscription-invoices-list');
-  if (!tbody) return;
-
-  const today = new Date().toISOString().split('T')[0];
-  const overdue = subscriptionInvoicesData.filter(inv =>
-    inv.status === 'Pending' && inv.due_date && inv.due_date < today
-  );
-
-  if (overdue.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-success">🎉 No overdue invoices!</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = overdue.map(inv => `
+  `}function showAllSubscriptionInvoices(){let e=document.getElementById("sub-invoice-month-picker");e&&(e.value=""),renderSubscriptionInvoices()}function showAllOverdueInvoices(){let e=document.getElementById("sub-invoice-month-picker");e&&(e.value="");let t=document.getElementById("subscription-invoices-list");if(!t)return;let a=new Date().toISOString().split("T")[0],n=subscriptionInvoicesData.filter(e=>"Pending"===e.status&&e.due_date&&e.due_date<a);if(0===n.length){t.innerHTML=`<tr><td colspan="9" class="text-center text-success">🎉 No overdue invoices!</td></tr>`;return}t.innerHTML=n.map(e=>`
     <tr class="table-danger">
-      <td><b>${inv.invoice_no}</b></td>
-      <td>${inv.society_name}</td>
-      <td><span class="badge bg-secondary">${inv.billing_month}</span></td>
-      <td>${inv.houses_count}</td>
-      <td>₹${inv.rate_per_house}</td>
-      <td class="fw-bold">₹${Number(inv.total_amount).toLocaleString('en-IN')}</td>
-      <td>${inv.due_date}</td>
+      <td><b>${e.invoice_no}</b></td>
+      <td>${e.society_name}</td>
+      <td><span class="badge bg-secondary">${e.billing_month}</span></td>
+      <td>${e.houses_count}</td>
+      <td>₹${e.rate_per_house}</td>
+      <td class="fw-bold">₹${Number(e.total_amount).toLocaleString("en-IN")}</td>
+      <td>${e.due_date}</td>
       <td><span class="badge bg-danger">🚨 Overdue</span></td>
       <td class="no-print">
-        <button class="btn btn-sm btn-success me-1" onclick="markSubscriptionPaid(${inv.id})" title="Mark Paid">
+        <button class="btn btn-sm btn-success me-1" onclick="markSubscriptionPaid(${e.id})" title="Mark Paid">
           <i class="fa-solid fa-check"></i>
         </button>
-        <button class="btn btn-sm btn-whatsapp" onclick="sendSubscriptionReminder(${inv.id})" title="WhatsApp">
+        <button class="btn btn-sm btn-whatsapp" onclick="sendSubscriptionReminder(${e.id})" title="WhatsApp">
           <i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i>
         </button>
       </td>
     </tr>
-  `).join('');
-}
+  `).join("")}async function generateSubscriptionInvoices(){let e=document.getElementById("sub-invoice-month-picker"),t=e?.value;if(!t){alert("❌ पहले month select करो।");return}let a=event?.target?.closest("button"),n=a?.innerHTML;a&&(a.disabled=!0,a.innerHTML='<i class="fa-solid fa-spinner fa-spin me-1"></i> Generating...');try{let{data:s,error:i}=await _supabase.from("societies").select("*").eq("is_active",!0);if(i||!s||0===s.length){alert("❌ कोई active society नहीं मिली।");return}let{data:r,error:o}=await _supabase.from("members").select("society_name, flat_no");if(o){alert("❌ Members fetch failed: "+o.message);return}let{data:l}=await _supabase.from("subscription_invoices").select("society_name, billing_month").eq("billing_month",t),d=new Set((l||[]).map(e=>`${e.society_name}::${e.billing_month}`)),c=`${t}-10`,m=t.replace("-",""),u=[],p=[];if(s.forEach(e=>{let a=e.name,n=`${a}::${t}`;if(d.has(n)){p.push(a);return}let s=(r||[]).filter(e=>e.society_name===a),i=s.length,o=Number(e.per_house_rate||79),l=a.replace(/[^a-zA-Z]/g,"").substring(0,6).toUpperCase()||"SOC",y=`PSINV-${l}-${m}`;u.push({society_name:a,invoice_no:y,billing_month:t,houses_count:i,rate_per_house:o,total_amount:i*o,due_date:c,status:"Pending",created_by:currentUser||"Admin"})}),0===u.length){alert(`✅ ${t} के सभी invoices पहले से generate हो चुके हैं।
 
-/**
- * Month picker change handler
- */
-document.addEventListener('change', function(e) {
-  if (e.target && e.target.id === 'sub-invoice-month-picker') {
-    renderSubscriptionInvoices();
-  }
-});
+(Skipped: ${p.length} societies)`);return}let y=u.reduce((e,t)=>e+t.total_amount,0),g=`📢 ${t} के लिए subscription invoices generate करने हैं?
 
-/**
- * ══════════════════════════════════════════════════════════════
- * 💰 GENERATE MONTHLY SUBSCRIPTION INVOICES
- * ══════════════════════════════════════════════════════════════
- * - Selected month के लिए सभी active societies के invoices बनाएगा
- * - Auto house count (members table से)
- * - Duplicate check (society_name + billing_month unique)
- */
-async function generateSubscriptionInvoices() {
-  const picker = document.getElementById('sub-invoice-month-picker');
-  const selectedMonth = picker?.value;
+🏢 Societies: ${u.length}
+💰 Total Amount: ₹${y.toLocaleString("en-IN")}
+`+(p.length>0?`
+⚠️ ${p.length} societies skip होंगी (invoice exists)
+`:"");if(!confirm(g))return;let{error:b}=await _supabase.from("subscription_invoices").insert(u);if(b){alert("❌ Invoice generation failed: "+b.message);return}try{await logActivity("SUBSCRIPTION_INVOICES_GENERATED",`Generated ${u.length} invoices for ${t} — Total ₹${y}`)}catch(f){}let h=`✅ ${u.length} invoices generate हो गए!
 
-  // ─── Validation ───
-  if (!selectedMonth) {
-    alert('❌ पहले month select करो।');
-    return;
-  }
+💰 Total: ₹${y.toLocaleString("en-IN")}`;p.length>0&&(h+=`
 
-  const btn = event?.target?.closest('button');
-  const originalHTML = btn?.innerHTML;
+⚠️ ${p.length} societies skipped (already existed):
+${p.join(", ")}`),alert(h),await loadSubscriptionInvoices()}catch(v){console.error("[Subscription] Generate error:",v),alert("❌ Error: "+v.message)}finally{a&&n&&(a.disabled=!1,a.innerHTML=n)}}async function markSubscriptionPaid(e){let t=subscriptionInvoicesData.find(t=>t.id===e);if(!t){alert("❌ Invoice not found in memory. Please refresh.");return}document.getElementById("sub-paid-invoice-id").value=t.id,document.getElementById("sub-paid-society-name").innerText=t.society_name,document.getElementById("sub-paid-invoice-no").innerText=t.invoice_no,document.getElementById("sub-paid-amount").value=t.total_amount,document.getElementById("sub-paid-date").value=new Date().toISOString().split("T")[0],document.getElementById("sub-paid-utr").value="",document.getElementById("sub-paid-notes").value="",document.getElementById("sub-paid-mode").value="UPI",new bootstrap.Modal(document.getElementById("subscriptionPaidModal")).show()}async function submitSubscriptionPaid(e){e.preventDefault();let t=parseInt(document.getElementById("sub-paid-invoice-id").value),a=document.getElementById("sub-paid-date").value,n=parseFloat(document.getElementById("sub-paid-amount").value),s=document.getElementById("sub-paid-mode").value,i=document.getElementById("sub-paid-utr").value.trim(),r=document.getElementById("sub-paid-notes").value.trim();if(!t||!a||!n){alert("❌ सभी required fields भरें।");return}let o=subscriptionInvoicesData.find(e=>e.id===t);if(!o)return;let l=document.getElementById("btn-subscription-paid-submit"),d=l.innerHTML;l.disabled=!0,l.innerHTML='<i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...';try{let{error:c}=await _supabase.from("subscription_invoices").update({status:"Paid",paid_date:a,paid_amount:n,payment_mode:s,utr_ref:i||null,notes:r||null,updated_at:new Date().toISOString()}).eq("id",t);if(c){alert("❌ Error: "+c.message);return}try{await logActivity("SUBSCRIPTION_PAID",`${o.society_name} — ₹${n} for ${o.billing_month}`)}catch(m){}alert(`✅ Invoice ${o.invoice_no} marked as Paid!
 
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Generating...';
-  }
+🏢 Society: ${o.society_name}
+💰 Amount: ₹${n.toLocaleString("en-IN")}
+📅 Date: ${a}
+💳 Mode: ${s}`),bootstrap.Modal.getInstance(document.getElementById("subscriptionPaidModal")).hide();try{await _supabase.from("societies").update({subscription_status:"active"}).eq("name",o.society_name),console.log(`[Auto-Activate] ${o.society_name} reactivated`)}catch(u){console.warn("[Auto-Activate] error:",u)}await loadSubscriptionInvoices()}catch(p){console.error("[Subscription Paid] Error:",p),alert("❌ Error: "+p.message)}finally{l.disabled=!1,l.innerHTML=d}}async function sendSubscriptionReminder(e){let t=subscriptionInvoicesData.find(t=>t.id===e);if(!t){alert("❌ Invoice not found.");return}let a="";try{let{data:n}=await _supabase.from("societies").select("phone, name").eq("name",t.society_name).maybeSingle();n&&n.phone&&(a=n.phone)}catch(s){console.warn("[Subscription Reminder] Society lookup failed:",s)}if(!a){alert(`❌ ${t.society_name} का phone number नहीं मिला।
 
-  try {
-    // ─── Step 1: सभी active societies fetch करो ───
-    const { data: societies, error: socErr } = await _supabase
-      .from('societies')
-      .select('*')
-      .eq('is_active', true);
-
-    if (socErr || !societies || societies.length === 0) {
-      alert('❌ कोई active society नहीं मिली।');
-      return;
-    }
-
-    // ─── Step 2: हर society के members count करो ───
-    const { data: allMembers, error: memErr } = await _supabase
-      .from('members')
-      .select('society_name, flat_no');
-
-    if (memErr) {
-      alert('❌ Members fetch failed: ' + memErr.message);
-      return;
-    }
-
-    // ─── Step 3: Existing invoices fetch करो (duplicate check के लिए) ───
-    const { data: existingInvoices } = await _supabase
-      .from('subscription_invoices')
-      .select('society_name, billing_month')
-      .eq('billing_month', selectedMonth);
-
-    const existingKeys = new Set(
-      (existingInvoices || []).map(inv => `${inv.society_name}::${inv.billing_month}`)
-    );
-
-    // ─── Step 4: हर society के लिए invoice prepare करो ───
-    const dueDate = `${selectedMonth}-10`; // 10th of month
-    const monthSafe = selectedMonth.replace('-', '');
-
-    const invoicesToInsert = [];
-    const skipped = [];
-
-    societies.forEach(soc => {
-      const socName = soc.name;
-      const key = `${socName}::${selectedMonth}`;
-
-      // Skip if invoice already exists
-      if (existingKeys.has(key)) {
-        skipped.push(socName);
-        return;
-      }
-
-      // Count houses for this society
-      const socMembers = (allMembers || []).filter(m => m.society_name === socName);
-      const housesCount = socMembers.length;
-
-      // Rate from society record
-      const ratePerHouse = Number(soc.per_house_rate || 79);
-
-      // Total amount
-      const totalAmount = housesCount * ratePerHouse;
-
-      // Invoice No: PSINV-{Society Prefix}-{YYYYMM}
-      const socPrefix = socName
-        .replace(/[^a-zA-Z]/g, '')
-        .substring(0, 6)
-        .toUpperCase() || 'SOC';
-
-      const invoiceNo = `PSINV-${socPrefix}-${monthSafe}`;
-
-      invoicesToInsert.push({
-        society_name: socName,
-        invoice_no: invoiceNo,
-        billing_month: selectedMonth,
-        houses_count: housesCount,
-        rate_per_house: ratePerHouse,
-        total_amount: totalAmount,
-        due_date: dueDate,
-        status: 'Pending',
-        created_by: currentUser || 'Admin'
-      });
-    });
-
-    // ─── Step 5: कुछ नया नहीं है तो बताओ ───
-    if (invoicesToInsert.length === 0) {
-      alert(`✅ ${selectedMonth} के सभी invoices पहले से generate हो चुके हैं।\n\n(Skipped: ${skipped.length} societies)`);
-      return;
-    }
-
-    // ─── Step 6: Confirmation दिखाओ ───
-    const totalAmount = invoicesToInsert.reduce((sum, inv) => sum + inv.total_amount, 0);
-    const confirmMsg =
-      `📢 ${selectedMonth} के लिए subscription invoices generate करने हैं?\n\n` +
-      `🏢 Societies: ${invoicesToInsert.length}\n` +
-      `💰 Total Amount: ₹${totalAmount.toLocaleString('en-IN')}\n` +
-      (skipped.length > 0 ? `\n⚠️ ${skipped.length} societies skip होंगी (invoice exists)\n` : '');
-
-    if (!confirm(confirmMsg)) return;
-
-    // ─── Step 7: Insert करो ───
-    const { error: insertErr } = await _supabase
-      .from('subscription_invoices')
-      .insert(invoicesToInsert);
-
-    if (insertErr) {
-      alert('❌ Invoice generation failed: ' + insertErr.message);
-      return;
-    }
-
-    // ─── Step 8: Log Activity ───
-    try {
-      await logActivity(
-        'SUBSCRIPTION_INVOICES_GENERATED',
-        `Generated ${invoicesToInsert.length} invoices for ${selectedMonth} — Total ₹${totalAmount}`
-      );
-    } catch (e) { /* silent */ }
-
-    // ─── Step 9: Success message ───
-    let successMsg = `✅ ${invoicesToInsert.length} invoices generate हो गए!\n\n💰 Total: ₹${totalAmount.toLocaleString('en-IN')}`;
-    if (skipped.length > 0) {
-      successMsg += `\n\n⚠️ ${skipped.length} societies skipped (already existed):\n${skipped.join(', ')}`;
-    }
-    alert(successMsg);
-
-    // ─── Step 10: Reload table + stats ───
-    await loadSubscriptionInvoices();
-
-  } catch (err) {
-    console.error('[Subscription] Generate error:', err);
-    alert('❌ Error: ' + err.message);
-  } finally {
-    if (btn && originalHTML) {
-      btn.disabled = false;
-      btn.innerHTML = originalHTML;
-    }
-  }
-}
-
-
-// ══════════════════════════════════════════════════════════════
-// ✅ MARK SUBSCRIPTION INVOICE AS PAID
-// ══════════════════════════════════════════════════════════════
-async function markSubscriptionPaid(id) {
-  const invoice = subscriptionInvoicesData.find(inv => inv.id === id);
-  if (!invoice) {
-    alert('❌ Invoice not found in memory. Please refresh.');
-    return;
-  }
-
-  document.getElementById('sub-paid-invoice-id').value = invoice.id;
-  document.getElementById('sub-paid-society-name').innerText = invoice.society_name;
-  document.getElementById('sub-paid-invoice-no').innerText = invoice.invoice_no;
-  document.getElementById('sub-paid-amount').value = invoice.total_amount;
-  document.getElementById('sub-paid-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('sub-paid-utr').value = '';
-  document.getElementById('sub-paid-notes').value = '';
-  document.getElementById('sub-paid-mode').value = 'UPI';
-
-  new bootstrap.Modal(document.getElementById('subscriptionPaidModal')).show();
-}
-
-async function submitSubscriptionPaid(event) {
-  event.preventDefault();
-
-  const id = parseInt(document.getElementById('sub-paid-invoice-id').value);
-  const paidDate = document.getElementById('sub-paid-date').value;
-  const paidAmount = parseFloat(document.getElementById('sub-paid-amount').value);
-  const paymentMode = document.getElementById('sub-paid-mode').value;
-  const utr = document.getElementById('sub-paid-utr').value.trim();
-  const notes = document.getElementById('sub-paid-notes').value.trim();
-
-  if (!id || !paidDate || !paidAmount) {
-    alert('❌ सभी required fields भरें।');
-    return;
-  }
-
-  const invoice = subscriptionInvoicesData.find(inv => inv.id === id);
-  if (!invoice) return;
-
-  const btn = document.getElementById('btn-subscription-paid-submit');
-  const originalHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Saving...';
-
-  try {
-    const { error } = await _supabase
-      .from('subscription_invoices')
-      .update({
-        status: 'Paid',
-        paid_date: paidDate,
-        paid_amount: paidAmount,
-        payment_mode: paymentMode,
-        utr_ref: utr || null,
-        notes: notes || null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
-
-    if (error) {
-      alert('❌ Error: ' + error.message);
-      return;
-    }
-
-    try {
-      await logActivity(
-        'SUBSCRIPTION_PAID',
-        `${invoice.society_name} — ₹${paidAmount} for ${invoice.billing_month}`
-      );
-    } catch (e) { /* silent */ }
-
-    alert(
-      `✅ Invoice ${invoice.invoice_no} marked as Paid!\n\n` +
-      `🏢 Society: ${invoice.society_name}\n` +
-      `💰 Amount: ₹${paidAmount.toLocaleString('en-IN')}\n` +
-      `📅 Date: ${paidDate}\n` +
-      `💳 Mode: ${paymentMode}`
-    );
-
-        bootstrap.Modal.getInstance(document.getElementById('subscriptionPaidModal')).hide();
-
-    // ✅ Auto-reactivate society after payment
-    try {
-      await _supabase
-        .from('societies')
-        .update({ subscription_status: 'active' })
-        .eq('name', invoice.society_name);
-      console.log(`[Auto-Activate] ${invoice.society_name} reactivated`);
-    } catch (e) { console.warn('[Auto-Activate] error:', e); }
-
-    await loadSubscriptionInvoices();
-
-  } catch (err) {
-    console.error('[Subscription Paid] Error:', err);
-    alert('❌ Error: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// 📲 SEND SUBSCRIPTION REMINDER VIA WHATSAPP
-// ══════════════════════════════════════════════════════════════
-async function sendSubscriptionReminder(id) {
-  const invoice = subscriptionInvoicesData.find(inv => inv.id === id);
-  if (!invoice) {
-    alert('❌ Invoice not found.');
-    return;
-  }
-
-  let societyPhone = '';
-  try {
-    const { data: society } = await _supabase
-      .from('societies')
-      .select('phone, name')
-      .eq('name', invoice.society_name)
-      .maybeSingle();
-
-    if (society && society.phone) {
-      societyPhone = society.phone;
-    }
-  } catch (e) {
-    console.warn('[Subscription Reminder] Society lookup failed:', e);
-  }
-
-  if (!societyPhone) {
-    alert(
-      `❌ ${invoice.society_name} का phone number नहीं मिला।\n\n` +
-      `कृपया "Manage Societies" में society का phone number add करें।`
-    );
-    return;
-  }
-
-  const message =
-`Dear ${invoice.society_name} Committee,
+कृपया "Manage Societies" में society का phone number add करें।`);return}let i=`Dear ${t.society_name} Committee,
 
 📄 *Subscription Invoice Reminder*
 
-Invoice No: ${invoice.invoice_no}
-Month: ${invoice.billing_month}
-Flats: ${invoice.houses_count}
-Rate: ₹${invoice.rate_per_house} /house
-Total Amount: ₹${Number(invoice.total_amount).toLocaleString('en-IN')}
-Due Date: ${invoice.due_date}
+Invoice No: ${t.invoice_no}
+Month: ${t.billing_month}
+Flats: ${t.houses_count}
+Rate: ₹${t.rate_per_house} /house
+Total Amount: ₹${Number(t.total_amount).toLocaleString("en-IN")}
+Due Date: ${t.due_date}
 
 💳 *Pay via UPI / Bank:*
 Agency: PS Society Solutions
@@ -6086,145 +725,16 @@ UPI: 8866376056@icici
 Please clear the payment before the due date to avoid service interruption.
 
 Thank you,
-PS Society Solutions`;
-
-  sendWhatsAppReminder(societyPhone, message);
-}
-
-// ══════════════════════════════════════════════════════════════
-// 🔒 GRACE PERIOD + AUTO-SUSPEND LOGIC
-// ══════════════════════════════════════════════════════════════
-
-const SUBSCRIPTION_GRACE_DAYS = 30;   // ✅ 7 → 30 दिन
-
-/**
- * Compute days overdue for an invoice
- */
-function __daysOverdue(dueDate) {
-  if (!dueDate) return 0;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-  const diffMs = today - due;
-  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
-}
-
-/**
- * Compute status for a single society based on its pending invoices
- * Returns: 'active' | 'grace' | 'suspended'
- */
-function __computeSocietyStatus(societyName) {
-  const socInvoices = subscriptionInvoicesData.filter(inv => inv.society_name === societyName);
-
-  // Find oldest unpaid invoice
-  const unpaid = socInvoices
-    .filter(inv => inv.status === 'Pending')
-    .sort((a, b) => new Date(a.due_date) - new Date(b.due_date));
-
-  if (unpaid.length === 0) return 'active';
-
-  const oldest = unpaid[0];
-  const days = __daysOverdue(oldest.due_date);
-
-  if (days <= 0) return 'active';
-  if (days <= SUBSCRIPTION_GRACE_DAYS) return 'grace';
-  return 'suspended';
-}
-
-/**
- * Check all societies and update subscription_status in DB
- */
-async function checkAndUpdateSubscriptionStatus() {
-  if (currentRole !== 'Admin') return;
-  if (!subscriptionInvoicesData || subscriptionInvoicesData.length === 0) return;
-
-  try {
-    // Fetch all active + recently suspended societies
-    const { data: societies } = await _supabase
-      .from('societies')
-      .select('id, name, subscription_status');
-
-    if (!societies || societies.length === 0) return;
-
-    const updates = [];
-    societies.forEach(soc => {
-      const currentStatus = soc.subscription_status || 'active';
-      const newStatus = __computeSocietyStatus(soc.name);
-
-      // ✅ Auto-reactivate: अगर unpaid invoice नहीं है और पहले suspended था → active कर दो
-      let finalStatus = newStatus;
-      if (currentStatus === 'suspended' && newStatus === 'active') {
-        finalStatus = 'active';
-      }
-      // ✅ Manual override respected: अगर active है और suspended होना चाहिए, तो suspended करो
-      // (यही default behavior है)
-
-      if (finalStatus !== currentStatus) {
-        updates.push({ id: soc.id, name: soc.name, from: currentStatus, to: finalStatus });
-      }
-    });
-
-    // Update one by one
-    for (const u of updates) {
-      await _supabase
-        .from('societies')
-        .update({ subscription_status: u.to })
-        .eq('id', u.id);
-
-      console.log(`[Subscription Status] ${u.name}: ${u.from} → ${u.to}`);
-    }
-
-    if (updates.length > 0) {
-      console.log(`[Subscription Status] ${updates.length} societies updated`);
-    }
-  } catch (err) {
-    console.warn('[Subscription Status] Error:', err);
-  }
-}
-
-/**
- * Render banner showing grace + suspended societies
- */
-function renderSubscriptionStatusBanner() {
-  const banner = document.getElementById('subscription-status-banner');
-  if (!banner) return;
-
-  if (!subscriptionInvoicesData || subscriptionInvoicesData.length === 0) {
-    banner.innerHTML = '';
-    return;
-  }
-
-  // Group societies by status
-  const societyNames = [...new Set(subscriptionInvoicesData.map(inv => inv.society_name))];
-
-  const graceList = [];
-  const suspendedList = [];
-
-  societyNames.forEach(name => {
-    const status = __computeSocietyStatus(name);
-    if (status === 'grace') graceList.push(name);
-    if (status === 'suspended') suspendedList.push(name);
-  });
-
-  if (graceList.length === 0 && suspendedList.length === 0) {
-    banner.innerHTML = '';
-    return;
-  }
-
-  let html = '';
-
-  if (suspendedList.length > 0) {
-    html += `
+PS Society Solutions`;sendWhatsAppReminder(a,i)}document.addEventListener("change",function(e){e.target&&"sub-invoice-month-picker"===e.target.id&&renderSubscriptionInvoices()});const SUBSCRIPTION_GRACE_DAYS=30;function __daysOverdue(e){if(!e)return 0;let t=new Date;t.setHours(0,0,0,0);let a=new Date(e);return a.setHours(0,0,0,0),Math.floor((t-a)/864e5)}function __computeSocietyStatus(e){let t=subscriptionInvoicesData.filter(t=>t.society_name===e),a=t.filter(e=>"Pending"===e.status).sort((e,t)=>new Date(e.due_date)-new Date(t.due_date));if(0===a.length)return"active";let n=a[0],s=__daysOverdue(n.due_date);return s<=0?"active":s<=30?"grace":"suspended"}async function checkAndUpdateSubscriptionStatus(){if("Admin"===currentRole&&subscriptionInvoicesData&&0!==subscriptionInvoicesData.length)try{let{data:e}=await _supabase.from("societies").select("id, name, subscription_status");if(!e||0===e.length)return;let t=[];for(let a of(e.forEach(e=>{let a=e.subscription_status||"active",n=__computeSocietyStatus(e.name),s=n;"suspended"===a&&"active"===n&&(s="active"),s!==a&&t.push({id:e.id,name:e.name,from:a,to:s})}),t))await _supabase.from("societies").update({subscription_status:a.to}).eq("id",a.id),console.log(`[Subscription Status] ${a.name}: ${a.from} → ${a.to}`);t.length>0&&console.log(`[Subscription Status] ${t.length} societies updated`)}catch(n){console.warn("[Subscription Status] Error:",n)}}function renderSubscriptionStatusBanner(){let e=document.getElementById("subscription-status-banner");if(!e)return;if(!subscriptionInvoicesData||0===subscriptionInvoicesData.length){e.innerHTML="";return}let t=[...new Set(subscriptionInvoicesData.map(e=>e.society_name))],a=[],n=[];if(t.forEach(e=>{let t=__computeSocietyStatus(e);"grace"===t&&a.push(e),"suspended"===t&&n.push(e)}),0===a.length&&0===n.length){e.innerHTML="";return}let s="";n.length>0&&(s+=`
       <div class="alert alert-danger shadow-sm" style="border-radius: 12px;">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
           <div class="flex-grow-1">
             <h6 class="fw-bold mb-1">
-              <i class="fa-solid fa-ban me-2"></i> ${suspendedList.length} Society${suspendedList.length > 1 ? 'ies' : ''} Suspended
+              <i class="fa-solid fa-ban me-2"></i> ${n.length} Society${n.length>1?"ies":""} Suspended
             </h6>
-            <p class="small mb-1">Due date + ${SUBSCRIPTION_GRACE_DAYS} days बीत चुके हैं और payment नहीं आई।</p>
+            <p class="small mb-1">Due date + 30 days बीत चुके हैं और payment नहीं आई।</p>
             <div class="small">
-              ${suspendedList.map(n => `<span class="badge bg-danger me-1 mb-1">${n}</span>`).join('')}
+              ${n.map(e=>`<span class="badge bg-danger me-1 mb-1">${e}</span>`).join("")}
             </div>
           </div>
           <button class="btn btn-sm btn-danger fw-semibold" onclick="showAllOverdueInvoices()">
@@ -6232,20 +742,16 @@ function renderSubscriptionStatusBanner() {
           </button>
         </div>
       </div>
-    `;
-  }
-
-  if (graceList.length > 0) {
-    html += `
+    `),a.length>0&&(s+=`
       <div class="alert alert-warning shadow-sm" style="border-radius: 12px;">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
           <div class="flex-grow-1">
             <h6 class="fw-bold mb-1">
-              <i class="fa-solid fa-clock me-2"></i> ${graceList.length} Society${graceList.length > 1 ? 'ies' : ''} In Grace Period
+              <i class="fa-solid fa-clock me-2"></i> ${a.length} Society${a.length>1?"ies":""} In Grace Period
             </h6>
-            <p class="small mb-1">Due date निकल गई है — ${SUBSCRIPTION_GRACE_DAYS} दिन में payment नहीं आई तो suspend हो जाएँगी।</p>
+            <p class="small mb-1">Due date निकल गई है — 30 दिन में payment नहीं आई तो suspend हो जाएँगी।</p>
             <div class="small">
-              ${graceList.map(n => `<span class="badge bg-warning text-dark me-1 mb-1">${n}</span>`).join('')}
+              ${a.map(e=>`<span class="badge bg-warning text-dark me-1 mb-1">${e}</span>`).join("")}
             </div>
           </div>
           <button class="btn btn-sm btn-warning fw-semibold" onclick="sendBulkSubscriptionReminders('grace')">
@@ -6253,87 +759,11 @@ function renderSubscriptionStatusBanner() {
           </button>
         </div>
       </div>
-    `;
-  }
+    `),e.innerHTML=s}async function reactivateSociety(e){if(confirm(`⚠️ Reactivate "${e}"?
 
-  banner.innerHTML = html;
-}
+यह manually society को active कर देगा, चाहे payment pending हो।
 
-/**
- * Manual reactivate society (override auto-suspend)
- */
-async function reactivateSociety(societyName) {
-  if (!confirm(`⚠️ Reactivate "${societyName}"?\n\nयह manually society को active कर देगा, चाहे payment pending हो।\n\nक्या आप sure हैं?`)) {
-    return;
-  }
-
-  try {
-    const { error } = await _supabase
-      .from('societies')
-      .update({ subscription_status: 'active' })
-      .eq('name', societyName);
-
-    if (error) {
-      alert('❌ Error: ' + error.message);
-      return;
-    }
-
-    try {
-      await logActivity(
-        'SOCIETY_REACTIVATED',
-        `Manually reactivated: ${societyName}`
-      );
-    } catch (e) { /* silent */ }
-
-    alert(`✅ "${societyName}" reactivated successfully!`);
-    await renderSuperAdminMasterDashboard();
-    await loadSubscriptionInvoices();
-
-  } catch (err) {
-    console.error('[Reactivate] Error:', err);
-    alert('❌ Error: ' + err.message);
-  }
-}
-
-/**
- * Bulk WhatsApp reminder for grace/suspended societies
- */
-async function sendBulkSubscriptionReminders(filterType) {
-  const societyNames = [...new Set(subscriptionInvoicesData.map(inv => inv.society_name))];
-
-  const targetSocieties = societyNames.filter(name => {
-    const status = __computeSocietyStatus(name);
-    if (filterType === 'grace') return status === 'grace';
-    if (filterType === 'suspended') return status === 'suspended';
-    return status === 'grace' || status === 'suspended';
-  });
-
-  if (targetSocieties.length === 0) {
-    alert('✅ No societies need reminders right now!');
-    return;
-  }
-
-  if (!confirm(`📢 ${targetSocieties.length} societies ko WhatsApp reminder bhejna hai?`)) return;
-
-  // Fetch society phones
-  const { data: socData } = await _supabase
-    .from('societies')
-    .select('name, phone')
-    .in('name', targetSocieties);
-
-  const phones = (socData || []).filter(s => s.phone);
-
-  if (phones.length === 0) {
-    alert('❌ Kisi bhi society ka phone number नहीं मिला।');
-    return;
-  }
-
-  // Send one by one with delay
-  for (let i = 0; i < phones.length; i++) {
-    const s = phones[i];
-    setTimeout(() => {
-      const message =
-`Dear ${s.name} Committee,
+क्या आप sure हैं?`))try{let{error:t}=await _supabase.from("societies").update({subscription_status:"active"}).eq("name",e);if(t){alert("❌ Error: "+t.message);return}try{await logActivity("SOCIETY_REACTIVATED",`Manually reactivated: ${e}`)}catch(a){}alert(`✅ "${e}" reactivated successfully!`),await renderSuperAdminMasterDashboard(),await loadSubscriptionInvoices()}catch(n){console.error("[Reactivate] Error:",n),alert("❌ Error: "+n.message)}}async function sendBulkSubscriptionReminders(e){let t=[...new Set(subscriptionInvoicesData.map(e=>e.society_name))],a=t.filter(t=>{let a=__computeSocietyStatus(t);return"grace"===e?"grace"===a:"suspended"===e?"suspended"===a:"grace"===a||"suspended"===a});if(0===a.length){alert("✅ No societies need reminders right now!");return}if(!confirm(`📢 ${a.length} societies ko WhatsApp reminder bhejna hai?`))return;let{data:n}=await _supabase.from("societies").select("name, phone").in("name",a),s=(n||[]).filter(e=>e.phone);if(0===s.length){alert("❌ Kisi bhi society ka phone number नहीं मिला।");return}for(let i=0;i<s.length;i++){let r=s[i];setTimeout(()=>{let e=`Dear ${r.name} Committee,
 
 ⚠️ *Subscription Payment Reminder*
 
@@ -6345,611 +775,61 @@ UPI: 8866376056@icici
 Phone: +91 8866376056
 
 Thank you,
-PS Society Solutions`;
-
-      sendWhatsAppReminder(s.phone, message);
-    }, i * 1000);
-  }
-
-  alert(`✅ ${phones.length} reminders खोल दिए गए।`);
-}
-
-function generateMonthlySummary() {
-  let monthInput = document.querySelector('#tabOverlay #summary-month-picker') || document.getElementById('summary-month-picker');
-  let selectedMonth = monthInput ? monthInput.value : '';
-
-  if (!selectedMonth) {
-    const now = new Date();
-    selectedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    if (monthInput) monthInput.value = selectedMonth;
-  }
-
-  const monthCollections = maintenanceData.filter(r => {
-    if (!r.payment_date) return false;
-    const d = new Date(r.payment_date);
-    if (!isNaN(d.getTime())) { const yyyy = d.getFullYear(); const mm = String(d.getMonth() + 1).padStart(2, '0'); return `${yyyy}-${mm}` === selectedMonth; }
-    return (r.payment_date || '').startsWith(selectedMonth);
-  });
-  const totalCollected = monthCollections.reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-
-  const monthExpenses = expenseData.filter(e => {
-    if (!e.expense_date) return false;
-    const d = new Date(e.expense_date);
-    if (!isNaN(d.getTime())) { const yyyy = d.getFullYear(); const mm = String(d.getMonth() + 1).padStart(2, '0'); return `${yyyy}-${mm}` === selectedMonth; }
-    return (e.expense_date || '').startsWith(selectedMonth);
-  });
-  const totalExpenses = monthExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
-
-  const netCashflow = totalCollected - totalExpenses;
-
-  let defaulterCount = 0;
-  membersData.forEach(m => {
-    const flatNo = (m.flat_no || '').trim().toUpperCase();
-    const rate = Number(m.monthly_rate || 600);
-    const openingDue = Number(m.opening_due || 0);
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
-    const totalDue = openingDue + (MONTHS_IN_FY_SO_FAR * rate);
-    if (totalDue - flatPaid > 0) defaulterCount++;
-  });
-
-  document.querySelectorAll('#summary-month-collected').forEach(el => el.innerText = totalCollected);
-  document.querySelectorAll('#summary-month-expenses').forEach(el => el.innerText = totalExpenses);
-  document.querySelectorAll('#summary-month-net').forEach(el => {
-    el.innerText = netCashflow;
-    el.className = netCashflow >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
-  });
-  document.querySelectorAll('#summary-month-defaulters').forEach(el => el.innerText = `${defaulterCount} Flats`);
-
-  renderMonthlySummaryTable(monthCollections, monthExpenses, totalCollected, totalExpenses, netCashflow);
-}
-
-function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, net) {
-  const expCategories = {
-    'Administrative Expenses': 0, 'Utility Expenses': 0, 'Repairs & Maintenance': 0,
-    'Staff & Salary': 0, 'Statutory & Legal': 0, 'Other Expenses': 0
-  };
-
-  expenses.forEach(e => {
-    const cat = e.category || 'Other Expenses';
-    if (expCategories[cat] !== undefined) { expCategories[cat] += Number(e.amount || 0); }
-    else { expCategories['Other Expenses'] += Number(e.amount || 0); }
-  });
-
-  let html = `
+PS Society Solutions`;sendWhatsAppReminder(r.phone,e)},1e3*i)}alert(`✅ ${s.length} reminders खोल दिए गए।`)}function generateMonthlySummary(){let e=document.querySelector("#tabOverlay #summary-month-picker")||document.getElementById("summary-month-picker"),t=e?e.value:"";if(!t){let a=new Date;t=`${a.getFullYear()}-${String(a.getMonth()+1).padStart(2,"0")}`,e&&(e.value=t)}let n=maintenanceData.filter(e=>{if(!e.payment_date)return!1;let a=new Date(e.payment_date);if(!isNaN(a.getTime())){let n=a.getFullYear(),s=String(a.getMonth()+1).padStart(2,"0");return`${n}-${s}`===t}return(e.payment_date||"").startsWith(t)}),s=n.reduce((e,t)=>e+Number(t.amount_paid||0),0),i=expenseData.filter(e=>{if(!e.expense_date)return!1;let a=new Date(e.expense_date);if(!isNaN(a.getTime())){let n=a.getFullYear(),s=String(a.getMonth()+1).padStart(2,"0");return`${n}-${s}`===t}return(e.expense_date||"").startsWith(t)}),r=i.reduce((e,t)=>e+Number(t.amount||0),0),o=s-r,l=0;membersData.forEach(e=>{let t=(e.flat_no||"").trim().toUpperCase(),a=Number(e.monthly_rate||600),n=Number(e.opening_due||0),s=maintenanceData.filter(e=>(e.flat_no||"").trim().toUpperCase()===t).reduce((e,t)=>e+Number(t.amount_paid||0),0);n+MONTHS_IN_FY_SO_FAR*a-s>0&&l++}),document.querySelectorAll("#summary-month-collected").forEach(e=>e.innerText=s),document.querySelectorAll("#summary-month-expenses").forEach(e=>e.innerText=r),document.querySelectorAll("#summary-month-net").forEach(e=>{e.innerText=o,e.className=o>=0?"text-success fw-bold":"text-danger fw-bold"}),document.querySelectorAll("#summary-month-defaulters").forEach(e=>e.innerText=`${l} Flats`),renderMonthlySummaryTable(n,i,s,r,o)}function renderMonthlySummaryTable(e,t,a,n,s){let i={"Administrative Expenses":0,"Utility Expenses":0,"Repairs & Maintenance":0,"Staff & Salary":0,"Statutory & Legal":0,"Other Expenses":0};t.forEach(e=>{let t=e.category||"Other Expenses";void 0!==i[t]?i[t]+=Number(e.amount||0):i["Other Expenses"]+=Number(e.amount||0)});let r=`
     <tr class="table-success fw-bold">
       <td>Maintenance Collections (Total Receipts)</td>
       <td><span class="badge bg-success">Income</span></td>
-      <td>${collections.length} Receipts</td>
-      <td>${totalColl.toFixed(2)}</td>
+      <td>${e.length} Receipts</td>
+      <td>${a.toFixed(2)}</td>
     </tr>
-  `;
-
-  for (const [cat, amt] of Object.entries(expCategories)) {
-    if (amt > 0) {
-      html += `
+  `;for(let[o,l]of Object.entries(i))l>0&&(r+=`
         <tr>
-          <td>Expense Head: ${cat}</td>
+          <td>Expense Head: ${o}</td>
           <td><span class="badge bg-danger">Expense Group</span></td>
           <td>-</td>
-          <td class="text-danger fw-bold">${amt.toFixed(2)}</td>
+          <td class="text-danger fw-bold">${l.toFixed(2)}</td>
         </tr>
-      `;
-    }
-  }
-
-  html += `
+      `);r+=`
     <tr class="table-secondary fw-bold">
       <td colspan="3">Total Expenses Paid</td>
-      <td class="text-danger">${totalExp.toFixed(2)}</td>
+      <td class="text-danger">${n.toFixed(2)}</td>
     </tr>
     <tr class="table-primary fw-bold">
       <td colspan="3">Net Monthly Surplus / (Deficit)</td>
-      <td class="${net >= 0 ? 'text-success' : 'text-danger'}">${net.toFixed(2)}</td>
+      <td class="${s>=0?"text-success":"text-danger"}">${s.toFixed(2)}</td>
     </tr>
-  `;
+  `;let d=document.querySelectorAll("#monthly-summary-rows");d.forEach(e=>{e.innerHTML=r})}async function submitMember(e){e.preventDefault();let t=document.getElementById("mem-flat").value.trim().toUpperCase(),a=document.getElementById("mem-name").value.trim(),n=document.getElementById("mem-phone").value.trim(),s=document.getElementById("mem-is-tenant").value;if(!t){alert("❌ Flat No खाली नहीं हो सकता।");return}let i=membersData.find(e=>(e.flat_no||"").trim().toUpperCase()===t);if(i){alert(`❌ Flat "${t}" पहले से मौजूद है!
 
-  const tbodies = document.querySelectorAll('#monthly-summary-rows');
-  tbodies.forEach(tbody => { tbody.innerHTML = html; });
-}
+Owner: ${i.name||"N/A"}
+Phone: ${i.phone||"N/A"}
 
-async function submitMember(event) {
-  event.preventDefault();
-  
-  const flatNo = document.getElementById('mem-flat').value.trim().toUpperCase();
-  const name = document.getElementById('mem-name').value.trim();
-  const phone = document.getElementById('mem-phone').value.trim();
-  const is_tenant = document.getElementById('mem-is-tenant').value;
+डुप्लीकेट flat add नहीं कर सकते।`);return}try{let{data:r,error:o}=await _supabase.from("members").select("id, name, phone").eq("society_name",currentSociety).ilike("flat_no",t).maybeSingle();if(o&&"PGRST116"!==o.code&&console.warn("[Member] DB check error:",o.message),r){alert(`❌ Flat "${t}" database में पहले से मौजूद है!
 
-  // ══════════════════════════════════════════════
-  // ✅ STEP 1: Frontend duplicate check
-  // ══════════════════════════════════════════════
-  if (!flatNo) {
-    alert('❌ Flat No खाली नहीं हो सकता।');
-    return;
-  }
+Owner: ${r.name||"N/A"}
 
-  // Check against already-loaded membersData (fast, no DB call)
-  const existingInMemory = membersData.find(m => 
-    (m.flat_no || '').trim().toUpperCase() === flatNo
-  );
+कृपया पहले से मौजूद member को edit करें।`);return}}catch(l){console.warn("[Member] Duplicate check failed, continuing:",l)}let d=null;if("Yes"===s){let c=document.getElementById("mem-rent-agreement-file"),m=c?.files?.[0];if(m){let u=m.name.split(".").pop(),p=`${currentSociety}/agreement_${Date.now()}.${u}`,{error:y}=await _supabase.storage.from("notice_attachments").upload(p,m);if(!y){let{data:g}=_supabase.storage.from("notice_attachments").getPublicUrl(p);d=g?.publicUrl||null}}}let b={flat_no:t,name:a,phone:n,status:"Yes"===s?"Tenant":"Owner",is_tenant:s,tenant_name:document.getElementById("mem-tenant-name")?.value.trim()||null,tenant_phone:document.getElementById("mem-tenant-phone")?.value.trim()||null,rent_agreement_url:d,monthly_rate:Number(document.getElementById("mem-rate").value),opening_due:Number(document.getElementById("mem-opening-due")?.value||0),society_name:currentSociety},{error:f}=await _supabase.from("members").insert([b]);if(f){if("23505"===f.code||f.message&&f.message.includes("unique")){alert(`❌ Flat "${t}" पहले से मौजूद है!
 
-  if (existingInMemory) {
-    alert(`❌ Flat "${flatNo}" पहले से मौजूद है!\n\nOwner: ${existingInMemory.name || 'N/A'}\nPhone: ${existingInMemory.phone || 'N/A'}\n\nडुप्लीकेट flat add नहीं कर सकते।`);
-    return;
-  }
+(DB protection ने रोका)
 
-  // ══════════════════════════════════════════════
-  // ✅ STEP 2: DB-level double check (safety)
-  // ══════════════════════════════════════════════
-  try {
-    const { data: dbCheck, error: checkErr } = await _supabase
-      .from('members')
-      .select('id, name, phone')
-      .eq('society_name', currentSociety)
-      .ilike('flat_no', flatNo)
-      .maybeSingle();
-
-    if (checkErr && checkErr.code !== 'PGRST116') {
-      console.warn('[Member] DB check error:', checkErr.message);
-    }
-
-    if (dbCheck) {
-      alert(`❌ Flat "${flatNo}" database में पहले से मौजूद है!\n\nOwner: ${dbCheck.name || 'N/A'}\n\nकृपया पहले से मौजूद member को edit करें।`);
-      return;
-    }
-  } catch (err) {
-    console.warn('[Member] Duplicate check failed, continuing:', err);
-  }
-
-  // ══════════════════════════════════════════════
-  // ✅ STEP 3: Rent Agreement upload
-  // ══════════════════════════════════════════════
-  let rent_agreement_url = null;
-
-  if (is_tenant === 'Yes') {
-    const fileInput = document.getElementById('mem-rent-agreement-file');
-    const file = fileInput?.files?.[0];
-    if (file) {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${currentSociety}/agreement_${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await _supabase.storage.from('notice_attachments').upload(filePath, file);
-      if (!uploadError) {
-        const { data: urlData } = _supabase.storage.from('notice_attachments').getPublicUrl(filePath);
-        rent_agreement_url = urlData?.publicUrl || null;
-      }
-    }
-  }
-
-  // ══════════════════════════════════════════════
-  // ✅ STEP 4: Insert with final DB-level protection
-  // ══════════════════════════════════════════════
-  const newMember = {
-    flat_no: flatNo,
-    name: name,
-    phone: phone,
-    status: is_tenant === 'Yes' ? 'Tenant' : 'Owner',
-    is_tenant: is_tenant,
-    tenant_name: document.getElementById('mem-tenant-name')?.value.trim() || null,
-    tenant_phone: document.getElementById('mem-tenant-phone')?.value.trim() || null,
-    rent_agreement_url: rent_agreement_url,
-    monthly_rate: Number(document.getElementById('mem-rate').value),
-    opening_due: Number(document.getElementById('mem-opening-due')?.value || 0),
-    society_name: currentSociety
-  };
-
-  const { error } = await _supabase.from('members').insert([newMember]);
-
-  if (error) {
-    // ✅ Catch unique constraint violation from DB
-    if (error.code === '23505' || (error.message && error.message.includes('unique'))) {
-      alert(`❌ Flat "${flatNo}" पहले से मौजूद है!\n\n(DB protection ने रोका)\n\nकृपया existing record को edit करें।`);
-      return;
-    }
-    alert('❌ Error adding member: ' + error.message);
-    return;
-  }
-
-  alert(`✅ Member "${flatNo}" successfully added!`);
-  bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
-  document.getElementById('memberModal').querySelector('form').reset();
-  
-  await fetchSupabaseData();
-  renderAllTables();
-}
-
-async function submitFD(event) {
-  event.preventDefault();
-  const newFD = {
-    fund_type: document.getElementById('fd-fund-type').value,
-    bank_name: document.getElementById('fd-bank').value,
-    account_number: document.getElementById('fd-acc').value,
-    principal_amount: Number(document.getElementById('fd-amount').value),
-    interest_rate: Number(document.getElementById('fd-rate').value),
-    deposit_date: document.getElementById('fd-dep-date').value,
-    maturity_date: document.getElementById('fd-mat-date').value,
-    maturity_amount: Number(document.getElementById('fd-maturity').value),
-    status: document.getElementById('fd-status').value,
-    society_name: currentSociety
-  };
-  await _supabase.from('sinking_fund_fd').insert([newFD]);
-  bootstrap.Modal.getInstance(document.getElementById('fdModal')).hide();
-  fetchSupabaseData();
-}
-
-async function submitJournalVoucher(event) {
-  event.preventDefault();
-  const newJV = {
-    society_name: currentSociety,
-    jv_no: document.getElementById('jv-no').value.trim(),
-    date: document.getElementById('jv-date').value,
-    flat_no: document.getElementById('jv-flat').value.trim().toUpperCase(),
-    type: document.getElementById('jv-type').value,
-    amount: Number(document.getElementById('jv-amount').value),
-    reason: document.getElementById('jv-reason').value.trim(),
-    created_at: new Date().toISOString()
-  };
-
-  const { error } = await _supabase.from('journal_vouchers').insert([newJV]);
-  if (error) { alert('❌ Error saving JV: ' + error.message); return; }
-
-  alert('✅ Journal Voucher Posted Successfully!');
-  bootstrap.Modal.getInstance(document.getElementById('journalModal')).hide();
-  document.getElementById('journalForm').reset();
-  
-  // ✅ Reload journal vouchers data FIRST
-  const { data: freshJVs } = await _supabase
-    .from('journal_vouchers')
-    .select('*')
-    .eq('society_name', currentSociety)
-    .order('date', { ascending: false });
-  journalVouchersData = freshJVs || [];
-  
-  // Then refresh everything
-  renderJournalVouchers();
-  renderCAAuditReport();
-  renderMembers();
-  renderMemberPersonalView();
-  updateAllBadges();
-}
-
-function renderJournalVouchers() {
-  const tbody = document.getElementById('journal-list');
-  if (!tbody) return;
-  if (!journalVouchersData || journalVouchersData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No journal vouchers recorded.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = journalVouchersData.map((jv, index) => `
+कृपया existing record को edit करें।`);return}alert("❌ Error adding member: "+f.message);return}alert(`✅ Member "${t}" successfully added!`),bootstrap.Modal.getInstance(document.getElementById("memberModal")).hide(),document.getElementById("memberModal").querySelector("form").reset(),await fetchSupabaseData(),renderAllTables()}async function submitFD(e){e.preventDefault();let t={fund_type:document.getElementById("fd-fund-type").value,bank_name:document.getElementById("fd-bank").value,account_number:document.getElementById("fd-acc").value,principal_amount:Number(document.getElementById("fd-amount").value),interest_rate:Number(document.getElementById("fd-rate").value),deposit_date:document.getElementById("fd-dep-date").value,maturity_date:document.getElementById("fd-mat-date").value,maturity_amount:Number(document.getElementById("fd-maturity").value),status:document.getElementById("fd-status").value,society_name:currentSociety};await _supabase.from("sinking_fund_fd").insert([t]),bootstrap.Modal.getInstance(document.getElementById("fdModal")).hide(),fetchSupabaseData()}async function submitJournalVoucher(e){e.preventDefault();let t={society_name:currentSociety,jv_no:document.getElementById("jv-no").value.trim(),date:document.getElementById("jv-date").value,flat_no:document.getElementById("jv-flat").value.trim().toUpperCase(),type:document.getElementById("jv-type").value,amount:Number(document.getElementById("jv-amount").value),reason:document.getElementById("jv-reason").value.trim(),created_at:new Date().toISOString()},{error:a}=await _supabase.from("journal_vouchers").insert([t]);if(a){alert("❌ Error saving JV: "+a.message);return}alert("✅ Journal Voucher Posted Successfully!"),bootstrap.Modal.getInstance(document.getElementById("journalModal")).hide(),document.getElementById("journalForm").reset();let{data:n}=await _supabase.from("journal_vouchers").select("*").eq("society_name",currentSociety).order("date",{ascending:!1});journalVouchersData=n||[],renderJournalVouchers(),renderCAAuditReport(),renderMembers(),renderMemberPersonalView(),updateAllBadges()}function renderJournalVouchers(){let e=document.getElementById("journal-list");if(e){if(!journalVouchersData||0===journalVouchersData.length){e.innerHTML='<tr><td colspan="7" class="text-center text-muted">No journal vouchers recorded.</td></tr>';return}e.innerHTML=journalVouchersData.map((e,t)=>`
     <tr>
-      <td><b>${jv.jv_no}</b></td>
-      <td>${jv.date}</td>
-      <td>${jv.flat_no}</td>
-      <td><span class="badge ${jv.type === 'Debit' ? 'bg-danger' : 'bg-success'}">${jv.type}</span></td>
-      <td class="fw-bold">${jv.amount}</td>
-      <td>${jv.reason}</td>
+      <td><b>${e.jv_no}</b></td>
+      <td>${e.date}</td>
+      <td>${e.flat_no}</td>
+      <td><span class="badge ${"Debit"===e.type?"bg-danger":"bg-success"}">${e.type}</span></td>
+      <td class="fw-bold">${e.amount}</td>
+      <td>${e.reason}</td>
       <td class="no-print admin-only">
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteJournalVoucher(${jv.id})"><i class="fa-solid fa-trash"></i></button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteJournalVoucher(${e.id})"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
-  `).join('');
-}
-
-async function deleteJournalVoucher(id) {
-  if (!confirm('⚠️ Delete this Journal Voucher?')) return;
-  const { error } = await _supabase.from('journal_vouchers').delete().eq('id', id);
-  if (error) alert('Error: ' + error.message);
-  else {
-    // ✅ Reload journal vouchers data FIRST
-    const { data: freshJVs } = await _supabase
-      .from('journal_vouchers')
-      .select('*')
-      .eq('society_name', currentSociety)
-      .order('date', { ascending: false });
-    journalVouchersData = freshJVs || [];
-    
-    // Then refresh everything
-    renderJournalVouchers();
-    renderCAAuditReport();
-    renderMembers();
-    renderMemberPersonalView();
-    updateAllBadges();
-  }
-}
-
-async function submitAsset(event) {
-  event.preventDefault();
-  const newAsset = {
-  asset_code: `AST-${Date.now()}`,
-  name: document.getElementById('asset-name').value,
-  location: document.getElementById('asset-loc').value,
-  quantity: parseInt(document.getElementById('asset-qty').value) || 1,
-  cost: Number(document.getElementById('asset-cost').value),
-  purchase_date: document.getElementById('asset-purchase-date')?.value || null,
-  depreciation_rate: Number(document.getElementById('asset-dep-rate')?.value || 10),
-  condition_status: document.getElementById('asset-condition').value,
-  details: document.getElementById('asset-details').value || '',
-  society_name: currentSociety
-};
-  await _supabase.from('assets').insert([newAsset]);
-  bootstrap.Modal.getInstance(document.getElementById('assetModal')).hide();
-  fetchSupabaseData();
-}
-
-async function submitMaintenance(event) {
-  event.preventDefault();
-  const newReceipt = {
-    receipt_no: document.getElementById('maint-form-ref').value || `REC-${Date.now()}`,
-    flat_no: document.getElementById('maint-form-flat').value.toUpperCase(),
-    payment_date: document.getElementById('maint-form-date').value || new Date().toISOString().split('T')[0],
-    amount_paid: Number(document.getElementById('maint-form-amount').value),
-    mode_of_payment: document.getElementById('maint-form-mode').value,
-    month_accounted: document.getElementById('maint-form-month').value || "July'26",
-    remarks: document.getElementById('maint-form-remarks').value || "-",
-    society_name: currentSociety
-  };
-
-  await _supabase.from('maintenance_payments').insert([newReceipt]);
-  bootstrap.Modal.getInstance(document.getElementById('maintenanceModal')).hide();
-  
-  await fetchSupabaseData();
-  renderAllTables();
-}
-
-function openExpenseModal() {
-  document.getElementById('expenseForm')?.reset();
-  new bootstrap.Modal(document.getElementById('expenseModal')).show();
-}
-
-async function submitExpense(event) {
-  event.preventDefault();
-  const newExpense = {
-    voucher_no: document.getElementById('exp-form-no').value.trim() || `VOU-${Date.now()}`,
-    expense_date: document.getElementById('exp-form-date').value || new Date().toISOString().split('T')[0],
-    category: document.getElementById('exp-form-category').value.trim(),
-    paid_to: document.getElementById('exp-form-paidto').value.trim(),
-    amount: Number(document.getElementById('exp-form-amount').value),
-    mode: document.getElementById('exp-form-mode').value,
-    remarks: document.getElementById('exp-form-remarks').value.trim() || "-",
-    society_name: currentSociety
-  };
-
-  await _supabase.from('expenses').insert([newExpense]);
-  await logActivity('ADD_EXPENSE', `Added voucher ${newExpense.voucher_no} of ${newExpense.amount} for ${newExpense.paid_to}`);
-  
-  bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
-  fetchSupabaseData();
-}
-
-async function submitBankEntry(event) {
-  event.preventDefault();
-  const type = document.getElementById('bank-form-type').value;
-  const amt = Number(document.getElementById('bank-form-amount').value);
-  
-  const newEntry = {
-    society_name: currentSociety,
-    date: document.getElementById('bank-form-date').value,
-    ref: document.getElementById('bank-form-ref').value,
-    head: document.getElementById('bank-form-head').value,
-    type: type === 'deposit' ? 'Bank Deposit' : 'Withdrawal',
-    deposit: type === 'deposit' ? amt : 0,
-    withdraw: type === 'withdraw' ? amt : 0
-  };
-  
-  const { error } = await _supabase.from('bank_entries').insert([newEntry]);
-  if (error) { alert('❌ Error: ' + error.message); return; }
-  
-  alert('✅ Bank entry saved permanently!');
-  bootstrap.Modal.getInstance(document.getElementById('bankModal')).hide();
-  document.getElementById('bankModal').querySelector('form').reset();
-  await fetchSupabaseData();
-  setTimeout(() => loadSecondaryData(), 500);
-}
-
-function openEnrollModal() { new bootstrap.Modal(document.getElementById('enrollModal')).show(); }
-
-async function submitEnroll(event) {
-  event.preventDefault();
-  const newLead = {
-    full_name: document.getElementById('enroll-name').value.trim(),
-    society_name: document.getElementById('enroll-society').value.trim(),
-    city: document.getElementById('enroll-city').value.trim(),
-    mobile: document.getElementById('enroll-mobile').value.trim(),
-    status: 'New'
-  };
-  await _supabase.from('leads').insert([newLead]);
-  alert('✅ Enrollment Submitted!');
-  bootstrap.Modal.getInstance(document.getElementById('enrollModal')).hide();
-}
-
-async function deleteMember(id) { 
-  if (confirm('Delete member?')) { 
-    await _supabase.from('members').delete().eq('id', id); 
-    logActivity('DELETE_MEMBER', `Deleted member ID: ${id}`);
-    fetchSupabaseData(); 
-  } 
-}
-
-async function deleteMaintenance(id) { 
-  if (confirm('Delete receipt?')) { 
-    await _supabase.from('maintenance_payments').delete().eq('id', id); 
-    fetchSupabaseData(); 
-  } 
-}
-
-async function deleteExpense(id) { 
-  if (confirm('Delete voucher?')) { 
-    await _supabase.from('expenses').delete().eq('id', id); 
-    logActivity('DELETE_EXPENSE', `Deleted voucher ID: ${id}`);
-    fetchSupabaseData(); 
-  } 
-}
-
-async function deleteAsset(id) { 
-  if (confirm('Delete asset?')) { 
-    await _supabase.from('assets').delete().eq('id', id); 
-    fetchSupabaseData(); 
-  } 
-}
-
-async function deleteFD(id) { 
-  if (confirm('Delete FD?')) { 
-    await _supabase.from('sinking_fund_fd').delete().eq('id', id); 
-    fetchSupabaseData(); 
-  } 
-}
-
-async function submitTeamMember(event) {
-  event.preventDefault();
-  const newMember = {
-    name: document.getElementById('team-name').value.trim(),
-    mobile: document.getElementById('team-mobile').value.trim(),
-    role: document.getElementById('team-role').value.trim(),
-    type: document.getElementById('team-type').value,
-    society_name: currentSociety
-  };
-  await _supabase.from('team').insert([newMember]);
-  bootstrap.Modal.getInstance(document.getElementById('teamModal')).hide();
-  fetchSupabaseData();
-}
-
-async function deleteTeamMember(id) {
-  if (!confirm('Delete team member?')) return;
-  await _supabase.from('team').delete().eq('id', id);
-  fetchSupabaseData();
-}
-
-function exportTableToExcel(tableId, filename) {
-  const table = document.getElementById(tableId);
-  const tableClone = table.cloneNode(true);
-  tableClone.querySelectorAll('td').forEach(td => { td.innerText = td.innerText.replace(/[₹Rs\.]/g, '').trim(); });
-  const wb = XLSX.utils.table_to_book(tableClone, { sheet: "Sheet1", raw: true });
-  XLSX.writeFile(wb, `${filename}.xlsx`);
-}
-
-// ✅ Change Password button handler (Desktop sidebar ke liye)
-function handleChangePasswordClick() {
-  // 🔒 Sirf PS Live Demo mein block
-  if (typeof isDemoMode === 'function' && isDemoMode()) {
-    alert('🔒 Password change is not available in Demo Mode.\n\n' +
-          'This is just a preview. To change your password:\n' +
-          '1. Go to the landing page\n' +
-          '2. Login with your account\n' +
-          '3. Then change your password');
-    return;
-  }
-  
-  // Normal flow — modal kholo
-  const modalEl = document.getElementById('changePasswordModal');
-  if (modalEl) new bootstrap.Modal(modalEl).show();
-}
-
-function toggleMobileMenu() {
-  const overlay = document.getElementById('mobileMenuOverlay');
-  if (!overlay) return;
-  if (overlay.style.display === 'flex') { closeMobileMenu(); }
-  else { overlay.style.display = 'flex'; document.body.style.overflow = 'hidden'; renderGridCards(); window.history.pushState({ mobileMenuOpen: true }, "", window.location.href); }
-}
-
-function closeMobileMenu() {
-  const overlay = document.getElementById('mobileMenuOverlay');
-  if (!overlay) return;
-  overlay.style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function updateMobileHeaderInfo() {
-  const socElem = document.getElementById('mobile-society-name');
-  const userElem = document.getElementById('mobile-user-details');
-  if (socElem) { socElem.innerText = societySettings.society_name || currentSociety || 'PS Society'; }
-  if (userElem) {
-    if (currentRole === 'Admin' || currentRole === 'SocietyAdmin') { userElem.innerText = `👑 ${currentRole} (${currentUser})`; }
-    else if (currentRole === 'Chairman') { userElem.innerText = `🎖️ Chairman (${currentUser})`; }
-    else {
-      const member = membersData.find(m => (m.flat_no || '').toUpperCase() === currentUser.toUpperCase());
-      const memberName = member && member.name ? member.name : '';
-      userElem.innerText = memberName ? `🏠 ${currentUser} - ${memberName}` : `🏠 ${currentUser}`;
-    }
-  }
-}
-
-function renderGridCards() {
-  updateMobileHeaderInfo();
-  const container = document.querySelector('#mobileMenuOverlay .grid-container');
-  if (!container) return;
-  const role = currentRole || 'Member';
-  let allCards = [
-    { id: 'master-dashboard', icon: 'fa-chart-pie', label: 'Master Dashboard', color: '#8b5cf6' },    
-    { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard', color: '#2563eb' },
-    { id: 'activity-logs', icon: 'fa-list-check', label: 'Activity Logs', color: '#0ea5e9' },
-    { id: 'members', icon: 'fa-users', label: 'Members', color: '#22c55e' },
-    { id: 'maintenance', icon: 'fa-indian-rupee-sign', label: 'Maintenance', color: '#f59e0b' },
-    { id: 'bills', icon: 'fa-file-invoice-dollar', label: 'Monthly Bills', color: '#16a34a' },
-    { id: 'expenses', icon: 'fa-receipt', label: 'Expenses', color: '#ef4444' },
-    { id: 'amc-tracker', icon: 'fa-screwdriver-wrench', label: 'AMC Tracker', color: '#f59e0b' },
-    { id: 'visitor', icon: 'fa-user-plus', label: 'Visitor', color: '#8b5cf6' },
-    { id: 'complaints', icon: 'fa-headset', label: 'Complaints', color: '#ec4899' },
-    { id: 'support', icon: 'fa-life-ring', label: 'Support', color: '#0ea5e9' },
-    { id: 'ca-audit', icon: 'fa-calculator', label: 'CA Audit', color: '#06b6d4' },
-    { id: 'bank-reconciliation', icon: 'fa-scale-balanced', label: 'Bank BRS', color: '#0ea5e9' },
-    { id: 'polls', icon: 'fa-check-to-slot', label: 'Polls', color: '#f97316' },
-    { id: 'parking', icon: 'fa-square-parking', label: 'Parking', color: '#f59e0b' },
-    { id: 'tally-bank', icon: 'fa-building-columns', label: 'Tally Bank', color: '#8b5cf6' },
-    { id: 'journal-voucher', icon: 'fa-file-pen', label: 'Journal Voucher', color: '#2563eb' },
-    { id: 'chairman-report', icon: 'fa-file-invoice-dollar', label: 'Chairman Report', color: '#f59e0b' },
-    { id: 'community', icon: 'fa-people-group', label: 'Community Hub', color: '#14b8a6' },
-    { id: 'meetings', icon: 'fa-book-open', label: 'Meeting Minutes', color: '#2563eb' },
-    { id: 'bank-details', icon: 'fa-qrcode', label: 'Bank / QR', color: '#2563eb' },
-    { id: 'marketplace', icon: 'fa-store', label: 'Marketplace', color: '#f59e0b' },
-    { id: 'sos-contacts', icon: 'fa-truck-medical', label: 'Emergency SOS', color: '#ef4444' },
-    { id: 'assets', icon: 'fa-boxes-stacked', label: 'Assets', color: '#64748b' },
-    { id: 'fds', icon: 'fa-piggy-bank', label: 'FDs', color: '#8b5cf6' },
-    { id: 'proofs', icon: 'fa-file-invoice', label: 'Payment Details', color: '#3b82f6' },
-    { id: 'user-management', icon: 'fa-user-shield', label: 'User Mgmt', color: '#f59e0b' },
-    { id: 'settings', icon: 'fa-gear', label: 'Settings', color: '#475569' },
-    { id: 'about', icon: 'fa-circle-info', label: 'About PS', color: '#0f172a' },
-    { id: 'team', icon: 'fa-people-group', label: 'Committee', color: '#8b5cf6' },
-    { id: 'manage-societies', icon: 'fa-building', label: 'Manage Societies', color: '#2563eb' },
-    { id: 'rules', icon: 'fa-book', label: 'Society Rules', color: '#f59e0b' },
-    { id: 'deletion-requests', icon: 'fa-trash-can', label: 'Deletion Requests', color: '#ef4444' },
-    { id: 'change-password', icon: 'fa-key', label: 'Change Password', color: '#f59e0b' }
-  ];
-
-  if (role === 'Member') {
-    const memberCards = ['dashboard', 'members', 'marketplace', 'maintenance', 'visitor', 'complaints', 'support', 'polls', 'community', 'parking', 'bank-details', 'sos-contacts', 'rules', 'about', 'team', 'change-password'];
-    allCards = allCards.filter(c => memberCards.includes(c.id));
-  } else if (role === 'Chairman') {
-    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'deletion-requests' && c.id !== 'master-dashboard' && c.id !== 'activity-logs' && c.id !== 'proofs' && c.id !== 'user-management');
-  } else if (role === 'SocietyAdmin') {
-    allCards = allCards.filter(c => c.id !== 'settings' && c.id !== 'manage-societies' && c.id !== 'master-dashboard' && c.id !== 'deletion-requests' && c.id !== 'user-management');
- }
-
-  allCards.sort((a, b) => {
-    if (a.id === 'dashboard') return -1;
-    if (b.id === 'dashboard') return 1;
-    if (a.id === 'about') return 1;
-    if (b.id === 'about') return -1;
-    return a.label.localeCompare(b.label);
-  });
-
-  container.innerHTML = allCards.map(card => `
-  <div onclick="openTabOverlay('${card.id}')" class="grid-card-item">
-    <i class="fa-solid ${card.icon}" style="color: ${card.color};"></i>
-    <span style="color: #fff; font-weight: 500; display: block;">${card.label}</span>
-    <span class="grid-badge" id="grid-badge-${card.id}" data-count="0"></span>
+  `).join("")}}async function deleteJournalVoucher(e){if(!confirm("⚠️ Delete this Journal Voucher?"))return;let{error:t}=await _supabase.from("journal_vouchers").delete().eq("id",e);if(t)alert("Error: "+t.message);else{let{data:a}=await _supabase.from("journal_vouchers").select("*").eq("society_name",currentSociety).order("date",{ascending:!1});journalVouchersData=a||[],renderJournalVouchers(),renderCAAuditReport(),renderMembers(),renderMemberPersonalView(),updateAllBadges()}}async function submitAsset(e){e.preventDefault();let t={asset_code:`AST-${Date.now()}`,name:document.getElementById("asset-name").value,location:document.getElementById("asset-loc").value,quantity:parseInt(document.getElementById("asset-qty").value)||1,cost:Number(document.getElementById("asset-cost").value),purchase_date:document.getElementById("asset-purchase-date")?.value||null,depreciation_rate:Number(document.getElementById("asset-dep-rate")?.value||10),condition_status:document.getElementById("asset-condition").value,details:document.getElementById("asset-details").value||"",society_name:currentSociety};await _supabase.from("assets").insert([t]),bootstrap.Modal.getInstance(document.getElementById("assetModal")).hide(),fetchSupabaseData()}async function submitMaintenance(e){e.preventDefault();let t={receipt_no:document.getElementById("maint-form-ref").value||`REC-${Date.now()}`,flat_no:document.getElementById("maint-form-flat").value.toUpperCase(),payment_date:document.getElementById("maint-form-date").value||new Date().toISOString().split("T")[0],amount_paid:Number(document.getElementById("maint-form-amount").value),mode_of_payment:document.getElementById("maint-form-mode").value,month_accounted:document.getElementById("maint-form-month").value||"July'26",remarks:document.getElementById("maint-form-remarks").value||"-",society_name:currentSociety};await _supabase.from("maintenance_payments").insert([t]),bootstrap.Modal.getInstance(document.getElementById("maintenanceModal")).hide(),await fetchSupabaseData(),renderAllTables()}function openExpenseModal(){document.getElementById("expenseForm")?.reset(),new bootstrap.Modal(document.getElementById("expenseModal")).show()}async function submitExpense(e){e.preventDefault();let t={voucher_no:document.getElementById("exp-form-no").value.trim()||`VOU-${Date.now()}`,expense_date:document.getElementById("exp-form-date").value||new Date().toISOString().split("T")[0],category:document.getElementById("exp-form-category").value.trim(),paid_to:document.getElementById("exp-form-paidto").value.trim(),amount:Number(document.getElementById("exp-form-amount").value),mode:document.getElementById("exp-form-mode").value,remarks:document.getElementById("exp-form-remarks").value.trim()||"-",society_name:currentSociety};await _supabase.from("expenses").insert([t]),await logActivity("ADD_EXPENSE",`Added voucher ${t.voucher_no} of ${t.amount} for ${t.paid_to}`),bootstrap.Modal.getInstance(document.getElementById("expenseModal")).hide(),fetchSupabaseData()}async function submitBankEntry(e){e.preventDefault();let t=document.getElementById("bank-form-type").value,a=Number(document.getElementById("bank-form-amount").value),n={society_name:currentSociety,date:document.getElementById("bank-form-date").value,ref:document.getElementById("bank-form-ref").value,head:document.getElementById("bank-form-head").value,type:"deposit"===t?"Bank Deposit":"Withdrawal",deposit:"deposit"===t?a:0,withdraw:"withdraw"===t?a:0},{error:s}=await _supabase.from("bank_entries").insert([n]);if(s){alert("❌ Error: "+s.message);return}alert("✅ Bank entry saved permanently!"),bootstrap.Modal.getInstance(document.getElementById("bankModal")).hide(),document.getElementById("bankModal").querySelector("form").reset(),await fetchSupabaseData(),setTimeout(()=>loadSecondaryData(),500)}function openEnrollModal(){new bootstrap.Modal(document.getElementById("enrollModal")).show()}async function submitEnroll(e){e.preventDefault();let t={full_name:document.getElementById("enroll-name").value.trim(),society_name:document.getElementById("enroll-society").value.trim(),city:document.getElementById("enroll-city").value.trim(),mobile:document.getElementById("enroll-mobile").value.trim(),status:"New"};await _supabase.from("leads").insert([t]),alert("✅ Enrollment Submitted!"),bootstrap.Modal.getInstance(document.getElementById("enrollModal")).hide()}async function deleteMember(e){confirm("Delete member?")&&(await _supabase.from("members").delete().eq("id",e),logActivity("DELETE_MEMBER",`Deleted member ID: ${e}`),fetchSupabaseData())}async function deleteMaintenance(e){confirm("Delete receipt?")&&(await _supabase.from("maintenance_payments").delete().eq("id",e),fetchSupabaseData())}async function deleteExpense(e){confirm("Delete voucher?")&&(await _supabase.from("expenses").delete().eq("id",e),logActivity("DELETE_EXPENSE",`Deleted voucher ID: ${e}`),fetchSupabaseData())}async function deleteAsset(e){confirm("Delete asset?")&&(await _supabase.from("assets").delete().eq("id",e),fetchSupabaseData())}async function deleteFD(e){confirm("Delete FD?")&&(await _supabase.from("sinking_fund_fd").delete().eq("id",e),fetchSupabaseData())}async function submitTeamMember(e){e.preventDefault();let t={name:document.getElementById("team-name").value.trim(),mobile:document.getElementById("team-mobile").value.trim(),role:document.getElementById("team-role").value.trim(),type:document.getElementById("team-type").value,society_name:currentSociety};await _supabase.from("team").insert([t]),bootstrap.Modal.getInstance(document.getElementById("teamModal")).hide(),fetchSupabaseData()}async function deleteTeamMember(e){confirm("Delete team member?")&&(await _supabase.from("team").delete().eq("id",e),fetchSupabaseData())}function exportTableToExcel(e,t){let a=document.getElementById(e),n=a.cloneNode(!0);n.querySelectorAll("td").forEach(e=>{e.innerText=e.innerText.replace(/[₹Rs\.]/g,"").trim()});let s=XLSX.utils.table_to_book(n,{sheet:"Sheet1",raw:!0});XLSX.writeFile(s,`${t}.xlsx`)}function handleChangePasswordClick(){if(isDemoMode()){alert("\uD83D\uDD12 Password change is not available in Demo Mode.\n\nThis is just a preview. To change your password:\n1. Go to the landing page\n2. Login with your account\n3. Then change your password");return}let e=document.getElementById("changePasswordModal");e&&new bootstrap.Modal(e).show()}function toggleMobileMenu(){let e=document.getElementById("mobileMenuOverlay");e&&("flex"===e.style.display?closeMobileMenu():(e.style.display="flex",document.body.style.overflow="hidden",renderGridCards(),window.history.pushState({mobileMenuOpen:!0},"",window.location.href)))}function closeMobileMenu(){let e=document.getElementById("mobileMenuOverlay");e&&(e.style.display="none",document.body.style.overflow="")}function updateMobileHeaderInfo(){let e=document.getElementById("mobile-society-name"),t=document.getElementById("mobile-user-details");if(e&&(e.innerText=societySettings.society_name||currentSociety||"PS Society"),t){if("Admin"===currentRole||"SocietyAdmin"===currentRole)t.innerText=`👑 ${currentRole} (${currentUser})`;else if("Chairman"===currentRole)t.innerText=`🎖️ Chairman (${currentUser})`;else{let a=membersData.find(e=>(e.flat_no||"").toUpperCase()===currentUser.toUpperCase()),n=a&&a.name?a.name:"";t.innerText=n?`🏠 ${currentUser} - ${n}`:`🏠 ${currentUser}`}}}function renderGridCards(){updateMobileHeaderInfo();let e=document.querySelector("#mobileMenuOverlay .grid-container");if(!e)return;let t=currentRole||"Member",a=[{id:"master-dashboard",icon:"fa-chart-pie",label:"Master Dashboard",color:"#8b5cf6"},{id:"dashboard",icon:"fa-chart-line",label:"Dashboard",color:"#2563eb"},{id:"activity-logs",icon:"fa-list-check",label:"Activity Logs",color:"#0ea5e9"},{id:"members",icon:"fa-users",label:"Members",color:"#22c55e"},{id:"maintenance",icon:"fa-indian-rupee-sign",label:"Maintenance",color:"#f59e0b"},{id:"bills",icon:"fa-file-invoice-dollar",label:"Monthly Bills",color:"#16a34a"},{id:"expenses",icon:"fa-receipt",label:"Expenses",color:"#ef4444"},{id:"amc-tracker",icon:"fa-screwdriver-wrench",label:"AMC Tracker",color:"#f59e0b"},{id:"visitor",icon:"fa-user-plus",label:"Visitor",color:"#8b5cf6"},{id:"complaints",icon:"fa-headset",label:"Complaints",color:"#ec4899"},{id:"support",icon:"fa-life-ring",label:"Support",color:"#0ea5e9"},{id:"ca-audit",icon:"fa-calculator",label:"CA Audit",color:"#06b6d4"},{id:"bank-reconciliation",icon:"fa-scale-balanced",label:"Bank BRS",color:"#0ea5e9"},{id:"polls",icon:"fa-check-to-slot",label:"Polls",color:"#f97316"},{id:"parking",icon:"fa-square-parking",label:"Parking",color:"#f59e0b"},{id:"tally-bank",icon:"fa-building-columns",label:"Tally Bank",color:"#8b5cf6"},{id:"journal-voucher",icon:"fa-file-pen",label:"Journal Voucher",color:"#2563eb"},{id:"chairman-report",icon:"fa-file-invoice-dollar",label:"Chairman Report",color:"#f59e0b"},{id:"community",icon:"fa-people-group",label:"Community Hub",color:"#14b8a6"},{id:"meetings",icon:"fa-book-open",label:"Meeting Minutes",color:"#2563eb"},{id:"bank-details",icon:"fa-qrcode",label:"Bank / QR",color:"#2563eb"},{id:"marketplace",icon:"fa-store",label:"Marketplace",color:"#f59e0b"},{id:"sos-contacts",icon:"fa-truck-medical",label:"Emergency SOS",color:"#ef4444"},{id:"assets",icon:"fa-boxes-stacked",label:"Assets",color:"#64748b"},{id:"fds",icon:"fa-piggy-bank",label:"FDs",color:"#8b5cf6"},{id:"proofs",icon:"fa-file-invoice",label:"Payment Details",color:"#3b82f6"},{id:"user-management",icon:"fa-user-shield",label:"User Mgmt",color:"#f59e0b"},{id:"settings",icon:"fa-gear",label:"Settings",color:"#475569"},{id:"about",icon:"fa-circle-info",label:"About PS",color:"#0f172a"},{id:"team",icon:"fa-people-group",label:"Committee",color:"#8b5cf6"},{id:"manage-societies",icon:"fa-building",label:"Manage Societies",color:"#2563eb"},{id:"rules",icon:"fa-book",label:"Society Rules",color:"#f59e0b"},{id:"deletion-requests",icon:"fa-trash-can",label:"Deletion Requests",color:"#ef4444"},{id:"change-password",icon:"fa-key",label:"Change Password",color:"#f59e0b"}];if("Member"===t){let n=["dashboard","members","marketplace","maintenance","visitor","complaints","support","polls","community","parking","bank-details","sos-contacts","rules","about","team","change-password"];a=a.filter(e=>n.includes(e.id))}else"Chairman"===t?a=a.filter(e=>"settings"!==e.id&&"manage-societies"!==e.id&&"deletion-requests"!==e.id&&"master-dashboard"!==e.id&&"activity-logs"!==e.id&&"proofs"!==e.id&&"user-management"!==e.id):"SocietyAdmin"===t&&(a=a.filter(e=>"settings"!==e.id&&"manage-societies"!==e.id&&"master-dashboard"!==e.id&&"deletion-requests"!==e.id&&"user-management"!==e.id));a.sort((e,t)=>"dashboard"===e.id?-1:"dashboard"===t.id||"about"===e.id?1:"about"===t.id?-1:e.label.localeCompare(t.label)),e.innerHTML=a.map(e=>`
+  <div onclick="openTabOverlay('${e.id}')" class="grid-card-item">
+    <i class="fa-solid ${e.icon}" style="color: ${e.color};"></i>
+    <span style="color: #fff; font-weight: 500; display: block;">${e.label}</span>
+    <span class="grid-badge" id="grid-badge-${e.id}" data-count="0"></span>
   </div>
-`).join('');
-
-// ✅ Badges sync करो
-syncMobileGridBadges();
-}
-
-function openAboutPS() {
-  const overlay = document.getElementById('aboutPSOverlay');
-  const body = document.getElementById('aboutPSBody');
-  if (!overlay || !body) return;
-
-  body.innerHTML = `
+`).join(""),syncMobileGridBadges()}function openAboutPS(){let e=document.getElementById("aboutPSOverlay"),t=document.getElementById("aboutPSBody");e&&t&&(t.innerHTML=`
     <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left;">
       <div class="text-center mb-3">
         <h3 class="fw-bold mb-1"><span style="color: #f59e0b;">PS</span> Society Solutions</h3>
@@ -6980,226 +860,16 @@ function openAboutPS() {
         </div>
       </div>
     </div>
-  `;
-  overlay.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function syncMobileGridBadges() {
-  const badgeMap = {
-    'maintenance': 'maintenance-badge',
-    'proofs': 'proofs-badge',
-    'complaints': 'complaints-badge',
-    'polls': 'polls-badge',
-    'community': 'community-badge',
-    'visitor': 'visitor-badge',
-    'amc-tracker': 'amc-badge',
-    'parking': 'parking-badge',
-        'support': 'support-badge',
-    'user-management': 'user-mgmt-badge'
-  };
-
-  Object.entries(badgeMap).forEach(([cardId, srcBadgeId]) => {
-    const gridBadge = document.getElementById(`grid-badge-${cardId}`);
-    const srcBadge = document.getElementById(srcBadgeId);
-    if (!gridBadge) return;
-    
-    const count = srcBadge && srcBadge.style.display !== 'none' 
-      ? (srcBadge.textContent || '').trim() 
-      : '0';
-    
-    gridBadge.textContent = (count && count !== '0' && count !== '') ? count : '';
-    gridBadge.setAttribute('data-count', count || '0');
-  });
-}
-
-async function openTabOverlay(tabId, skipHistory = false) {
-  // ✅ Change-Password special handling — grid ko band mat karo, sirf temporarily hide karo
-  if (tabId === 'change-password') {
-    // 🔒 PS Live Demo check — SIRF preview mode ke liye
-    if (typeof isDemoMode === 'function' && isDemoMode()) {
-      alert('🔒 Password change is not available in Demo Mode.\n\n' +
-            'This is just a preview. To change your password:\n' +
-            '1. Go to the landing page\n' +
-            '2. Login with your account\n' +
-            '3. Then change your password');
-      return;
-    }
-
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    const fromGrid = !!(gridOverlay && gridOverlay.style.display === 'flex' && window.innerWidth <= 768);
-    __changePasswordFromGrid = fromGrid;
-
-    if (fromGrid) {
-      gridOverlay.style.display = 'none';
-      document.body.style.overflow = 'hidden';
-    } else {
-      closeMobileMenu();
-    }
-
-    const modalEl = document.getElementById('changePasswordModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
-    return;
-  }
-
-  closeMobileMenu();
-  if (tabId === 'visitor') { showVisitorPage(); return; }
-
-  if (tabId === 'terms' || tabId === 'privacy') { tabId = 'about'; }
-
-  const existingOverlay = document.getElementById('tabOverlay');
-  if (existingOverlay) existingOverlay.remove();
-
-  let actualTabId = `tab-${tabId}`;
-  if (tabId === 'rules') actualTabId = 'tab-rules';
-  if (tabId === 'journal-voucher') actualTabId = 'tab-journal-voucher';
-
-  const target = document.getElementById(actualTabId);
-  if (!target) return;
-
-  const immediateOverlay = createTabOverlay(tabId, '');
-  immediateOverlay.setAttribute('data-current-tab', tabId);
-  document.body.appendChild(immediateOverlay);
-  document.body.style.overflow = 'hidden';
-
-  if (!skipHistory) {
-    window.history.pushState({ overlayOpen: true, tabId: tabId }, "", window.location.href);
-  }
-
-  try {
-    // ✅ CONTENT PEHLE MOVE KARO (white screen avoid karne ke liye)
-    const newTarget = document.getElementById(actualTabId);
-    const contentDiv = document.querySelector('#tabOverlay #tabOverlayContent');
-    if (newTarget && contentDiv) {
-      contentDiv.innerHTML = '';
-      contentDiv.appendChild(newTarget);
-      newTarget.classList.remove('d-none');
-      newTarget.setAttribute('data-in-overlay', 'true');
-      if (tabId === 'settings') loadSettingsToForm();
-    }
-
-    // ═══════════════════════════════════════════════
-    // SPECIAL CASE: Community tab (early return)
-    // ═══════════════════════════════════════════════
-    if (tabId === 'community' || tabId === 'notice' || tabId === 'notices') {
-      tabId = 'community';
-      markCommunityRead();
-
-      const [{ data: fData }, { data: bData }, { data: nData }, { data: eData }] = await Promise.all([
-        _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
-        _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety).order('booking_date', { ascending: true }),
-        _supabase.from('notices').select('*').eq('society_name', currentSociety),
-        _supabase.from('events').select('*').eq('society_name', currentSociety).order('date', { ascending: true })
-      ]);
-      facilitiesData = fData || [];
-      bookingsData = bData || [];
-      noticesData = nData || [];
-      eventsData = eData || [];
-
-      renderCommunity();
-
-      const communityTarget = document.getElementById('tab-community');
-      const communityContent = document.querySelector('#tabOverlay #tabOverlayContent');
-      if (communityTarget && communityContent) {
-        communityContent.innerHTML = '';
-        communityContent.appendChild(communityTarget);
-        communityTarget.classList.remove('d-none');
-        communityTarget.setAttribute('data-in-overlay', 'true');
-      }
-      return;   // ⬅️ SIRF community यहाँ return करेगा
-    }
-
-    // ═══════════════════════════════════════════════
-    // ALL OTHER TABS — यहाँ तक पहुँचेंगे
-    // ═══════════════════════════════════════════════
-    if (tabId === 'marketplace') { await fetchMarketplaceData(); renderMarketplace(); }
-        if (tabId === 'master-dashboard') { 
-      await renderSuperAdminMasterDashboard(); 
-      await loadSubscriptionInvoices(); 
-    }
-    if (tabId === 'bank-reconciliation') { renderBankReconciliation(); }
-    if (tabId === 'about') renderAboutTab();
-    if (tabId === 'rules') { renderRules(); }
-    if (tabId === 'journal-voucher') { renderJournalVouchers(); }
-    if (tabId === 'polls') renderPolls();
-    if (tabId === 'chairman-report') generateMonthlySummary();
-    if (tabId === 'activity-logs') fetchActivityLogs();
-    if (tabId === 'meetings') renderMeetings();
-    if (tabId === 'amc-tracker') renderAMCTracker();
-    if (tabId === 'bank-details') renderBankDetails();
-    if (tabId === 'sos-contacts') renderSOSContacts();
-    if (tabId === 'proofs') renderPaymentProofs();
-    if (tabId === 'support') { 
-      await loadSupportTickets(); 
-      renderSupportTickets(); 
-      updateSupportBadge(); 
-    }
-    if (tabId === 'manage-societies') loadSocietiesList();
-if (tabId === 'user-management') { await initUserManagementTab(); }   // ← ये line ADD करो!
-    if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
-      refreshTabData(tabId);
-    }
-
-   } catch (e) {
-    console.log('[OpenTabOverlay] error:', e);
-  }
-}
-
-function createTabOverlay(tabId, content) {
-  const overlay = document.createElement('div');
-  overlay.id = 'tabOverlay';
-  overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow: hidden; display: flex; flex-direction: column;';
-  overlay.innerHTML = `
+  `,e.style.display="flex",document.body.style.overflow="hidden")}function syncMobileGridBadges(){Object.entries({maintenance:"maintenance-badge",proofs:"proofs-badge",complaints:"complaints-badge",polls:"polls-badge",community:"community-badge",visitor:"visitor-badge","amc-tracker":"amc-badge",parking:"parking-badge",support:"support-badge","user-management":"user-mgmt-badge"}).forEach(([e,t])=>{let a=document.getElementById(`grid-badge-${e}`),n=document.getElementById(t);if(!a)return;let s=n&&"none"!==n.style.display?(n.textContent||"").trim():"0";a.textContent=s&&"0"!==s&&""!==s?s:"",a.setAttribute("data-count",s||"0")})}async function openTabOverlay(e,t=!1){if("change-password"===e){if(isDemoMode()){alert("\uD83D\uDD12 Password change is not available in Demo Mode.\n\nThis is just a preview. To change your password:\n1. Go to the landing page\n2. Login with your account\n3. Then change your password");return}let a=document.getElementById("mobileMenuOverlay"),n=!!(a&&"flex"===a.style.display&&window.innerWidth<=768);__changePasswordFromGrid=n,n?(a.style.display="none",document.body.style.overflow="hidden"):closeMobileMenu();let s=document.getElementById("changePasswordModal");s&&new bootstrap.Modal(s).show();return}if(closeMobileMenu(),"visitor"===e){showVisitorPage();return}("terms"===e||"privacy"===e)&&(e="about");let i=document.getElementById("tabOverlay");i&&i.remove();let r=`tab-${e}`;"rules"===e&&(r="tab-rules"),"journal-voucher"===e&&(r="tab-journal-voucher");let o=document.getElementById(r);if(!o)return;let l=createTabOverlay(e,"");l.setAttribute("data-current-tab",e),document.body.appendChild(l),document.body.style.overflow="hidden",t||window.history.pushState({overlayOpen:!0,tabId:e},"",window.location.href);try{let d=document.getElementById(r),c=document.querySelector("#tabOverlay #tabOverlayContent");if(d&&c&&(c.innerHTML="",c.appendChild(d),d.classList.remove("d-none"),d.setAttribute("data-in-overlay","true"),"settings"===e&&loadSettingsToForm()),"community"===e||"notice"===e||"notices"===e){e="community",markCommunityRead();let[{data:m},{data:u},{data:p},{data:y}]=await Promise.all([_supabase.from("facilities").select("*").eq("society_name",currentSociety).eq("is_active",!0),_supabase.from("facility_bookings").select("*").eq("society_name",currentSociety).order("booking_date",{ascending:!0}),_supabase.from("notices").select("*").eq("society_name",currentSociety),_supabase.from("events").select("*").eq("society_name",currentSociety).order("date",{ascending:!0})]);facilitiesData=m||[],bookingsData=u||[],noticesData=p||[],eventsData=y||[],renderCommunity();let g=document.getElementById("tab-community"),b=document.querySelector("#tabOverlay #tabOverlayContent");g&&b&&(b.innerHTML="",b.appendChild(g),g.classList.remove("d-none"),g.setAttribute("data-in-overlay","true"));return}"marketplace"===e&&(await fetchMarketplaceData(),renderMarketplace()),"master-dashboard"===e&&(await renderSuperAdminMasterDashboard(),await loadSubscriptionInvoices()),"bank-reconciliation"===e&&renderBankReconciliation(),"about"===e&&renderAboutTab(),"rules"===e&&renderRules(),"journal-voucher"===e&&renderJournalVouchers(),"polls"===e&&renderPolls(),"chairman-report"===e&&generateMonthlySummary(),"activity-logs"===e&&fetchActivityLogs(),"meetings"===e&&renderMeetings(),"amc-tracker"===e&&renderAMCTracker(),"bank-details"===e&&renderBankDetails(),"sos-contacts"===e&&renderSOSContacts(),"proofs"===e&&renderPaymentProofs(),"support"===e&&(await loadSupportTickets(),renderSupportTickets(),updateSupportBadge()),"manage-societies"===e&&loadSocietiesList(),"user-management"===e&&await initUserManagementTab(),["dashboard","members","maintenance","expenses","polls","complaints","proofs","amc-tracker","assets","fds","team","journal-voucher","deletion-requests","sos-contacts","bank-details","tally-bank"].includes(e)&&refreshTabData(e)}catch(f){console.log("[OpenTabOverlay] error:",f)}}function createTabOverlay(e,t){let a=document.createElement("div");return a.id="tabOverlay",a.style.cssText="position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(15, 23, 42, 0.95); z-index: 1040; padding: 20px; overflow: hidden; display: flex; flex-direction: column;",a.innerHTML=`
     <div style="flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
       <button onclick="closeTabOverlay()" style="background: none; border: none; color: #fff; font-size: 18px; cursor: pointer;"><i class="fa-solid fa-arrow-left"></i> Back</button>
-      <span style="color: #f59e0b; font-weight: 600;">${tabId.toUpperCase()}</span>
+      <span style="color: #f59e0b; font-weight: 600;">${e.toUpperCase()}</span>
       <span style="width: 50px;"></span>
     </div>
     <div id="tabOverlayContent" style="flex: 1 1 auto; min-height: 0; margin-top: 15px; background: #fff; border-radius: 16px; padding: 20px; overflow-y: auto; -webkit-overflow-scrolling: touch; color: #0f172a;">
-      ${content}
+      ${t}
     </div>
-  `;
-  return overlay;
-}
-
-function closeTabOverlay() {
-  __userClosedOverlay = true;
-  const overlay = document.getElementById('tabOverlay');
-  
-  // ✅ GRID PEHLE show karo (white flash avoid)
-  if (window.innerWidth <= 768) {
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) {
-      renderGridCards();
-      gridOverlay.style.display = 'flex';
-      document.body.style.overflow = 'hidden';
-    }
-  }
-  
-  // ✅ AB overlay remove karo
-  if (overlay) {
-    const movedContent = overlay.querySelector('.tab-content[data-in-overlay="true"]');
-    if (movedContent) {
-      movedContent.classList.add('d-none');
-      movedContent.removeAttribute('data-in-overlay');
-      const mainElement = document.querySelector('main');
-      if (mainElement) mainElement.appendChild(movedContent);
-    }
-    overlay.remove();
-  }
-  
-  if (window.history.state && window.history.state.overlayOpen) {
-    __programmaticBack = true;
-    window.history.back();
-  }
-}
-
-function openTermsOfService() {
-  const overlay = document.getElementById('termsOfServiceOverlay');
-  const body = document.getElementById('termsOfServiceBody');
-  if (!overlay || !body) return;
-
-  body.innerHTML = `
+  `,a}function closeTabOverlay(){__userClosedOverlay=!0;let e=document.getElementById("tabOverlay");if(window.innerWidth<=768){let t=document.getElementById("mobileMenuOverlay");t&&(renderGridCards(),t.style.display="flex",document.body.style.overflow="hidden")}if(e){let a=e.querySelector('.tab-content[data-in-overlay="true"]');if(a){a.classList.add("d-none"),a.removeAttribute("data-in-overlay");let n=document.querySelector("main");n&&n.appendChild(a)}e.remove()}window.history.state&&window.history.state.overlayOpen&&(__programmaticBack=!0,window.history.back())}function openTermsOfService(){let e=document.getElementById("termsOfServiceOverlay"),t=document.getElementById("termsOfServiceBody");e&&t&&(t.innerHTML=`
     <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; padding: 5px;">
       <h3 class="fw-bold border-bottom pb-2"><span style="color: #f59e0b;">PS</span> Society Solutions — Terms of Service</h3>
       <p class="text-muted small">Effective Date: August 2026 • Last Updated: August 2026</p>
@@ -7234,21 +904,7 @@ function openTermsOfService() {
       <h5 class="fw-bold mt-3">10. Contact and Grievance Redressal</h5>
       <p class="small text-muted mb-0">Grievance Officer: PS Society Solutions Team<br>Email: ps.societysolutions@gmail.com | Phone: +91 8866376056</p>
     </div>
-  `;
-  overlay.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeTermsOfService() { const overlay = document.getElementById('termsOfServiceOverlay'); if (overlay) overlay.style.display = 'none'; document.body.style.overflow = ''; }
-function closeAboutPS() { const overlay = document.getElementById('aboutPSOverlay'); if (overlay) overlay.style.display = 'none'; document.body.style.overflow = ''; }
-function closePrivacyPolicy() { const overlay = document.getElementById('privacyPolicyOverlay'); if (overlay) overlay.style.display = 'none'; document.body.style.overflow = ''; }
-
-function openPrivacyPolicy() {
-  const overlay = document.getElementById('privacyPolicyOverlay');
-  const body = document.getElementById('privacyPolicyBody');
-  if (!overlay || !body) return;
-
-  body.innerHTML = `
+  `,e.style.display="flex",document.body.style.overflow="hidden")}function closeTermsOfService(){let e=document.getElementById("termsOfServiceOverlay");e&&(e.style.display="none"),document.body.style.overflow=""}function closeAboutPS(){let e=document.getElementById("aboutPSOverlay");e&&(e.style.display="none"),document.body.style.overflow=""}function closePrivacyPolicy(){let e=document.getElementById("privacyPolicyOverlay");e&&(e.style.display="none"),document.body.style.overflow=""}function openPrivacyPolicy(){let e=document.getElementById("privacyPolicyOverlay"),t=document.getElementById("privacyPolicyBody");e&&t&&(t.innerHTML=`
     <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; padding: 5px;">
       <h3 class="fw-bold border-bottom pb-2"><span style="color: #f59e0b;">PS</span> Society Solutions — Privacy Policy</h3>
       <p class="text-muted small">Effective Date: August 2026 • Compliant with Digital Personal Data Protection (DPDP) Act 2023</p>
@@ -7269,33 +925,17 @@ function openPrivacyPolicy() {
       <h5 class="fw-bold mt-3">4. Grievance Redressal</h5>
       <p class="small text-muted mb-0">For privacy inquiries or data requests, contact our Grievance Officer at <strong>ps.societysolutions@gmail.com</strong> or call <strong>+91 8866376056</strong>.</p>
     </div>
-  `;
-  overlay.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function openQRModal() { new bootstrap.Modal(document.getElementById('qrModal')).show(); }
-
-function renderTeam() {
-  const tbody = document.getElementById('team-list');
-  if (!tbody) return;
-  tbody.innerHTML = teamData.map(member => `
+  `,e.style.display="flex",document.body.style.overflow="hidden")}function openQRModal(){new bootstrap.Modal(document.getElementById("qrModal")).show()}function renderTeam(){let e=document.getElementById("team-list");e&&(e.innerHTML=teamData.map(e=>`
     <tr>
-      <td><strong>${member.name || '-'}</strong></td>
-      <td>${member.mobile ? `<a href="tel:${member.mobile}">${member.mobile}</a>` : '-'}</td>
-      <td>${member.role || '-'}</td>
-      <td><span class="badge ${member.type === 'Emergency' ? 'bg-danger' : 'bg-primary'}">${member.type || 'Committee'}</span></td>
-      <td class="no-print admin-only ${currentRole !== 'Admin' && currentRole !== 'SocietyAdmin' ? 'd-none' : ''}">
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteTeamMember(${member.id})"><i class="fa-solid fa-trash"></i></button>
+      <td><strong>${e.name||"-"}</strong></td>
+      <td>${e.mobile?`<a href="tel:${e.mobile}">${e.mobile}</a>`:"-"}</td>
+      <td>${e.role||"-"}</td>
+      <td><span class="badge ${"Emergency"===e.type?"bg-danger":"bg-primary"}">${e.type||"Committee"}</span></td>
+      <td class="no-print admin-only ${"Admin"!==currentRole&&"SocietyAdmin"!==currentRole?"d-none":""}">
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteTeamMember(${e.id})"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
-  `).join('');
-}
-
-function renderAboutTab() {
-  const body = document.getElementById('aboutTabBody');
-  if (body) {
-    body.innerHTML = `
+  `).join(""))}function renderAboutTab(){let e=document.getElementById("aboutTabBody");e&&(e.innerHTML=`
       <div style="font-family: 'Plus Jakarta Sans', sans-serif; color: #0f172a; text-align: left; line-height: 1.7;">
         
         <div class="text-center mb-4 pb-3 border-bottom">
@@ -7327,1467 +967,73 @@ function renderAboutTab() {
           </div>
         </div>
       </div>
-    `;
-  }
-}
-
-async function loadSocietiesList() {
-  const tbody = document.getElementById('societies-list');
-  if (!tbody) return;
-  const { data } = await _supabase.from('societies').select('*').order('name');
-  allSocieties = data || [];
-  if (allSocieties.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No societies found.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = allSocieties.map(s => `
+    `)}async function loadSocietiesList(){let e=document.getElementById("societies-list");if(!e)return;let{data:t}=await _supabase.from("societies").select("*").order("name");if(0===(allSocieties=t||[]).length){e.innerHTML='<tr><td colspan="5" class="text-center text-muted">No societies found.</td></tr>';return}e.innerHTML=allSocieties.map(e=>`
     <tr>
-      <td><strong>${s.name}</strong></td>
-      <td>${s.address || '-'}</td>
-      <td>${s.phone ? `<a href="tel:${s.phone}">${s.phone}</a>` : '-'}</td>
-      <td><span class="badge ${s.is_active ? 'bg-success' : 'bg-secondary'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
-      <td><button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${s.name}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch</button></td>
+      <td><strong>${e.name}</strong></td>
+      <td>${e.address||"-"}</td>
+      <td>${e.phone?`<a href="tel:${e.phone}">${e.phone}</a>`:"-"}</td>
+      <td><span class="badge ${e.is_active?"bg-success":"bg-secondary"}">${e.is_active?"Active":"Inactive"}</span></td>
+      <td><button class="btn btn-sm btn-outline-primary" onclick="switchSociety('${e.name}')"><i class="fa-solid fa-arrow-right me-1"></i> Switch</button></td>
     </tr>
-  `).join('');
-}
-
-function openAddSocietyModal() { new bootstrap.Modal(document.getElementById('addSocietyModal')).show(); }
-
-async function addNewSociety(event) {
-  event.preventDefault();
-  const name = document.getElementById('society-name').value.trim();
-  const address = document.getElementById('society-address').value.trim();
-  const phone = document.getElementById('society-phone').value.trim();
-  const email = document.getElementById('society-email').value.trim();
-  const openingBalanceVal = document.getElementById('society-opening-balance').value.trim() || '0';
-  const visitorPassword = document.getElementById('society-visitor-password').value.trim() || '1234';
-  const planVal = document.getElementById('society-plan-select').value;
-  const [planName, planRate] = planVal.split('|');
-
-  const newSoc = { name, address, phone, email, is_active: true, subscription_plan: planName, per_house_rate: Number(planRate) };
-
-  const { error } = await _supabase.from('societies').insert([newSoc]);
-  if (error) { alert('Error: ' + error.message); return; }
-
-  const settingsBatch = [
-    { key: 'visitor_password', value: visitorPassword, society_name: name },
-    { key: 'opening_bank_balance', value: openingBalanceVal, society_name: name }
-  ];
-
-  for (const setting of settingsBatch) {
-    await _supabase.from('society_settings').upsert(setting, { onConflict: 'key,society_name' });
-  }
-
-  alert(`✅ Society "${name}" added successfully with ${planName} Plan!`);
-  bootstrap.Modal.getInstance(document.getElementById('addSocietyModal')).hide();
-  document.getElementById('addSocietyForm').reset();
-  loadSocietySwitcher();
-  renderSuperAdminMasterDashboard();
-}
-
-// ⚠️ DEPRECATED — Not called anywhere. Kept for reference only.
-// Logic is now handled inside updateAllBadges()
-function checkForNewNotifications() {
-  if (localStorage.getItem('ps_user_logged') !== 'true') return;
-  const lastSeenNotice = parseInt(localStorage.getItem('ps_last_seen_notice') || '0');
-  const lastSeenPoll = parseInt(localStorage.getItem('ps_last_seen_polls') || '0');
-  let count = 0;
-  if (noticesData.length > 0) count += noticesData.filter(n => (n.id || 0) > lastSeenNotice).length;
-  if (pollsData.length > 0) count += pollsData.filter(p => (p.id || 0) > lastSeenPoll).length;
-  updateBadge('notification-badge', count);
-}
-
-async function updateAllBadges() {
-  if (!currentSociety) return;
-
-  try {
-    if (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') {
-      const lastSeenMaint = parseInt(localStorage.getItem('ps_last_seen_maintenance') || '0');
-      const newMaintCount = maintenanceData.filter(r => (r.id || 0) > lastSeenMaint).length;
-      updateBadge('maintenance-badge', newMaintCount);
-
-      const lastSeenProof = parseInt(localStorage.getItem('ps_last_seen_proofs') || '0');
-      const newProofCount = paymentProofs.filter(p => (p.id || 0) > lastSeenProof).length;
-      updateBadge('proofs-badge', newProofCount);
-
-      const lastSeenComp = parseInt(localStorage.getItem('ps_last_seen_complaints') || '0');
-      const newCompCount = complaintData.filter(c => (c.id || 0) > lastSeenComp && c.status === 'Pending').length;
-      updateBadge('complaints-badge', newCompCount);
-    }
-
-    const lastSeenPoll = parseInt(localStorage.getItem('ps_last_seen_polls') || '0');
-    const newPollsCount = pollsData.filter(p => (p.id || 0) > lastSeenPoll).length;
-
-    const lastSeenNotice = parseInt(localStorage.getItem('ps_last_seen_notice') || '0');
-    const newNoticesCount = noticesData.filter(n => {
-      const isTargeted = !n.target_members || n.target_members.length === 0 || n.target_members.includes(currentUser);
-      return (n.id || 0) > lastSeenNotice && isTargeted;
-    }).length;
-
-    const totalNotificationCount = newPollsCount + newNoticesCount;
-    updateBadge('polls-badge', newPollsCount);
-    
-    const notifBadge = document.getElementById('notification-badge');
-    if (notifBadge) {
-      notifBadge.textContent = totalNotificationCount;
-      notifBadge.style.display = totalNotificationCount > 0 ? 'inline-block' : 'none';
-    }
-// ✅ FIX 1: Ye 5 badges bhi refresh honge — zero extra cost
-    if (typeof updateVisitorBadge === 'function') updateVisitorBadge();
-    if (typeof updateSupportBadge === 'function') updateSupportBadge();
-    if (typeof updateCommunityBadge === 'function') updateCommunityBadge();
-
-    const amcExpiringSoon = (amcContractsData || []).filter(c => {
-      const diffDays = Math.ceil((new Date(c.expiry_date) - new Date()) / (1000 * 60 * 60 * 24));
-      return diffDays >= 0 && diffDays <= 7;
-    }).length;
-    updateBadge('amc-badge', amcExpiringSoon > 0 ? '🔔' : 0);
-
-    const parkingPending = (parkingData || []).filter(p => p.status === 'Pending').length;
-    updateBadge('parking-badge', parkingPending > 0 ? parkingPending : 0);
-
-  } catch (err) { console.error('Error loading badges:', err); }
-}
-
-function updateBadge(elementId, count) {
-  const badge = document.getElementById(elementId);
-  if (!badge) return;
-  if (count > 0 || count === '🔔') { 
-    badge.textContent = count; 
-    badge.style.display = 'inline-block'; 
-  } else { 
-    badge.style.display = 'none'; 
-  }
-  
-  // ✅ Mobile grid badge भी sync करो
-  syncMobileGridBadges();
-}
-
-function updateCommunityBadge() {
-  const lastRead = parseInt(localStorage.getItem('ps_last_community_read') || '0');
-  let count = 0;
-  if (eventsData.length > 0) count += eventsData.filter(e => (e.id || 0) > lastRead).length;
-  if (noticesData.length > 0) count += noticesData.filter(n => (n.id || 0) > lastRead && (!n.deep_link || n.deep_link.trim() === '')).length;
-  updateBadge('community-badge', count);
-}
-
-function markCommunityRead() {
-  let maxId = 0;
-  if (eventsData.length > 0) maxId = Math.max(maxId, ...eventsData.map(e => e.id || 0));
-  if (noticesData.length > 0) maxId = Math.max(maxId, ...noticesData.map(n => n.id || 0));
-  localStorage.setItem('ps_last_community_read', maxId.toString());
-  localStorage.setItem('ps_last_seen_notice', maxId.toString());
-  updateBadge('community-badge', 0);
-
-  // ✅ FIX 2: notification-badge ko 0 mat karo — polls pending ho sakte hain
-  const lastSeenPoll = parseInt(localStorage.getItem('ps_last_seen_polls') || '0');
-  const newPollsCount = pollsData.filter(p => (p.id || 0) > lastSeenPoll).length;
-  updateBadge('notification-badge', newPollsCount);
-}
-
-async function openVisitorPassword() {
-  await loadSocietiesForDropdown('visitor-password-society');
-  document.getElementById('visitorPasswordOverlay').style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeVisitorPassword() {
-  document.getElementById('visitorPasswordOverlay').style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-async function verifyVisitorPassword(event) {
-  event.preventDefault();
-  const society = document.getElementById('visitor-password-society').value;
-  const password = document.getElementById('visitor-password-input').value.trim();
-  if (!society || !password) { alert('Please select society and enter password.'); return; }
-
-  const { data } = await _supabase.from('society_settings').select('value').eq('key', 'visitor_password').eq('society_name', society).maybeSingle();
-  const storedPassword = data?.value || '1234';
-  
-  if (password !== storedPassword) { alert('❌ Incorrect password. Please try again.'); return; }
-
-  currentSociety = society;
-  closeVisitorPassword();
-  document.getElementById('landing-section').style.display = 'none';
-  document.getElementById('visitor-section').style.display = 'block';
-  document.getElementById('login-section').style.display = 'none';
-  document.getElementById('app-section').classList.add('d-none');
-  updateFloatingButtonsVisibility(false);
-  
-    const backBtn = document.getElementById('visitorBackBtn');
-  if (backBtn) backBtn.onclick = showLandingPage;
-  loadTodayVisitors();
-  setupVisitorRealtimeForGuard();
-}
-
-async function loadFlatsDropdown() {
-  const select = document.getElementById('visitor-flat');
-  if (!select) return;
-  
-  select.innerHTML = '<option value="">⏳ Loading flats...</option>';
-  
-  // ✅ Use RPC function (anon-friendly, sirf flat_no dega)
-  const { data, error } = await _supabase.rpc('get_society_flats', {
-    p_society_name: currentSociety
-  });
-
-  if (error) {
-    console.error('[loadFlatsDropdown] RPC error:', error.message);
-    select.innerHTML = '<option value="">❌ Failed to load flats</option>';
-    return;
-  }
-
-  select.innerHTML = '<option value="">-- Select Flat --</option>';
-  (data || []).forEach(m => {
-    select.innerHTML += `<option value="${m.flat_no}">${m.flat_no}</option>`;
-  });
-  
-  console.log(`[loadFlatsDropdown] Loaded ${(data || []).length} flats`);
-}
-
-function openUPIPayment() {
-  // ✅ Fallback chain: bank_acc_name → society_name → currentSociety → 'Society'
-  const accName = societySettings.bank_acc_name 
-                || societySettings.society_name 
-                || currentSociety 
-                || 'Society';
-  
-  const merchantEl = document.getElementById('upi-merchant-display');
-  if (merchantEl) {
-    merchantEl.innerText = accName;
-  }
-  
-  // ✅ Auto-fill amount with member's actual pending due
-  let prefillAmount = '1000';  // Default fallback
-  try {
-    const pendingEl = document.getElementById('my-flat-pending');
-    if (pendingEl) {
-      // Text like "3401" or "3401 (Incl. Late Fee: ₹60)" — extract first number
-      const match = pendingEl.innerText.match(/(\d+)/);
-      if (match && Number(match[1]) > 0) {
-        prefillAmount = match[1];
-      }
-    }
-  } catch (e) {
-    console.warn('[UPI] Could not read pending amount:', e);
-  }
-  
-  document.getElementById('upi-amount').value = prefillAmount;
-  new bootstrap.Modal(document.getElementById('upiPaymentModal')).show();
-}
-
-function processUPIPayment() {
-  const isDemo = (currentSociety === 'Demo Society');
-  const upiId = societySettings.bank_upi_id || (isDemo ? '8866376056@icici' : '');
-  const name = societySettings.bank_acc_name 
-             || societySettings.society_name 
-             || currentSociety 
-             || 'Society';
-
-  // ✅ UPI nahi hai to payment mat karo
-  if (!upiId) {
-    alert('❌ Is society ka UPI ID set nahi hai.\n\nPlease admin se contact karein.');
-    return;
-  }
-
-  const amount = parseFloat(document.getElementById('upi-amount').value || 1000).toFixed(2);
-  const note = document.getElementById('upi-note').value || 'Maintenance';
-  window.location.href = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-}
-
-async function loadDeletionRequests() {
-  if (currentRole !== 'Admin') return;
-  const { data } = await _supabase.from('deletion_requests').select('*').eq('society_name', currentSociety).order('requested_at', { ascending: false });
-  deletionRequests = data || [];
-}
-
-function renderDeletionRequests() {
-  const tbody = document.getElementById('deletion-requests-list');
-  if (!tbody || currentRole !== 'Admin') return;
-  if (!deletionRequests || deletionRequests.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No deletion requests found.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = deletionRequests.map(r => {
-    const isPending = r.status === 'Pending';
-    const statusBadge = isPending 
-      ? '<span class="badge bg-warning text-dark">Pending</span>' 
-      : (r.status === 'Approved' ? '<span class="badge bg-success">Approved</span>' : '<span class="badge bg-danger">Rejected</span>');
-    
-    return `
+  `).join("")}function openAddSocietyModal(){new bootstrap.Modal(document.getElementById("addSocietyModal")).show()}async function addNewSociety(e){e.preventDefault();let t=document.getElementById("society-name").value.trim(),a=document.getElementById("society-address").value.trim(),n=document.getElementById("society-phone").value.trim(),s=document.getElementById("society-email").value.trim(),i=document.getElementById("society-opening-balance").value.trim()||"0",r=document.getElementById("society-visitor-password").value.trim()||"1234",o=document.getElementById("society-plan-select").value,[l,d]=o.split("|"),c={name:t,address:a,phone:n,email:s,is_active:!0,subscription_plan:l,per_house_rate:Number(d)},{error:m}=await _supabase.from("societies").insert([c]);if(m){alert("Error: "+m.message);return}for(let u of[{key:"visitor_password",value:r,society_name:t},{key:"opening_bank_balance",value:i,society_name:t}])await _supabase.from("society_settings").upsert(u,{onConflict:"key,society_name"});alert(`✅ Society "${t}" added successfully with ${l} Plan!`),bootstrap.Modal.getInstance(document.getElementById("addSocietyModal")).hide(),document.getElementById("addSocietyForm").reset(),loadSocietySwitcher(),renderSuperAdminMasterDashboard()}function checkForNewNotifications(){if("true"!==localStorage.getItem("ps_user_logged"))return;let e=parseInt(localStorage.getItem("ps_last_seen_notice")||"0"),t=parseInt(localStorage.getItem("ps_last_seen_polls")||"0"),a=0;noticesData.length>0&&(a+=noticesData.filter(t=>(t.id||0)>e).length),pollsData.length>0&&(a+=pollsData.filter(e=>(e.id||0)>t).length),updateBadge("notification-badge",a)}async function updateAllBadges(){if(currentSociety)try{if("Admin"===currentRole||"SocietyAdmin"===currentRole||"Chairman"===currentRole){let e=parseInt(localStorage.getItem("ps_last_seen_maintenance")||"0"),t=maintenanceData.filter(t=>(t.id||0)>e).length;updateBadge("maintenance-badge",t);let a=parseInt(localStorage.getItem("ps_last_seen_proofs")||"0"),n=paymentProofs.filter(e=>(e.id||0)>a).length;updateBadge("proofs-badge",n);let s=parseInt(localStorage.getItem("ps_last_seen_complaints")||"0"),i=complaintData.filter(e=>(e.id||0)>s&&"Pending"===e.status).length;updateBadge("complaints-badge",i)}let r=parseInt(localStorage.getItem("ps_last_seen_polls")||"0"),o=pollsData.filter(e=>(e.id||0)>r).length,l=parseInt(localStorage.getItem("ps_last_seen_notice")||"0"),d=noticesData.filter(e=>{let t=!e.target_members||0===e.target_members.length||e.target_members.includes(currentUser);return(e.id||0)>l&&t}).length,c=o+d;updateBadge("polls-badge",o);let m=document.getElementById("notification-badge");m&&(m.textContent=c,m.style.display=c>0?"inline-block":"none"),updateVisitorBadge(),"function"==typeof updateSupportBadge&&updateSupportBadge(),"function"==typeof updateCommunityBadge&&updateCommunityBadge();let u=(amcContractsData||[]).filter(e=>{let t=Math.ceil((new Date(e.expiry_date)-new Date)/864e5);return t>=0&&t<=7}).length;updateBadge("amc-badge",u>0?"\uD83D\uDD14":0);let p=(parkingData||[]).filter(e=>"Pending"===e.status).length;updateBadge("parking-badge",p>0?p:0)}catch(y){console.error("Error loading badges:",y)}}function updateBadge(e,t){let a=document.getElementById(e);a&&(t>0||"\uD83D\uDD14"===t?(a.textContent=t,a.style.display="inline-block"):a.style.display="none",syncMobileGridBadges())}function updateCommunityBadge(){let e=parseInt(localStorage.getItem("ps_last_community_read")||"0"),t=0;eventsData.length>0&&(t+=eventsData.filter(t=>(t.id||0)>e).length),noticesData.length>0&&(t+=noticesData.filter(t=>(t.id||0)>e&&(!t.deep_link||""===t.deep_link.trim())).length),updateBadge("community-badge",t)}function markCommunityRead(){let e=0;eventsData.length>0&&(e=Math.max(e,...eventsData.map(e=>e.id||0))),noticesData.length>0&&(e=Math.max(e,...noticesData.map(e=>e.id||0))),localStorage.setItem("ps_last_community_read",e.toString()),localStorage.setItem("ps_last_seen_notice",e.toString()),updateBadge("community-badge",0);let t=parseInt(localStorage.getItem("ps_last_seen_polls")||"0"),a=pollsData.filter(e=>(e.id||0)>t).length;updateBadge("notification-badge",a)}async function openVisitorPassword(){await loadSocietiesForDropdown("visitor-password-society"),document.getElementById("visitorPasswordOverlay").style.display="flex",document.body.style.overflow="hidden"}function closeVisitorPassword(){document.getElementById("visitorPasswordOverlay").style.display="none",document.body.style.overflow=""}async function verifyVisitorPassword(e){e.preventDefault();let t=document.getElementById("visitor-password-society").value,a=document.getElementById("visitor-password-input").value.trim();if(!t||!a){alert("Please select society and enter password.");return}let{data:n}=await _supabase.from("society_settings").select("value").eq("key","visitor_password").eq("society_name",t).maybeSingle(),s=n?.value||"1234";if(a!==s){alert("❌ Incorrect password. Please try again.");return}currentSociety=t,closeVisitorPassword(),document.getElementById("landing-section").style.display="none",document.getElementById("visitor-section").style.display="block",document.getElementById("login-section").style.display="none",document.getElementById("app-section").classList.add("d-none"),updateFloatingButtonsVisibility(!1);let i=document.getElementById("visitorBackBtn");i&&(i.onclick=showLandingPage),loadTodayVisitors(),setupVisitorRealtimeForGuard()}async function loadFlatsDropdown(){let e=document.getElementById("visitor-flat");if(!e)return;e.innerHTML='<option value="">⏳ Loading flats...</option>';let{data:t,error:a}=await _supabase.rpc("get_society_flats",{p_society_name:currentSociety});if(a){console.error("[loadFlatsDropdown] RPC error:",a.message),e.innerHTML='<option value="">❌ Failed to load flats</option>';return}e.innerHTML='<option value="">-- Select Flat --</option>',(t||[]).forEach(t=>{e.innerHTML+=`<option value="${t.flat_no}">${t.flat_no}</option>`}),console.log(`[loadFlatsDropdown] Loaded ${(t||[]).length} flats`)}function openUPIPayment(){let e=societySettings.bank_acc_name||societySettings.society_name||currentSociety||"Society",t=document.getElementById("upi-merchant-display");t&&(t.innerText=e);let a="1000";try{let n=document.getElementById("my-flat-pending");if(n){let s=n.innerText.match(/(\d+)/);s&&Number(s[1])>0&&(a=s[1])}}catch(i){console.warn("[UPI] Could not read pending amount:",i)}document.getElementById("upi-amount").value=a,new bootstrap.Modal(document.getElementById("upiPaymentModal")).show()}function processUPIPayment(){let e="Demo Society"===currentSociety,t=societySettings.bank_upi_id||(e?"8866376056@icici":""),a=societySettings.bank_acc_name||societySettings.society_name||currentSociety||"Society";if(!t){alert("❌ Is society ka UPI ID set nahi hai.\n\nPlease admin se contact karein.");return}let n=parseFloat(document.getElementById("upi-amount").value||1e3).toFixed(2),s=document.getElementById("upi-note").value||"Maintenance";window.location.href=`upi://pay?pa=${t}&pn=${encodeURIComponent(a)}&am=${n}&cu=INR&tn=${encodeURIComponent(s)}`}async function loadDeletionRequests(){if("Admin"!==currentRole)return;let{data:e}=await _supabase.from("deletion_requests").select("*").eq("society_name",currentSociety).order("requested_at",{ascending:!1});deletionRequests=e||[]}function renderDeletionRequests(){let e=document.getElementById("deletion-requests-list");if(e&&"Admin"===currentRole){if(!deletionRequests||0===deletionRequests.length){e.innerHTML='<tr><td colspan="4" class="text-center text-muted">No deletion requests found.</td></tr>';return}e.innerHTML=deletionRequests.map(e=>{let t="Pending"===e.status,a=t?'<span class="badge bg-warning text-dark">Pending</span>':"Approved"===e.status?'<span class="badge bg-success">Approved</span>':'<span class="badge bg-danger">Rejected</span>';return`
       <tr>
-        <td><b>${r.flat_no}</b></td>
-        <td>${new Date(r.requested_at).toLocaleDateString()}</td>
-        <td>${statusBadge}</td>
+        <td><b>${e.flat_no}</b></td>
+        <td>${new Date(e.requested_at).toLocaleDateString()}</td>
+        <td>${a}</td>
         <td class="no-print">
-          ${isPending ? `
-            <button class="btn btn-sm btn-success me-1" onclick="processDeletionRequest(${r.id}, 'Approved')"><i class="fa-solid fa-check"></i> Approve</button>
-            <button class="btn btn-sm btn-danger" onclick="processDeletionRequest(${r.id}, 'Rejected')"><i class="fa-solid fa-times"></i> Reject</button>
-          ` : (r.status === 'Approved' ? '<span class="text-success small fw-bold">✓ Approved</span>' : '<span class="text-danger small fw-bold">✗ Rejected</span>')}
+          ${t?`
+            <button class="btn btn-sm btn-success me-1" onclick="processDeletionRequest(${e.id}, 'Approved')"><i class="fa-solid fa-check"></i> Approve</button>
+            <button class="btn btn-sm btn-danger" onclick="processDeletionRequest(${e.id}, 'Rejected')"><i class="fa-solid fa-times"></i> Reject</button>
+          `:"Approved"===e.status?'<span class="text-success small fw-bold">✓ Approved</span>':'<span class="text-danger small fw-bold">✗ Rejected</span>'}
         </td>
       </tr>
-    `;
-  }).join('');
-}
-
-async function requestDataDeletion() {
-  if (!confirm('⚠️ Are you sure you want to request data deletion?')) return;
-  await _supabase.from('deletion_requests').insert([{ flat_no: currentUser, requested_at: new Date().toISOString(), status: 'Pending', society_name: currentSociety }]);
-  alert('✅ Request submitted to admin.');
-}
-
-async function processDeletionRequest(id, status) {
-  if (!confirm(`Are you sure you want to ${status} this request?`)) return;
-  await _supabase.from('deletion_requests').update({ status }).eq('id', id);
-  await loadDeletionRequests();
-  renderDeletionRequests();
-}
-
-async function triggerSOS(alertType) {
-  if (!confirm(`🚨 क्या आप सच में ${alertType.toUpperCase()} इमरजेंसी अलर्ट ट्रिगर करना चाहते हैं?`)) return;
-  try {
-    const newAlert = {
-      society_name: currentSociety,
-      flat_no: currentUser || 'Unknown',
-      user_role: currentRole || 'Member',
-      alert_type: alertType,
-      status: 'active',
-      created_at: new Date().toISOString()
-    };
-    const { error } = await _supabase.from('sos_alerts').insert([newAlert]);
-    if (error) alert('❌ SOS Failed: ' + error.message);
-    else alert(`🚨 ${alertType} SOS Alert Sent!`);
-  } catch (err) { console.error(err); }
-}
-
-function showSOSBanner(alertData) {
-  const existingBanner = document.getElementById('sosAlertBanner');
-  if (existingBanner) existingBanner.remove();
-
-  const banner = document.createElement('div');
-  banner.id = 'sosAlertBanner';
-  banner.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(220, 38, 38, 0.95); z-index: 2147483647; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif; pointer-events: auto !important;`;
-  
-  banner.innerHTML = `
+    `}).join("")}}async function requestDataDeletion(){confirm("⚠️ Are you sure you want to request data deletion?")&&(await _supabase.from("deletion_requests").insert([{flat_no:currentUser,requested_at:new Date().toISOString(),status:"Pending",society_name:currentSociety}]),alert("✅ Request submitted to admin."))}async function processDeletionRequest(e,t){confirm(`Are you sure you want to ${t} this request?`)&&(await _supabase.from("deletion_requests").update({status:t}).eq("id",e),await loadDeletionRequests(),renderDeletionRequests())}async function triggerSOS(e){if(confirm(`🚨 क्या आप सच में ${e.toUpperCase()} इमरजेंसी अलर्ट ट्रिगर करना चाहते हैं?`))try{let t={society_name:currentSociety,flat_no:currentUser||"Unknown",user_role:currentRole||"Member",alert_type:e,status:"active",created_at:new Date().toISOString()},{error:a}=await _supabase.from("sos_alerts").insert([t]);a?alert("❌ SOS Failed: "+a.message):alert(`🚨 ${e} SOS Alert Sent!`)}catch(n){console.error(n)}}function showSOSBanner(e){let t=document.getElementById("sosAlertBanner");t&&t.remove();let a=document.createElement("div");a.id="sosAlertBanner",a.style.cssText="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(220, 38, 38, 0.95); z-index: 2147483647; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; padding: 20px; font-family: 'Plus Jakarta Sans', sans-serif; pointer-events: auto !important;",a.innerHTML=`
     <div style="font-size: 80px; margin-bottom: 20px;"><i class="fa-solid fa-triangle-exclamation fa-beat" style="pointer-events: none;"></i></div>
     <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">🚨 EMERGENCY SOS ALERT! 🚨</h1>
     <h3 style="font-weight: 700; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 50px;">
-      Type: ${alertData.alert_type || 'Medical'} | Flat: ${alertData.flat_no || 'A-101'}
+      Type: ${e.alert_type||"Medical"} | Flat: ${e.flat_no||"A-101"}
     </h3>
     <p style="font-size: 1.1rem; margin-bottom: 30px; max-width: 500px;">इमरजेंसी अलर्ट ट्रिगर किया गया है! कृपया तुरंत सहायता भेजें या एक्शन लें।</p>
     <button type="button" id="stopSirenBtn" style="background: #fff; color: #dc2626; border: none; padding: 16px 45px; font-size: 18px; font-weight: 800; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.4); pointer-events: auto !important; touch-action: manipulation; position: relative; z-index: 2147483647;">
       <i class="fa-solid fa-check-circle me-2" style="pointer-events: none;"></i> Acknowledge & Stop Siren
     </button>
-  `;
-  
-  document.body.appendChild(banner);
-
-  const stopBtn = document.getElementById('stopSirenBtn');
-  if (stopBtn) {
-    const handleStop = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } resolveSOSAlert(alertData.id || 0); };
-    stopBtn.onclick = handleStop;
-    stopBtn.ontouchend = handleStop;
-  }
-
-  try { sirenAudio.loop = true; sirenAudio.play().catch(e => { console.log("Audio autoplay restricted:", e); }); } catch (err) { console.log("Siren error:", err); }
-  if ("vibrate" in navigator) { try { navigator.vibrate([500, 250, 500, 250, 500, 250, 1000]); } catch (e) { console.log("Vibration error:", e); } }
-}
-
-async function resolveSOSAlert(alertId) {
-  try { if (alertId) { await _supabase.from('sos_alerts').update({ status: 'resolved' }).eq('id', alertId); } } catch (err) { console.error('Error resolving SOS:', err); }
-  if (typeof sirenAudio !== 'undefined' && sirenAudio) { sirenAudio.pause(); sirenAudio.currentTime = 0; }
-  const banner = document.getElementById('sosAlertBanner');
-  if (banner) banner.remove();
-}
-
-window.resolveSOSAlert = resolveSOSAlert;
-
-function listenForSOSAlerts() {
-  const cleanSocietyName = (currentSociety || 'default').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-  const channelName = `sos-realtime-${cleanSocietyName}`;
-
-  try {
-    const allChannels = _supabase.getChannels();
-    allChannels.forEach(ch => { if (ch.topic && ch.topic.includes('sos-realtime-')) { _supabase.removeChannel(ch); } });
-  } catch (e) { console.log('SOS channel cleanup note:', e); }
-
-  const channel = _supabase.channel(channelName);
-
-  channel
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sos_alerts' }, (payload) => {
-      if (payload.new && payload.new.status === 'active') {
-        if ((payload.new.society_name || '').trim().toLowerCase() === (currentSociety || '').trim().toLowerCase()) { showSOSBanner(payload.new); }
-      }
-    })
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') { console.log('✅ SOS Realtime: Connected successfully'); }
-      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { console.log('⚠️ SOS Realtime status:', status); }
-    });
-}
-
-function handleDeepLink() {
-  const params = new URLSearchParams(window.location.search);
-  let tab = params.get('tab');
-  const section = params.get('section');
-
-  if (!tab && !section) return;
-  if (tab === 'notice' || tab === 'notices') tab = 'community';
-  if (!tab) tab = 'dashboard';
-
-  if (section === 'myPaymentSubmissionsCard') { tab = 'dashboard'; }
-
-  let attempts = 0;
-  const MAX_ATTEMPTS = 50;
-  __userClosedOverlay = false;
-
-  const tryOpen = async () => {
-    attempts++;
-
-    const loggedIn = localStorage.getItem('ps_user_logged') === 'true';
-    if (!loggedIn) { if (attempts < MAX_ATTEMPTS) return setTimeout(tryOpen, 300); return; }
-
-    const storedSociety = localStorage.getItem('ps_user_society');
-    if (storedSociety && currentSociety !== storedSociety) currentSociety = storedSociety;
-    if (!currentSociety) { if (attempts < MAX_ATTEMPTS) return setTimeout(tryOpen, 300); return; }
-
-    const appSection = document.getElementById('app-section');
-    if (!appSection || appSection.classList.contains('d-none')) {
-      if (attempts < MAX_ATTEMPTS) return setTimeout(tryOpen, 300);
-      return;
-    }
-
-    try {
-      if (tab === 'polls') {
-        const { data } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
-        pollsData = data || [];
-        renderPolls();
-      } else if (tab === 'community') {
-        const [{ data: n }, { data: e }, { data: f }, { data: b }] = await Promise.all([
-          _supabase.from('notices').select('*').eq('society_name', currentSociety),
-          _supabase.from('events').select('*').eq('society_name', currentSociety),
-          _supabase.from('facilities').select('*').eq('society_name', currentSociety).eq('is_active', true),
-          _supabase.from('facility_bookings').select('*').eq('society_name', currentSociety)
-        ]);
-        noticesData = n || []; eventsData = e || [];
-        facilitiesData = f || []; bookingsData = b || [];
-        renderCommunity();
-      } else if (tab === 'dashboard') {
-        const [{ data: proofs }, { data: mnt }] = await Promise.all([
-          _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety),
-          _supabase.from('maintenance_payments').select('*').eq('society_name', currentSociety)
-        ]);
-        if (proofs) paymentProofs = proofs;
-        if (mnt) maintenanceData = mnt;
-        renderMyPaymentSubmissions();
-        renderMemberPersonalView();
-      } else if (tab === 'marketplace') {
-        await fetchMarketplaceData(); renderMarketplace();
-      } else if (tab === 'complaints') {
-        const { data } = await _supabase.from('complaints').select('*').eq('society_name', currentSociety);
-        complaintData = data || []; renderComplaints();
-      } else if (tab === 'proofs') {
-        const { data } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
-        paymentProofs = data || []; renderPaymentProofs();
-      } else if (tab === 'meetings') {
-        const { data } = await _supabase.from('society_meetings').select('*').eq('society_name', currentSociety);
-        meetingsData = data || []; renderMeetings();
-      }
-    } catch (err) { console.error('[DeepLink] fetch error:', err); }
-
-    if (typeof clearStuckOverlays === 'function') clearStuckOverlays();
-    const gridOverlay = document.getElementById('mobileMenuOverlay');
-    if (gridOverlay) gridOverlay.style.display = 'none';
-    document.body.style.overflow = '';
-
-    if (tab === 'visitor') { showVisitorPage(); return; }
-
-    __deepLinkLock = true;
-    setTimeout(() => { __deepLinkLock = false; console.log('[DeepLink] Lock released'); }, 15000);
-
-    console.log('[DeepLink] Opening tab:', tab);
-
-    if (window.innerWidth <= 768) { openTabOverlay(tab, true); }
-    else {
-      const link = document.querySelector(`.nav-link[onclick*="switchTab('${tab}')"]`);
-      if (link) switchTab(tab, link);
-    }
-
-    let watchdogTick = 0;
-    const watchdog = setInterval(() => {
-      watchdogTick++;
-      if (watchdogTick > 35 || __userClosedOverlay === true) {
-        clearInterval(watchdog);
-        console.log('[DeepLink] Watchdog stopped. Reason:', __userClosedOverlay ? 'user closed' : 'timeout');
-        return;
-      }
-      const ov = document.getElementById('tabOverlay');
-      if (!ov && window.innerWidth <= 768) {
-        console.log('[DeepLink] ⚠️ Overlay missing! Re-opening...');
-        openTabOverlay(tab, true);
-      }
-    }, 400);
-
-    if (section) {
-      setTimeout(async () => {
-        if (section === 'myPaymentSubmissionsCard') {
-          try {
-            const { data: proofs } = await _supabase.from('payment_proofs').select('*').eq('society_name', currentSociety);
-            if (proofs) paymentProofs = proofs;
-            renderMyPaymentSubmissions();
-          } catch (e) { console.log(e); }
-        }
-        
-        const el = document.getElementById(section);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          el.style.transition = 'box-shadow 0.3s';
-          el.style.boxShadow = '0 0 0 4px #f59e0b';
-          setTimeout(() => { el.style.boxShadow = ''; }, 3000);
-        }
-      }, 800);
-    }
-  };
-
-  setTimeout(tryOpen, 700);
-}
-
-document.addEventListener('show.bs.modal', function (event) {
-  window.history.pushState({ modalOpen: true }, "", window.location.href);
-});
-
-// ✅ NEW — Change Password modal band hone pe grid wapas restore karo
-document.addEventListener('hidden.bs.modal', function (event) {
-  if (event.target && event.target.id === 'changePasswordModal') {
-    if (__changePasswordFromGrid) {
-      __changePasswordFromGrid = false;
-      if (window.innerWidth <= 768) {
-        const gridOverlay = document.getElementById('mobileMenuOverlay');
-        if (gridOverlay) {
-          renderGridCards();
-          gridOverlay.style.display = 'flex';
-          document.body.style.overflow = 'hidden';
-        }
-      }
-    }
-  }
-});
-
-window.addEventListener('popstate', function(event) {
-  // ✅ Sabse pehle programmatic flag capture + reset karo
-  const wasProgrammatic = __programmaticBack;
-  __programmaticBack = false;
-
-  if (__deepLinkLock === true) {
-    console.log('[DeepLink] popstate ignored during lock');
-    return;
-  }
-
-  // Apne hi history.back() se aaya hai — skip karo
-  if (wasProgrammatic) {
-    console.log('[Popstate] Skipped (programmatic back from closeTabOverlay)');
-    return;
-  }
-
-  const tabOverlay       = document.getElementById('tabOverlay');
-  const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
-  const visitorSection   = document.getElementById('visitor-section');
-
-    // ---------- 1. VISITOR SECTION ----------
-  if (visitorSection && visitorSection.style.display === 'block') {
-    visitorSection.style.display = 'none';
-    document.body.style.overflow = '';
-
-    cleanupVisitorRealtimeForGuard();
-
-    if (localStorage.getItem('ps_user_logged') === 'true') {
-      const appSection = document.getElementById('app-section');
-      if (appSection) appSection.classList.remove('d-none');
-
-      if (window.innerWidth <= 768 && mobileMenuOverlay) {
-        mobileMenuOverlay.style.display = 'flex';
-        renderGridCards();
-        document.body.style.overflow = 'hidden';
-      } else {
-        const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
-        if (dashboardLink) switchTab('dashboard', dashboardLink);
-      }
-    } else {
-      showLandingPage();
-    }
-    return;
-  }
-
-  // ---------- 2. OPEN MODAL ----------
-  const openModal = document.querySelector('.modal.show');
-  if (openModal) {
-    const inst = bootstrap.Modal.getInstance(openModal);
-    if (inst) inst.hide();
-    return;
-  }
-
-  // ---------- 3. TAB OVERLAY ----------
-if (tabOverlay) {
-  __userClosedOverlay = true;
-  
-  // ✅ GRID PEHLE show karo (white flash avoid karne ke liye)
-  if (window.innerWidth <= 768 && mobileMenuOverlay) {
-    renderGridCards();
-    mobileMenuOverlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  }
-  
-  // ✅ AB tab overlay content wapas main mein bhejo
-  const movedContent = tabOverlay.querySelector('.tab-content[data-in-overlay="true"]');
-  if (movedContent) {
-    movedContent.classList.add('d-none');
-    movedContent.removeAttribute('data-in-overlay');
-    const mainElement = document.querySelector('main');
-    if (mainElement) mainElement.appendChild(movedContent);
-  }
-  tabOverlay.remove();
-  
-  if (window.innerWidth > 768) {
-    document.body.style.overflow = '';
-    const dashboardLink = document.querySelector('.nav-link[onclick*="dashboard"]');
-    if (dashboardLink) switchTab('dashboard', dashboardLink);
-  }
-  return;
-}
-
-    // ---------- 4. MOBILE MENU OVERLAY (grid) ----------
-  if (mobileMenuOverlay && mobileMenuOverlay.style.display === 'flex') {
-    mobileMenuOverlay.style.display = 'none';
-    document.body.style.overflow = '';
-    return;
-  }
-
-  // Else: dashboard par hai, kuch nahi karna (app exit ho jayega naturally)
-});
-
-function renderCelebrations() {
-  const container = document.getElementById('dashboard-celebrations-container');
-  if (!container) return;
-  const today = new Date();
-  const monthDay = `-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const birthdays = membersData.filter(m => m.dob && m.dob.endsWith(monthDay));
-  const anniversaries = membersData.filter(m => m.anniversary_date && m.anniversary_date.endsWith(monthDay));
-
-  if (birthdays.length === 0 && anniversaries.length === 0) { container.innerHTML = ''; return; }
-
-  let html = `<div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-warning-subtle"><h6 class="fw-bold text-dark mb-2">🎉 Today's Celebrations</h6>`;
-  birthdays.forEach(m => {
-    const msg = `Happy Birthday ${m.name}! 🎂 - PS Society`;
-    html += `<div class="d-flex justify-content-between align-items-center bg-white p-2 rounded mb-1"><strong>🎂 ${m.name} (${m.flat_no})</strong> ${m.phone ? `<button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${m.phone}', '${msg}')">Wish</button>` : ''}</div>`;
-  });
-  anniversaries.forEach(m => {
-    const msg = `Happy Anniversary ${m.name}! 💍 - PS Society`;
-    html += `<div class="d-flex justify-content-between align-items-center bg-white p-2 rounded mb-1"><strong>💍 ${m.name} (${m.flat_no})</strong> ${m.phone ? `<button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${m.phone}', '${msg}')">Wish</button>` : ''}</div>`;
-  });
-  html += `</div>`;
-  container.innerHTML = html;
-}
-
-async function fetchMarketplaceData() {
-  const { data } = await _supabase.from('marketplace_posts').select('*').eq('society_name', currentSociety).order('created_at', { ascending: false });
-  marketplaceData = data || [];
-}
-
-function renderMarketplace() {
-  const container = document.getElementById('marketplace-container');
-  if (!container) return;
-  if (!marketplaceData.length) { container.innerHTML = `<div class="col-12 text-center text-muted p-4">No marketplace listings yet.</div>`; return; }
-  
-  const canDelete = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
-
-  container.innerHTML = marketplaceData.map(item => `
+  `,document.body.appendChild(a);let n=document.getElementById("stopSirenBtn");if(n){let s=t=>{t&&(t.preventDefault(),t.stopPropagation()),resolveSOSAlert(e.id||0)};n.onclick=s,n.ontouchend=s}try{sirenAudio.loop=!0,sirenAudio.play().catch(e=>{console.log("Audio autoplay restricted:",e)})}catch(i){console.log("Siren error:",i)}if("vibrate"in navigator)try{navigator.vibrate([500,250,500,250,500,250,1e3])}catch(r){console.log("Vibration error:",r)}}async function resolveSOSAlert(e){try{e&&await _supabase.from("sos_alerts").update({status:"resolved"}).eq("id",e)}catch(t){console.error("Error resolving SOS:",t)}void 0!==sirenAudio&&sirenAudio&&(sirenAudio.pause(),sirenAudio.currentTime=0);let a=document.getElementById("sosAlertBanner");a&&a.remove()}function listenForSOSAlerts(){let e=(currentSociety||"default").replace(/[^a-zA-Z0-9]/g,"_").toLowerCase(),t=`sos-realtime-${e}`;try{let a=_supabase.getChannels();a.forEach(e=>{e.topic&&e.topic.includes("sos-realtime-")&&_supabase.removeChannel(e)})}catch(n){console.log("SOS channel cleanup note:",n)}let s=_supabase.channel(t);s.on("postgres_changes",{event:"INSERT",schema:"public",table:"sos_alerts"},e=>{e.new&&"active"===e.new.status&&(e.new.society_name||"").trim().toLowerCase()===(currentSociety||"").trim().toLowerCase()&&showSOSBanner(e.new)}).subscribe(e=>{"SUBSCRIBED"===e?console.log("✅ SOS Realtime: Connected successfully"):("CHANNEL_ERROR"===e||"TIMED_OUT"===e)&&console.log("⚠️ SOS Realtime status:",e)})}function handleDeepLink(){let e=new URLSearchParams(window.location.search),t=e.get("tab"),a=e.get("section");if(!t&&!a)return;("notice"===t||"notices"===t)&&(t="community"),t||(t="dashboard"),"myPaymentSubmissionsCard"===a&&(t="dashboard");let n=0;__userClosedOverlay=!1;let s=async()=>{n++;let e="true"===localStorage.getItem("ps_user_logged");if(!e)return n<50?setTimeout(s,300):void 0;let i=localStorage.getItem("ps_user_society");if(i&&currentSociety!==i&&(currentSociety=i),!currentSociety)return n<50?setTimeout(s,300):void 0;let r=document.getElementById("app-section");if(!r||r.classList.contains("d-none"))return n<50?setTimeout(s,300):void 0;try{if("polls"===t){let{data:o}=await _supabase.from("polls").select("*").eq("society_name",currentSociety);pollsData=o||[],renderPolls()}else if("community"===t){let[{data:l},{data:d},{data:c},{data:m}]=await Promise.all([_supabase.from("notices").select("*").eq("society_name",currentSociety),_supabase.from("events").select("*").eq("society_name",currentSociety),_supabase.from("facilities").select("*").eq("society_name",currentSociety).eq("is_active",!0),_supabase.from("facility_bookings").select("*").eq("society_name",currentSociety)]);noticesData=l||[],eventsData=d||[],facilitiesData=c||[],bookingsData=m||[],renderCommunity()}else if("dashboard"===t){let[{data:u},{data:p}]=await Promise.all([_supabase.from("payment_proofs").select("*").eq("society_name",currentSociety),_supabase.from("maintenance_payments").select("*").eq("society_name",currentSociety)]);u&&(paymentProofs=u),p&&(maintenanceData=p),renderMyPaymentSubmissions(),renderMemberPersonalView()}else if("marketplace"===t)await fetchMarketplaceData(),renderMarketplace();else if("complaints"===t){let{data:y}=await _supabase.from("complaints").select("*").eq("society_name",currentSociety);complaintData=y||[],renderComplaints()}else if("proofs"===t){let{data:g}=await _supabase.from("payment_proofs").select("*").eq("society_name",currentSociety);paymentProofs=g||[],renderPaymentProofs()}else if("meetings"===t){let{data:b}=await _supabase.from("society_meetings").select("*").eq("society_name",currentSociety);meetingsData=b||[],renderMeetings()}}catch(f){console.error("[DeepLink] fetch error:",f)}"function"==typeof clearStuckOverlays&&clearStuckOverlays();let h=document.getElementById("mobileMenuOverlay");if(h&&(h.style.display="none"),document.body.style.overflow="","visitor"===t){showVisitorPage();return}if(__deepLinkLock=!0,setTimeout(()=>{__deepLinkLock=!1,console.log("[DeepLink] Lock released")},15e3),console.log("[DeepLink] Opening tab:",t),window.innerWidth<=768)openTabOverlay(t,!0);else{let v=document.querySelector(`.nav-link[onclick*="switchTab('${t}')"]`);v&&switchTab(t,v)}let w=0,S=setInterval(()=>{if(++w>35||!0===__userClosedOverlay){clearInterval(S),console.log("[DeepLink] Watchdog stopped. Reason:",__userClosedOverlay?"user closed":"timeout");return}let e=document.getElementById("tabOverlay");!e&&window.innerWidth<=768&&(console.log("[DeepLink] ⚠️ Overlay missing! Re-opening..."),openTabOverlay(t,!0))},400);a&&setTimeout(async()=>{if("myPaymentSubmissionsCard"===a)try{let{data:e}=await _supabase.from("payment_proofs").select("*").eq("society_name",currentSociety);e&&(paymentProofs=e),renderMyPaymentSubmissions()}catch(t){console.log(t)}let n=document.getElementById(a);n&&(n.scrollIntoView({behavior:"smooth",block:"start"}),n.style.transition="box-shadow 0.3s",n.style.boxShadow="0 0 0 4px #f59e0b",setTimeout(()=>{n.style.boxShadow=""},3e3))},800)};setTimeout(s,700)}function renderCelebrations(){let e=document.getElementById("dashboard-celebrations-container");if(!e)return;let t=new Date,a=`-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`,n=membersData.filter(e=>e.dob&&e.dob.endsWith(a)),s=membersData.filter(e=>e.anniversary_date&&e.anniversary_date.endsWith(a));if(0===n.length&&0===s.length){e.innerHTML="";return}let i=`<div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-warning-subtle"><h6 class="fw-bold text-dark mb-2">🎉 Today's Celebrations</h6>`;n.forEach(e=>{let t=`Happy Birthday ${e.name}! 🎂 - PS Society`;i+=`<div class="d-flex justify-content-between align-items-center bg-white p-2 rounded mb-1"><strong>🎂 ${e.name} (${e.flat_no})</strong> ${e.phone?`<button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${e.phone}', '${t}')">Wish</button>`:""}</div>`}),s.forEach(e=>{let t=`Happy Anniversary ${e.name}! 💍 - PS Society`;i+=`<div class="d-flex justify-content-between align-items-center bg-white p-2 rounded mb-1"><strong>💍 ${e.name} (${e.flat_no})</strong> ${e.phone?`<button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${e.phone}', '${t}')">Wish</button>`:""}</div>`}),i+="</div>",e.innerHTML=i}async function fetchMarketplaceData(){let{data:e}=await _supabase.from("marketplace_posts").select("*").eq("society_name",currentSociety).order("created_at",{ascending:!1});marketplaceData=e||[]}function renderMarketplace(){let e=document.getElementById("marketplace-container");if(!e)return;if(!marketplaceData.length){e.innerHTML='<div class="col-12 text-center text-muted p-4">No marketplace listings yet.</div>';return}let t="Admin"===currentRole||"Chairman"===currentRole||"SocietyAdmin"===currentRole;e.innerHTML=marketplaceData.map(e=>`
     <div class="col-md-4">
       <div class="card p-3 shadow-sm border-0 rounded-4">
-        <span class="badge bg-primary mb-2" style="width:fit-content;">${item.category}</span>
-        <h6 class="fw-bold">${item.title}</h6>
-        <p class="small text-muted mb-1">${item.price} | Flat: ${item.flat_no}</p>
-        <p class="small">${item.description || ''}</p>
+        <span class="badge bg-primary mb-2" style="width:fit-content;">${e.category}</span>
+        <h6 class="fw-bold">${e.title}</h6>
+        <p class="small text-muted mb-1">${e.price} | Flat: ${e.flat_no}</p>
+        <p class="small">${e.description||""}</p>
         <div class="d-flex gap-2 mt-2">
-          <button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${item.contact_phone}', 'Hi, regarding your post ${item.title}: ')"><i class="fa-brands fa-whatsapp me-1"></i> Contact</button>
-          ${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMarketplacePost(${item.id})"><i class="fa-solid fa-trash"></i> Delete</button>` : ''}
+          <button class="btn btn-sm btn-success" onclick="sendWhatsAppReminder('${e.contact_phone}', 'Hi, regarding your post ${e.title}: ')"><i class="fa-brands fa-whatsapp me-1"></i> Contact</button>
+          ${t?`<button class="btn btn-sm btn-outline-danger" onclick="deleteMarketplacePost(${e.id})"><i class="fa-solid fa-trash"></i> Delete</button>`:""}
         </div>
       </div>
     </div>
-  `).join('');
-}
-
-async function deleteMarketplacePost(id) {
-  if (!confirm('⚠️ Are you sure you want to delete this marketplace post?')) return;
-  const { error } = await _supabase.from('marketplace_posts').delete().eq('id', id);
-  if (error) { alert('❌ Error: ' + error.message); }
-  else { alert('✅ Post deleted successfully!'); fetchMarketplaceData().then(renderMarketplace); }
-}
-
-async function submitMarketplacePost(event) {
-  event.preventDefault();
-  const newPost = {
-    society_name: currentSociety, flat_no: currentUser,
-    title: document.getElementById('market-title').value,
-    category: document.getElementById('market-category').value,
-    price: Number(document.getElementById('market-price').value),
-    contact_phone: document.getElementById('market-phone').value,
-    description: document.getElementById('market-desc').value,
-    status: 'Approved', created_at: new Date().toISOString()
-  };
-  await _supabase.from('marketplace_posts').insert([newPost]);
-  alert('✅ Posted successfully!');
-  bootstrap.Modal.getInstance(document.getElementById('marketplaceModal')).hide();
-  fetchMarketplaceData().then(renderMarketplace);
-}
-
-function calculateLateFee(flatPendingDue, monthlyRate) {
-  const isLateFeeEnabled = societySettings.enable_late_fee === 'true';
-  if (!isLateFeeEnabled || flatPendingDue <= 0) return 0;
-
-  const lateFeeType = societySettings.late_fee_type || 'fixed'; 
-  const customRate = Number(societySettings.late_fee_amount || 0);
-
-  let calculatedLateFee = 0;
-  if (lateFeeType === 'fixed') {
-    const rate = Number(monthlyRate || 600);
-    const pendingMonths = Math.ceil(flatPendingDue / rate); 
-    calculatedLateFee = customRate * Math.max(1, pendingMonths); 
-  } else if (lateFeeType === 'percentage') {
-    calculatedLateFee = (flatPendingDue * customRate) / 100; 
-  }
-  return Math.round(calculatedLateFee);
-}
-
-function forceResetScreen() {
-  const activeModals = document.querySelectorAll('.modal.show');
-  if (activeModals.length > 0) return;
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-
-  const overlays = ['tabOverlay', 'consentOverlay', 'mobileMenuOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay'];
-  overlays.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-
-  document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
-  document.body.style.pointerEvents = 'auto';
-}
-
-function clearStuckOverlays() {
-  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
-  
-  const overlays = ['tabOverlay', 'consentOverlay', 'mobileMenuOverlay', 'visitorPasswordOverlay', 'aboutPSOverlay', 'privacyPolicyOverlay', 'termsOfServiceOverlay'];
-  overlays.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      if (id === 'mobileMenuOverlay' || id === 'visitorPasswordOverlay' || id === 'aboutPSOverlay' || id === 'privacyPolicyOverlay' || id === 'termsOfServiceOverlay') { el.style.display = 'none'; }
-      else { el.remove(); }
-    }
-  });
-
-  document.body.classList.remove('modal-open');
-  document.body.style.overflow = '';
-}
-
-// ==================== MULTI-TAB LOGOUT SYNC ====================
-// Jab ek tab mein logout hota hai → dusre tabs bhi auto logout ho jayen
-window.addEventListener('storage', (event) => {
-  if (event.key === 'ps_logout_broadcast' && event.newValue) {
-    console.log('[Multi-Tab] Logout detected from another tab — syncing...');
-    
-    // Prevent infinite loop — don't re-broadcast
-    localStorage.removeItem('ps_user_logged');
-    localStorage.removeItem('ps_user_role');
-    localStorage.removeItem('ps_user_id');
-    localStorage.removeItem('ps_user_society');
-    
-    // Cleanup
-    if (typeof __proofRealtimeChannel !== 'undefined' && __proofRealtimeChannel) {
-      try { _supabase.removeChannel(__proofRealtimeChannel); } catch(e) {}
-    }
-    if (typeof cleanupVisitorRealtimeForGuard === 'function') {
-      cleanupVisitorRealtimeForGuard();
-    }
-    if (typeof clearStuckOverlays === 'function') {
-      clearStuckOverlays();
-    }
-    
-    // Redirect to landing page (fresh state)
-    const baseUrl = window.location.origin + window.location.pathname;
-    window.location.replace(baseUrl + '?t=' + Date.now());
-  }
-});
-
-// ═══════════════════════════════════════════════════
-// 🎫 SUPPORT TICKET SYSTEM
-// ═══════════════════════════════════════════════════
-
-let supportTicketsData = [];
-let __currentSupportTicketId = null;
-
-async function loadSupportTickets() {
-  try {
-    // ✅ Base: society filter always
-    let query = _supabase
-      .from('support_tickets')
-      .select('*')
-      .eq('society_name', currentSociety)
-      .order('created_at', { ascending: false });
-
-    // ✅ Extra tight filter for Member/Chairman — only their own
-    if (currentRole === 'Member' || currentRole === 'Chairman') {
-      query = query.eq('raised_by_flat', (currentUser || '').toUpperCase());
-    }
-
-    const { data, error } = await query;
-    if (error) { console.warn('[Support] Load error:', error.message); supportTicketsData = []; return; }
-    supportTicketsData = data || [];
-    updateSupportBadge();
-  } catch (e) {
-    console.error('[Support] Exception:', e);
-    supportTicketsData = [];
-  }
-}
-
-function renderSupportTickets() {
-  const tbody = document.getElementById('support-tickets-list');
-  if (!tbody) return;
-
-    const isAdmin = currentRole === 'Admin' || currentRole === 'SocietyAdmin';   // ✅ YE
-
-  // ✅ Data already society-filtered (see loadSupportTickets)
-  // Now apply role-based filter on top
-  let tickets = supportTicketsData;
-
-  if (currentRole === 'Member' || currentRole === 'Chairman') {
-    // Members/Chairman see ONLY their own tickets
-    tickets = tickets.filter(t => (t.raised_by_flat || '').toUpperCase() === (currentUser || '').toUpperCase());
-  }
-  // Admin / SocietyAdmin: see ALL tickets of THIS society (already filtered)
-
-  const filter = document.getElementById('support-filter-status')?.value || 'all';
-  if (filter !== 'all') tickets = tickets.filter(t => t.status === filter);
-
-  if (tickets.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="${isAdmin ? 8 : 7}" class="text-center text-muted py-4">
+  `).join("")}async function deleteMarketplacePost(e){if(!confirm("⚠️ Are you sure you want to delete this marketplace post?"))return;let{error:t}=await _supabase.from("marketplace_posts").delete().eq("id",e);t?alert("❌ Error: "+t.message):(alert("✅ Post deleted successfully!"),fetchMarketplaceData().then(renderMarketplace))}async function submitMarketplacePost(e){e.preventDefault();let t={society_name:currentSociety,flat_no:currentUser,title:document.getElementById("market-title").value,category:document.getElementById("market-category").value,price:Number(document.getElementById("market-price").value),contact_phone:document.getElementById("market-phone").value,description:document.getElementById("market-desc").value,status:"Approved",created_at:new Date().toISOString()};await _supabase.from("marketplace_posts").insert([t]),alert("✅ Posted successfully!"),bootstrap.Modal.getInstance(document.getElementById("marketplaceModal")).hide(),fetchMarketplaceData().then(renderMarketplace)}function calculateLateFee(e,t){let a="true"===societySettings.enable_late_fee;if(!a||e<=0)return 0;let n=societySettings.late_fee_type||"fixed",s=Number(societySettings.late_fee_amount||0),i=0;if("fixed"===n){let r=Number(t||600);i=s*Math.max(1,Math.ceil(e/r))}else"percentage"===n&&(i=e*s/100);return Math.round(i)}function forceResetScreen(){let e=document.querySelectorAll(".modal.show");!(e.length>0)&&(document.querySelectorAll(".modal-backdrop").forEach(e=>e.remove()),["tabOverlay","consentOverlay","mobileMenuOverlay","visitorPasswordOverlay","aboutPSOverlay","privacyPolicyOverlay","termsOfServiceOverlay"].forEach(e=>{let t=document.getElementById(e);t&&(t.style.display="none")}),document.body.classList.remove("modal-open"),document.body.style.overflow="",document.body.style.pointerEvents="auto")}function clearStuckOverlays(){document.querySelectorAll(".modal-backdrop").forEach(e=>e.remove()),["tabOverlay","consentOverlay","mobileMenuOverlay","visitorPasswordOverlay","aboutPSOverlay","privacyPolicyOverlay","termsOfServiceOverlay"].forEach(e=>{let t=document.getElementById(e);t&&("mobileMenuOverlay"===e||"visitorPasswordOverlay"===e||"aboutPSOverlay"===e||"privacyPolicyOverlay"===e||"termsOfServiceOverlay"===e?t.style.display="none":t.remove())}),document.body.classList.remove("modal-open"),document.body.style.overflow=""}window.resolveSOSAlert=resolveSOSAlert,document.addEventListener("show.bs.modal",function(e){window.history.pushState({modalOpen:!0},"",window.location.href)}),document.addEventListener("hidden.bs.modal",function(e){if(e.target&&"changePasswordModal"===e.target.id&&__changePasswordFromGrid&&(__changePasswordFromGrid=!1,window.innerWidth<=768)){let t=document.getElementById("mobileMenuOverlay");t&&(renderGridCards(),t.style.display="flex",document.body.style.overflow="hidden")}}),window.addEventListener("popstate",function(e){let t=__programmaticBack;if(__programmaticBack=!1,!0===__deepLinkLock){console.log("[DeepLink] popstate ignored during lock");return}if(t){console.log("[Popstate] Skipped (programmatic back from closeTabOverlay)");return}let a=document.getElementById("tabOverlay"),n=document.getElementById("mobileMenuOverlay"),s=document.getElementById("visitor-section");if(s&&"block"===s.style.display){if(s.style.display="none",document.body.style.overflow="",cleanupVisitorRealtimeForGuard(),"true"===localStorage.getItem("ps_user_logged")){let i=document.getElementById("app-section");if(i&&i.classList.remove("d-none"),window.innerWidth<=768&&n)n.style.display="flex",renderGridCards(),document.body.style.overflow="hidden";else{let r=document.querySelector('.nav-link[onclick*="dashboard"]');r&&switchTab("dashboard",r)}}else showLandingPage();return}let o=document.querySelector(".modal.show");if(o){let l=bootstrap.Modal.getInstance(o);l&&l.hide();return}if(a){__userClosedOverlay=!0,window.innerWidth<=768&&n&&(renderGridCards(),n.style.display="flex",document.body.style.overflow="hidden");let d=a.querySelector('.tab-content[data-in-overlay="true"]');if(d){d.classList.add("d-none"),d.removeAttribute("data-in-overlay");let c=document.querySelector("main");c&&c.appendChild(d)}if(a.remove(),window.innerWidth>768){document.body.style.overflow="";let m=document.querySelector('.nav-link[onclick*="dashboard"]');m&&switchTab("dashboard",m)}return}if(n&&"flex"===n.style.display){n.style.display="none",document.body.style.overflow="";return}}),window.addEventListener("storage",e=>{if("ps_logout_broadcast"===e.key&&e.newValue){if(console.log("[Multi-Tab] Logout detected from another tab — syncing..."),localStorage.removeItem("ps_user_logged"),localStorage.removeItem("ps_user_role"),localStorage.removeItem("ps_user_id"),localStorage.removeItem("ps_user_society"),void 0!==__proofRealtimeChannel&&__proofRealtimeChannel)try{_supabase.removeChannel(__proofRealtimeChannel)}catch(t){}cleanupVisitorRealtimeForGuard(),clearStuckOverlays();let a=window.location.origin+window.location.pathname;window.location.replace(a+"?t="+Date.now())}});let supportTicketsData=[],__currentSupportTicketId=null;async function loadSupportTickets(){try{let e=_supabase.from("support_tickets").select("*").eq("society_name",currentSociety).order("created_at",{ascending:!1});("Member"===currentRole||"Chairman"===currentRole)&&(e=e.eq("raised_by_flat",(currentUser||"").toUpperCase()));let{data:t,error:a}=await e;if(a){console.warn("[Support] Load error:",a.message),supportTicketsData=[];return}supportTicketsData=t||[],updateSupportBadge()}catch(n){console.error("[Support] Exception:",n),supportTicketsData=[]}}function renderSupportTickets(){let e=document.getElementById("support-tickets-list");if(!e)return;let t="Admin"===currentRole||"SocietyAdmin"===currentRole,a=supportTicketsData;("Member"===currentRole||"Chairman"===currentRole)&&(a=a.filter(e=>(e.raised_by_flat||"").toUpperCase()===(currentUser||"").toUpperCase()));let n=document.getElementById("support-filter-status")?.value||"all";if("all"!==n&&(a=a.filter(e=>e.status===n)),0===a.length){e.innerHTML=`<tr><td colspan="${t?8:7}" class="text-center text-muted py-4">
       <i class="fa-solid fa-inbox fa-2x d-block mb-2"></i>
-      No support tickets ${filter !== 'all' ? 'with this status' : 'yet'}.
-    </td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = tickets.map(t => {
-    const statusColor =
-      t.status === 'Open' ? 'warning text-dark' :
-      t.status === 'In Progress' ? 'info text-dark' :
-      t.status === 'Resolved' ? 'success' : 'secondary';
-    const priorityColor =
-      t.priority === 'Urgent' ? 'danger' :
-      t.priority === 'High' ? 'warning text-dark' :
-      t.priority === 'Medium' ? 'primary' : 'secondary';
-
-    return `
+      No support tickets ${"all"!==n?"with this status":"yet"}.
+    </td></tr>`;return}e.innerHTML=a.map(e=>{let a="Open"===e.status?"warning text-dark":"In Progress"===e.status?"info text-dark":"Resolved"===e.status?"success":"secondary",n="Urgent"===e.priority?"danger":"High"===e.priority?"warning text-dark":"Medium"===e.priority?"primary":"secondary";return`
       <tr>
-        <td><b>#${String(t.id).padStart(4,'0')}</b></td>
-        ${isAdmin ? `<td><small>${t.society_name || '-'}</small></td>` : ''}
-        <td><b>${t.raised_by_flat || '-'}</b><br><small class="text-muted">${t.raised_by_name || ''}</small></td>
+        <td><b>#${String(e.id).padStart(4,"0")}</b></td>
+        ${t?`<td><small>${e.society_name||"-"}</small></td>`:""}
+        <td><b>${e.raised_by_flat||"-"}</b><br><small class="text-muted">${e.raised_by_name||""}</small></td>
         <td>
-          <b>${t.subject}</b>
-          <br><small class="text-muted">${t.category || '-'}</small>
+          <b>${e.subject}</b>
+          <br><small class="text-muted">${e.category||"-"}</small>
         </td>
-        <td><span class="badge bg-${priorityColor}">${t.priority || 'Medium'}</span></td>
-        <td><span class="badge bg-${statusColor}">${t.status}</span></td>
-        <td><small>${new Date(t.created_at).toLocaleDateString('en-IN')}</small></td>
+        <td><span class="badge bg-${n}">${e.priority||"Medium"}</span></td>
+        <td><span class="badge bg-${a}">${e.status}</span></td>
+        <td><small>${new Date(e.created_at).toLocaleDateString("en-IN")}</small></td>
         <td class="no-print">
-          <button class="btn btn-sm btn-outline-primary me-1" onclick="openSupportViewModal(${t.id})" title="View"><i class="fa-solid fa-eye"></i></button>
-          ${isAdmin ? `
-            <button class="btn btn-sm btn-success me-1" onclick="openSupportViewModal(${t.id}, true)" title="Reply"><i class="fa-solid fa-reply"></i></button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteSupportTicket(${t.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          ` : ''}
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="openSupportViewModal(${e.id})" title="View"><i class="fa-solid fa-eye"></i></button>
+          ${t?`
+            <button class="btn btn-sm btn-success me-1" onclick="openSupportViewModal(${e.id}, true)" title="Reply"><i class="fa-solid fa-reply"></i></button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteSupportTicket(${e.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          `:""}
         </td>
       </tr>
-    `;
-  }).join('');
-}
-
-function openSupportCreateModal() {
-  if (typeof isDemoMode === 'function' && isDemoMode()) {
-    alert('🔒 Demo Mode mein ticket raise nahi kar sakte.\n\nPlease login to raise a ticket.');
-    return;
-  }
-  document.getElementById('supportCreateForm')?.reset();
-  new bootstrap.Modal(document.getElementById('supportCreateModal')).show();
-}
-
-async function submitSupportTicket(event) {
-  event.preventDefault();
-  if (typeof blockDemoWrite === 'function' && blockDemoWrite()) return;
-
-  const btn = document.getElementById('btn-support-submit');
-  const orig = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
-
-  try {
-    const subject = document.getElementById('support-subject').value.trim();
-    const priority = document.getElementById('support-priority').value;
-    const category = document.getElementById('support-category').value;
-    const phone = document.getElementById('support-phone').value.trim();
-    const description = document.getElementById('support-description').value.trim();
-    const file = document.getElementById('support-attachment')?.files?.[0];
-
-    let attachmentUrl = null;
-    if (file) {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${currentSociety}/ticket_${Date.now()}.${fileExt}`;
-      const { error: upErr } = await _supabase.storage.from('complaint_images').upload(filePath, file);
-      if (!upErr) {
-        const { data: urlData } = _supabase.storage.from('complaint_images').getPublicUrl(filePath);
-        attachmentUrl = urlData?.publicUrl || null;
-      }
-    }
-
-    const member = membersData.find(m => (m.flat_no || '').toUpperCase() === (currentUser || '').toUpperCase());
-
-    const ticket = {
-      society_name: currentSociety,
-      raised_by_flat: currentUser || 'UNKNOWN',
-      raised_by_role: currentRole,
-      raised_by_name: member?.name || '',
-      raised_by_phone: phone || member?.phone || '',
-      category, priority, subject, description,
-      attachment_url: attachmentUrl,
-      status: 'Open',
-      created_at: new Date().toISOString()
-    };
-
-    const { error } = await _supabase.from('support_tickets').insert([ticket]);
-    if (error) { alert('❌ ' + error.message); return; }
-
-    try {
-      const { data: adminUsers } = await _supabase
-        .from('user_master').select('flat_no')
-        .in('role', ['Admin', 'SocietyAdmin'])
-        .eq('society_name', currentSociety);
-      const adminFlats = (adminUsers || []).map(u => (u.flat_no || '').toUpperCase()).filter(Boolean);
-
-      if (adminFlats.length > 0) {
-  await _supabase.from('notices').insert([{
-    society_name: currentSociety,
-    title: `🎫 New Support Ticket — ${priority}`,
-    content: `${currentUser} raised: "${subject}" (${category})`,
-    date: new Date().toISOString().split('T')[0],
-    author: currentUser,
-    priority: (priority === 'Urgent' || priority === 'High') ? 'High' : 'Medium',
-    target_members: adminFlats,
-    attachment_url: null,
-    deep_link: '/?tab=support'
-  }]);
-}
-    } catch (nErr) { console.warn('[Support] Notify error:', nErr); }
-
-    alert('✅ Ticket submitted! Admin will respond soon.');
-    bootstrap.Modal.getInstance(document.getElementById('supportCreateModal')).hide();
-    await loadSupportTickets();
-    renderSupportTickets();
-    updateSupportBadge();
-  } catch (err) {
-    console.error(err);
-    alert('❌ ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = orig;
-  }
-}
-
-function openSupportViewModal(ticketId, showReply = false) {
-  const t = supportTicketsData.find(x => x.id === ticketId);
-  if (!t) { alert('Ticket not found.'); return; }
-
-  __currentSupportTicketId = ticketId;
-
-  document.getElementById('support-view-id').textContent = String(t.id).padStart(4,'0');
-  document.getElementById('support-view-society').textContent = t.society_name || '-';
-  document.getElementById('support-view-raisedby').textContent = `${t.raised_by_flat || '-'} (${t.raised_by_role || '-'})`;
-  document.getElementById('support-view-category').textContent = t.category || '-';
-  document.getElementById('support-view-priority').textContent = t.priority || '-';
-  document.getElementById('support-view-status').textContent = t.status || '-';
-  document.getElementById('support-view-date').textContent = new Date(t.created_at).toLocaleString('en-IN');
-  document.getElementById('support-view-phone').textContent = t.raised_by_phone || '-';
-  document.getElementById('support-view-subject').textContent = t.subject || '-';
-  document.getElementById('support-view-description').textContent = t.description || '-';
-
-  const pColor =
-    t.priority === 'Urgent' ? 'bg-danger' :
-    t.priority === 'High' ? 'bg-warning text-dark' :
-    t.priority === 'Medium' ? 'bg-primary' : 'bg-secondary';
-  document.getElementById('support-view-priority').className = `badge ${pColor}`;
-
-  const sColor =
-    t.status === 'Open' ? 'bg-warning text-dark' :
-    t.status === 'In Progress' ? 'bg-info text-dark' :
-    t.status === 'Resolved' ? 'bg-success' : 'bg-secondary';
-  document.getElementById('support-view-status').className = `badge ${sColor}`;
-
-    const attBox = document.getElementById('support-view-attachment-box');
-  const delBtn = document.getElementById('support-delete-attachment-btn');
-  if (t.attachment_url && t.attachment_url.trim() !== '') {
-    document.getElementById('support-view-attachment-link').href = t.attachment_url;
-    attBox.style.display = 'block';
-
-    // Delete button — only for Admin
-    if (delBtn && (currentRole === 'Admin' || currentRole === 'SocietyAdmin')) {
-      delBtn.style.display = 'inline-block';
-      delBtn.onclick = () => deleteSingleImage({
-        table: 'support_tickets', rowId: t.id, column: 'attachment_url',
-        bucket: 'complaint_images', imageUrl: t.attachment_url,
-        refreshFn: async () => {
-          await loadSupportTickets();
-          renderSupportTickets();
-          bootstrap.Modal.getInstance(document.getElementById('supportViewModal')).hide();
-        },
-        label: 'ticket attachment'
-      });
-    } else if (delBtn) {
-      delBtn.style.display = 'none';
-    }
-  } else {
-    attBox.style.display = 'none';
-    if (delBtn) delBtn.style.display = 'none';
-  }
-
-  const replyBox = document.getElementById('support-existing-reply-box');
-  if (t.admin_reply && t.admin_reply.trim() !== '') {
-    document.getElementById('support-existing-reply-text').textContent = t.admin_reply;
-    document.getElementById('support-existing-reply-meta').textContent =
-      `Replied by ${t.replied_by || 'Admin'} on ${t.replied_at ? new Date(t.replied_at).toLocaleString('en-IN') : '-'}`;
-    replyBox.style.display = 'block';
-  } else {
-    replyBox.style.display = 'none';
-  }
-
-  const adminSection = document.getElementById('support-admin-reply-section');
-  if (showReply && currentRole === 'Admin') {
-    adminSection.style.display = 'block';
-    document.getElementById('support-reply-text').value = '';
-    document.getElementById('support-reply-status').value = t.status === 'Open' ? 'In Progress' : t.status;
-  } else {
-    adminSection.style.display = 'none';
-  }
-
-  new bootstrap.Modal(document.getElementById('supportViewModal')).show();
-}
-
-async function submitSupportReply() {
-  if (currentRole !== 'Admin') { alert('⛔ Only Admin can reply.'); return; }
-  if (!__currentSupportTicketId) return;
-
-  const replyText = document.getElementById('support-reply-text').value.trim();
-  const newStatus = document.getElementById('support-reply-status').value;
-
-  if (!replyText && newStatus === (supportTicketsData.find(t => t.id === __currentSupportTicketId)?.status)) {
-    alert('Please write a reply or change status.'); return;
-  }
-
-  try {
-    const { error } = await _supabase
-      .from('support_tickets')
-      .update({
-        admin_reply: replyText || undefined,
-        status: newStatus,
-        replied_at: new Date().toISOString(),
-        replied_by: currentUser,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', __currentSupportTicketId);
-
-    if (error) { alert('❌ ' + error.message); return; }
-
-    const t = supportTicketsData.find(x => x.id === __currentSupportTicketId);
-    if (t) {
-      try {
-        await _supabase.from('notices').insert([{
-          society_name: t.society_name,
-          title: `🎫 Admin replied to your ticket #${String(t.id).padStart(4,'0')}`,
-          content: `Status: ${newStatus}. Reply: ${replyText || '(no message)'}`,
-          date: new Date().toISOString().split('T')[0],
-          author: 'Support',
-          priority: 'Medium',
-                target_members: [t.raised_by_flat],
-      attachment_url: null,
-      deep_link: '/?tab=support'   // ✅ ADD THIS COMMA + LINE
-    }]);
-      } catch (e) { console.warn('Notify user error:', e); }
-    }
-
-    alert('✅ Reply sent & status updated!');
-    bootstrap.Modal.getInstance(document.getElementById('supportViewModal')).hide();
-    await loadSupportTickets();
-    renderSupportTickets();
-    updateSupportBadge();
-  } catch (err) {
-    console.error(err); alert('❌ ' + err.message);
-  }
-}
-
-async function deleteSupportTicket(id) {
-  if (currentRole !== 'Admin') { alert('⛔ Only Admin can delete.'); return; }
-  if (!confirm('⚠️ Delete this support ticket permanently?\n\n(Attachment image will also be deleted)')) return;
-
-  try {
-    // STEP 1: Pehle ticket ka attachment_url nikalo
-    const { data: ticket, error: fetchErr } = await _supabase
-      .from('support_tickets')
-      .select('attachment_url')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (fetchErr) {
-      console.warn('[DeleteTicket] Fetch warning:', fetchErr.message);
-    }
-
-    // STEP 2: Storage se attachment delete karo (agar hai)
-    if (ticket?.attachment_url && ticket.attachment_url.trim() !== '') {
-      try {
-        const parts = ticket.attachment_url.split('/complaint_images/');
-        if (parts.length > 1) {
-          const filePath = decodeURIComponent(parts[1]);
-          const { error: delErr } = await _supabase.storage
-            .from('complaint_images')
-            .remove([filePath]);
-
-          if (delErr) {
-            console.warn('[DeleteTicket] Storage delete failed:', delErr.message);
-            // Continue anyway — DB delete karna important hai
-          } else {
-            console.log('[DeleteTicket] Attachment deleted:', filePath);
-          }
-        }
-      } catch (imgErr) {
-        console.warn('[DeleteTicket] Image cleanup error:', imgErr);
-      }
-    }
-
-    // STEP 3: DB se ticket delete karo
-    const { error } = await _supabase.from('support_tickets').delete().eq('id', id);
-    if (error) { alert('❌ ' + error.message); return; }
-
-    console.log('[DeleteTicket] Ticket deleted: #' + id);
-    alert('✅ Ticket & attachment deleted successfully!');
-
-    await loadSupportTickets();
-    renderSupportTickets();
-    updateSupportBadge();
-
-  } catch (err) {
-    console.error('[DeleteTicket] Error:', err);
-    alert('❌ Error: ' + err.message);
-  }
-}
-
-function updateSupportBadge() {
-  const badge = document.getElementById('support-badge');
-  if (!badge) return;
-
-  let count = 0;
-  if (currentRole === 'Admin' || currentRole === 'SocietyAdmin') {
-    // Admin / SocietyAdmin: count of open + in-progress tickets in current society
-    count = supportTicketsData.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-  } else {
-    // Member / Chairman: only their own open tickets
-    count = supportTicketsData.filter(t =>
-      (t.raised_by_flat || '').toUpperCase() === (currentUser || '').toUpperCase() &&
-      t.status !== 'Closed'
-    ).length;
-  }
-
-  if (count > 0) { badge.textContent = count; badge.style.display = 'inline-block'; }
-  else { badge.style.display = 'none'; }
-
-  const gridBadge = document.getElementById('grid-badge-support');
-  if (gridBadge) {
-    gridBadge.textContent = count > 0 ? count : '';
-    gridBadge.setAttribute('data-count', count.toString());
-  }
-}
-
-window.onload = async () => {
-  // 🚀 Hide loading screen after page ready
-  const hideLoader = () => {
-    const loader = document.getElementById('initialLoader');
-    if (loader) {
-      loader.style.opacity = '0';
-      setTimeout(() => loader.remove(), 500);
-    }
-  };
-  
-  setTimeout(hideLoader, 2000);
-  window.addEventListener('load', () => setTimeout(hideLoader, 500));
-
-  clearStuckOverlays();
-
-// ✅ Demo mode check — sabse pehle
-  if (localStorage.getItem('ps_demo_mode') === 'true') {
-    const demoSoc = localStorage.getItem('ps_demo_society') || 'PS Live Demo';
-    currentSociety = demoSoc;
-    currentRole = 'Member';
-    currentUser = 'DEMO-VIEWER';
-    
-    document.getElementById('landing-section').style.display = 'none';
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('visitor-section').style.display = 'none';
-    document.getElementById('app-section').classList.remove('d-none');
-    document.body.classList.add('demo-mode');
-    showDemoBanner();
-    
-    const socElem = document.getElementById('sidebar-society-name');
-    if (socElem) socElem.innerText = demoSoc + ' 🎬';
-    const roleBadge = document.getElementById('user-role-badge');
-    if (roleBadge) roleBadge.innerText = 'DEMO';
-    
-    try {
-      await fetchSupabaseData();
-      setTimeout(() => loadSecondaryData(), 500);
-    } catch(e) { console.log('Demo restore error:', e); }
-    return;
-  }
-
-  const isLogged = localStorage.getItem('ps_user_logged');
-  const role = localStorage.getItem('ps_user_role') || 'Admin';
-  const email = localStorage.getItem('ps_user_id') || 'A-101';
-  currentSociety = localStorage.getItem('ps_user_society') || 'Demo Society';
-
-  await loadSocietiesForDropdown('visitor-society');
-  await loadSocietiesForDropdown('visitor-password-society');
-
-  if (isLogged === 'true') { applyUserSession(role, email); }
-  else { showLandingPage(); }
-};
-
-setInterval(async () => {
-  if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {
-    try {
-      let { data: notices } = await _supabase.from('notices').select('*').eq('society_name', currentSociety);
-      if (notices) noticesData = notices;
-
-      let { data: polls } = await _supabase.from('polls').select('*').eq('society_name', currentSociety);
-      if (polls) pollsData = polls;
-
-      updateAllBadges();
-      updateCommunityBadge();
-    } catch (e) { console.log('Background sync silent error', e); }
-  }
-}, 30000);
-
-handleDeepLink();
-
-// ==================== VISIBILITY SYNC (Realtime Fallback) ====================
-// Jab user wapas app pe aaye (tab switch / phone unlock), fresh data load karo
-// Sirf tab refresh karo jab 5 second se zyada app hidden thi
-let __lastHiddenAt = 0;
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    __lastHiddenAt = Date.now();
-  } else if (document.visibilityState === 'visible') {
-    const hiddenFor = Date.now() - __lastHiddenAt;
-    
-    // Agar 5 sec se zyada hidden tha, data refresh karo
-    if (__lastHiddenAt > 0 && hiddenFor > 5000) {
-      if (localStorage.getItem('ps_user_logged') === 'true' && currentSociety) {
-        console.log('[Visibility] App visible after', Math.round(hiddenFor / 1000) + 's — refreshing data');
-        fetchSupabaseData();
-        setTimeout(() => loadSecondaryData(), 300);
-      }
-    }
-    __lastHiddenAt = 0;
-  }
-});
-// ==================== MANUAL REFRESH BUTTON ====================
-let __lastRefreshTime = 0;
-
-async function manualRefresh() {
-  const now = Date.now();
-  const cooldown = 10000; // ✅ 10 second cooldown
-  
-  // Agar 10 second se pehle click kiya to ignore karo
-  if (now - __lastRefreshTime < cooldown) {
-    const remaining = Math.ceil((cooldown - (now - __lastRefreshTime)) / 1000);
-    console.log('[Refresh] Cooldown active. Please wait', remaining, 'sec');
-    
-    // User ko countdown dikhao
-    const btns = document.querySelectorAll('.refresh-btn');
-    btns.forEach(btn => {
-      const originalContent = btn.innerHTML;
-      btn.innerHTML = `<i class="fa-solid fa-clock"></i> ${remaining}s`;
-      setTimeout(() => {
-        btn.innerHTML = originalContent;
-      }, 1000);
-    });
-    return;
-  }
-  
-  __lastRefreshTime = now;
-
-  const btns = document.querySelectorAll('.refresh-btn');
-  
-  // Loading state
-  btns.forEach(btn => {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
-  });
-
-  try {
-    console.log('[Manual Refresh] Started...');
-    
-        // Main data
-    await fetchSupabaseData();
-
-    // Secondary data
-    await loadSecondaryData();
-
-    // ✅ Agar overlay open है → उस tab का specific render function call करो
-    const overlay = document.getElementById('tabOverlay');
-    if (overlay && window.innerWidth <= 768) {
-      const currentTab = overlay.getAttribute('data-current-tab');
-      if (currentTab) {
-        console.log('[Refresh] Re-rendering overlay tab:', currentTab);
-        
-        // हर tab के लिए सही render function
-        const renderMap = {
-          'dashboard': () => { renderMembers(); renderMaintenance(); renderMemberPersonalView(); },
-          'members': () => renderMembers(),
-          'maintenance': () => { renderMaintenance(); renderMemberPersonalView(); },
-          'expenses': () => renderExpenses(),
-          'polls': () => renderPolls(),
-          'complaints': () => renderComplaints(),
-          'proofs': () => renderPaymentProofs(),
-          'amc-tracker': () => renderAMCTracker(),
-          'assets': () => renderAssets(),
-          'fds': () => renderFDs(),
-          'team': () => { renderTeam(); renderSOSContacts(); },
-          'journal-voucher': () => renderJournalVouchers(),
-          'tally-bank': () => renderTallyBankBook(),
-          'ca-audit': () => renderCAAuditReport(),
-          'bank-reconciliation': () => renderBankReconciliation(),
-          'parking': () => renderParking(),
-          'meetings': () => renderMeetings(),
-          'marketplace': () => renderMarketplace(),
-          'sos-contacts': () => renderSOSContacts(),
-          'community': () => renderCommunity()
-        };
-        
-        if (renderMap[currentTab]) {
-          try { 
-            renderMap[currentTab](); 
-          } catch(e) { 
-            console.log('[Refresh] Render error:', e); 
-          }
-        }
-        
-        // Mobile grid badges भी update करो
-        syncMobileGridBadges();
-      }
-    }
-    
- 
-    // Visitor page khuli hai to visitors bhi refresh
-    const visitorSection = document.getElementById('visitor-section');
-    if (visitorSection && visitorSection.style.display === 'block') {
-      await loadTodayVisitors();
-    }
-    
-    console.log('[Manual Refresh] Done ✅');
-    
-    // Success indicator
-    btns.forEach(btn => {
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> Done!';
-      btn.style.background = 'rgba(34, 197, 94, 0.2)';
-      btn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-      btn.style.color = '#4ade80';
-    });
-    
-    setTimeout(() => {
-      btns.forEach(btn => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-rotate"></i>';
-        btn.style.background = '';
-        btn.style.borderColor = '';
-        btn.style.color = '';
-      });
-    }, 1500);
-    
-  } catch (err) {
-    console.error('[Manual Refresh] Error:', err);
-    
-    btns.forEach(btn => {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-rotate"></i>';
-      btn.style.background = '';
-      btn.style.borderColor = '';
-      btn.style.color = '';
-    });
-    
-    alert('❌ Refresh failed. Please check your connection and try again.');
-  }
-}
-// ══════════════════════════════════════════════════════════════
-// 🔒 READ-ONLY MODE — Subscription Overdue Enforcement
-// ══════════════════════════════════════════════════════════════
-
-async function checkSocietySubscriptionMode() {
-  if (!currentSociety) return;
-
-  // 🎯 Super Admin ALWAYS exempt (तुम कभी block नहीं होगे)
-  if (currentRole === 'Admin') {
-    disableReadOnlyMode();
-    return;
-  }
-
-  // Demo Mode भी exempt
-  if (typeof isDemoMode === 'function' && isDemoMode()) {
-    disableReadOnlyMode();
-    return;
-  }
-
-  try {
-    const { data: socData, error } = await _supabase
-      .from('societies')
-      .select('subscription_status')
-      .eq('name', currentSociety)
-      .maybeSingle();
-
-    if (error) {
-      console.warn('[ReadOnly] Check error:', error.message);
-      return;
-    }
-
-    if (socData?.subscription_status === 'suspended') {
-      enableReadOnlyMode();
-    } else {
-      disableReadOnlyMode();
-    }
-  } catch (e) {
-    console.warn('[ReadOnly] Exception:', e);
-  }
-}
-
-function enableReadOnlyMode() {
-  if (document.body.classList.contains('read-only-mode')) return;
-  document.body.classList.add('read-only-mode');
-  showReadOnlyBanner();
-  console.log('[ReadOnly] 🔒 Mode ACTIVATED for', currentSociety);
-}
-
-function disableReadOnlyMode() {
-  document.body.classList.remove('read-only-mode');
-  removeReadOnlyBanner();
-}
-
-function showReadOnlyBanner() {
-  if (document.getElementById('readOnlyBanner')) return;
-
-  const banner = document.createElement('div');
-  banner.id = 'readOnlyBanner';
-  banner.style.cssText = `
+    `}).join("")}function openSupportCreateModal(){if(isDemoMode()){alert("\uD83D\uDD12 Demo Mode mein ticket raise nahi kar sakte.\n\nPlease login to raise a ticket.");return}document.getElementById("supportCreateForm")?.reset(),new bootstrap.Modal(document.getElementById("supportCreateModal")).show()}async function submitSupportTicket(e){if(e.preventDefault(),blockDemoWrite())return;let t=document.getElementById("btn-support-submit"),a=t.innerHTML;t.disabled=!0,t.innerHTML='<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';try{let n=document.getElementById("support-subject").value.trim(),s=document.getElementById("support-priority").value,i=document.getElementById("support-category").value,r=document.getElementById("support-phone").value.trim(),o=document.getElementById("support-description").value.trim(),l=document.getElementById("support-attachment")?.files?.[0],d=null;if(l){let c=l.name.split(".").pop(),m=`${currentSociety}/ticket_${Date.now()}.${c}`,{error:u}=await _supabase.storage.from("complaint_images").upload(m,l);if(!u){let{data:p}=_supabase.storage.from("complaint_images").getPublicUrl(m);d=p?.publicUrl||null}}let y=membersData.find(e=>(e.flat_no||"").toUpperCase()===(currentUser||"").toUpperCase()),g={society_name:currentSociety,raised_by_flat:currentUser||"UNKNOWN",raised_by_role:currentRole,raised_by_name:y?.name||"",raised_by_phone:r||y?.phone||"",category:i,priority:s,subject:n,description:o,attachment_url:d,status:"Open",created_at:new Date().toISOString()},{error:b}=await _supabase.from("support_tickets").insert([g]);if(b){alert("❌ "+b.message);return}try{let{data:f}=await _supabase.from("user_master").select("flat_no").in("role",["Admin","SocietyAdmin"]).eq("society_name",currentSociety),h=(f||[]).map(e=>(e.flat_no||"").toUpperCase()).filter(Boolean);h.length>0&&await _supabase.from("notices").insert([{society_name:currentSociety,title:`🎫 New Support Ticket — ${s}`,content:`${currentUser} raised: "${n}" (${i})`,date:new Date().toISOString().split("T")[0],author:currentUser,priority:"Urgent"===s||"High"===s?"High":"Medium",target_members:h,attachment_url:null,deep_link:"/?tab=support"}])}catch(v){console.warn("[Support] Notify error:",v)}alert("✅ Ticket submitted! Admin will respond soon."),bootstrap.Modal.getInstance(document.getElementById("supportCreateModal")).hide(),await loadSupportTickets(),renderSupportTickets(),updateSupportBadge()}catch(w){console.error(w),alert("❌ "+w.message)}finally{t.disabled=!1,t.innerHTML=a}}function openSupportViewModal(e,t=!1){let a=supportTicketsData.find(t=>t.id===e);if(!a){alert("Ticket not found.");return}__currentSupportTicketId=e,document.getElementById("support-view-id").textContent=String(a.id).padStart(4,"0"),document.getElementById("support-view-society").textContent=a.society_name||"-",document.getElementById("support-view-raisedby").textContent=`${a.raised_by_flat||"-"} (${a.raised_by_role||"-"})`,document.getElementById("support-view-category").textContent=a.category||"-",document.getElementById("support-view-priority").textContent=a.priority||"-",document.getElementById("support-view-status").textContent=a.status||"-",document.getElementById("support-view-date").textContent=new Date(a.created_at).toLocaleString("en-IN"),document.getElementById("support-view-phone").textContent=a.raised_by_phone||"-",document.getElementById("support-view-subject").textContent=a.subject||"-",document.getElementById("support-view-description").textContent=a.description||"-";let n="Urgent"===a.priority?"bg-danger":"High"===a.priority?"bg-warning text-dark":"Medium"===a.priority?"bg-primary":"bg-secondary";document.getElementById("support-view-priority").className=`badge ${n}`;let s="Open"===a.status?"bg-warning text-dark":"In Progress"===a.status?"bg-info text-dark":"Resolved"===a.status?"bg-success":"bg-secondary";document.getElementById("support-view-status").className=`badge ${s}`;let i=document.getElementById("support-view-attachment-box"),r=document.getElementById("support-delete-attachment-btn");a.attachment_url&&""!==a.attachment_url.trim()?(document.getElementById("support-view-attachment-link").href=a.attachment_url,i.style.display="block",r&&("Admin"===currentRole||"SocietyAdmin"===currentRole)?(r.style.display="inline-block",r.onclick=()=>deleteSingleImage({table:"support_tickets",rowId:a.id,column:"attachment_url",bucket:"complaint_images",imageUrl:a.attachment_url,async refreshFn(){await loadSupportTickets(),renderSupportTickets(),bootstrap.Modal.getInstance(document.getElementById("supportViewModal")).hide()},label:"ticket attachment"})):r&&(r.style.display="none")):(i.style.display="none",r&&(r.style.display="none"));let o=document.getElementById("support-existing-reply-box");a.admin_reply&&""!==a.admin_reply.trim()?(document.getElementById("support-existing-reply-text").textContent=a.admin_reply,document.getElementById("support-existing-reply-meta").textContent=`Replied by ${a.replied_by||"Admin"} on ${a.replied_at?new Date(a.replied_at).toLocaleString("en-IN"):"-"}`,o.style.display="block"):o.style.display="none";let l=document.getElementById("support-admin-reply-section");t&&"Admin"===currentRole?(l.style.display="block",document.getElementById("support-reply-text").value="",document.getElementById("support-reply-status").value="Open"===a.status?"In Progress":a.status):l.style.display="none",new bootstrap.Modal(document.getElementById("supportViewModal")).show()}async function submitSupportReply(){if("Admin"!==currentRole){alert("⛔ Only Admin can reply.");return}if(!__currentSupportTicketId)return;let e=document.getElementById("support-reply-text").value.trim(),t=document.getElementById("support-reply-status").value;if(!e&&t===supportTicketsData.find(e=>e.id===__currentSupportTicketId)?.status){alert("Please write a reply or change status.");return}try{let{error:a}=await _supabase.from("support_tickets").update({admin_reply:e||void 0,status:t,replied_at:new Date().toISOString(),replied_by:currentUser,updated_at:new Date().toISOString()}).eq("id",__currentSupportTicketId);if(a){alert("❌ "+a.message);return}let n=supportTicketsData.find(e=>e.id===__currentSupportTicketId);if(n)try{await _supabase.from("notices").insert([{society_name:n.society_name,title:`🎫 Admin replied to your ticket #${String(n.id).padStart(4,"0")}`,content:`Status: ${t}. Reply: ${e||"(no message)"}`,date:new Date().toISOString().split("T")[0],author:"Support",priority:"Medium",target_members:[n.raised_by_flat],attachment_url:null,deep_link:"/?tab=support"}])}catch(s){console.warn("Notify user error:",s)}alert("✅ Reply sent & status updated!"),bootstrap.Modal.getInstance(document.getElementById("supportViewModal")).hide(),await loadSupportTickets(),renderSupportTickets(),updateSupportBadge()}catch(i){console.error(i),alert("❌ "+i.message)}}async function deleteSupportTicket(e){if("Admin"!==currentRole){alert("⛔ Only Admin can delete.");return}if(confirm("⚠️ Delete this support ticket permanently?\n\n(Attachment image will also be deleted)"))try{let{data:t,error:a}=await _supabase.from("support_tickets").select("attachment_url").eq("id",e).maybeSingle();if(a&&console.warn("[DeleteTicket] Fetch warning:",a.message),t?.attachment_url&&""!==t.attachment_url.trim())try{let n=t.attachment_url.split("/complaint_images/");if(n.length>1){let s=decodeURIComponent(n[1]),{error:i}=await _supabase.storage.from("complaint_images").remove([s]);i?console.warn("[DeleteTicket] Storage delete failed:",i.message):console.log("[DeleteTicket] Attachment deleted:",s)}}catch(r){console.warn("[DeleteTicket] Image cleanup error:",r)}let{error:o}=await _supabase.from("support_tickets").delete().eq("id",e);if(o){alert("❌ "+o.message);return}console.log("[DeleteTicket] Ticket deleted: #"+e),alert("✅ Ticket & attachment deleted successfully!"),await loadSupportTickets(),renderSupportTickets(),updateSupportBadge()}catch(l){console.error("[DeleteTicket] Error:",l),alert("❌ Error: "+l.message)}}function updateSupportBadge(){let e=document.getElementById("support-badge");if(!e)return;let t=0;(t="Admin"===currentRole||"SocietyAdmin"===currentRole?supportTicketsData.filter(e=>"Open"===e.status||"In Progress"===e.status).length:supportTicketsData.filter(e=>(e.raised_by_flat||"").toUpperCase()===(currentUser||"").toUpperCase()&&"Closed"!==e.status).length)>0?(e.textContent=t,e.style.display="inline-block"):e.style.display="none";let a=document.getElementById("grid-badge-support");a&&(a.textContent=t>0?t:"",a.setAttribute("data-count",t.toString()))}window.onload=async()=>{let e=()=>{let e=document.getElementById("initialLoader");e&&(e.style.opacity="0",setTimeout(()=>e.remove(),500))};if(setTimeout(e,2e3),window.addEventListener("load",()=>setTimeout(e,500)),clearStuckOverlays(),"true"===localStorage.getItem("ps_demo_mode")){let t=localStorage.getItem("ps_demo_society")||"PS Live Demo";currentSociety=t,currentRole="Member",currentUser="DEMO-VIEWER",document.getElementById("landing-section").style.display="none",document.getElementById("login-section").style.display="none",document.getElementById("visitor-section").style.display="none",document.getElementById("app-section").classList.remove("d-none"),document.body.classList.add("demo-mode"),showDemoBanner();let a=document.getElementById("sidebar-society-name");a&&(a.innerText=t+" \uD83C\uDFAC");let n=document.getElementById("user-role-badge");n&&(n.innerText="DEMO");try{await fetchSupabaseData(),setTimeout(()=>loadSecondaryData(),500)}catch(s){console.log("Demo restore error:",s)}return}let i=localStorage.getItem("ps_user_logged"),r=localStorage.getItem("ps_user_role")||"Admin",o=localStorage.getItem("ps_user_id")||"A-101";currentSociety=localStorage.getItem("ps_user_society")||"Demo Society",await loadSocietiesForDropdown("visitor-society"),await loadSocietiesForDropdown("visitor-password-society"),"true"===i?applyUserSession(r,o):showLandingPage()},setInterval(async()=>{if("true"===localStorage.getItem("ps_user_logged")&&currentSociety)try{let{data:e}=await _supabase.from("notices").select("*").eq("society_name",currentSociety);e&&(noticesData=e);let{data:t}=await _supabase.from("polls").select("*").eq("society_name",currentSociety);t&&(pollsData=t),updateAllBadges(),updateCommunityBadge()}catch(a){console.log("Background sync silent error",a)}},3e4),handleDeepLink();let __lastHiddenAt=0;document.addEventListener("visibilitychange",()=>{if("hidden"===document.visibilityState)__lastHiddenAt=Date.now();else if("visible"===document.visibilityState){let e=Date.now()-__lastHiddenAt;__lastHiddenAt>0&&e>5e3&&"true"===localStorage.getItem("ps_user_logged")&&currentSociety&&(console.log("[Visibility] App visible after",Math.round(e/1e3)+"s — refreshing data"),fetchSupabaseData(),setTimeout(()=>loadSecondaryData(),300)),__lastHiddenAt=0}});let __lastRefreshTime=0;async function manualRefresh(){let e=Date.now();if(e-__lastRefreshTime<1e4){let t=Math.ceil((1e4-(e-__lastRefreshTime))/1e3);console.log("[Refresh] Cooldown active. Please wait",t,"sec");let a=document.querySelectorAll(".refresh-btn");a.forEach(e=>{let a=e.innerHTML;e.innerHTML=`<i class="fa-solid fa-clock"></i> ${t}s`,setTimeout(()=>{e.innerHTML=a},1e3)});return}__lastRefreshTime=e;let n=document.querySelectorAll(".refresh-btn");n.forEach(e=>{e.disabled=!0,e.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Loading...'});try{console.log("[Manual Refresh] Started..."),await fetchSupabaseData(),await loadSecondaryData();let s=document.getElementById("tabOverlay");if(s&&window.innerWidth<=768){let i=s.getAttribute("data-current-tab");if(i){console.log("[Refresh] Re-rendering overlay tab:",i);let r={dashboard(){renderMembers(),renderMaintenance(),renderMemberPersonalView()},members:()=>renderMembers(),maintenance(){renderMaintenance(),renderMemberPersonalView()},expenses:()=>renderExpenses(),polls:()=>renderPolls(),complaints:()=>renderComplaints(),proofs:()=>renderPaymentProofs(),"amc-tracker":()=>renderAMCTracker(),assets:()=>renderAssets(),fds:()=>renderFDs(),team(){renderTeam(),renderSOSContacts()},"journal-voucher":()=>renderJournalVouchers(),"tally-bank":()=>renderTallyBankBook(),"ca-audit":()=>renderCAAuditReport(),"bank-reconciliation":()=>renderBankReconciliation(),parking:()=>renderParking(),meetings:()=>renderMeetings(),marketplace:()=>renderMarketplace(),"sos-contacts":()=>renderSOSContacts(),community:()=>renderCommunity()};if(r[i])try{r[i]()}catch(o){console.log("[Refresh] Render error:",o)}syncMobileGridBadges()}}let l=document.getElementById("visitor-section");l&&"block"===l.style.display&&await loadTodayVisitors(),console.log("[Manual Refresh] Done ✅"),n.forEach(e=>{e.innerHTML='<i class="fa-solid fa-check"></i> Done!',e.style.background="rgba(34, 197, 94, 0.2)",e.style.borderColor="rgba(34, 197, 94, 0.5)",e.style.color="#4ade80"}),setTimeout(()=>{n.forEach(e=>{e.disabled=!1,e.innerHTML='<i class="fa-solid fa-rotate"></i>',e.style.background="",e.style.borderColor="",e.style.color=""})},1500)}catch(d){console.error("[Manual Refresh] Error:",d),n.forEach(e=>{e.disabled=!1,e.innerHTML='<i class="fa-solid fa-rotate"></i>',e.style.background="",e.style.borderColor="",e.style.color=""}),alert("❌ Refresh failed. Please check your connection and try again.")}}async function checkSocietySubscriptionMode(){if(currentSociety){if("Admin"===currentRole||isDemoMode()){disableReadOnlyMode();return}try{let{data:e,error:t}=await _supabase.from("societies").select("subscription_status").eq("name",currentSociety).maybeSingle();if(t){console.warn("[ReadOnly] Check error:",t.message);return}e?.subscription_status==="suspended"?enableReadOnlyMode():disableReadOnlyMode()}catch(a){console.warn("[ReadOnly] Exception:",a)}}}function enableReadOnlyMode(){document.body.classList.contains("read-only-mode")||(document.body.classList.add("read-only-mode"),showReadOnlyBanner(),console.log("[ReadOnly] \uD83D\uDD12 Mode ACTIVATED for",currentSociety))}function disableReadOnlyMode(){document.body.classList.remove("read-only-mode"),removeReadOnlyBanner()}function showReadOnlyBanner(){if(document.getElementById("readOnlyBanner"))return;let e=document.createElement("div");e.id="readOnlyBanner",e.style.cssText=`
     position: fixed;
     top: 0;
     left: 0;
@@ -8802,15 +1048,11 @@ function showReadOnlyBanner() {
     box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
     font-family: 'Plus Jakarta Sans', sans-serif;
     line-height: 1.5;
-  `;
-
-  const upiLink = 'upi://pay?pa=8866376056@icici&pn=PS%20Society%20Solutions&cu=INR&tn=Society%20Subscription';
-
-  banner.innerHTML = `
+  `,e.innerHTML=`
     <div style="max-width: 900px; margin: 0 auto;">
       🚨 <strong>SOCIETY SUBSCRIPTION OVERDUE</strong> — Read-Only Mode
       <div style="margin-top: 5px; font-size: 12px; font-weight: 500;">
-        <a href="${upiLink}" style="color: #fff; text-decoration: underline; font-weight: 700;">
+        <a href="upi://pay?pa=8866376056@icici&pn=PS%20Society%20Solutions&cu=INR&tn=Society%20Subscription" style="color: #fff; text-decoration: underline; font-weight: 700;">
           💳 Pay via UPI
         </a>
         &nbsp;|&nbsp;
@@ -8819,365 +1061,77 @@ function showReadOnlyBanner() {
         📧 ps.societysolutions@gmail.com
       </div>
     </div>
-  `;
-  document.body.appendChild(banner);
-  document.body.style.paddingTop = '58px';
-}
-
-function removeReadOnlyBanner() {
-  const banner = document.getElementById('readOnlyBanner');
-  if (banner) banner.remove();
-  document.body.style.paddingTop = '';
-}
-
-// ═══════════════════════════════════════════════════════
-// 1️⃣4️⃣ INIT (Called from switchTab)
-// ═══════════════════════════════════════════════════════
-async function initUserManagementTab() {
-  if (currentRole !== 'Admin') {
-    alert('⛔ Only Admin');
-    return;
-  }
-  
-  await loadAllUsers();
-  await loadPendingResetRequests();
-  setupUserMgmtRealtime();
-}
-
-// ये सब app.js के सबसे आखिर में जोड़ो (initUserManagementTab के बाद):
-
-let allUsersData = [];
-let passwordResetRequests = [];
-let __userMgmtRealtimeChannel = null;
-
-// 1. Load All Users
-async function loadAllUsers() {
-  if (currentRole !== 'Admin') {
-    alert('⛔ Only Admin');
-    return;
-  }
-
-  const tbody = document.getElementById('user-management-list');
-  if (!tbody) return;
-
-  tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i> Loading users...</td></tr>';
-
-  try {
-    const { data, error } = await _supabase
-      .from('user_master')
-      .select('user_id, flat_no, role, society_name')
-      .order('society_name')
-      .order('flat_no');
-
-    if (error) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ ${error.message}</td></tr>`;
-      return;
-    }
-
-    allUsersData = data || [];
-    console.log('[UserMgmt] Loaded', allUsersData.length, 'users');
-
-    buildSocietyFilterDropdown();
-    renderUserManagementTable();
-
-  } catch (e) {
-    console.error('[UserMgmt] Exception:', e);
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">❌ ${e.message}</td></tr>`;
-  }
-}
-
-// 2. Build Society Filter Dropdown
-function buildSocietyFilterDropdown() {
-  const select = document.getElementById('user-mgmt-society-filter');
-  if (!select) return;
-
-  const societies = [...new Set(allUsersData.map(u => u.society_name).filter(Boolean))].sort();
-
-  let html = '<option value="all">All Societies (' + allUsersData.length + ')</option>';
-  societies.forEach(s => {
-    const count = allUsersData.filter(u => u.society_name === s).length;
-    html += `<option value="${s}">${s} (${count})</option>`;
-  });
-
-  select.innerHTML = html;
-}
-
-// 3. Render User Table
-function renderUserManagementTable() {
-  const tbody = document.getElementById('user-management-list');
-  if (!tbody) return;
-
-  const societyFilter = document.getElementById('user-mgmt-society-filter')?.value || 'all';
-  const searchTerm = (document.getElementById('user-mgmt-search')?.value || '').toLowerCase().trim();
-
-  let filtered = allUsersData;
-
-  if (societyFilter !== 'all') {
-    filtered = filtered.filter(u => u.society_name === societyFilter);
-  }
-
-  if (searchTerm) {
-    filtered = filtered.filter(u => 
-      (u.flat_no || '').toLowerCase().includes(searchTerm) ||
-      (u.role || '').toLowerCase().includes(searchTerm) ||
-      (u.society_name || '').toLowerCase().includes(searchTerm) ||
-      (u.user_id || '').toLowerCase().includes(searchTerm)
-    );
-  }
-
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">
+  `,document.body.appendChild(e),document.body.style.paddingTop="58px"}function removeReadOnlyBanner(){let e=document.getElementById("readOnlyBanner");e&&e.remove(),document.body.style.paddingTop=""}async function initUserManagementTab(){if("Admin"!==currentRole){alert("⛔ Only Admin");return}await loadAllUsers(),await loadPendingResetRequests(),setupUserMgmtRealtime()}let allUsersData=[],passwordResetRequests=[],__userMgmtRealtimeChannel=null;async function loadAllUsers(){if("Admin"!==currentRole){alert("⛔ Only Admin");return}let e=document.getElementById("user-management-list");if(e){e.innerHTML='<tr><td colspan="5" class="text-center py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i> Loading users...</td></tr>';try{let{data:t,error:a}=await _supabase.from("user_master").select("user_id, flat_no, role, society_name").order("society_name").order("flat_no");if(a){e.innerHTML=`<tr><td colspan="5" class="text-center text-danger py-4">❌ ${a.message}</td></tr>`;return}allUsersData=t||[],console.log("[UserMgmt] Loaded",allUsersData.length,"users"),buildSocietyFilterDropdown(),renderUserManagementTable()}catch(n){console.error("[UserMgmt] Exception:",n),e.innerHTML=`<tr><td colspan="5" class="text-center text-danger py-4">❌ ${n.message}</td></tr>`}}}function buildSocietyFilterDropdown(){let e=document.getElementById("user-mgmt-society-filter");if(!e)return;let t=[...new Set(allUsersData.map(e=>e.society_name).filter(Boolean))].sort(),a='<option value="all">All Societies ('+allUsersData.length+")</option>";t.forEach(e=>{let t=allUsersData.filter(t=>t.society_name===e).length;a+=`<option value="${e}">${e} (${t})</option>`}),e.innerHTML=a}function renderUserManagementTable(){let e=document.getElementById("user-management-list");if(!e)return;let t=document.getElementById("user-mgmt-society-filter")?.value||"all",a=(document.getElementById("user-mgmt-search")?.value||"").toLowerCase().trim(),n=allUsersData;if("all"!==t&&(n=n.filter(e=>e.society_name===t)),a&&(n=n.filter(e=>(e.flat_no||"").toLowerCase().includes(a)||(e.role||"").toLowerCase().includes(a)||(e.society_name||"").toLowerCase().includes(a)||(e.user_id||"").toLowerCase().includes(a))),0===n.length){e.innerHTML=`<tr><td colspan="5" class="text-center text-muted py-4">
       <i class="fa-solid fa-search fa-2x d-block mb-2"></i>
       No users match the current filter
-    </td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map(u => {
-    const roleColor = 
-      u.role === 'Admin' ? 'bg-dark' :
-      u.role === 'Chairman' ? 'bg-warning text-dark' :
-      u.role === 'SocietyAdmin' ? 'bg-info text-dark' : 'bg-primary';
-
-    return `
+    </td></tr>`;return}e.innerHTML=n.map(e=>{let t="Admin"===e.role?"bg-dark":"Chairman"===e.role?"bg-warning text-dark":"SocietyAdmin"===e.role?"bg-info text-dark":"bg-primary";return`
       <tr>
-        <td><b>${u.flat_no || '-'}</b></td>
-        <td><span class="badge ${roleColor}">${u.role || '-'}</span></td>
-        <td><small>${u.society_name || '-'}</small></td>
-        <td><small class="text-muted font-monospace">${(u.user_id || '').substring(0, 8)}...</small></td>
+        <td><b>${e.flat_no||"-"}</b></td>
+        <td><span class="badge ${t}">${e.role||"-"}</span></td>
+        <td><small>${e.society_name||"-"}</small></td>
+        <td><small class="text-muted font-monospace">${(e.user_id||"").substring(0,8)}...</small></td>
         <td class="no-print">
           <button class="btn btn-sm btn-warning fw-semibold"
-            onclick="openResetPasswordModal('${u.user_id}', '${u.flat_no}', '${u.role}', '${u.society_name}')">
+            onclick="openResetPasswordModal('${e.user_id}', '${e.flat_no}', '${e.role}', '${e.society_name}')">
             <i class="fa-solid fa-key me-1"></i> Reset
           </button>
         </td>
       </tr>
-    `;
-  }).join('');
-}
-
-function clearUserMgmtFilters() {
-  const socFilter = document.getElementById('user-mgmt-society-filter');
-  const search = document.getElementById('user-mgmt-search');
-  if (socFilter) socFilter.value = 'all';
-  if (search) search.value = '';
-  renderUserManagementTable();
-}
-
-// 4. Load Pending Password Reset Requests
-async function loadPendingResetRequests() {
-  if (currentRole !== 'Admin') return;
-
-  try {
-    const { data, error } = await _supabase
-      .from('password_reset_requests')
-      .select('*')
-      .eq('status', 'Pending')
-      .order('requested_at', { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.warn('[ResetReq] Load error:', error.message);
-      return;
-    }
-
-    passwordResetRequests = data || [];
-    renderPendingResetRequests();
-    updateUserMgmtBadge();
-
-  } catch (e) {
-    console.error('[ResetReq] Exception:', e);
-  }
-}
-
-// 5. Render Pending Requests Panel
-function renderPendingResetRequests() {
-  const panel = document.getElementById('pending-reset-requests-panel');
-  if (!panel) return;
-
-  if (!passwordResetRequests || passwordResetRequests.length === 0) {
-    panel.innerHTML = `
+    `}).join("")}function clearUserMgmtFilters(){let e=document.getElementById("user-mgmt-society-filter"),t=document.getElementById("user-mgmt-search");e&&(e.value="all"),t&&(t.value=""),renderUserManagementTable()}async function loadPendingResetRequests(){if("Admin"===currentRole)try{let{data:e,error:t}=await _supabase.from("password_reset_requests").select("*").eq("status","Pending").order("requested_at",{ascending:!1}).limit(50);if(t){console.warn("[ResetReq] Load error:",t.message);return}passwordResetRequests=e||[],renderPendingResetRequests(),updateUserMgmtBadge()}catch(a){console.error("[ResetReq] Exception:",a)}}function renderPendingResetRequests(){let e=document.getElementById("pending-reset-requests-panel");if(!e)return;if(!passwordResetRequests||0===passwordResetRequests.length){e.innerHTML=`
       <div class="alert alert-success d-flex align-items-center mb-0" style="border-radius:12px;">
         <i class="fa-solid fa-check-circle me-2"></i>
         <strong>All clear!</strong> &nbsp; No pending password reset requests.
       </div>
-    `;
-    return;
-  }
-
-  const societyFilter = document.getElementById('user-mgmt-society-filter')?.value || 'all';
-  let visible = passwordResetRequests;
-
-  if (societyFilter !== 'all') {
-    visible = visible.filter(r => r.society_name === societyFilter);
-  }
-
-  if (visible.length === 0) {
-    panel.innerHTML = `
+    `;return}let t=document.getElementById("user-mgmt-society-filter")?.value||"all",a=passwordResetRequests;if("all"!==t&&(a=a.filter(e=>e.society_name===t)),0===a.length){e.innerHTML=`
       <div class="alert alert-info mb-0" style="border-radius:12px;">
         <i class="fa-solid fa-info-circle me-2"></i>
         ${passwordResetRequests.length} pending request(s) in other societies. Change filter to view.
       </div>
-    `;
-    return;
-  }
-
-  panel.innerHTML = `
+    `;return}e.innerHTML=`
     <div class="card border-0 shadow-sm rounded-4 p-3 bg-warning-subtle">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="fw-bold text-warning-emphasis mb-0">
           <i class="fa-solid fa-bell me-2"></i> 
-          ${visible.length} Pending Password Reset Request${visible.length > 1 ? 's' : ''}
+          ${a.length} Pending Password Reset Request${a.length>1?"s":""}
         </h6>
         <button class="btn btn-sm btn-outline-warning" onclick="loadPendingResetRequests()">
           <i class="fa-solid fa-rotate"></i>
         </button>
       </div>
       <div class="row g-2">
-        ${visible.map(r => {
-          const timeAgo = getTimeAgo(r.requested_at);
-          return `
+        ${a.map(e=>{let t=getTimeAgo(e.requested_at);return`
             <div class="col-md-6">
               <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                   <div>
                     <h6 class="fw-bold mb-1">
                       <i class="fa-solid fa-user-clock text-warning me-1"></i>
-                      ${r.flat_no}
+                      ${e.flat_no}
                     </h6>
-                    <span class="badge bg-secondary">${r.user_role || 'Member'}</span>
-                    <span class="badge bg-info text-dark ms-1">${r.society_name}</span>
+                    <span class="badge bg-secondary">${e.user_role||"Member"}</span>
+                    <span class="badge bg-info text-dark ms-1">${e.society_name}</span>
                   </div>
-                  <small class="text-muted">${timeAgo}</small>
+                  <small class="text-muted">${t}</small>
                 </div>
-                ${r.phone ? `<p class="small mb-2"><i class="fa-solid fa-phone me-1"></i> ${r.phone}</p>` : ''}
+                ${e.phone?`<p class="small mb-2"><i class="fa-solid fa-phone me-1"></i> ${e.phone}</p>`:""}
                 <div class="d-flex gap-1 flex-wrap">
                   <button class="btn btn-sm btn-warning fw-semibold flex-grow-1" 
-                    onclick="resetFromRequest(${r.id})">
+                    onclick="resetFromRequest(${e.id})">
                     <i class="fa-solid fa-key me-1"></i> Reset Now
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" onclick="dismissResetRequest(${r.id})" title="Dismiss">
+                  <button class="btn btn-sm btn-outline-danger" onclick="dismissResetRequest(${e.id})" title="Dismiss">
                     <i class="fa-solid fa-times"></i>
                   </button>
                 </div>
               </div>
             </div>
-          `;
-        }).join('')}
+          `}).join("")}
       </div>
     </div>
-  `;
-}
+  `}function getTimeAgo(e){if(!e)return"";let t=Date.now()-new Date(e).getTime(),a=Math.floor(t/6e4);if(a<1)return"just now";if(a<60)return a+" min ago";let n=Math.floor(a/60);return n<24?n+" hr ago":Math.floor(n/24)+" day ago"}function updateUserMgmtBadge(){let e=passwordResetRequests.filter(e=>"Pending"===e.status).length,t=document.getElementById("user-mgmt-badge");t&&(e>0?(t.textContent=e,t.style.display="inline-block"):t.style.display="none");let a=document.getElementById("grid-badge-user-management");a&&(a.textContent=e>0?e:"",a.setAttribute("data-count",e.toString()))}async function resetFromRequest(e){let t=passwordResetRequests.find(t=>t.id===e);if(!t){alert("❌ Request not found");return}let a=allUsersData.find(e=>(e.flat_no||"").toUpperCase()===(t.flat_no||"").toUpperCase()&&(e.society_name||"").toLowerCase()===(t.society_name||"").toLowerCase());if(!a){alert(`❌ User not found in user_master
 
-function getTimeAgo(timestamp) {
-  if (!timestamp) return '';
-  const diff = Date.now() - new Date(timestamp).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'just now';
-  if (mins < 60) return mins + ' min ago';
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return hrs + ' hr ago';
-  const days = Math.floor(hrs / 24);
-  return days + ' day ago';
-}
-
-// 6. Badge Update
-function updateUserMgmtBadge() {
-  const count = passwordResetRequests.filter(r => r.status === 'Pending').length;
-
-  const badge = document.getElementById('user-mgmt-badge');
-  if (badge) {
-    if (count > 0) {
-      badge.textContent = count;
-      badge.style.display = 'inline-block';
-    } else {
-      badge.style.display = 'none';
-    }
-  }
-
-  const gridBadge = document.getElementById('grid-badge-user-management');
-  if (gridBadge) {
-    gridBadge.textContent = count > 0 ? count : '';
-    gridBadge.setAttribute('data-count', count.toString());
-  }
-}
-
-// 7. Reset From Request
-async function resetFromRequest(requestId) {
-  const req = passwordResetRequests.find(r => r.id === requestId);
-  if (!req) { alert('❌ Request not found'); return; }
-
-  const user = allUsersData.find(u => 
-    (u.flat_no || '').toUpperCase() === (req.flat_no || '').toUpperCase() &&
-    (u.society_name || '').toLowerCase() === (req.society_name || '').toLowerCase()
-  );
-
-  if (!user) {
-    alert(`❌ User not found in user_master\n\nFlat: ${req.flat_no}\nSociety: ${req.society_name}`);
-    return;
-  }
-
-  openResetPasswordModal(user.user_id, user.flat_no, user.role, user.society_name, requestId);
-}
-
-// 8. Dismiss Request
-async function dismissResetRequest(requestId) {
-  if (!confirm('⚠️ Dismiss this password reset request?\n\nUser will NOT be notified.')) return;
-
-  try {
-    const { error } = await _supabase
-      .from('password_reset_requests')
-      .update({
-        status: 'Dismissed',
-        resolved_at: new Date().toISOString(),
-        resolved_by: currentUser,
-        resolved_note: 'Dismissed by admin'
-      })
-      .eq('id', requestId);
-
-    if (error) { alert('❌ ' + error.message); return; }
-
-    alert('✅ Request dismissed');
-    await loadPendingResetRequests();
-
-  } catch (e) {
-    alert('❌ ' + e.message);
-  }
-}
-
-// 9. Random Password Generator
-function generateRandomPassword() {
-  const uppercase = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  const lowercase = 'abcdefghjkmnpqrstuvwxyz';
-  const digits = '23456789';
-  const symbols = '@#$!';
-  const all = uppercase + lowercase + digits + symbols;
-
-  let pwd = '';
-  pwd += uppercase[Math.floor(Math.random() * uppercase.length)];
-  pwd += lowercase[Math.floor(Math.random() * lowercase.length)];
-  pwd += digits[Math.floor(Math.random() * digits.length)];
-  pwd += symbols[Math.floor(Math.random() * symbols.length)];
-
-  for (let i = 0; i < 6; i++) {
-    pwd += all[Math.floor(Math.random() * all.length)];
-  }
-
-  return pwd.split('').sort(() => Math.random() - 0.5).join('');
-}
-
-// 10. Open Reset Password Modal
-function openResetPasswordModal(userId, flatNo, role, society, requestId = null) {
-  const existing = document.getElementById('resetPasswordModal');
-  if (existing) existing.remove();
-
-  const randomPwd = generateRandomPassword();
-
-  const modal = document.createElement('div');
-  modal.id = 'resetPasswordModal';
-  modal.className = 'modal fade';
-  modal.setAttribute('data-bs-backdrop', 'static');
-  modal.innerHTML = `
+Flat: ${t.flat_no}
+Society: ${t.society_name}`);return}openResetPasswordModal(a.user_id,a.flat_no,a.role,a.society_name,e)}async function dismissResetRequest(e){if(confirm("⚠️ Dismiss this password reset request?\n\nUser will NOT be notified."))try{let{error:t}=await _supabase.from("password_reset_requests").update({status:"Dismissed",resolved_at:new Date().toISOString(),resolved_by:currentUser,resolved_note:"Dismissed by admin"}).eq("id",e);if(t){alert("❌ "+t.message);return}alert("✅ Request dismissed"),await loadPendingResetRequests()}catch(a){alert("❌ "+a.message)}}function generateRandomPassword(){let e="ABCDEFGHJKLMNPQRSTUVWXYZ",t="abcdefghjkmnpqrstuvwxyz",a="23456789",n="@#$!",s=e+t+a+n,i="";i+=e[Math.floor(Math.random()*e.length)],i+=t[Math.floor(Math.random()*t.length)],i+=a[Math.floor(Math.random()*a.length)],i+=n[Math.floor(Math.random()*n.length)];for(let r=0;r<6;r++)i+=s[Math.floor(Math.random()*s.length)];return i.split("").sort(()=>Math.random()-.5).join("")}function openResetPasswordModal(e,t,a,n,s=null){let i=document.getElementById("resetPasswordModal");i&&i.remove();let r=generateRandomPassword(),o=document.createElement("div");o.id="resetPasswordModal",o.className="modal fade",o.setAttribute("data-bs-backdrop","static"),o.innerHTML=`
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
         <div class="modal-header bg-warning text-dark" style="border-radius: 20px 20px 0 0;">
@@ -9188,9 +1142,9 @@ function openResetPasswordModal(userId, flatNo, role, society, requestId = null)
         </div>
         <div class="modal-body p-4">
           <div class="alert alert-info py-2 px-3 mb-3" style="border-radius: 10px; font-size: 13px;">
-            <div><strong>Flat/ID:</strong> ${flatNo}</div>
-            <div><strong>Role:</strong> ${role}</div>
-            <div><strong>Society:</strong> ${society}</div>
+            <div><strong>Flat/ID:</strong> ${t}</div>
+            <div><strong>Role:</strong> ${a}</div>
+            <div><strong>Society:</strong> ${n}</div>
           </div>
 
           <div class="mb-3">
@@ -9202,7 +1156,7 @@ function openResetPasswordModal(userId, flatNo, role, society, requestId = null)
             </label>
             <div class="input-group">
               <input type="text" id="reset-new-pwd" class="form-control font-monospace fw-bold" 
-                     value="${randomPwd}" readonly>
+                     value="${r}" readonly>
               <button class="btn btn-outline-secondary" type="button" onclick="copyResetPwd()" title="Copy">
                 <i class="fa-solid fa-copy"></i>
               </button>
@@ -9219,129 +1173,26 @@ function openResetPasswordModal(userId, flatNo, role, society, requestId = null)
           </div>
 
           <button class="btn btn-warning w-100 fw-bold py-2" id="btn-do-reset"
-            onclick="doResetPassword('${userId}', '${flatNo}', '${role}', '${society}', ${requestId || 'null'})">
+            onclick="doResetPassword('${e}', '${t}', '${a}', '${n}', ${s||"null"})">
             <i class="fa-solid fa-check me-1"></i> Reset Password
           </button>
         </div>
       </div>
     </div>
-  `;
-  document.body.appendChild(modal);
-  new bootstrap.Modal(modal).show();
-}
-
-function regeneratePassword() {
-  const input = document.getElementById('reset-new-pwd');
-  if (input) input.value = generateRandomPassword();
-}
-
-function copyResetPwd() {
-  const input = document.getElementById('reset-new-pwd');
-  if (!input) return;
-  input.select();
-  document.execCommand('copy');
-  input.setSelectionRange(0, 0);
-  alert('✅ Password copied to clipboard');
-}
-
-// 11. Do Reset Password
-async function doResetPassword(userId, flatNo, role, society, requestId) {
-  const newPwd = document.getElementById('reset-new-pwd').value.trim();
-
-  if (!newPwd || newPwd.length < 6) {
-    alert('❌ Password minimum 6 characters');
-    return;
-  }
-
-  const btn = document.getElementById('btn-do-reset');
-  const orig = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Resetting...';
-
-  try {
-    const { data: authData } = await _supabase.auth.getUser();
-    if (!authData?.user?.id) {
-      alert('❌ Not authenticated');
-      return;
-    }
-
-    const { data, error } = await _supabase.functions.invoke('reset-user-password', {
-      body: {
-        userId: userId,
-        newPassword: newPwd,
-        callerUserId: authData.user.id
-      }
-    });
-
-    if (error) throw new Error(error.message);
-    if (data?.error) throw new Error(data.error);
-
-    if (requestId) {
-      try {
-        await _supabase
-          .from('password_reset_requests')
-          .update({
-            status: 'Resolved',
-            resolved_at: new Date().toISOString(),
-            resolved_by: currentUser,
-            resolved_note: `Reset by Admin. New password length: ${newPwd.length}`
-          })
-          .eq('id', requestId);
-      } catch (e) { console.warn('Request mark error:', e); }
-    }
-
-    try {
-      await logActivity('PASSWORD_RESET', `Reset password for ${flatNo} (${role}) in ${society}`);
-    } catch (e) {}
-
-    const modalEl = document.getElementById('resetPasswordModal');
-    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) modalInstance.hide();
-    setTimeout(() => modalEl?.remove(), 400);
-
-    showResetSuccessModal(flatNo, role, society, newPwd);
-
-    setTimeout(() => loadPendingResetRequests(), 500);
-
-  } catch (err) {
-    console.error('[ResetPwd] Error:', err);
-    alert('❌ Failed to reset password:\n\n' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = orig;
-  }
-}
-
-// 12. Success Modal + WhatsApp Button
-function showResetSuccessModal(flatNo, role, society, newPwd) {
-  const existing = document.getElementById('resetSuccessModal');
-  if (existing) existing.remove();
-
-  const loginId = `${flatNo.toLowerCase()}_${society.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
-  
-  const waMessage = 
-`🔐 *Password Reset Successful*
+  `,document.body.appendChild(o),new bootstrap.Modal(o).show()}function regeneratePassword(){let e=document.getElementById("reset-new-pwd");e&&(e.value=generateRandomPassword())}function copyResetPwd(){let e=document.getElementById("reset-new-pwd");e&&(e.select(),document.execCommand("copy"),e.setSelectionRange(0,0),alert("✅ Password copied to clipboard"))}async function doResetPassword(e,t,a,n,s){let i=document.getElementById("reset-new-pwd").value.trim();if(!i||i.length<6){alert("❌ Password minimum 6 characters");return}let r=document.getElementById("btn-do-reset"),o=r.innerHTML;r.disabled=!0,r.innerHTML='<i class="fa-solid fa-spinner fa-spin me-1"></i> Resetting...';try{let{data:l}=await _supabase.auth.getUser();if(!l?.user?.id){alert("❌ Not authenticated");return}let{data:d,error:c}=await _supabase.functions.invoke("reset-user-password",{body:{userId:e,newPassword:i,callerUserId:l.user.id}});if(c)throw Error(c.message);if(d?.error)throw Error(d.error);if(s)try{await _supabase.from("password_reset_requests").update({status:"Resolved",resolved_at:new Date().toISOString(),resolved_by:currentUser,resolved_note:`Reset by Admin. New password length: ${i.length}`}).eq("id",s)}catch(m){console.warn("Request mark error:",m)}try{await logActivity("PASSWORD_RESET",`Reset password for ${t} (${a}) in ${n}`)}catch(u){}let p=document.getElementById("resetPasswordModal"),y=bootstrap.Modal.getInstance(p);y&&y.hide(),setTimeout(()=>p?.remove(),400),showResetSuccessModal(t,a,n,i),setTimeout(()=>loadPendingResetRequests(),500)}catch(g){console.error("[ResetPwd] Error:",g),alert("❌ Failed to reset password:\n\n"+g.message)}finally{r.disabled=!1,r.innerHTML=o}}function showResetSuccessModal(e,t,a,n){let s=document.getElementById("resetSuccessModal");s&&s.remove();let i=`${e.toLowerCase()}_${a.toLowerCase().replace(/[^a-z0-9]/g,"")}`,r=`🔐 *Password Reset Successful*
 
 Namaste,
 
 Aapka password reset kar diya gaya hai.
 
-*Login ID:* ${loginId}
-*New Password:* ${newPwd}
+*Login ID:* ${i}
+*New Password:* ${n}
 
 ⚠️ *IMPORTANT:*
 Login karne ke baad, kripya turant apna password change kar lein.
 👉 Login karo → "Change Password" tab me jao → apna naya password set karo.
 
-- PS Society Solutions`;
-
-  const member = membersData.find(m => (m.flat_no || '').toUpperCase() === flatNo.toUpperCase());
-  const phone = member?.phone || '';
-
-  const modal = document.createElement('div');
-  modal.id = 'resetSuccessModal';
-  modal.className = 'modal fade';
-  modal.innerHTML = `
+- PS Society Solutions`,o=membersData.find(t=>(t.flat_no||"").toUpperCase()===e.toUpperCase()),l=o?.phone||"",d=document.createElement("div");d.id="resetSuccessModal",d.className="modal fade",d.innerHTML=`
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
         <div class="modal-header bg-success text-white" style="border-radius: 20px 20px 0 0;">
@@ -9356,26 +1207,26 @@ Login karne ke baad, kripya turant apna password change kar lein.
           </div>
 
           <div class="alert alert-success mb-3" style="border-radius: 12px;">
-            <div class="mb-1"><strong>User:</strong> ${flatNo} (${role})</div>
-            <div class="mb-1"><strong>Society:</strong> ${society}</div>
+            <div class="mb-1"><strong>User:</strong> ${e} (${t})</div>
+            <div class="mb-1"><strong>Society:</strong> ${a}</div>
             <div class="mt-2">
               <strong>New Password:</strong><br>
-              <code class="fs-6 fw-bold" style="background:#fff; padding:6px 12px; border-radius:8px; display:inline-block; margin-top:4px;">${newPwd}</code>
+              <code class="fs-6 fw-bold" style="background:#fff; padding:6px 12px; border-radius:8px; display:inline-block; margin-top:4px;">${n}</code>
             </div>
           </div>
 
-          ${phone ? `
+          ${l?`
             <button class="btn btn-success w-100 fw-bold mb-2 py-2"
-              onclick="sendResetWhatsApp('${phone}', ${JSON.stringify(waMessage).replace(/"/g, '&quot;')})">
+              onclick="sendResetWhatsApp('${l}', ${JSON.stringify(r).replace(/"/g,"&quot;")})">
               <i class="fa-brands fa-whatsapp me-2" style="font-size:18px;"></i> 
               Send via WhatsApp
             </button>
-          ` : `
+          `:`
             <div class="alert alert-warning small mb-2">
               ⚠️ Member ka phone number nahi mila.<br>
               Copy karke manually bhej dein:
               <div class="mt-2">
-                <button class="btn btn-sm btn-outline-secondary" onclick="copyText(\`${waMessage.replace(/`/g, '')}\`)">
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyText(\`${r.replace(/`/g,"")}\`)">
                   <i class="fa-solid fa-copy me-1"></i> Copy Message
                 </button>
               </div>
@@ -9388,73 +1239,4 @@ Login karne ke baad, kripya turant apna password change kar lein.
         </div>
       </div>
     </div>
-  `;
-  document.body.appendChild(modal);
-  new bootstrap.Modal(modal).show();
-}
-
-function sendResetWhatsApp(phone, message) {
-  const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
-  const finalPhone = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
-  window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`, '_blank');
-}
-
-function copyText(text) {
-  navigator.clipboard.writeText(text).then(() => {
-    alert('✅ Copied to clipboard');
-  }).catch(() => {
-    alert('⚠️ Copy failed — manually select and copy');
-  });
-}
-
-// 13. Realtime Subscription
-function setupUserMgmtRealtime() {
-  if (__userMgmtRealtimeChannel) {
-    try { _supabase.removeChannel(__userMgmtRealtimeChannel); } catch(e) {}
-    __userMgmtRealtimeChannel = null;
-  }
-
-  if (currentRole !== 'Admin') return;
-
-  __userMgmtRealtimeChannel = _supabase
-    .channel('password-reset-requests-rt')
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'password_reset_requests' },
-      async (payload) => {
-        console.log('[RT] password_reset_requests:', payload.eventType);
-        await loadPendingResetRequests();
-
-        if (payload.eventType === 'INSERT') {
-          const newReq = payload.new;
-          if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
-            try {
-              navigator.serviceWorker.ready.then(reg => {
-                reg.showNotification('🔐 Password Reset Request', {
-                  body: `${newReq.flat_no} (${newReq.society_name}) needs password reset`,
-                  icon: '/ps-society-app/icon-192.png',
-                  badge: '/ps-society-app/icon-192.png',
-                  tag: `reset-${newReq.id}`,
-                  renotify: true,
-                  data: { url: '/ps-society-app/?tab=user-management' }
-                });
-              });
-            } catch (e) { console.log('Notify error:', e); }
-          }
-        }
-      }
-    )
-    .subscribe((status) => {
-      console.log('[RT] User Mgmt channel:', status);
-    });
-}
-// ═══════════════════════════════════════════════════
-// 🛡️ LOADER FALLBACK — Force hide after 5 seconds
-// ═══════════════════════════════════════════════════
-setTimeout(() => {
-  const loader = document.getElementById('initialLoader');
-  if (loader && loader.parentNode) {
-    loader.style.opacity = '0';
-    setTimeout(() => loader.remove(), 500);
-    console.log('[Loader] Force hidden after 5s timeout');
-  }
-}, 5000);
+  `,document.body.appendChild(d),new bootstrap.Modal(d).show()}function sendResetWhatsApp(e,t){let a=(e||"").replace(/[^0-9]/g,""),n=10===a.length?"91"+a:a;window.open(`https://wa.me/${n}?text=${encodeURIComponent(t)}`,"_blank")}function copyText(e){navigator.clipboard.writeText(e).then(()=>{alert("✅ Copied to clipboard")}).catch(()=>{alert("⚠️ Copy failed — manually select and copy")})}function setupUserMgmtRealtime(){if(__userMgmtRealtimeChannel){try{_supabase.removeChannel(__userMgmtRealtimeChannel)}catch(e){}__userMgmtRealtimeChannel=null}"Admin"===currentRole&&(__userMgmtRealtimeChannel=_supabase.channel("password-reset-requests-rt").on("postgres_changes",{event:"*",schema:"public",table:"password_reset_requests"},async e=>{if(console.log("[RT] password_reset_requests:",e.eventType),await loadPendingResetRequests(),"INSERT"===e.eventType){let t=e.new;if("granted"===Notification.permission&&"serviceWorker"in navigator)try{navigator.serviceWorker.ready.then(e=>{e.showNotification("\uD83D\uDD10 Password Reset Request",{body:`${t.flat_no} (${t.society_name}) needs password reset`,icon:"/ps-society-app/icon-192.png",badge:"/ps-society-app/icon-192.png",tag:`reset-${t.id}`,renotify:!0,data:{url:"/ps-society-app/?tab=user-management"}})})}catch(a){console.log("Notify error:",a)}}}).subscribe(e=>{console.log("[RT] User Mgmt channel:",e)}))}setTimeout(()=>{let e=document.getElementById("initialLoader");e&&e.parentNode&&(e.style.opacity="0",setTimeout(()=>e.remove(),500),console.log("[Loader] Force hidden after 5s timeout"))},5e3);
