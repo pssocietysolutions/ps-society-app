@@ -419,18 +419,67 @@ body.read-only-mode a[download] {
     </div>
   </div>
 
-  <footer class="landing-footer py-3 text-center" style="width: 100%; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
-    <div class="d-flex justify-content-center align-items-center gap-3 mb-2 flex-wrap">
-      <button onclick="openAboutPS()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">About Us</button>
-      <span class="text-white-50">|</span>
-      <a href="https://www.instagram.com/pssocietysolutions/" target="_blank" style="color: #ea580c; text-decoration: none; font-weight: 600; font-size: 14px;">
-        <i class="fa-brands fa-instagram me-1"></i> Follow on Instagram
+  <footer class="landing-footer py-4 text-center" style="width: 100%; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto;">
+
+  <!-- 🔗 Follow Us on Social Media -->
+  <div class="mb-3">
+    <p class="text-white-50 mb-2" style="font-size: 12px; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase;">
+      Follow Us on Social Media
+    </p>
+    <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+
+      <!-- Facebook -->
+      <a href="https://www.facebook.com/PSSocietySolutions/" target="_blank"
+         title="Facebook"
+         style="width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); display: inline-flex; align-items: center; justify-content: center; color: #1877f2; font-size: 20px; text-decoration: none; transition: all 0.3s ease;"
+         onmouseover="this.style.background='#1877f2'; this.style.color='#fff'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(24,119,242,0.4)'"
+         onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#1877f2'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        <i class="fa-brands fa-facebook-f"></i>
       </a>
-      <span class="text-white-50">|</span>
-      <button onclick="openPrivacyPolicy()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">Privacy Policy</button>
+
+      <!-- Instagram -->
+      <a href="https://www.instagram.com/pssocietysolutions/" target="_blank"
+         title="Instagram"
+         style="width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); display: inline-flex; align-items: center; justify-content: center; color: #e1306c; font-size: 20px; text-decoration: none; transition: all 0.3s ease;"
+         onmouseover="this.style.background='linear-gradient(45deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)'; this.style.color='#fff'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(225,48,108,0.4)'"
+         onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#e1306c'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        <i class="fa-brands fa-instagram"></i>
+      </a>
+
+      <!-- LinkedIn -->
+      <a href="https://www.linkedin.com/in/ps-society-solutions/" target="_blank"
+         title="LinkedIn"
+         style="width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); display: inline-flex; align-items: center; justify-content: center; color: #0a66c2; font-size: 20px; text-decoration: none; transition: all 0.3s ease;"
+         onmouseover="this.style.background='#0a66c2'; this.style.color='#fff'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(10,102,194,0.4)'"
+         onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#0a66c2'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        <i class="fa-brands fa-linkedin-in"></i>
+      </a>
+
+      <!-- Email -->
+      <a href="mailto:ps.societysolutions@gmail.com"
+         title="Email Us"
+         style="width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); display: inline-flex; align-items: center; justify-content: center; color: #ea580c; font-size: 20px; text-decoration: none; transition: all 0.3s ease;"
+         onmouseover="this.style.background='#ea580c'; this.style.color='#fff'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(234,88,12,0.4)'"
+         onmouseout="this.style.background='rgba(255,255,255,0.08)'; this.style.color='#ea580c'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+        <i class="fa-solid fa-envelope"></i>
+      </a>
+
     </div>
-    <span class="text-white-50" style="font-size: 12px;">&copy; 2026 PS Society Solutions, Vadodara, Gujarat. All rights reserved.</span>
-  </footer>
+  </div>
+
+  <!-- Bottom Links -->
+  <div class="d-flex justify-content-center align-items-center gap-3 mb-2 flex-wrap">
+    <button onclick="openAboutPS()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">About Us</button>
+    <span class="text-white-50">|</span>
+    <button onclick="openPrivacyPolicy()" class="footer-link bg-transparent border-0 text-white-50 text-decoration-underline" style="cursor: pointer; font-size: 13px;">Privacy Policy</button>
+    <span class="text-white-50">|</span>
+    <a href="tel:+918866376056" class="text-white-50 text-decoration-underline" style="font-size: 13px;">📞 +91 8866376056</a>
+  </div>
+
+  <span class="text-white-50" style="font-size: 12px;">
+    &copy; 2026 PS Society Solutions, Vadodara, Gujarat. All rights reserved.
+  </span>
+</footer>
 </div>
 
 <!-- Floating WhatsApp Button -->
