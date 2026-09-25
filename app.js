@@ -487,7 +487,7 @@ function sendPasswordRequest() {
     return;
   }
 
-  const adminPhone = '918866376056';
+  const adminPhone = '918160712113';
   const message = 
 `🔐 Password Reset Request
 
@@ -1638,7 +1638,7 @@ function renderBankDetails() {
   const bankName   = societySettings.bank_name            || (isDemo ? 'ICICI Bank' : '');
   const accNo      = societySettings.bank_acc_no          || (isDemo ? '000000000000' : '');
   const ifsc       = societySettings.bank_ifsc            || (isDemo ? 'ICIC0000000' : '');
-  const upiId      = societySettings.bank_upi_id          || (isDemo ? '8866376056@icici' : '');
+  const upiId      = societySettings.bank_upi_id          || (isDemo ? '8160712113@icici' : '');
   const qrUrl      = societySettings.society_qr_url       || (isDemo ? 'qr-payment.png' : '');
   const openBalVal = societySettings.opening_bank_balance || '0';
 
@@ -6080,8 +6080,8 @@ Due Date: ${invoice.due_date}
 
 💳 *Pay via UPI / Bank:*
 Agency: PS Society Solutions
-Phone: +91 8866376056
-UPI: 8866376056@icici
+Phone: +91 8160712113
+UPI: 8160712113@icici
 
 Please clear the payment before the due date to avoid service interruption.
 
@@ -6341,8 +6341,8 @@ Aapki society ka subscription payment pending hai. Kripya jald se jald payment k
 
 💳 *Pay via UPI:*
 Agency: PS Society Solutions
-UPI: 8866376056@icici
-Phone: +91 8866376056
+UPI: 8160712113@icici
+Phone: +91 8160712113
 
 Thank you,
 PS Society Solutions`;
@@ -6973,10 +6973,10 @@ function openAboutPS() {
       </ul>
 
       <div class="p-3 bg-light rounded-3 text-center border">
-        <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
+        <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8160712113</strong> | 📍 Vadodara, Gujarat</p>
         <div class="d-flex justify-content-center gap-2">
-          <a href="https://wa.me/918866376056" target="_blank" class="btn btn-success btn-sm px-3 fw-semibold"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
-          <a href="tel:8866376056" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
+          <a href="https://wa.me/918160712113" target="_blank" class="btn btn-success btn-sm px-3 fw-semibold"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
+          <a href="tel:8160712113" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
         </div>
       </div>
     </div>
@@ -7232,7 +7232,7 @@ function openTermsOfService() {
       <p class="small text-muted">These Terms are governed by the laws of India. Legal disputes are subject to the exclusive jurisdiction of the courts in Vadodara, Gujarat, India.</p>
 
       <h5 class="fw-bold mt-3">10. Contact and Grievance Redressal</h5>
-      <p class="small text-muted mb-0">Grievance Officer: PS Society Solutions Team<br>Email: ps.societysolutions@gmail.com | Phone: +91 8866376056</p>
+      <p class="small text-muted mb-0">Grievance Officer: PS Society Solutions Team<br>Email: ps.societysolutions@gmail.com | Phone: +91 8160712113</p>
     </div>
   `;
   overlay.style.display = 'flex';
@@ -7267,7 +7267,7 @@ function openPrivacyPolicy() {
       <p class="small text-muted">Residents reserve the right to review payment histories and request removal of personal data via the in-app <em>Deletion Request</em> workflow under statutory compliance terms.</p>
 
       <h5 class="fw-bold mt-3">4. Grievance Redressal</h5>
-      <p class="small text-muted mb-0">For privacy inquiries or data requests, contact our Grievance Officer at <strong>ps.societysolutions@gmail.com</strong> or call <strong>+91 8866376056</strong>.</p>
+      <p class="small text-muted mb-0">For privacy inquiries or data requests, contact our Grievance Officer at <strong>ps.societysolutions@gmail.com</strong> or call <strong>+91 8160712113</strong>.</p>
     </div>
   `;
   overlay.style.display = 'flex';
@@ -7320,10 +7320,10 @@ function renderAboutTab() {
         </ul>
 
         <div class="p-3 bg-light rounded-3 text-center border mb-4">
-          <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8866376056</strong> | 📍 Vadodara, Gujarat</p>
+          <p class="small text-muted mb-2">📞 Call / WhatsApp: <strong>+91 8160712113</strong> | 📍 Vadodara, Gujarat</p>
           <div class="d-flex justify-content-center gap-2">
-            <a href="https://wa.me/918866376056" target="_blank" class="btn btn-success btn-sm px-3 fw-semibold"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
-            <a href="tel:8866376056" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
+            <a href="https://wa.me/918160712113" target="_blank" class="btn btn-success btn-sm px-3 fw-semibold"><i class="fa-brands fa-whatsapp me-1"></i> WhatsApp</a>
+            <a href="tel:8160712113" class="btn btn-primary btn-sm px-3 fw-semibold"><i class="fa-solid fa-phone me-1"></i> Call Us</a>
           </div>
         </div>
       </div>
@@ -7579,7 +7579,7 @@ function openUPIPayment() {
 
 function processUPIPayment() {
   const isDemo = (currentSociety === 'Demo Society');
-  const upiId = societySettings.bank_upi_id || (isDemo ? '8866376056@icici' : '');
+  const upiId = societySettings.bank_upi_id || (isDemo ? '8160712113@icici' : '');
   const name = societySettings.bank_acc_name 
              || societySettings.society_name 
              || currentSociety 
@@ -8792,7 +8792,7 @@ function showReadOnlyBanner() {
     line-height: 1.5;
   `;
 
-  const upiLink = 'upi://pay?pa=8866376056@icici&pn=PS%20Society%20Solutions&cu=INR&tn=Society%20Subscription';
+  const upiLink = 'upi://pay?pa=8160712113@icici&pn=PS%20Society%20Solutions&cu=INR&tn=Society%20Subscription';
 
   banner.innerHTML = `
     <div style="max-width: 900px; margin: 0 auto;">
@@ -8802,7 +8802,7 @@ function showReadOnlyBanner() {
           💳 Pay via UPI
         </a>
         &nbsp;|&nbsp;
-        📞 +91 8866376056
+        📞 +91 8160712113
         &nbsp;|&nbsp;
         📧 ps.societysolutions@gmail.com
       </div>
