@@ -1369,7 +1369,7 @@ async function updateVisitorStatus(id, newStatus) {
 
 async function submitVisitor(event) {
   event.preventDefault();
-  const society = document.getElementById('visitor-society').value || currentSociety;
+  const society = currentSociety;
   const name = document.getElementById('visitor-name').value.trim();
   const mobile = document.getElementById('visitor-mobile').value.trim();
   const vehicleNumber = document.getElementById('visitor-vehicle').value.trim().toUpperCase();
@@ -1571,15 +1571,45 @@ async function submitParkingVehicle(event) {
 
 async function checkAndAutoApproveVisitors() {
   if (!currentSociety) return;
-  const { data: pendingVisitors } = await _supabase.from('visitors').select('*').eq('society', currentSociety).eq('status', 'PENDING');
 
-  if (!pendingVisitors) return;
+  // ✅ Case-insensitive matching (ilike)
+  const { data: pendingVisitors } = await _supabase
+    .from('visitors')
+    .select('*')
+    .ilike('society', currentSociety)
+    .eq('status', 'PENDING');
 
-  const now = new Date().getTime();
+  if (!pendingVisitors || pendingVisitors.length === 0) return;
+
+  const now = Date.now();
+
   for (const v of pendingVisitors) {
-    const createdAt = new Date(v.created_at || v.visit_date).getTime();
-    if (now - createdAt > 30000) {
-      await _supabase.from('visitors').update({ status: 'APPROVED' }).eq('id', v.id);
+    // ✅ Created time safe nikaalo
+    let createdTime;
+    if (v.created_at) {
+      createdTime = new Date(v.created_at).getTime();
+    } else {
+      // Fallback: visit_date + in_time combine karo
+      const datePart = v.visit_date || new Date().toISOString().split('T')[0];
+      const timePart = v.in_time || '00:00:00';
+      createdTime = new Date(`${datePart}T${timePart}`).getTime();
+    }
+
+    // ✅ 30 second check
+    if (now - createdTime > 30000) {
+      await _supabase
+        .from('visitors')
+        .update({ status: 'APPROVED' })
+        .eq('id', v.id);
+      
+      console.log(`[Auto-Approve] Visitor #${v.id} (${v.name}) approved`);
+    }
+  }
+
+  // ✅ List refresh karo agar page open hai
+  if (typeof loadTodayVisitors === 'function') {
+    const visitorSection = document.getElementById('visitor-section');
+    if (visitorSection && visitorSection.style.display === 'block') {
       loadTodayVisitors();
     }
   }
@@ -3080,7 +3110,28 @@ function exportMonthlySummaryPDF() {
   doc.save(`Monthly_Summary_${month}.pdf`);
 }
 
-function exportCAAuditExcel() { exportTableToExcel('ca-gst-summary-table', 'CA_Audit_GST_Summary'); }
+function exportCAAuditExcel() {
+  const mainTable = document.getElementById('ca-main-audit-table');
+  const gstTable = document.getElementById('ca-gst-summary-table');
+  
+  if (!mainTable && !gstTable) return;
+
+  const wb = XLSX.utils.book_new();
+  
+  // Sheet 1: Main Trial Balance
+  if (mainTable) {
+    const wsMain = XLSX.utils.table_to_sheet(mainTable);
+    XLSX.utils.book_append_sheet(wb, wsMain, "Trial Balance");
+  }
+  
+  // Sheet 2: GST Summary
+  if (gstTable) {
+    const wsGst = XLSX.utils.table_to_sheet(gstTable);
+    XLSX.utils.book_append_sheet(wb, wsGst, "GST Summary");
+  }
+
+  XLSX.writeFile(wb, `CA_Audit_${currentSociety}_${Date.now()}.xlsx`);
+}
 
 function exportCAAuditPDF() {
   if (typeof window.jspdf === 'undefined') return;
@@ -3091,16 +3142,34 @@ function exportCAAuditPDF() {
   doc.setFontSize(16);
   doc.text(societyName, 105, 15, { align: 'center' });
   doc.setFontSize(12);
-  doc.text('CA Audit Report — GST Summary', 105, 23, { align: 'center' });
+  doc.text('CA Audit Report — Trial Balance & GST Summary', 105, 23, { align: 'center' });
   doc.setFontSize(10);
   doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 105, 29, { align: 'center' });
   
-  doc.autoTable({
-    html: '#ca-gst-summary-table', startY: 35, theme: 'grid',
-    didParseCell: function(data) {
-      if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
-    }
-  });
+  // 1. Main Trial Balance Table
+  if (document.getElementById('ca-main-audit-table')) {
+    doc.autoTable({
+      html: '#ca-main-audit-table', startY: 35, theme: 'grid',
+      didParseCell: function(data) {
+        if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
+      }
+    });
+  }
+
+  // 2. GST Summary Table (Thoda gap dekar neeche)
+  if (document.getElementById('ca-gst-summary-table')) {
+    const nextY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : 35;
+    doc.setFontSize(12);
+    doc.text('GST & Tax Audit Summary', 105, nextY - 5, { align: 'center' });
+    
+    doc.autoTable({
+      html: '#ca-gst-summary-table', startY: nextY, theme: 'grid',
+      didParseCell: function(data) {
+        if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
+      }
+    });
+  }
+  
   doc.save(`CA_Audit_${currentSociety}_${Date.now()}.pdf`);
 }
 
@@ -4355,7 +4424,7 @@ function renderMaintenance() {
         <td>${amt}</td>
         <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
         <td class="no-print">
-          <button class="btn btn-sm btn-outline-primary" onclick="generateTaxInvoicePDF(${r.id})" title="Tax Invoice PDF"><i class="fa-solid fa-file-pdf"></i></button>
+          <button class="btn btn-sm btn-outline-primary" onclick="generateReceiptPDF('maintenance', ${r.id})" title="Receipt PDF"><i class="fa-solid fa-file-pdf"></i></button>
           ${currentRole === 'Admin' || currentRole === 'SocietyAdmin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMaintenance(${r.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
           ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Reminder: Your maintenance for ${r.month_accounted || ''} is due. - PS Society')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>` : ''}
         </td>
@@ -7486,7 +7555,26 @@ function markCommunityRead() {
 }
 
 async function openVisitorPassword() {
-  await loadSocietiesForDropdown('visitor-password-society');
+  const urlParams = new URLSearchParams(window.location.search);
+  const societyFromURL = urlParams.get('society');
+
+  const inputGroup = document.getElementById('visitor-society-input-group');
+  const displayGroup = document.getElementById('visitor-society-display-group');
+  const societyInput = document.getElementById('visitor-society-input');
+  const societyDisplay = document.getElementById('visitor-society-display');
+
+  if (societyFromURL && societyFromURL.trim() !== '') {
+    inputGroup.classList.add('d-none');
+    displayGroup.classList.remove('d-none');
+    societyDisplay.value = societyFromURL;
+    societyInput.removeAttribute('required');
+  } else {
+    inputGroup.classList.remove('d-none');
+    displayGroup.classList.add('d-none');
+    societyInput.value = '';
+    societyInput.setAttribute('required', 'required');
+  }
+
   document.getElementById('visitorPasswordOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
@@ -7498,14 +7586,55 @@ function closeVisitorPassword() {
 
 async function verifyVisitorPassword(event) {
   event.preventDefault();
-  const society = document.getElementById('visitor-password-society').value;
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const societyFromURL = urlParams.get('society');
+  const societyInput = document.getElementById('visitor-society-input');
+  
+  let society = '';
+  if (societyFromURL && societyFromURL.trim() !== '') {
+    society = societyFromURL.trim();
+  } else {
+    society = (societyInput?.value || '').trim();
+  }
+  
   const password = document.getElementById('visitor-password-input').value.trim();
-  if (!society || !password) { alert('Please select society and enter password.'); return; }
+  
+  if (!society || !password) { 
+    alert('Please enter society name and password.'); 
+    return; 
+  }
 
-  const { data } = await _supabase.from('society_settings').select('value').eq('key', 'visitor_password').eq('society_name', society).maybeSingle();
+  // ✅ Society exist karti hai kya check karo
+  const { data: socExists } = await _supabase
+    .from('societies')
+    .select('name')
+    .ilike('name', society)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (!socExists) {
+    alert('❌ Society not found. Please check the name.');
+    return;
+  }
+
+  // ✅ Actual society name use karo (case-sensitive fix)
+  society = socExists.name;
+
+  // ✅ Password verify
+  const { data } = await _supabase
+    .from('society_settings')
+    .select('value')
+    .eq('key', 'visitor_password')
+    .eq('society_name', society)
+    .maybeSingle();
+
   const storedPassword = data?.value || '1234';
   
-  if (password !== storedPassword) { alert('❌ Incorrect password. Please try again.'); return; }
+  if (password !== storedPassword) { 
+    alert('❌ Incorrect password. Please try again.'); 
+    return; 
+  }
 
   currentSociety = society;
   closeVisitorPassword();
@@ -7515,10 +7644,19 @@ async function verifyVisitorPassword(event) {
   document.getElementById('app-section').classList.add('d-none');
   updateFloatingButtonsVisibility(false);
   
-    const backBtn = document.getElementById('visitorBackBtn');
+  const backBtn = document.getElementById('visitorBackBtn');
   if (backBtn) backBtn.onclick = showLandingPage;
   loadTodayVisitors();
   setupVisitorRealtimeForGuard();
+}
+
+function prepareVisitorModal() {
+  // Society field auto-fill
+  const societyField = document.getElementById('visitor-society');
+  if (societyField) societyField.value = currentSociety || '';
+  
+  // Flats load karo
+  loadFlatsDropdown();
 }
 
 async function loadFlatsDropdown() {
@@ -8542,9 +8680,6 @@ window.onload = async () => {
   const role = localStorage.getItem('ps_user_role') || 'Admin';
   const email = localStorage.getItem('ps_user_id') || 'A-101';
   currentSociety = localStorage.getItem('ps_user_society') || 'Demo Society';
-
-  await loadSocietiesForDropdown('visitor-society');
-  await loadSocietiesForDropdown('visitor-password-society');
 
   if (isLogged === 'true') { applyUserSession(role, email); }
   else { showLandingPage(); }

@@ -181,38 +181,70 @@
 
   // ==================== GET SOCIETY FROM URL ====================
   const urlParams = new URLSearchParams(window.location.search);
-  const society = urlParams.get('society') || 'Demo Society';
+const rawSociety = urlParams.get('society');
+const society = (rawSociety || '').trim();
+
+// ✅ Society missing ho toh error dikhao
+if (!society) {
+  document.getElementById('alertMessage').textContent = 
+    '⚠️ Invalid QR Code. Please scan the correct society QR.';
+  document.getElementById('alertMessage').className = 'alert-custom alert alert-warning';
+  document.getElementById('alertMessage').style.display = 'block';
+  document.getElementById('submitBtn').disabled = true;
+} else {
   document.getElementById('societyName').value = society;
+}
 
   // ==================== LOAD FLATS FOR THIS SOCIETY ====================
   async function loadFlats() {
-    const select = document.getElementById('flatNo');
-    select.innerHTML = '<option value="">⏳ Loading...</option>';
-    try {
-      const { data, error } = await _supabase
-        .from('members')
-        .select('flat_no')
-        .eq('society_name', society)
-        .order('flat_no');
+  const select = document.getElementById('flatNo');
+  select.innerHTML = '<option value="">⏳ Loading...</option>';
+  
+  try {
+    // ═══════════════════════════════════════════════
+    // 🔍 DEBUG LOGS — F12 Console mein dikhenge
+    // ═══════════════════════════════════════════════
+    console.log('[loadFlats] DEBUG → society (raw) =', JSON.stringify(society));
+    console.log('[loadFlats] DEBUG → society.length =', society ? society.length : 'undefined');
+    console.log('[loadFlats] DEBUG → society.trim() =', JSON.stringify(society ? society.trim() : ''));
+    console.log('[loadFlats] DEBUG → URL param =', new URLSearchParams(window.location.search).get('society'));
+    
+    // ✅ RPC use karo (anon-friendly, RLS bypass)
+    const { data, error } = await _supabase.rpc('get_society_flats', {
+      p_society_name: society.trim()
+    });
 
-      if (error) throw error;
-      if (!data || data.length === 0) {
-        select.innerHTML = '<option value="">⚠️ No flats found</option>';
-        return;
-      }
+    // ═══════════════════════════════════════════════
+    // 🔍 DEBUG — RPC ka pura response
+    // ═══════════════════════════════════════════════
+    console.log('[loadFlats] DEBUG → RPC error =', JSON.stringify(error));
+    console.log('[loadFlats] DEBUG → RPC data =', JSON.stringify(data));
+    console.log('[loadFlats] DEBUG → data.length =', data ? data.length : 'null/undefined');
 
-      select.innerHTML = '<option value="">-- Select Flat --</option>';
-      data.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.flat_no;
-        opt.textContent = m.flat_no;
-        select.appendChild(opt);
-      });
-    } catch (err) {
-      console.error('Error loading flats:', err);
-      select.innerHTML = '<option value="">❌ Failed to load flats</option>';
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      select.innerHTML = '<option value="">⚠️ No flats found for this society</option>';
+      console.warn(`[loadFlats] No members found for society: "${society}"`);
+      return;
     }
+
+    select.innerHTML = '<option value="">-- Select Flat --</option>';
+    data.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.flat_no;
+      opt.textContent = m.flat_no;
+      select.appendChild(opt);
+    });
+
+    console.log(`[loadFlats] ✅ Loaded ${data.length} flats for "${society}"`);
+  } catch (err) {
+    console.error('[loadFlats] ❌ Exception:', err);
+    console.error('[loadFlats] ❌ Error message:', err.message);
+    select.innerHTML = '<option value="">❌ Failed to load flats</option>';
   }
+}
+
 
   // ==================== SUBMIT VISITOR ====================
   async function submitVisitor(event) {
