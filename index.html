@@ -452,7 +452,7 @@ body.read-only-mode a[download] {
         <i class="fa-solid fa-arrow-left me-2"></i> Back
       </button>
       <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-plus text-primary me-2"></i> Visitor Management</h3>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitorModal" onclick="loadFlatsDropdown()">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitorModal" onclick="prepareVisitorModal()">
         <i class="fa-solid fa-plus me-2"></i> Add Visitor
       </button>
     </div>
@@ -1041,8 +1041,8 @@ body.read-only-mode a[download] {
 
           <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
             <div class="table-responsive">
-              <table class="table table-bordered align-middle">
-                <thead class="table-dark">
+              <table class="table table-bordered align-middle" id="ca-main-audit-table">
+  <thead class="table-dark">
                   <tr>
                     <th>Account Group Head</th>
                     <th>Ledger Class</th>
@@ -2377,7 +2377,7 @@ body.read-only-mode a[download] {
       <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0;"><h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i> Add Visitor</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
       <div class="modal-body p-4">
         <form id="visitorForm" onsubmit="submitVisitor(event)">
-          <div class="mb-3"><label class="form-label fw-semibold">Society</label><select id="visitor-society" class="form-select" required><option value="">-- Select --</option></select></div>
+          <div class="mb-3"><label class="form-label fw-semibold">Society</label><input type="text" id="visitor-society" class="form-control" readonly style="background:#f1f5f9; font-weight:700;"></div>
           <div class="mb-3"><label class="form-label fw-semibold">Visitor Name</label><input type="text" id="visitor-name" class="form-control" placeholder="Full Name" required></div>
           <div class="mb-3"><label class="form-label fw-semibold">Mobile Number</label><input type="tel" id="visitor-mobile" class="form-control" placeholder="9876543210" required></div>
           <div class="mb-3">
@@ -2448,7 +2448,14 @@ body.read-only-mode a[download] {
   <div style="background: #fff; border-radius: 20px; padding: 30px; max-width: 400px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
     <h5 style="font-weight: 700; color: #0f172a; text-align: center; margin-bottom: 20px;"><i class="fa-solid fa-lock text-primary me-2"></i> Visitor Access</h5>
     <form id="visitorPasswordForm" onsubmit="verifyVisitorPassword(event)">
-      <div class="mb-3"><label class="form-label fw-semibold">Select Society</label><select id="visitor-password-society" class="form-select" required><option value="">-- Select --</option></select></div>
+      <div class="mb-3" id="visitor-society-input-group">
+        <label class="form-label fw-semibold">Society Name</label>
+        <input type="text" id="visitor-society-input" class="form-control" placeholder="e.g. Green Valley CHS" required>
+      </div>
+      <div class="mb-3 d-none" id="visitor-society-display-group">
+        <label class="form-label fw-semibold">Society</label>
+        <input type="text" id="visitor-society-display" class="form-control" readonly style="background:#f1f5f9; font-weight:700;">
+      </div>
       <div class="mb-3"><label class="form-label fw-semibold">Society Password</label><input type="password" id="visitor-password-input" class="form-control" placeholder="Enter society password" required></div>
       <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Submit</button>
       <button type="button" class="btn btn-outline-secondary w-100 mt-2" onclick="closeVisitorPassword()">Cancel</button>
