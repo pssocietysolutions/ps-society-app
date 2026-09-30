@@ -452,9 +452,14 @@ body.read-only-mode a[download] {
         <i class="fa-solid fa-arrow-left me-2"></i> Back
       </button>
       <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-plus text-primary me-2"></i> Visitor Management</h3>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitorModal" onclick="prepareVisitorModal()">
-        <i class="fa-solid fa-plus me-2"></i> Add Visitor
-      </button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-danger" onclick="guardLogout()" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#visitorModal" onclick="prepareVisitorModal()">
+          <i class="fa-solid fa-plus me-2"></i> Add Visitor
+        </button>
+      </div>
     </div>
 
     <!-- SCROLLABLE LIST -->
@@ -2456,7 +2461,15 @@ body.read-only-mode a[download] {
         <label class="form-label fw-semibold">Society</label>
         <input type="text" id="visitor-society-display" class="form-control" readonly style="background:#f1f5f9; font-weight:700;">
       </div>
-      <div class="mb-3"><label class="form-label fw-semibold">Society Password</label><input type="password" id="visitor-password-input" class="form-control" placeholder="Enter society password" required></div>
+      <div class="mb-3">
+  <label class="form-label fw-semibold">Society Password</label>
+  <div class="input-group">
+    <input type="password" id="visitor-password-input" class="form-control" placeholder="Enter society password" required>
+    <button class="btn btn-outline-secondary" type="button" onclick="toggleVisitorPasswordVisibility()" tabindex="-1">
+      <i class="fa-solid fa-eye" id="visitorTogglePasswordIcon"></i>
+    </button>
+  </div>
+</div>
       <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Submit</button>
       <button type="button" class="btn btn-outline-secondary w-100 mt-2" onclick="closeVisitorPassword()">Cancel</button>
     </form>

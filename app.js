@@ -99,6 +99,35 @@ function showLandingPage() {
 
 function showVisitorPage() {
   updateFloatingButtonsVisibility(false);
+  
+  // ✅ CHECK 24-HOUR GUARD SESSION FIRST
+  const guardSession = localStorage.getItem('ps_guard_session');
+  const loginTime = parseInt(localStorage.getItem('ps_guard_login_time') || '0');
+  const savedSociety = localStorage.getItem('ps_guard_society');
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  
+  if (guardSession === 'true' && savedSociety && (Date.now() - loginTime) < TWENTY_FOUR_HOURS) {
+    // ✅ Valid guard session — direct dashboard, no password
+    currentSociety = savedSociety;
+    document.getElementById('landing-section').style.display = 'none';
+    document.getElementById('visitor-section').style.display = 'block';
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('app-section').classList.add('d-none');
+    const backBtn = document.getElementById('visitorBackBtn');
+    if (backBtn) backBtn.onclick = goBackFromVisitor;
+    loadTodayVisitors();
+    setupVisitorRealtimeForGuard();
+    return;
+  }
+  
+  // Session expired — clear it
+  if (guardSession === 'true') {
+    localStorage.removeItem('ps_guard_session');
+    localStorage.removeItem('ps_guard_society');
+    localStorage.removeItem('ps_guard_login_time');
+  }
+  
+  // Baaki purana logic — logged in user
   if (localStorage.getItem('ps_user_logged') === 'true') {
     document.getElementById('landing-section').style.display = 'none';
     document.getElementById('visitor-section').style.display = 'block';
@@ -7584,6 +7613,37 @@ function closeVisitorPassword() {
   document.body.style.overflow = '';
 }
 
+// ✅ TOGGLE VISITOR PASSWORD VISIBILITY
+function toggleVisitorPasswordVisibility() {
+  const pwdInput = document.getElementById('visitor-password-input');
+  const icon = document.getElementById('visitorTogglePasswordIcon');
+  if (!pwdInput || !icon) return;
+  
+  if (pwdInput.type === 'password') {
+    pwdInput.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    pwdInput.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
+  }
+}
+
+// ✅ GUARD MANUAL LOGOUT
+function guardLogout() {
+  if (!confirm('Logout? Agli baar password daalna padega.')) return;
+  localStorage.removeItem('ps_guard_session');
+  localStorage.removeItem('ps_guard_society');
+  localStorage.removeItem('ps_guard_login_time');
+  
+  const visitorSection = document.getElementById('visitor-section');
+  if (visitorSection) visitorSection.style.display = 'none';
+  
+  cleanupVisitorRealtimeForGuard();
+  showLandingPage();
+}
+
 async function verifyVisitorPassword(event) {
   event.preventDefault();
   
@@ -7636,7 +7696,13 @@ async function verifyVisitorPassword(event) {
     return; 
   }
 
-  currentSociety = society;
+    currentSociety = society;
+  
+  // ✅ 24-HOUR GUARD SESSION SAVE
+  localStorage.setItem('ps_guard_session', 'true');
+  localStorage.setItem('ps_guard_society', society);
+  localStorage.setItem('ps_guard_login_time', Date.now().toString());
+  
   closeVisitorPassword();
   document.getElementById('landing-section').style.display = 'none';
   document.getElementById('visitor-section').style.display = 'block';
