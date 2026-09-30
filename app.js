@@ -1889,7 +1889,7 @@ function sendWhatsAppReminder(phone, message) {
 function sendBulkWhatsAppReminder() {
   const pendingMembers = membersData.filter(m => {
     const flatNo = (m.flat_no || '').toUpperCase();
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').toUpperCase() === flatNo && r.month_accounted !== 'VMC Water').reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const rate = Number(m.monthly_rate || 600);
     const totalDue = MONTHS_IN_FY_SO_FAR * rate;
     return (Number(m.opening_due || 0) + totalDue - flatPaid) > 0;
@@ -1916,8 +1916,8 @@ function sendBulkWhatsAppReminder() {
   const reminderList = membersWithPhone.map(m => {
     const flatNo = (m.flat_no || '').toUpperCase();
     const flatPaid = maintenanceData
-      .filter(r => (r.flat_no || '').toUpperCase() === flatNo)
-      .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+  .filter(r => (r.flat_no || '').toUpperCase() === flatNo && r.month_accounted !== 'VMC Water')
+  .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const rate = Number(m.monthly_rate || 600);
     const totalDue = MONTHS_IN_FY_SO_FAR * rate;
     const pendingAmt = Number(m.opening_due || 0) + totalDue - flatPaid;
@@ -2574,7 +2574,7 @@ function renderMemberPersonalView() {
   const ledgerContainer = document.getElementById('my-member-ledger-list');
   if (!ledgerContainer) return;
 
-  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === userFlat);
+  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === userFlat && r.month_accounted !== 'VMC Water');
   const myFlatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === userFlat);
   const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === userFlat);
   
@@ -3816,7 +3816,7 @@ function renderMembers() {
     const rate = Number(m.monthly_rate || 600);
     const openingDue = Number(m.opening_due || 0);
     
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo && r.month_accounted !== 'VMC Water').reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
     
     const flatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === flatNo);
@@ -4935,7 +4935,7 @@ function openAdminMemberLedger(flatNo) {
   const ledgerContainer = document.getElementById('admin-member-ledger-list');
   if (!ledgerContainer) return;
 
-  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === targetFlat);
+  const myFlatData = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === targetFlat && r.month_accounted !== 'VMC Water');
   const myFlatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === targetFlat);
   const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === targetFlat);
   
