@@ -4515,7 +4515,7 @@ function renderExpenses() {
       </tr>
     `;
   }).join('');
-  document.getElementById('dash-expenses').innerText = total;
+  document.getElementById('dash-expenses').innerText = total.toFixed(2);
 }
 
 async function renderCAAuditReport() {
