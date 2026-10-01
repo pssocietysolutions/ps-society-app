@@ -3133,8 +3133,10 @@ function exportMonthlySummaryPDF() {
   doc.autoTable({ 
     html: '#monthly-summary-table', startY: 30, theme: 'grid',
     didParseCell: function(data) {
-      if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
-    }
+  if (data.section === 'body') { 
+    data.cell.text = data.cell.text.map(t => t.replace(/₹/g, '').replace(/Rs\./g, '').trim()); 
+  }
+}
   });
   doc.save(`Monthly_Summary_${month}.pdf`);
 }
@@ -3180,8 +3182,10 @@ function exportCAAuditPDF() {
     doc.autoTable({
       html: '#ca-main-audit-table', startY: 35, theme: 'grid',
       didParseCell: function(data) {
-        if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
-      }
+  if (data.section === 'body') { 
+    data.cell.text = data.cell.text.map(t => t.replace(/₹/g, '').replace(/Rs\./g, '').trim()); 
+  }
+}
     });
   }
 
@@ -3194,7 +3198,7 @@ function exportCAAuditPDF() {
     doc.autoTable({
       html: '#ca-gst-summary-table', startY: nextY, theme: 'grid',
       didParseCell: function(data) {
-        if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/[₹Rs\.]/g, '').trim()); }
+        if (data.section === 'body') { data.cell.text = data.cell.text.map(t => t.replace(/₹/g, '').replace(/Rs\./g, '').trim()); }
       }
     });
   }
@@ -4136,7 +4140,7 @@ function generateBillPDF(billId) {
   // Table
   doc.autoTable({
     startY: 58,
-    head: [['Particulars', 'Amount (₹)']],
+    head: [['Particulars', 'Amount (Rs.)']],
     body: [
       [`Monthly Maintenance - ${bill.bill_month}`, Number(bill.amount).toFixed(2)],
       ['', ''],
@@ -4162,7 +4166,7 @@ function generateBillPDF(billId) {
   doc.text(`📱 UPI: ${upiId}`, 14, tableEnd + 25);
 
   // UPI QR info
-  doc.text(`Amount: ₹${Number(bill.amount).toFixed(2)}`, 130, tableEnd + 7);
+ doc.text(`Amount: Rs.${Number(bill.amount).toFixed(2)}`, 130, tableEnd + 7);
   doc.text(`Ref: ${bill.bill_no}`, 130, tableEnd + 13);
 
   // Footer
@@ -4390,7 +4394,7 @@ function exportBillsExcel() {
     'Bill No': b.bill_no,
     'Flat No': b.flat_no,
     'Month': b.bill_month,
-    'Amount (₹)': b.amount,
+    'Amount (Rs.)': b.amount,
     'Due Date': b.due_date,
     'Status': b.status,
     'Paid Amount': b.paid_amount,
@@ -5280,19 +5284,260 @@ async function submitPoll(event) {
 }
 
 function generateReceiptPDF(type, id) {
-  if (typeof window.jspdf === 'undefined') return;
-  let data = type === 'maintenance' ? maintenanceData.find(r => r.id === id) : expenseData.find(r => r.id === id);
-  if (!data) return;
-  const { jsPDF } = window.jspdf; 
-  const doc = new jsPDF('p', 'mm', 'a4');
-  const societyName = societySettings.society_name || currentSociety;
-  doc.setFontSize(16); doc.text(societyName, 105, 20, { align: 'center' });
-  doc.text(type === 'maintenance' ? 'MAINTENANCE RECEIPT' : 'PAYMENT VOUCHER', 105, 30, { align: 'center' });
+  if (typeof window.jspdf === 'undefined') {
+    alert('PDF library not loaded');
+    return;
+  }
   
-  let headers = type === 'maintenance' ? ['Receipt No', 'Flat No', 'Date', 'Amount'] : ['Voucher No', 'Date', 'Category', 'Amount'];
-  let rows = type === 'maintenance' ? [[data.receipt_no, data.flat_no, data.payment_date, data.amount_paid]] : [[data.voucher_no, data.expense_date, data.category, data.amount]];
-  doc.autoTable({ startY: 45, head: [headers], body: rows });
-  doc.save(`${type}-${id}.pdf`);
+  const data = type === 'maintenance' ? maintenanceData.find(r => r.id === id) : expenseData.find(r => r.id === id);
+  if (!data) return;
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+  
+  // Society info
+  const societyName = societySettings.society_name || currentSociety;
+  const societyAddress = societySettings.society_address || '';
+  const societyPhone = societySettings.society_phone || '';
+  const societyEmail = societySettings.society_email || '';
+  
+  // Bank info
+  const accName = societySettings.bank_acc_name || societyName;
+  const bankName = societySettings.bank_name || '-';
+  const accNo = societySettings.bank_acc_no || '-';
+  const ifsc = societySettings.bank_ifsc || '-';
+  const upiId = societySettings.bank_upi_id || '-';
+  
+  if (type === 'maintenance') {
+    // ══════════════ MAINTENANCE RECEIPT ══════════════
+    const member = membersData.find(m => (m.flat_no || '').toUpperCase() === (data.flat_no || '').toUpperCase());
+    const memberName = member?.name || '-';
+    const memberPhone = member?.phone || '';
+    
+    // Header
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text(societyName, 105, 18, { align: 'center' });
+    
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(100);
+    if (societyAddress) doc.text(societyAddress, 105, 25, { align: 'center', maxWidth: 180 });
+    if (societyPhone || societyEmail) {
+      doc.text(`${societyPhone}${societyPhone && societyEmail ? ' | ' : ''}${societyEmail}`, 105, 30, { align: 'center' });
+    }
+    doc.setTextColor(0);
+    
+    doc.setDrawColor(200);
+    doc.line(14, 35, 196, 35);
+    
+    // Title
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(22, 101, 52);
+    doc.text('MAINTENANCE RECEIPT', 105, 45, { align: 'center' });
+    doc.setTextColor(0);
+    
+    // Receipt info
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Receipt No: ${data.receipt_no || '-'}`, 14, 55);
+    doc.text(`Date: ${data.payment_date || '-'}`, 14, 61);
+    doc.text(`Payment Mode: ${data.mode_of_payment || 'UPI'}`, 14, 67);
+    
+    doc.text(`Flat No: ${data.flat_no || '-'}`, 130, 55);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Member: ${memberName}`, 130, 61);
+    doc.setFont(undefined, 'normal');
+    if (memberPhone) doc.text(`Phone: ${memberPhone}`, 130, 67);
+    
+    // Particulars table
+    doc.autoTable({
+      startY: 75,
+      head: [['Particulars', 'Amount (Rs.)']],
+      body: [
+        [`Monthly Maintenance — ${data.month_accounted || '-'}`, Number(data.amount_paid || 0).toFixed(2)],
+      ],
+      foot: [[
+        { content: 'TOTAL PAID', styles: { fontStyle: 'bold', halign: 'right' } }, 
+        { content: 'Rs. ' + Number(data.amount_paid || 0).toFixed(2), styles: { fontStyle: 'bold', halign: 'right' } }
+      ]],
+      theme: 'grid',
+      styles: { fontSize: 11, cellPadding: 3 },
+      headStyles: { fillColor: [22, 163, 74], textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [240, 253, 244], textColor: [22, 101, 52], fontStyle: 'bold' }
+    });
+    
+    // Amount in words
+    const amountInWords = numberToWordsIndian(Number(data.amount_paid || 0));
+    let tableEnd = doc.lastAutoTable.finalY + 8;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text('Amount in Words:', 14, tableEnd);
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    doc.text(amountInWords, 14, tableEnd + 5, { maxWidth: 180 });
+    
+    // Remarks
+    if (data.remarks && data.remarks !== '-' && data.remarks !== '') {
+      doc.setFontSize(9);
+      doc.text(`Remarks: ${data.remarks}`, 14, tableEnd + 13, { maxWidth: 180 });
+      tableEnd += 6;
+    }
+    
+    // Payment Details Box
+    const boxY = tableEnd + 18;
+    doc.setDrawColor(200);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, boxY, 182, 42, 3, 3, 'FD');
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 64, 175);
+    doc.text('Society Bank / UPI Details', 18, boxY + 7);
+    
+    doc.setFontSize(8.5);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(0);
+    doc.text(`Bank: ${bankName}`, 18, boxY + 14);
+    doc.text(`A/c No: ${accNo}   |   IFSC: ${ifsc}`, 18, boxY + 20);
+    doc.text(`A/c Name: ${accName}`, 18, boxY + 26, { maxWidth: 120 });
+    doc.text(`UPI ID: ${upiId}`, 18, boxY + 32);
+    
+    // QR Code
+    if (societySettings.society_qr_url && societySettings.society_qr_url.indexOf('http') === 0) {
+      try {
+        doc.addImage(societySettings.society_qr_url, 'PNG', 148, boxY + 3, 42, 42);
+      } catch (e) { console.log('QR add failed:', e); }
+    }
+    
+    // Signature
+    const sigY = boxY + 55;
+    doc.setFontSize(9);
+    doc.setTextColor(0);
+    doc.text('_________________________', 130, sigY);
+    doc.text('Authorized Signatory', 138, sigY + 5);
+    
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('This is a computer-generated receipt. No signature required.', 105, 285, { align: 'center' });
+    doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 105, 290, { align: 'center' });
+    
+    doc.save(`Receipt_${data.flat_no}_${data.receipt_no || id}.pdf`);
+    
+  } else {
+    // ══════════════ EXPENSE VOUCHER ══════════════
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text(societyName, 105, 18, { align: 'center' });
+    
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(100);
+    if (societyAddress) doc.text(societyAddress, 105, 25, { align: 'center', maxWidth: 180 });
+    doc.setTextColor(0);
+    
+    doc.setDrawColor(200);
+    doc.line(14, 30, 196, 30);
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(185, 28, 28);
+    doc.text('PAYMENT VOUCHER', 105, 40, { align: 'center' });
+    doc.setTextColor(0);
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Voucher No: ${data.voucher_no || '-'}`, 14, 52);
+    doc.text(`Date: ${data.expense_date || '-'}`, 14, 58);
+    doc.text(`Category: ${data.category || '-'}`, 14, 64);
+    
+    doc.text(`Paid To: ${data.paid_to || '-'}`, 130, 52);
+    doc.text(`Mode: ${data.mode || '-'}`, 130, 58);
+    
+    doc.autoTable({
+      startY: 72,
+      head: [['Particulars', 'Amount (Rs.)']],
+      body: [
+        [`${data.category || 'Expense'} — ${data.paid_to || ''}`, Number(data.amount || 0).toFixed(2)],
+      ],
+      foot: [[
+        { content: 'TOTAL', styles: { fontStyle: 'bold', halign: 'right' } }, 
+        { content: 'Rs. ' + Number(data.amount || 0).toFixed(2), styles: { fontStyle: 'bold', halign: 'right' } }
+      ]],
+      theme: 'grid',
+      styles: { fontSize: 11, cellPadding: 3 },
+      headStyles: { fillColor: [220, 38, 38], textColor: 255, fontStyle: 'bold' },
+      footStyles: { fillColor: [254, 242, 242], textColor: [185, 28, 28], fontStyle: 'bold' }
+    });
+    
+    const amountInWords = numberToWordsIndian(Number(data.amount || 0));
+    let tableEnd = doc.lastAutoTable.finalY + 8;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text('Amount in Words:', 14, tableEnd);
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    doc.text(amountInWords, 14, tableEnd + 5, { maxWidth: 180 });
+    
+    if (data.remarks && data.remarks !== '-' && data.remarks !== '') {
+      doc.setFontSize(9);
+      doc.text(`Remarks: ${data.remarks}`, 14, tableEnd + 13, { maxWidth: 180 });
+      tableEnd += 6;
+    }
+    
+    const sigY = tableEnd + 40;
+    doc.setFontSize(9);
+    doc.text('_________________________', 130, sigY);
+    doc.text('Authorized Signatory', 138, sigY + 5);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text('This is a computer-generated voucher. No signature required.', 105, 285, { align: 'center' });
+    doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 105, 290, { align: 'center' });
+    
+    doc.save(`Voucher_${data.voucher_no || id}.pdf`);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// Helper: Number to Indian Words
+// ═══════════════════════════════════════════════════
+function numberToWordsIndian(num) {
+  if (num === 0) return 'Zero Rupees Only';
+  
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+                'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+                'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  
+  function twoDigits(n) {
+    if (n < 20) return ones[n];
+    return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+  }
+  
+  function threeDigits(n) {
+    if (n < 100) return twoDigits(n);
+    return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + twoDigits(n % 100) : '');
+  }
+  
+  const rupees = Math.floor(num);
+  const paise = Math.round((num - rupees) * 100);
+  
+  let result = '';
+  
+  if (rupees >= 10000000) result += threeDigits(Math.floor(rupees / 10000000)) + ' Crore ';
+  const afterCrore = rupees % 10000000;
+  if (afterCrore >= 100000) result += threeDigits(Math.floor(afterCrore / 100000)) + ' Lakh ';
+  const afterLakh = afterCrore % 100000;
+  if (afterLakh >= 1000) result += threeDigits(Math.floor(afterLakh / 1000)) + ' Thousand ';
+  const afterThousand = afterLakh % 1000;
+  if (afterThousand > 0) result += threeDigits(afterThousand) + ' ';
+  
+  result = result.trim() + ' Rupees';
+  if (paise > 0) result += ' and ' + twoDigits(paise) + ' Paise';
+  return result + ' Only';
 }
 
 async function updateSocietySettings(event) {
@@ -6920,7 +7165,9 @@ async function deleteTeamMember(id) {
 function exportTableToExcel(tableId, filename) {
   const table = document.getElementById(tableId);
   const tableClone = table.cloneNode(true);
-  tableClone.querySelectorAll('td').forEach(td => { td.innerText = td.innerText.replace(/[₹Rs\.]/g, '').trim(); });
+  tableClone.querySelectorAll('td').forEach(td => { 
+    td.innerText = td.innerText.replace(/₹/g, '').replace(/Rs\./g, '').trim(); 
+  });
   const wb = XLSX.utils.table_to_book(tableClone, { sheet: "Sheet1", raw: true });
   XLSX.writeFile(wb, `${filename}.xlsx`);
 }
