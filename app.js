@@ -3857,7 +3857,7 @@ function renderMembers() {
             <button class="btn btn-sm btn-outline-warning me-1" onclick="openEditMemberModal(${m.id})" title="Edit Member"><i class="fa-solid fa-pen"></i></button>
             <button class="btn btn-sm btn-outline-danger" onclick="deleteMember(${m.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
           ` : ''}
-          ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName}, your maintenance dues are pending. - PS Society')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>` : ''}
+          ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${phone}', 'Dear ${ownerName} (Flat ${flatNo}), your maintenance dues of Rs.${pendingDue} are pending. Please clear them at the earliest. - PS Society Solutions')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>` : ''}
         </td>
       </tr>
     `;
