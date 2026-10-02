@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PS Society Solutions — Digital Business Card</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: linear-gradient(145deg, #0f172a 0%, #1e293b 60%, #1e3a8a 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .vcard {
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(14px);
+    border-radius: 28px;
+    padding: 32px 26px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    text-align: center;
+    animation: fadeUp 0.6s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== BRAND HEADER ===== */
+  .brand-header {
+    border-bottom: 3px solid #f59e0b;
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+  }
+
+  /* Logo — bigger + tight spacing */
+  .logo-box {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto 6px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-box img {
+    width: 100%;
+    height: auto;
+    max-height: 110px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .brand-name {
+    font-weight: 900;
+    font-size: 24px;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+  }
+
+  .brand-name .gold { color: #f59e0b; }
+
+  .brand-tagline {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 600;
+    margin: 3px 0 0;
+    line-height: 1.3;
+  }
+
+  /* ===== CONTACT ===== */
+  .contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 14px;
+    text-decoration: none;
+    color: #1e293b;
+    transition: 0.2s;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+  }
+
+  .contact-item:hover {
+    background: #fff;
+    border-color: #f59e0b;
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+    color: #1e293b;
+  }
+
+  .contact-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .contact-item.whatsapp .contact-icon { background: linear-gradient(135deg, #25d366, #1da851); }
+  .contact-item.website .contact-icon { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+
+  .contact-text { flex: 1; min-width: 0; }
+
+  .contact-label {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .contact-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 2px;
+    word-break: break-word;
+  }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 24px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::before,
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+  }
+
+  /* ===== SOCIAL ===== */
+  .social-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+
+  .social-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    text-decoration: none;
+    transition: 0.25s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .social-btn:hover {
+    transform: translateY(-4px) scale(1.05);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  }
+
+  .social-btn.instagram { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); }
+  .social-btn.facebook { background: linear-gradient(135deg, #1877f2, #0d5dbf); }
+  .social-btn.youtube { background: linear-gradient(135deg, #ff0000, #cc0000); }
+  .social-btn.twitter { background: linear-gradient(135deg, #000000, #1a1a1a); }
+  .social-btn.linkedin { background: linear-gradient(135deg, #0077b5, #005885); }
+  .social-btn.whatsapp { background: linear-gradient(135deg, #25d366, #1da851); }
+
+  /* ===== TRUST BADGES ===== */
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+
+  .trust-item {
+    padding: 12px 6px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    transition: 0.2s;
+  }
+
+  .trust-item:hover {
+    border-color: #f59e0b;
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  }
+
+  .trust-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  .trust-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: #334155;
+    line-height: 1.3;
+  }
+
+  /* ===== PRICING ===== */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .price-card {
+    padding: 12px 6px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    text-align: center;
+    transition: 0.2s;
+  }
+
+  .price-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+
+  .price-card.popular {
+    background: linear-gradient(135deg, #fef3c7, #fed7aa);
+    border-color: #f59e0b;
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.25);
+  }
+
+  .price-card.popular:hover {
+    transform: scale(1.05) translateY(-2px);
+  }
+
+  .price-badge {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .price-card:nth-child(1) .price-badge { background: #64748b; color: #fff; }
+  .price-card:nth-child(2) .price-badge { background: #f59e0b; color: #fff; }
+  .price-card:nth-child(3) .price-badge { background: #2563eb; color: #fff; }
+
+  .price-amount {
+    font-size: 20px;
+    font-weight: 900;
+    color: #0f172a;
+    margin: 4px 0;
+  }
+
+  .price-amount small {
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .launch-pricing {
+    font-size: 11px;
+    color: #ea580c;
+    font-weight: 700;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* ===== FEATURES ===== */
+  .features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 22px;
+    text-align: left;
+  }
+
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    transition: 0.2s;
+  }
+
+  .feature-item:hover {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    transform: translateX(2px);
+  }
+
+  .feature-item i { color: #22c55e; font-size: 14px; width: 18px; text-align: center; }
+
+  /* ===== TAGLINE ===== */
+  .tagline-box {
+    text-align: center;
+    margin: 18px 0 8px;
+    padding: 10px;
+    background: linear-gradient(135deg, #f8fafc, #fff);
+    border-radius: 12px;
+    border: 1px dashed #f59e0b;
+  }
+
+  .tagline-text {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 0.5px;
+    line-height: 1.5;
+  }
+
+  /* ===== CTA ===== */
+  .cta-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .btn-cta {
+    padding: 14px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-cta.primary {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35);
+  }
+
+  .btn-cta.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(245, 158, 11, 0.45);
+    color: #fff;
+  }
+
+  .btn-cta.whatsapp {
+    background: linear-gradient(90deg, #25d366, #1da851);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35);
+  }
+
+  .btn-cta.whatsapp:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(37, 211, 102, 0.45);
+    color: #fff;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer-text {
+    text-align: center;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    line-height: 1.6;
+  }
+
+  .footer-text strong { color: #475569; font-weight: 700; }
+
+  /* ===== RESPONSIVE — MOBILE ===== */
+  @media (max-width: 480px) {
+    body { padding: 12px; }
+    .vcard { padding: 26px 20px; border-radius: 24px; }
+    .logo-box { max-width: 240px; }
+    .logo-box img { max-height: 95px; }
+    .brand-name { font-size: 22px; }
+  }
+
+  @media (max-width: 400px) {
+    .vcard { padding: 22px 16px; }
+    .logo-box { max-width: 210px; }
+    .logo-box img { max-height: 85px; }
+    .brand-name { font-size: 20px; }
+    .brand-tagline { font-size: 12px; }
+    .social-btn { width: 42px; height: 42px; font-size: 18px; }
+    .price-amount { font-size: 17px; }
+    .price-badge { font-size: 8px; padding: 2px 6px; }
+    .trust-text { font-size: 9px; }
+    .trust-icon { font-size: 18px; }
+    .contact-value { font-size: 13px; }
+    .feature-item { font-size: 12px; padding: 7px 10px; }
+    .btn-cta { font-size: 14px; padding: 12px; }
+  }
+
+  @media (max-width: 340px) {
+    .vcard { padding: 18px 14px; }
+    .logo-box { max-width: 180px; }
+    .logo-box img { max-height: 75px; }
+    .brand-name { font-size: 18px; }
+    .social-btn { width: 38px; height: 38px; font-size: 16px; }
+    .social-row { gap: 6px; }
+    .price-amount { font-size: 15px; }
+    .price-amount small { font-size: 9px; }
+    .trust-text { font-size: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="vcard">
+
+  <!-- ===== BRAND HEADER ===== -->
+  <div class="brand-header">
+    <div class="logo-box">
+      <img src="icon-512.png" alt="PS Society Solutions">
+    </div>
+    <h1 class="brand-name"><span class="gold">PS</span> Society Solutions</h1>
+    <p class="brand-tagline">Smart Society Management Engine</p>
+  </div>
+
+  <!-- ===== PRIMARY CONTACT ===== -->
+  <div class="contact-list">
+    
+    <a href="tel:+918160712113" class="contact-item">
+      <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+      <div class="contact-text">
+        <div class="contact-label">Call Us</div>
+        <div class="contact-value">+91 81607 12113</div>
+      </div>
+    </a>
+
+    <a href="https://wa.me/918160712113?text=Hi,%20I%20want%20to%20know%20more%20about%20PS%20Society%20Solutions" target="_blank" class="contact-item whatsapp">
+      <div class="contact-icon"><i class="fa-brands fa-whatsapp"></i></div>
+      <div class="contact-text">
+        <div class="contact-label">WhatsApp</div>
+        <div class="contact-value">Chat with us instantly</div>
+      </div>
+    </a>
+
+    <a href="mailto:ps.societysolutions@gmail.com" class="contact-item">
+      <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+      <div class="contact-text">
+        <div class="contact-label">Email</div>
+        <div class="contact-value">ps.societysolutions@gmail.com</div>
+      </div>
+    </a>
+
+    <a href="https://pssocietysolutions.github.io/ps-society-app/" target="_blank" class="contact-item website">
+      <div class="contact-icon"><i class="fa-solid fa-globe"></i></div>
+      <div class="contact-text">
+        <div class="contact-label">Try Free Demo</div>
+        <div class="contact-value">pssocietysolutions.github.io</div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- ===== SOCIAL MEDIA ===== -->
+  <div class="section-title">🌐 Follow Us</div>
+  <div class="social-row">
+    <a href="https://www.instagram.com/pssocietysolutions/" target="_blank" class="social-btn instagram" title="Instagram">
+      <i class="fa-brands fa-instagram"></i>
+    </a>
+    <a href="https://www.facebook.com/PSSocietySolutions/" target="_blank" class="social-btn facebook" title="Facebook">
+      <i class="fa-brands fa-facebook-f"></i>
+    </a>
+    <a href="https://www.youtube.com/@PSSOCIETYSOLUTIONS" target="_blank" class="social-btn youtube" title="YouTube">
+      <i class="fa-brands fa-youtube"></i>
+    </a>
+    <a href="https://x.com/PSSocietySol" target="_blank" class="social-btn twitter" title="X (Twitter)">
+      <i class="fa-brands fa-x-twitter"></i>
+    </a>
+    <a href="https://www.linkedin.com/in/ps-society-solutions/" target="_blank" class="social-btn linkedin" title="LinkedIn">
+      <i class="fa-brands fa-linkedin-in"></i>
+    </a>
+    <a href="https://wa.me/918160712113" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+      <i class="fa-brands fa-whatsapp"></i>
+    </a>
+  </div>
+
+  <!-- ===== TRUST BADGES ===== -->
+  <div class="section-title">🔒 Why Trust Us</div>
+  <div class="trust-grid">
+    <div class="trust-item">
+      <div class="trust-icon">💰</div>
+      <div class="trust-text">No Cash Handling</div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">🔐</div>
+      <div class="trust-text">No Bank Access</div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">📊</div>
+      <div class="trust-text">Transparent Records</div>
+    </div>
+  </div>
+
+  <!-- ===== PRICING ===== -->
+  <div class="section-title">💰 Pricing Plans</div>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <span class="price-badge">Silver</span>
+      <div class="price-amount">₹49<small>per flat/mo</small></div>
+    </div>
+    <div class="price-card popular">
+      <span class="price-badge">Gold ⭐</span>
+      <div class="price-amount">₹79<small>per flat/mo</small></div>
+    </div>
+    <div class="price-card">
+      <span class="price-badge">Platinum</span>
+      <div class="price-amount">₹149<small>per flat/mo</small></div>
+    </div>
+  </div>
+
+  <!-- ===== LAUNCH PRICING ===== -->
+  <p class="launch-pricing">🚀 Minimum 25 Houses — Launch Pricing</p>
+
+  <!-- ===== FEATURES ===== -->
+  <div class="section-title">✨ Key Features</div>
+  <div class="features-list">
+    <div class="feature-item"><i class="fa-solid fa-check-circle"></i> Maintenance Tracking + Auto Billing</div>
+    <div class="feature-item"><i class="fa-solid fa-check-circle"></i> UPI Payments + QR Code</div>
+    <div class="feature-item"><i class="fa-solid fa-check-circle"></i> WhatsApp Bulk Reminders</div>
+    <div class="feature-item"><i class="fa-solid fa-check-circle"></i> Visitor QR Self Check-in</div>
+    <div class="feature-item"><i class="fa-solid fa-check-circle"></i> CA-Ready Reports (PDF/Excel)</div>
+    <div class="feature-item"><i class="fa-solid fa-check-circle"></i> Emergency SOS Alert</div>
+    <div class="feature-item"><i class="fa-solid fa-check-circle"></i> 30+ Features — Ek App Me</div>
+  </div>
+
+  <!-- ===== TAGLINE ===== -->
+  <div class="tagline-box">
+    <div class="tagline-text">YOUR SOCIETY. OUR EXPERTISE. TRANSPARENT MANAGEMENT.</div>
+  </div>
+
+  <!-- ===== CTA BUTTONS ===== -->
+  <div class="cta-buttons">
+    <a href="https://pssocietysolutions.github.io/ps-society-app/" target="_blank" class="btn-cta primary">
+      <i class="fa-solid fa-play-circle"></i> Try Free Live Demo
+    </a>
+    <a href="https://wa.me/918160712113?text=Hi,%20I%20want%20to%20schedule%20a%20demo%20for%20my%20society" target="_blank" class="btn-cta whatsapp">
+      <i class="fa-brands fa-whatsapp"></i> Book Free Demo
+    </a>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="footer-text">
+    🎁 <strong>1 Month FREE Trial</strong> · Free Setup + Training<br>
+    📍 Vadodara, Gujarat, India<br>
+    © 2026 PS Society Solutions
+  </div>
+
+</div>
+
+</body>
+</html>
