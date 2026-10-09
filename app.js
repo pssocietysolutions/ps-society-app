@@ -3799,6 +3799,26 @@ function renderAllBookings() {
   }).join('');
 }
 
+// ═══════════════════════════════════════════════════
+// 🔍 MEMBERS TAB SEARCH (Step 1 — Per-Tab Search)
+// ═══════════════════════════════════════════════════
+
+let __membersSearchQuery = '';
+
+function filterMembersTable() {
+  const input = document.getElementById('members-search-input');
+  __membersSearchQuery = (input?.value || '').trim().toLowerCase();
+  renderMembers();
+}
+
+function clearMembersSearch() {
+  const input = document.getElementById('members-search-input');
+  if (input) input.value = '';
+  __membersSearchQuery = '';
+  renderMembers();
+}
+
+
 function renderMembers() {
   const tbody = document.getElementById('members-list');
   if (!tbody) return;
@@ -3812,7 +3832,61 @@ function renderMembers() {
   const canEdit = currentRole === 'Admin' || currentRole === 'SocietyAdmin';
   const canViewLedger = currentRole === 'Admin' || currentRole === 'Chairman' || currentRole === 'SocietyAdmin';
 
-  tbody.innerHTML = membersData.map((m, index) => {
+  // 🔍 Search filter apply
+  let displayMembers = membersData;
+  if (__membersSearchQuery) {
+    displayMembers = membersData.filter(m => {
+      const flat = (m.flat_no || '').toLowerCase();
+      const name = (m.name || '').toLowerCase();
+      const phone = (m.phone || '').toLowerCase();
+      return flat.includes(__membersSearchQuery) 
+          || name.includes(__membersSearchQuery) 
+          || phone.includes(__membersSearchQuery);
+    });
+  }
+
+  // 🔍 Search count update
+  const countEl = document.getElementById('members-search-count');
+  const countText = document.getElementById('members-search-count-text');
+  if (countEl && countText) {
+    if (__membersSearchQuery) {
+      countEl.classList.remove('d-none');
+      countText.textContent = `${displayMembers.length} of ${membersData.length} members`;
+    } else {
+      countEl.classList.add('d-none');
+    }
+  }
+
+  // 🚫 No results case
+    if (displayMembers.length === 0 && __membersSearchQuery) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">
+      <i class="fa-solid fa-search fa-2x d-block mb-2 opacity-50"></i>
+      No members found for "<b>${__membersSearchQuery}</b>"
+    </td></tr>`;
+    // ✅ Dashboard pending = ALL members (search-free)
+    let fullGrandTotalPending = 0;
+    membersData.forEach(m => {
+      const flatNo = (m.flat_no || '').trim().toUpperCase();
+      const rate = Number(m.monthly_rate || 600);
+      const openingDue = Number(m.opening_due || 0);
+      const flatPaid = maintenanceData
+        .filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo && r.month_accounted !== 'VMC Water')
+        .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+      const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
+      const flatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === flatNo);
+      const totalDebitJV = flatJVs.filter(jv => jv.type === 'Debit').reduce((s, jv) => s + Number(jv.amount || 0), 0);
+      const totalCreditJV = flatJVs.filter(jv => jv.type === 'Credit').reduce((s, jv) => s + Number(jv.amount || 0), 0);
+      const netJVEffect = totalDebitJV - totalCreditJV;
+      let rawPending = openingDue + totalDueTillDate + netJVEffect - flatPaid;
+      let pendingDue = Math.max(0, rawPending);
+      pendingDue += calculateLateFee(pendingDue, rate);
+      fullGrandTotalPending += pendingDue;
+    });
+    document.getElementById('dash-pending').innerText = fullGrandTotalPending;
+    return;
+  }
+
+  tbody.innerHTML = displayMembers.map((m, index) => {
     const flatNo = (m.flat_no || '').trim().toUpperCase();
     const ownerName = m.name || '-';
     const phone = m.phone || '-';
@@ -3861,8 +3935,28 @@ function renderMembers() {
         </td>
       </tr>
     `;
-  }).join('');
-  document.getElementById('dash-pending').innerText = grandTotalPending;
+    }).join('');
+
+  // ✅ Dashboard pending = ALL members (search-free)
+  let fullGrandTotalPending = 0;
+  membersData.forEach(m => {
+    const flatNo = (m.flat_no || '').trim().toUpperCase();
+    const rate = Number(m.monthly_rate || 600);
+    const openingDue = Number(m.opening_due || 0);
+    const flatPaid = maintenanceData
+      .filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo && r.month_accounted !== 'VMC Water')
+      .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+    const totalDueTillDate = MONTHS_IN_FY_SO_FAR * rate;
+    const flatJVs = journalVouchersData.filter(jv => (jv.flat_no || '').trim().toUpperCase() === flatNo);
+    const totalDebitJV = flatJVs.filter(jv => jv.type === 'Debit').reduce((s, jv) => s + Number(jv.amount || 0), 0);
+    const totalCreditJV = flatJVs.filter(jv => jv.type === 'Credit').reduce((s, jv) => s + Number(jv.amount || 0), 0);
+    const netJVEffect = totalDebitJV - totalCreditJV;
+    let rawPending = openingDue + totalDueTillDate + netJVEffect - flatPaid;
+    let pendingDue = Math.max(0, rawPending);
+    pendingDue += calculateLateFee(pendingDue, rate);
+    fullGrandTotalPending += pendingDue;
+  });
+  document.getElementById('dash-pending').innerText = fullGrandTotalPending;
 }
 
 // ============================================================
@@ -4444,21 +4538,33 @@ function renderMaintenance() {
   }
   tbody.innerHTML = filteredData.map((r) => {
     const amt = Number(r.amount_paid || 0);
-    total += amt;
+    const isVMC = (r.month_accounted || '').toLowerCase().trim() === 'vmc water';
+
+    // ✅ Only regular maintenance counts toward dashboard total
+    if (!isVMC) total += amt;
+
     const member = membersData.find(m => (m.flat_no || '').trim().toUpperCase() === (r.flat_no || '').trim().toUpperCase());
     const memberPhone = member?.phone || '';
-    const showWhatsApp = (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone;
+    const showWhatsApp = (currentRole === 'Admin' || currentRole === 'SocietyAdmin' || currentRole === 'Chairman') && memberPhone && !isVMC;
+
+    // ✅ VMC Water → 💧 badge + light blue row
+    const periodCell = isVMC
+      ? `<span class="badge bg-info text-dark">💧 VMC Water</span> <small class="text-muted">(One-time)</small>`
+      : `<span class="badge bg-secondary">${r.month_accounted || "-"}</span>`;
+
+    const rowClass = isVMC ? 'table-info' : '';
+
     return `
-      <tr>
+      <tr class="${rowClass}">
         <td>${r.receipt_no || '-'}</td>
         <td><b>${r.flat_no || '-'}</b></td>
         <td>${r.payment_date || '-'}</td>
-        <td><span class="badge bg-secondary">${r.month_accounted || "-"}</span></td>
+        <td>${periodCell}</td>
         <td>${amt}</td>
         <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
         <td class="no-print">
           <button class="btn btn-sm btn-outline-primary" onclick="generateReceiptPDF('maintenance', ${r.id})" title="Receipt PDF"><i class="fa-solid fa-file-pdf"></i></button>
-          ${currentRole === 'Admin' || currentRole === 'SocietyAdmin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMaintenance(${r.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
+          ${currentRole === 'Admin' || currentRole === 'SocietyAdmin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteMaintenance(${r.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>` : ''}
           ${showWhatsApp ? `<button class="btn btn-sm btn-whatsapp ms-1" onclick="sendWhatsAppReminder('${memberPhone}', 'Reminder: Your maintenance for ${r.month_accounted || ''} is due. - PS Society')"><i class="fa-brands fa-whatsapp" style="color: #25d366 !important;"></i></button>` : ''}
         </td>
       </tr>
@@ -4472,20 +4578,47 @@ function renderMyPaymentHistory() {
   if (!tbody) return;
   const userFlat = (currentUser || '').trim().toUpperCase();
   const myPayments = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === userFlat);
-  
+
   if (myPayments.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No payment history found.</td></tr>`;
     return;
   }
-  
-  tbody.innerHTML = myPayments.map(r => `
-    <tr>
-      <td><b>${r.receipt_no || '-'}</b></td>
-      <td>${r.payment_date || '-'}</td>
-      <td class="text-success fw-bold">${r.amount_paid || 0}</td>
-      <td><span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span></td>
-    </tr>
-  `).join('');
+
+  tbody.innerHTML = myPayments.map(r => {
+    const isVMC = (r.month_accounted || '').toLowerCase().trim() === 'vmc water';
+    const modeCell = isVMC
+      ? `<span class="badge bg-info text-dark">💧 VMC Water</span> <small class="text-muted">(One-time)</small>`
+      : `<span class="badge bg-info text-dark">${r.mode_of_payment || 'UPI'}</span>`;
+    const rowClass = isVMC ? 'table-info' : '';
+
+    return `
+      <tr class="${rowClass}">
+        <td><b>${r.receipt_no || '-'}</b></td>
+        <td>${r.payment_date || '-'}</td>
+        <td class="text-success fw-bold">${r.amount_paid || 0}</td>
+        <td>${modeCell}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// 🔍 EXPENSES TAB SEARCH (Step 2 — Per-Tab Search)
+// ═══════════════════════════════════════════════════
+
+let __expensesSearchQuery = '';
+
+function filterExpensesTable() {
+  const input = document.getElementById('expenses-search-input');
+  __expensesSearchQuery = (input?.value || '').trim().toLowerCase();
+  renderExpenses();
+}
+
+function clearExpensesSearch() {
+  const input = document.getElementById('expenses-search-input');
+  if (input) input.value = '';
+  __expensesSearchQuery = '';
+  renderExpenses();
 }
 
 function renderExpenses() {
@@ -4497,9 +4630,52 @@ function renderExpenses() {
     document.getElementById('dash-expenses').innerText = `0`;
     return;
   }
-  tbody.innerHTML = expenseData.map((e) => {
+
+  // 🔍 Search filter apply
+  let displayExpenses = expenseData;
+  if (__expensesSearchQuery) {
+    displayExpenses = expenseData.filter(e => {
+      const voucherNo = (e.voucher_no || '').toLowerCase();
+      const category = (e.category || '').toLowerCase();
+      const paidTo = (e.paid_to || '').toLowerCase();
+      const mode = (e.mode || '').toLowerCase();
+      const remarks = (e.remarks || '').toLowerCase();
+      const date = (e.expense_date || '').toLowerCase();
+      return voucherNo.includes(__expensesSearchQuery)
+          || category.includes(__expensesSearchQuery)
+          || paidTo.includes(__expensesSearchQuery)
+          || mode.includes(__expensesSearchQuery)
+          || remarks.includes(__expensesSearchQuery)
+          || date.includes(__expensesSearchQuery);
+    });
+  }
+
+  // 🔍 Search count update
+  const countEl = document.getElementById('expenses-search-count');
+  const countText = document.getElementById('expenses-search-count-text');
+  if (countEl && countText) {
+    if (__expensesSearchQuery) {
+      countEl.classList.remove('d-none');
+      countText.textContent = `${displayExpenses.length} of ${expenseData.length} expenses`;
+    } else {
+      countEl.classList.add('d-none');
+    }
+  }
+
+  // 🚫 No results case
+    if (displayExpenses.length === 0 && __expensesSearchQuery) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
+      <i class="fa-solid fa-search fa-2x d-block mb-2 opacity-50"></i>
+      No expenses found for "<b>${__expensesSearchQuery}</b>"
+    </td></tr>`;
+    // ✅ Dashboard total = ALL expenses (search-free)
+    const fullTotal = expenseData.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    document.getElementById('dash-expenses').innerText = fullTotal.toFixed(2);
+    return;
+  }
+
+    tbody.innerHTML = displayExpenses.map((e) => {
     const amt = Number(e.amount || 0);
-    total += amt;
     return `
       <tr>
         <td>${e.voucher_no || '-'}</td>
@@ -4515,7 +4691,10 @@ function renderExpenses() {
       </tr>
     `;
   }).join('');
-  document.getElementById('dash-expenses').innerText = total.toFixed(2);
+
+  // ✅ Dashboard total = ALL expenses (search-free)
+  const fullTotal = expenseData.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  document.getElementById('dash-expenses').innerText = fullTotal.toFixed(2);
 }
 
 async function renderCAAuditReport() {
@@ -4545,19 +4724,40 @@ async function renderCAAuditReport() {
   const openingCapital =
     openingBank + totalMembersOpeningDue + totalAssets + totalFDs - totalAdvanceLiability;
 
-  // ─────────── CURRENT FY INCOME ───────────
-  const fyIncome = maintenanceData
+    // ─────────── VMC WATER (Pass-through) ───────────
+  const __isVMC = (val) => (val || '').toLowerCase().trim() === 'vmc water';
+  const __isVMCExpense = (val) => (val || '').toLowerCase().trim().includes('vmc');
+
+  const vmcReceipts = maintenanceData
     .filter(r => {
       const d = (r.payment_date || '').trim();
-      return d >= __fyStartDate && d <= __fyEndDate;
+      return d >= __fyStartDate && d <= __fyEndDate && __isVMC(r.month_accounted);
     })
     .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
 
-  // ─────────── CURRENT FY EXPENSES ───────────
+  const vmcExpenses = expenseData
+    .filter(e => {
+      const d = (e.expense_date || '').trim();
+      return d >= __fyStartDate && d <= __fyEndDate && __isVMCExpense(e.category);
+    })
+    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+  // Net: +ve = payable to VMC (Liability), -ve = advance held (Asset)
+  const vmcNet = vmcReceipts - vmcExpenses;
+
+  // ─────────── CURRENT FY INCOME (Regular only) ───────────
+  const fyIncome = maintenanceData
+    .filter(r => {
+      const d = (r.payment_date || '').trim();
+      return d >= __fyStartDate && d <= __fyEndDate && !__isVMC(r.month_accounted);
+    })
+    .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+
+  // ─────────── CURRENT FY EXPENSES (Regular only) ───────────
   const fyExpenses = expenseData
     .filter(e => {
       const d = (e.expense_date || '').trim();
-      return d >= __fyStartDate && d <= __fyEndDate;
+      return d >= __fyStartDate && d <= __fyEndDate && !__isVMCExpense(e.category);
     })
     .reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
@@ -4573,17 +4773,53 @@ async function renderCAAuditReport() {
     .filter(jv => jv.type === 'Credit')
     .reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
 
-  // ─────────── ✅ CLOSING BALANCES (auto-computed) ───────────
-  const closingBank = openingBank + fyIncome - fyExpenses;
-  const closingReceivable = totalMembersOpeningDue + jvDebitTotal - jvCreditTotal;
+  // ─────────── 🆕 FY ACCRUED DUES + LATE FEE (Bug 3 Fix) ───────────
+let accruedDuesIncome = 0;   // Total monthly dues accrue of this FY
+let lateFeeIncome = 0;        // Total late fee charged this FY
 
-  const totalIncome = fyIncome + jvDebitTotal;
-  const totalExpenses = fyExpenses + jvCreditTotal;
+membersData.forEach(m => {
+  const rate = Number(m.monthly_rate || 0);
+  const accrued = rate * MONTHS_IN_FY_SO_FAR;
+  accruedDuesIncome += accrued;
 
-  // ─────────── TRIAL BALANCE TOTALS ───────────
-  const totalDebit = closingBank + closingReceivable + totalAssets + totalFDs + totalExpenses;
-  const totalCredit = totalIncome + openingCapital + totalAdvanceLiability;
-  const variance = totalDebit - totalCredit; // Should always be 0
+  // Late fee = only on unpaid portion
+  const flatNo = (m.flat_no || '').trim().toUpperCase();
+  const paid = maintenanceData
+    .filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo
+             && (r.month_accounted || '').toLowerCase().trim() !== 'vmc water')
+    .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
+
+  const opening = Number(m.opening_due || 0);
+  const totalBilled = opening + accrued;
+  const pendingBeforeLate = Math.max(0, totalBilled - paid);
+
+  if (pendingBeforeLate > 0) {
+    lateFeeIncome += calculateLateFee(pendingBeforeLate, rate);
+  }
+});
+
+// ─────────── ✅ CLOSING BALANCES (Accrual Basis — CORRECTED) ───────────
+const closingBank = openingBank + fyIncome + vmcReceipts - fyExpenses - vmcExpenses;
+
+// Receivable = Opening Due + All FY Income Accrued − Cash Collected this FY
+const closingReceivable = totalMembersOpeningDue 
+                        + accruedDuesIncome 
+                        + lateFeeIncome 
+                        + jvDebitTotal 
+                        - jvCreditTotal 
+                        - fyIncome;    // ⬅️ fyIncome = actual cash collected
+
+// Income (Accrual basis — matches receivable above)
+const totalIncome = accruedDuesIncome + lateFeeIncome + jvDebitTotal;
+const totalExpenses = fyExpenses + jvCreditTotal;
+
+    // ─────────── TRIAL BALANCE TOTALS (with VMC pass-through) ───────────
+  const vmcLiability = vmcNet > 0 ? vmcNet : 0;  // Payable to VMC
+  const vmcAsset = vmcNet < 0 ? Math.abs(vmcNet) : 0;  // Advance held
+
+  const totalDebit = closingBank + closingReceivable + totalAssets + totalFDs + totalExpenses + vmcAsset;
+  const totalCredit = totalIncome + openingCapital + totalAdvanceLiability + vmcLiability;
+  const variance = totalDebit - totalCredit;
 
   const currentFYSurplus = totalIncome - totalExpenses;
 
@@ -4592,12 +4828,41 @@ async function renderCAAuditReport() {
   if (tbody) {
     tbody.innerHTML = `
       <tr><td>Closing Bank Balance</td><td>Asset</td><td class="text-success fw-bold">${closingBank.toFixed(2)}</td><td>-</td></tr>
-      <tr><td>Members Dues Receivable</td><td>Asset / Receivable</td><td class="text-success fw-bold">${closingReceivable.toFixed(2)}</td><td>-</td></tr>
+      
       <tr><td>Total Fixed Assets (from Register)</td><td>Asset</td><td class="text-success fw-bold">${totalAssets.toFixed(2)}</td><td>-</td></tr>
       <tr><td>Total Fixed Deposits & Reserves</td><td>Asset / Reserve</td><td class="text-success fw-bold">${totalFDs.toFixed(2)}</td><td>-</td></tr>
-      <tr><td>Maintenance Collections Income</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${fyIncome.toFixed(2)}</td></tr>
+      <tr>
+  <td>Members Dues Receivable<br>
+      <small class="text-muted" style="font-size:10px;">
+        (Opening ₹${totalMembersOpeningDue.toFixed(0)} 
+         + Accrued ₹${accruedDuesIncome.toFixed(0)} 
+         + Late Fee ₹${lateFeeIncome.toFixed(0)} 
+         − Collected ₹${fyIncome.toFixed(0)})
+      </small>
+  </td>
+  <td>Asset / Receivable</td>
+  <td class="text-success fw-bold">${closingReceivable.toFixed(2)}</td>
+  <td>-</td>
+</tr>
+
+<tr>
+  <td>Maintenance Dues Accrued (This FY)</td>
+  <td>Income (Accrual)</td>
+  <td>-</td>
+  <td class="text-primary fw-bold">${accruedDuesIncome.toFixed(2)}</td>
+</tr>
+
+${lateFeeIncome > 0 ? `
+<tr>
+  <td>Late Fee / Interest Income</td>
+  <td>Income (Accrual)</td>
+  <td>-</td>
+  <td class="text-primary fw-bold">${lateFeeIncome.toFixed(2)}</td>
+</tr>` : ''}
       ${jvDebitTotal > 0 ? `<tr><td>&nbsp;&nbsp;+ JV (Debit — Penalties / Extra Charges)</td><td>Income</td><td>-</td><td class="text-primary fw-bold">${jvDebitTotal.toFixed(2)}</td></tr>` : ''}
-      <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${fyExpenses.toFixed(2)}</td><td>-</td></tr>
+            <tr><td>Total Society Expenses (from Ledger)</td><td>Expense</td><td class="text-danger fw-bold">${fyExpenses.toFixed(2)}</td><td>-</td></tr>
+      ${vmcAsset > 0 ? `<tr class="table-info"><td>💧 VMC Water — Advance Held (Receivable)</td><td>Asset (Pass-through)</td><td class="text-success fw-bold">${vmcAsset.toFixed(2)}</td><td>-</td></tr>` : ''}
+      ${vmcLiability > 0 ? `<tr class="table-warning"><td>💧 VMC Water — Payable to VMC (Liability)</td><td>Liability (Pass-through)</td><td>-</td><td class="text-primary fw-bold">${vmcLiability.toFixed(2)}</td></tr>` : ''}
       ${jvCreditTotal > 0 ? `<tr><td>&nbsp;&nbsp;+ JV (Credit — Waivers / Discounts)</td><td>Expense</td><td class="text-danger fw-bold">${jvCreditTotal.toFixed(2)}</td><td>-</td></tr>` : ''}
       <tr><td>Advance Maintenance Received (Liability)</td><td>Current Liability</td><td>-</td><td class="text-warning fw-bold">${totalAdvanceLiability.toFixed(2)}</td></tr>
       <tr><td>Opening Capital / Corpus Fund <span class="badge bg-info-subtle text-info ms-1" style="font-size: 9px;">AUTO</span></td><td>Capital / Liability</td><td>-</td><td class="text-primary fw-bold">${openingCapital.toFixed(2)}</td></tr>
@@ -4657,6 +4922,12 @@ async function renderCAAuditReport() {
       console.error('Error loading CA GST summary:', err);
     }
   }
+
+  // ✅ STEP 2 & 3: Auto-render R&P + I&E
+  try { renderReceiptsPayments(); } catch (e) { console.warn('[CA] RP error:', e); }
+  try { renderIncomeExpenditure(); } catch (e) { console.warn('[CA] IE error:', e); }
+  // ✅ STEP 4: Auto-render Balance Sheet
+  try { renderBalanceSheet(); } catch (e) { console.warn('[CA] BS error:', e); }
 }
 
 function renderChairmanReport() { generateMonthlySummary(); }
@@ -6707,8 +6978,10 @@ function generateMonthlySummary() {
     if (monthInput) monthInput.value = selectedMonth;
   }
 
-  const monthCollections = maintenanceData.filter(r => {
+    const monthCollections = maintenanceData.filter(r => {
     if (!r.payment_date) return false;
+    // ✅ Exclude VMC Water — one-time payment, not maintenance
+    if ((r.month_accounted || '').toLowerCase().trim() === 'vmc water') return false;
     const d = new Date(r.payment_date);
     if (!isNaN(d.getTime())) { const yyyy = d.getFullYear(); const mm = String(d.getMonth() + 1).padStart(2, '0'); return `${yyyy}-${mm}` === selectedMonth; }
     return (r.payment_date || '').startsWith(selectedMonth);
@@ -6730,15 +7003,18 @@ function generateMonthlySummary() {
     const flatNo = (m.flat_no || '').trim().toUpperCase();
     const rate = Number(m.monthly_rate || 600);
     const openingDue = Number(m.opening_due || 0);
-    const flatPaid = maintenanceData.filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo).reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+        const flatPaid = maintenanceData
+      .filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo
+                && (r.month_accounted || '').toLowerCase().trim() !== 'vmc water')
+      .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
     const totalDue = openingDue + (MONTHS_IN_FY_SO_FAR * rate);
     if (totalDue - flatPaid > 0) defaulterCount++;
   });
 
-  document.querySelectorAll('#summary-month-collected').forEach(el => el.innerText = totalCollected);
-  document.querySelectorAll('#summary-month-expenses').forEach(el => el.innerText = totalExpenses);
+    document.querySelectorAll('#summary-month-collected').forEach(el => el.innerText = `₹${totalCollected.toFixed(2)}`);
+  document.querySelectorAll('#summary-month-expenses').forEach(el => el.innerText = `₹${totalExpenses.toFixed(2)}`);
   document.querySelectorAll('#summary-month-net').forEach(el => {
-    el.innerText = netCashflow;
+    el.innerText = `₹${netCashflow.toFixed(2)}`;
     el.className = netCashflow >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold';
   });
   document.querySelectorAll('#summary-month-defaulters').forEach(el => el.innerText = `${defaulterCount} Flats`);
@@ -6749,7 +7025,7 @@ function generateMonthlySummary() {
 function renderMonthlySummaryTable(collections, expenses, totalColl, totalExp, net) {
   const expCategories = {
     'Administrative Expenses': 0, 'Utility Expenses': 0, 'Repairs & Maintenance': 0,
-    'Staff & Salary': 0, 'Statutory & Legal': 0, 'Other Expenses': 0
+    'Staff & Salary': 0, 'Statutory & Legal': 0, 'VMC Water': 0, 'Other Expenses': 0
   };
 
   expenses.forEach(e => {
@@ -7481,7 +7757,7 @@ async function openTabOverlay(tabId, skipHistory = false) {
     }
     if (tabId === 'manage-societies') loadSocietiesList();
 if (tabId === 'user-management') { await initUserManagementTab(); }   // ← ये line ADD करो!
-    if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank'].includes(tabId)) {
+    if (['dashboard', 'members', 'maintenance', 'expenses', 'polls', 'complaints', 'proofs', 'amc-tracker', 'assets', 'fds', 'team', 'journal-voucher', 'deletion-requests', 'sos-contacts', 'bank-details', 'tally-bank', 'ca-audit'].includes(tabId)) {
       refreshTabData(tabId);
     }
 
@@ -9843,6 +10119,36 @@ function copyText(text) {
   });
 }
 
+// ═══════════════════════════════════════════════════════
+// CA AUDIT — Sub-Tab Switch (TEMPORARY — will expand)
+// ═══════════════════════════════════════════════════════
+function showCASection(section) {
+  // Hide all sections
+  document.querySelectorAll('.ca-section').forEach(el => el.classList.add('d-none'));
+  
+  // Show target section
+  const target = document.getElementById(`ca-section-${section}`);
+  if (target) target.classList.remove('d-none');
+  
+  // Update active button
+  document.querySelectorAll('.ca-subtab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-ca-section') === section);
+  });
+  
+  console.log('[CA] Section switched to:', section);
+}
+
+// ═══════════════════════════════════════════════════════
+// CA REPORT EXPORT — Placeholder (will build in Step 9)
+// ═══════════════════════════════════════════════════════
+function exportCAReportExcel(reportType) {
+  alert('📊 Excel export for "' + reportType + '" — will be built in Step 9');
+}
+
+function exportCAReportPDF(reportType) {
+  alert('📄 PDF export for "' + reportType + '" — will be built in Step 9');
+}
+
 // 13. Realtime Subscription
 function setupUserMgmtRealtime() {
   if (__userMgmtRealtimeChannel) {
@@ -9883,3 +10189,1854 @@ function setupUserMgmtRealtime() {
       console.log('[RT] User Mgmt channel:', status);
     });
 }
+
+// ═══════════════════════════════════════════════════════════════
+// CA AUDIT — STEP 2: Receipts & Payments Account
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Helper: Get all months of current FY (April to March)
+ */
+function __getFYMonths() {
+  const fyStart = getCurrentFYStartDate();
+  const fyYear = parseInt(fyStart.split('-')[0]);
+  const months = [];
+  for (let i = 0; i < 12; i++) {
+    const m = ((3 + i) % 12) + 1;
+    const y = (3 + i) >= 12 ? fyYear + 1 : fyYear;
+    months.push(`${y}-${String(m).padStart(2, '0')}`);
+  }
+  return months;
+}
+
+/**
+ * Helper: Format YYYY-MM → "Apr-25"
+ */
+function __formatMonthLabel(ym) {
+  const [y, m] = ym.split('-');
+  const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${names[parseInt(m) - 1]}-${y.substring(2)}`;
+}
+
+/**
+ * Clear R&P month filter
+ */
+function clearCARPMonthFilter() {
+  const picker = document.getElementById('ca-rp-month-picker');
+  if (picker) picker.value = '';
+  renderReceiptsPayments();
+}
+
+/**
+ * MAIN: Render Receipts & Payments Account
+ */
+function renderReceiptsPayments() {
+  const tbody = document.getElementById('ca-receipts-payments-rows');
+  if (!tbody) return;
+
+  const monthPicker = document.getElementById('ca-rp-month-picker');
+  const selectedMonth = (monthPicker?.value || '').trim();
+
+  const matchMonth = (dateStr) => {
+    if (!selectedMonth) return true;
+    if (!dateStr) return false;
+    return String(dateStr).startsWith(selectedMonth);
+  };
+
+        // ✅ Include VMC for splitting (will be separated below)
+  const filteredMaint = (maintenanceData || []).filter(r =>
+    matchMonth(r.payment_date)
+  );
+    const filteredExp = (expenseData || []).filter(e =>
+    matchMonth(e.expense_date) && !(e.category || '').toLowerCase().includes('vmc')
+  );
+  const filteredVMCExp = (expenseData || []).filter(e =>
+    matchMonth(e.expense_date) && (e.category || '').toLowerCase().includes('vmc')
+  );
+  const filteredBank  = (customBankEntries || []).filter(b => matchMonth(b.date));
+
+  const openingBal = selectedMonth ? 0 : (parseFloat(openingBalance) || 0);
+
+    // ✅ Split Regular vs VMC (Pass-through)
+  let totalMaint = 0;
+  let vmcReceipts = 0;
+  filteredMaint.forEach(r => {
+    const isVMC = (r.month_accounted || '').toLowerCase().trim() === 'vmc water';
+    if (isVMC) vmcReceipts += Number(r.amount_paid || 0);
+    else totalMaint += Number(r.amount_paid || 0);
+  });
+
+  let interestIncome = 0;
+  let otherReceipts  = 0;
+  filteredBank.forEach(b => {
+    const dep = Number(b.deposit || 0);
+    if (dep > 0) {
+      const head = (b.head || '').toLowerCase();
+      if (head.includes('interest')) interestIncome += dep;
+      else otherReceipts += dep;
+    }
+  });
+
+    const expCategories = {};
+  filteredExp.forEach(e => {
+    const cat = e.category || 'Other Expenses';
+    expCategories[cat] = (expCategories[cat] || 0) + Number(e.amount || 0);
+  });
+
+  // ✅ NEW: VMC payment (separate)
+  let vmcPayments = 0;
+  filteredVMCExp.forEach(e => {
+    vmcPayments += Number(e.amount || 0);
+  });
+
+  let bankWithdrawals = 0;
+  filteredBank.forEach(b => {
+    const wd = Number(b.withdraw || 0);
+    if (wd > 0) bankWithdrawals += wd;
+  });
+
+  const totalReceipts = openingBal + totalMaint + vmcReceipts + interestIncome + otherReceipts;
+  let totalPayments = bankWithdrawals + vmcPayments;
+  Object.values(expCategories).forEach(v => { totalPayments += v; });
+  const closingBalance = totalReceipts - totalPayments;
+
+    const leftRows = [
+    ...(openingBal > 0 ? [{ label: 'Opening Balance (Bank)', amount: openingBal }] : []),
+    ...(totalMaint > 0 ? [{ label: 'Maintenance Collection', amount: totalMaint }] : []),
+    ...(vmcReceipts > 0 ? [{ label: '💧 VMC Water Collection (Pass-through)', amount: vmcReceipts }] : []),
+    ...(interestIncome > 0 ? [{ label: 'Interest Received', amount: interestIncome }] : []),
+    ...(otherReceipts  > 0 ? [{ label: 'Other Receipts', amount: otherReceipts }] : [])
+  ];
+
+    const rightRows = [
+    ...Object.entries(expCategories).map(([cat, amt]) => ({ label: cat, amount: amt })),
+    ...(vmcPayments    > 0 ? [{ label: '💧 VMC Water Payment (Pass-through)', amount: vmcPayments }] : []),
+    ...(bankWithdrawals > 0 ? [{ label: 'Bank Withdrawals', amount: bankWithdrawals }] : [])
+  ];
+
+  const maxRows = Math.max(leftRows.length, rightRows.length, 1);
+
+  const periodLabel = selectedMonth
+    ? __formatMonthLabel(selectedMonth)
+    : `Full FY ${__formatMonthLabel(__getFYMonths()[0])} to ${__formatMonthLabel(__getFYMonths()[11])}`;
+
+  let html = `
+    <tr class="table-secondary">
+      <td colspan="5" class="text-center fw-semibold small">
+        <i class="fa-solid fa-calendar-days me-1"></i>
+        Period: ${periodLabel}
+      </td>
+    </tr>
+  `;
+
+  for (let i = 0; i < maxRows; i++) {
+    const l = leftRows[i]  || { label: '', amount: null };
+    const r = rightRows[i] || { label: '', amount: null };
+    const lAmt = l.amount !== null ? Number(l.amount).toFixed(2) : '';
+    const rAmt = r.amount !== null ? Number(r.amount).toFixed(2) : '';
+    html += `
+      <tr>
+        <td>${l.label}</td>
+        <td class="text-end">${lAmt}</td>
+        <td class="text-center text-muted" style="width: 30px;">|</td>
+        <td>${r.label}</td>
+        <td class="text-end">${rAmt}</td>
+      </tr>
+    `;
+  }
+
+  html += `
+    <tr class="table-light fw-bold border-top border-2">
+      <td>Total Receipts</td>
+      <td class="text-end text-success">${totalReceipts.toFixed(2)}</td>
+      <td class="text-center">|</td>
+      <td>Total Payments</td>
+      <td class="text-end text-danger">${totalPayments.toFixed(2)}</td>
+    </tr>
+  `;
+
+  const closingColor = closingBalance >= 0 ? 'text-success' : 'text-danger';
+  html += `
+    <tr class="table-success fw-bold">
+      <td colspan="3" class="text-end">Closing Balance →</td>
+      <td colspan="2" class="text-center ${closingColor}">
+        ₹ ${closingBalance.toFixed(2)}
+      </td>
+    </tr>
+  `;
+
+  if (leftRows.length === 0 && rightRows.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted py-4">
+          <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>
+          No transactions found${selectedMonth ? ` for ${periodLabel}` : ''}.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = html;
+  window.__lastRPRender = {
+    leftRows, rightRows, totalReceipts, totalPayments, closingBalance, periodLabel
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CA AUDIT — STEP 3: Income & Expenditure Account
+// ═══════════════════════════════════════════════════════════════
+
+function clearCAIEMonthFilter() {
+  const picker = document.getElementById('ca-ie-month-picker');
+  if (picker) picker.value = '';
+  renderIncomeExpenditure();
+}
+
+function renderIncomeExpenditure() {
+  const tbody = document.getElementById('ca-income-expenditure-rows');
+  if (!tbody) return;
+
+  const monthPicker = document.getElementById('ca-ie-month-picker');
+  const selectedMonth = (monthPicker?.value || '').trim();
+
+  const matchMonth = (dateStr) => {
+    if (!selectedMonth) return true;
+    if (!dateStr) return false;
+    return String(dateStr).startsWith(selectedMonth);
+  };
+
+    // ✅ Exclude VMC Water (pass-through — not income/expense)
+  const filteredMaint = (maintenanceData || []).filter(r =>
+    matchMonth(r.payment_date) &&
+    (r.month_accounted || '').toLowerCase().trim() !== 'vmc water'
+  );
+  const filteredExp = (expenseData || []).filter(e =>
+    matchMonth(e.expense_date) &&
+    !(e.category || '').toLowerCase().includes('vmc')
+  );
+  const filteredBank  = (customBankEntries || []).filter(b => matchMonth(b.date));
+
+    // ─── 🆕 Income on Accrual Basis (sync with Trial Balance) ───
+  let maintenanceIncome = 0;
+  let lateFeeIncome = 0;
+
+  if (selectedMonth) {
+    (membersData || []).forEach(m => {
+      maintenanceIncome += Number(m.monthly_rate || 0);
+    });
+  } else {
+    (membersData || []).forEach(m => {
+      const rate = Number(m.monthly_rate || 0);
+      maintenanceIncome += rate * MONTHS_IN_FY_SO_FAR;
+
+      const flatNo = (m.flat_no || '').trim().toUpperCase();
+      const paid = (maintenanceData || [])
+        .filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo
+                 && (r.month_accounted || '').toLowerCase().trim() !== 'vmc water')
+        .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
+
+      const totalBilled = Number(m.opening_due || 0) + rate * MONTHS_IN_FY_SO_FAR;
+      const pending = Math.max(0, totalBilled - paid);
+      if (pending > 0) lateFeeIncome += calculateLateFee(pending, rate);
+    });
+  }
+
+  let interestIncome = 0;
+  let otherIncome    = 0;
+  filteredBank.forEach(b => {
+    const dep = Number(b.deposit || 0);
+    if (dep > 0) {
+      const head = (b.head || '').toLowerCase();
+      if (head.includes('interest')) interestIncome += dep;
+      else otherIncome += dep;
+    }
+  });
+
+  const expCategories = {};
+  filteredExp.forEach(e => {
+    const cat = e.category || 'Other Expenses';
+    expCategories[cat] = (expCategories[cat] || 0) + Number(e.amount || 0);
+  });
+
+  const totalIncome = maintenanceIncome + lateFeeIncome + interestIncome + otherIncome;
+  let totalExpenditure = 0;
+  Object.values(expCategories).forEach(v => { totalExpenditure += v; });
+
+  const surplus = totalIncome - totalExpenditure;
+
+  const leftRows = [
+    ...Object.entries(expCategories).map(([cat, amt]) => ({ label: cat, amount: amt }))
+  ];
+
+    const rightRows = [
+    ...(maintenanceIncome > 0 ? [{ label: 'Maintenance Dues (Accrued)', amount: maintenanceIncome }] : []),
+    ...(lateFeeIncome     > 0 ? [{ label: 'Late Fee / Interest Income', amount: lateFeeIncome }] : []),
+    ...(interestIncome    > 0 ? [{ label: 'Interest Income', amount: interestIncome }] : []),
+    ...(otherIncome       > 0 ? [{ label: 'Other Income', amount: otherIncome }] : [])
+  ];
+
+  const maxRows = Math.max(leftRows.length, rightRows.length, 1);
+
+  const periodLabel = selectedMonth
+    ? __formatMonthLabel(selectedMonth)
+    : `Full FY ${__formatMonthLabel(__getFYMonths()[0])} to ${__formatMonthLabel(__getFYMonths()[11])}`;
+
+  let html = `
+    <tr class="table-secondary">
+      <td colspan="5" class="text-center fw-semibold small">
+        <i class="fa-solid fa-calendar-days me-1"></i>
+        Period: ${periodLabel}
+      </td>
+    </tr>
+  `;
+
+  for (let i = 0; i < maxRows; i++) {
+    const l = leftRows[i]  || { label: '', amount: null };
+    const r = rightRows[i] || { label: '', amount: null };
+    const lAmt = l.amount !== null ? Number(l.amount).toFixed(2) : '';
+    const rAmt = r.amount !== null ? Number(r.amount).toFixed(2) : '';
+    html += `
+      <tr>
+        <td>${l.label}</td>
+        <td class="text-end">${lAmt}</td>
+        <td class="text-center text-muted" style="width: 30px;">|</td>
+        <td>${r.label}</td>
+        <td class="text-end">${rAmt}</td>
+      </tr>
+    `;
+  }
+
+  html += `
+    <tr class="table-light fw-bold border-top border-2">
+      <td>Total Expenditure</td>
+      <td class="text-end text-danger">${totalExpenditure.toFixed(2)}</td>
+      <td class="text-center">|</td>
+      <td>Total Income</td>
+      <td class="text-end text-success">${totalIncome.toFixed(2)}</td>
+    </tr>
+  `;
+
+  const resultLabel = surplus >= 0 ? 'Surplus' : 'Deficit';
+  const resultColor = surplus >= 0 ? 'text-success' : 'text-danger';
+
+  html += `
+    <tr class="table-info fw-bold">
+      <td colspan="3" class="text-end">${resultLabel} →</td>
+      <td colspan="2" class="text-center ${resultColor}">
+        ₹ ${Math.abs(surplus).toFixed(2)} ${surplus < 0 ? '(Deficit)' : ''}
+      </td>
+    </tr>
+  `;
+
+  if (leftRows.length === 0 && rightRows.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted py-4">
+          <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>
+          No transactions found${selectedMonth ? ` for ${periodLabel}` : ''}.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = html;
+  window.__lastIERender = {
+    leftRows, rightRows, totalIncome, totalExpenditure, surplus, periodLabel
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CA REPORT EXPORTS — R&P + I&E
+// ═══════════════════════════════════════════════════════════════
+
+function exportCAReportExcel(reportType) {
+  if (reportType === 'receipts-payments') return exportReceiptsPaymentsExcel();
+  if (reportType === 'income-expenditure') return exportIncomeExpenditureExcel();
+  alert('📊 Excel export for "' + reportType + '" — coming in next steps');
+}
+
+function exportCAReportPDF(reportType) {
+  if (reportType === 'receipts-payments') return exportReceiptsPaymentsPDF();
+  if (reportType === 'income-expenditure') return exportIncomeExpenditurePDF();
+  alert('📄 PDF export for "' + reportType + '" — coming in next steps');
+}
+
+// ───── Receipts & Payments — EXCEL ─────
+function exportReceiptsPaymentsExcel() {
+  if (typeof XLSX === 'undefined') { alert('Excel library not loaded'); return; }
+  const d = window.__lastRPRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [];
+  rows.push([societyName]);
+  rows.push(['Receipts & Payments Account']);
+  rows.push(['Period:', d.periodLabel]);
+  rows.push([]);
+  rows.push(['Receipts (Dr.)', 'Amount (Rs.)', '', 'Payments (Cr.)', 'Amount (Rs.)']);
+
+  const maxRows = Math.max(d.leftRows.length, d.rightRows.length, 1);
+  for (let i = 0; i < maxRows; i++) {
+    const l = d.leftRows[i] || { label: '', amount: '' };
+    const r = d.rightRows[i] || { label: '', amount: '' };
+    rows.push([
+      l.label,
+      l.amount !== null && l.amount !== '' ? Number(l.amount).toFixed(2) : '',
+      '',
+      r.label,
+      r.amount !== null && r.amount !== '' ? Number(r.amount).toFixed(2) : ''
+    ]);
+  }
+
+  rows.push([]);
+  rows.push(['Total Receipts', d.totalReceipts.toFixed(2), '', 'Total Payments', d.totalPayments.toFixed(2)]);
+  rows.push(['', '', '', 'Closing Balance', d.closingBalance.toFixed(2)]);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 3 }, { wch: 35 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Receipts & Payments');
+  XLSX.writeFile(wb, `Receipts_Payments_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+// ───── Receipts & Payments — PDF ─────
+function exportReceiptsPaymentsPDF() {
+  if (typeof window.jspdf === 'undefined') { alert('PDF library not loaded'); return; }
+  const d = window.__lastRPRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const societyAddress = societySettings.society_address || '';
+  const societyPhone = societySettings.society_phone || '';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text(societyName, 105, 15, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(100);
+  if (societyAddress) doc.text(societyAddress, 105, 21, { align: 'center', maxWidth: 180 });
+  if (societyPhone)   doc.text(`Phone: ${societyPhone}`, 105, 26, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setDrawColor(200);
+  doc.line(14, 30, 196, 30);
+
+  doc.setFontSize(13);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(22, 101, 52);
+  doc.text('RECEIPTS & PAYMENTS ACCOUNT', 105, 38, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.text(`Period: ${d.periodLabel}`, 105, 44, { align: 'center' });
+
+  const body = [];
+  const maxRows = Math.max(d.leftRows.length, d.rightRows.length, 1);
+  for (let i = 0; i < maxRows; i++) {
+    const l = d.leftRows[i] || { label: '', amount: '' };
+    const r = d.rightRows[i] || { label: '', amount: '' };
+    body.push([
+      l.label,
+      l.amount !== null && l.amount !== '' ? Number(l.amount).toFixed(2) : '',
+      r.label,
+      r.amount !== null && r.amount !== '' ? Number(r.amount).toFixed(2) : ''
+    ]);
+  }
+
+  body.push([
+    { content: 'Total Receipts', styles: { fontStyle: 'bold' } },
+    { content: d.totalReceipts.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [22, 163, 74] } },
+    { content: 'Total Payments', styles: { fontStyle: 'bold' } },
+    { content: d.totalPayments.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [220, 38, 38] } }
+  ]);
+
+  body.push([
+    { content: '', styles: {} },
+    { content: '', styles: {} },
+    { content: 'Closing Balance →', styles: { fontStyle: 'bold', halign: 'right' } },
+    { content: 'Rs. ' + d.closingBalance.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: d.closingBalance >= 0 ? [22, 101, 52] : [185, 28, 28] } }
+  ]);
+
+  doc.autoTable({
+    startY: 50,
+    head: [['Receipts (Dr.)', 'Amount (Rs.)', 'Payments (Cr.)', 'Amount (Rs.)']],
+    body: body,
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 2.5 },
+    headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
+    columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 30, halign: 'right' }, 2: { cellWidth: 70 }, 3: { cellWidth: 30, halign: 'right' } }
+  });
+
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('This is a computer-generated report. No signature required.', 105, 285, { align: 'center' });
+  doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 105, 290, { align: 'center' });
+
+  doc.save(`Receipts_Payments_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
+}
+
+// ───── Income & Expenditure — EXCEL ─────
+function exportIncomeExpenditureExcel() {
+  if (typeof XLSX === 'undefined') { alert('Excel library not loaded'); return; }
+  const d = window.__lastIERender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [];
+  rows.push([societyName]);
+  rows.push(['Income & Expenditure Account']);
+  rows.push(['Period:', d.periodLabel]);
+  rows.push([]);
+  rows.push(['Expenditure (Dr.)', 'Amount (Rs.)', '', 'Income (Cr.)', 'Amount (Rs.)']);
+
+  const maxRows = Math.max(d.leftRows.length, d.rightRows.length, 1);
+  for (let i = 0; i < maxRows; i++) {
+    const l = d.leftRows[i] || { label: '', amount: '' };
+    const r = d.rightRows[i] || { label: '', amount: '' };
+    rows.push([
+      l.label,
+      l.amount !== null && l.amount !== '' ? Number(l.amount).toFixed(2) : '',
+      '',
+      r.label,
+      r.amount !== null && r.amount !== '' ? Number(r.amount).toFixed(2) : ''
+    ]);
+  }
+
+  rows.push([]);
+  rows.push(['Total Expenditure', d.totalExpenditure.toFixed(2), '', 'Total Income', d.totalIncome.toFixed(2)]);
+  rows.push(['', '', '', d.surplus >= 0 ? 'Surplus' : 'Deficit', Math.abs(d.surplus).toFixed(2)]);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 3 }, { wch: 35 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Income & Expenditure');
+  XLSX.writeFile(wb, `Income_Expenditure_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+// ───── Income & Expenditure — PDF ─────
+function exportIncomeExpenditurePDF() {
+  if (typeof window.jspdf === 'undefined') { alert('PDF library not loaded'); return; }
+  const d = window.__lastIERender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const societyAddress = societySettings.society_address || '';
+  const societyPhone = societySettings.society_phone || '';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text(societyName, 105, 15, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(100);
+  if (societyAddress) doc.text(societyAddress, 105, 21, { align: 'center', maxWidth: 180 });
+  if (societyPhone)   doc.text(`Phone: ${societyPhone}`, 105, 26, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setDrawColor(200);
+  doc.line(14, 30, 196, 30);
+
+  doc.setFontSize(13);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(22, 101, 52);
+  doc.text('INCOME & EXPENDITURE ACCOUNT', 105, 38, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.text(`Period: ${d.periodLabel}`, 105, 44, { align: 'center' });
+
+  const body = [];
+  const maxRows = Math.max(d.leftRows.length, d.rightRows.length, 1);
+  for (let i = 0; i < maxRows; i++) {
+    const l = d.leftRows[i] || { label: '', amount: '' };
+    const r = d.rightRows[i] || { label: '', amount: '' };
+    body.push([
+      l.label,
+      l.amount !== null && l.amount !== '' ? Number(l.amount).toFixed(2) : '',
+      r.label,
+      r.amount !== null && r.amount !== '' ? Number(r.amount).toFixed(2) : ''
+    ]);
+  }
+
+  body.push([
+    { content: 'Total Expenditure', styles: { fontStyle: 'bold' } },
+    { content: d.totalExpenditure.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [220, 38, 38] } },
+    { content: 'Total Income', styles: { fontStyle: 'bold' } },
+    { content: d.totalIncome.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [22, 163, 74] } }
+  ]);
+
+  const surplusLabel = d.surplus >= 0 ? 'Surplus' : 'Deficit';
+  const surplusColor = d.surplus >= 0 ? [22, 101, 52] : [185, 28, 28];
+
+  body.push([
+    { content: '', styles: {} },
+    { content: '', styles: {} },
+    { content: surplusLabel + ' →', styles: { fontStyle: 'bold', halign: 'right' } },
+    { content: 'Rs. ' + Math.abs(d.surplus).toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: surplusColor } }
+  ]);
+
+  doc.autoTable({
+    startY: 50,
+    head: [['Expenditure (Dr.)', 'Amount (Rs.)', 'Income (Cr.)', 'Amount (Rs.)']],
+    body: body,
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 2.5 },
+    headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
+    columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 30, halign: 'right' }, 2: { cellWidth: 70 }, 3: { cellWidth: 30, halign: 'right' } }
+  });
+
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('This is a computer-generated report. No signature required.', 105, 285, { align: 'center' });
+  doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 105, 290, { align: 'center' });
+
+  doc.save(`Income_Expenditure_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
+}
+
+// NOTE: Ye existing renderCAAuditReport() ke saath safe hai.
+// Dono independently chalenge.
+
+// ═══════════════════════════════════════════════════════════════
+// CA AUDIT — STEP 4: Balance Sheet
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * MAIN: Render Balance Sheet
+ * Assets = Liabilities (must match)
+ */
+function renderBalanceSheet() {
+  const tbody = document.getElementById('ca-balance-sheet-rows');
+  if (!tbody) return;
+
+  // ─── Opening Balances ───
+  const openingBank = parseFloat(openingBalance) || 0;
+
+  const totalMembersOpeningDue = (membersData || []).reduce(
+    (sum, m) => sum + Number(m.opening_due || 0), 0
+  );
+  const totalAssets = (assetData || []).reduce(
+    (sum, a) => sum + Number(a.cost || 0), 0
+  );
+  const totalFDs = (fdData || []).reduce(
+    (sum, f) => sum + Number(f.principal_amount || 0), 0
+  );
+
+  // ─── FY Dates ───
+  const now = new Date();
+  const cy = now.getFullYear();
+  const cm = now.getMonth();
+  const fyStartYear = cm >= 3 ? cy : cy - 1;
+  const fyStartDate = `${fyStartYear}-04-01`;
+  const fyEndDate = `${fyStartYear + 1}-03-31`;
+
+    // ✅ VMC Water pass-through
+  const __isVMC = (val) => (val || '').toLowerCase().trim() === 'vmc water';
+  const __isVMCExpense = (val) => (val || '').toLowerCase().trim().includes('vmc');
+
+  const vmcReceipts = (maintenanceData || [])
+    .filter(r => {
+      const d = (r.payment_date || '').trim();
+      return d >= fyStartDate && d <= fyEndDate && __isVMC(r.month_accounted);
+    })
+    .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
+
+  const vmcExpenses = (expenseData || [])
+    .filter(e => {
+      const d = (e.expense_date || '').trim();
+      return d >= fyStartDate && d <= fyEndDate && __isVMCExpense(e.category);
+    })
+    .reduce((s, e) => s + Number(e.amount || 0), 0);
+
+  const vmcNet = vmcReceipts - vmcExpenses;
+
+  // ✅ Regular Income (VMC excluded)
+  const fyIncome = (maintenanceData || [])
+    .filter(r => {
+      const d = (r.payment_date || '').trim();
+      return d >= fyStartDate && d <= fyEndDate && !__isVMC(r.month_accounted);
+    })
+    .reduce((sum, r) => sum + Number(r.amount_paid || 0), 0);
+
+  // ✅ Regular Expenses (VMC excluded)
+  const fyExpenses = (expenseData || [])
+    .filter(e => {
+      const d = (e.expense_date || '').trim();
+      return d >= fyStartDate && d <= fyEndDate && !__isVMCExpense(e.category);
+    })
+    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+  // ─── Journal Vouchers ───
+  const fyJVs = (journalVouchersData || []).filter(jv => {
+    const d = (jv.date || '').trim();
+    return d >= fyStartDate && d <= fyEndDate;
+  });
+  const jvDebitTotal = fyJVs
+    .filter(jv => jv.type === 'Debit')
+    .reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+  const jvCreditTotal = fyJVs
+    .filter(jv => jv.type === 'Credit')
+    .reduce((sum, jv) => sum + Number(jv.amount || 0), 0);
+
+    // ─── 🆕 Accrued Dues + Late Fee (sync with Trial Balance) ───
+  let accruedDuesIncome = 0;
+  let lateFeeIncome = 0;
+
+  (membersData || []).forEach(m => {
+    const rate = Number(m.monthly_rate || 0);
+    const accrued = rate * MONTHS_IN_FY_SO_FAR;
+    accruedDuesIncome += accrued;
+
+    const flatNo = (m.flat_no || '').trim().toUpperCase();
+    const paid = (maintenanceData || [])
+      .filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo
+               && (r.month_accounted || '').toLowerCase().trim() !== 'vmc water')
+      .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
+
+    const opening = Number(m.opening_due || 0);
+    const totalBilled = opening + accrued;
+    const pendingBeforeLate = Math.max(0, totalBilled - paid);
+
+    if (pendingBeforeLate > 0) {
+      lateFeeIncome += calculateLateFee(pendingBeforeLate, rate);
+    }
+  });
+
+  // ─── Computed Values (Accrual Basis — matches Trial Balance) ───
+  const closingBank = openingBank + fyIncome + vmcReceipts - fyExpenses - vmcExpenses;
+  const closingReceivable = totalMembersOpeningDue 
+                          + accruedDuesIncome 
+                          + lateFeeIncome 
+                          + jvDebitTotal 
+                          - jvCreditTotal 
+                          - fyIncome;
+
+  const currentFYSurplus = (accruedDuesIncome + lateFeeIncome + jvDebitTotal) 
+                         - (fyExpenses + jvCreditTotal);
+
+  const openingCapital =
+    openingBank + totalMembersOpeningDue + totalAssets;
+  // ─── Liabilities & Assets Arrays ───
+  const liabilities = [
+    { label: 'Opening Capital / Corpus Fund', amount: openingCapital },
+    { label: 'Sinking Fund / Reserve Fund (FDs)', amount: totalFDs },
+    { label: 'Advance Maintenance Received', amount: 0 },
+    { label: `Current FY ${currentFYSurplus >= 0 ? 'Surplus' : 'Deficit'}`, amount: currentFYSurplus },
+    { label: '💧 VMC Water — Payable to VMC', amount: vmcNet > 0 ? vmcNet : 0 }
+  ].filter(l => l.amount !== 0);
+
+  const assets = [
+    { label: 'Closing Bank Balance', amount: closingBank },
+    { label: 'Members Dues Receivable', amount: closingReceivable },
+    { label: 'Fixed Assets (from Register)', amount: totalAssets },
+    { label: 'Fixed Deposits & Investments', amount: totalFDs },
+    { label: '💧 VMC Water — Advance Held', amount: vmcNet < 0 ? Math.abs(vmcNet) : 0 }
+  ].filter(a => a.amount !== 0);
+
+  // ─── Totals ───
+  const totalLiabilities = liabilities.reduce((s, l) => s + Number(l.amount || 0), 0);
+  const totalAssetsSum   = assets.reduce((s, a) => s + Number(a.amount || 0), 0);
+
+  // Note: Difference should be 0 if accounts balanced
+  const diff = totalLiabilities - totalAssetsSum;
+
+  const maxRows = Math.max(liabilities.length, assets.length, 1);
+
+  let html = `
+    <tr class="table-secondary">
+      <td colspan="5" class="text-center fw-semibold small">
+        <i class="fa-solid fa-calendar-days me-1"></i>
+        As on ${new Date().toLocaleDateString('en-IN')} (FY ${fyStartYear}-${String(fyStartYear + 1).substring(2)})
+      </td>
+    </tr>
+  `;
+
+  for (let i = 0; i < maxRows; i++) {
+    const l = liabilities[i] || { label: '', amount: null };
+    const a = assets[i]      || { label: '', amount: null };
+    const lAmt = l.amount !== null ? Number(l.amount).toFixed(2) : '';
+    const aAmt = a.amount !== null ? Number(a.amount).toFixed(2) : '';
+
+    html += `
+      <tr>
+        <td>${l.label}</td>
+        <td class="text-end ${l.amount < 0 ? 'text-danger' : ''}">${lAmt}</td>
+        <td class="text-center text-muted" style="width: 30px;">|</td>
+        <td>${a.label}</td>
+        <td class="text-end ${a.amount < 0 ? 'text-danger' : ''}">${aAmt}</td>
+      </tr>
+    `;
+  }
+
+  // ─── Totals Row ───
+  html += `
+    <tr class="table-light fw-bold border-top border-2">
+      <td>Total Liabilities</td>
+      <td class="text-end text-primary">${totalLiabilities.toFixed(2)}</td>
+      <td class="text-center">|</td>
+      <td>Total Assets</td>
+      <td class="text-end text-primary">${totalAssetsSum.toFixed(2)}</td>
+    </tr>
+  `;
+
+  // ─── Balance Check ───
+  const isBalanced = Math.abs(diff) < 0.01;
+  html += `
+    <tr class="${isBalanced ? 'table-success' : 'table-warning'} fw-bold">
+      <td colspan="3" class="text-end">
+        ${isBalanced ? '✅ Balance Sheet Balanced →' : '⚠️ Difference (should be 0) →'}
+      </td>
+      <td colspan="2" class="text-center ${isBalanced ? 'text-success' : 'text-danger'}">
+        ₹ ${Math.abs(diff).toFixed(2)}
+      </td>
+    </tr>
+  `;
+
+  // ─── Empty State ───
+  if (liabilities.length === 0 && assets.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted py-4">
+          <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>
+          No data available for Balance Sheet.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = html;
+
+  // Store for export
+  window.__lastBSRender = {
+    liabilities, assets, totalLiabilities, totalAssetsSum, diff, isBalanced,
+    fyStartYear
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Balance Sheet — EXCEL Export
+// ═══════════════════════════════════════════════════════════════
+function exportBalanceSheetExcel() {
+  if (typeof XLSX === 'undefined') { alert('Excel library not loaded'); return; }
+
+  const d = window.__lastBSRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [];
+  rows.push([societyName]);
+  rows.push(['Balance Sheet']);
+  rows.push(['As on', new Date().toLocaleDateString('en-IN')]);
+  rows.push([]);
+  rows.push(['Liabilities', 'Amount (Rs.)', '', 'Assets', 'Amount (Rs.)']);
+
+  const maxRows = Math.max(d.liabilities.length, d.assets.length, 1);
+  for (let i = 0; i < maxRows; i++) {
+    const l = d.liabilities[i] || { label: '', amount: '' };
+    const a = d.assets[i]      || { label: '', amount: '' };
+    rows.push([
+      l.label,
+      l.amount !== null && l.amount !== '' ? Number(l.amount).toFixed(2) : '',
+      '',
+      a.label,
+      a.amount !== null && a.amount !== '' ? Number(a.amount).toFixed(2) : ''
+    ]);
+  }
+
+  rows.push([]);
+  rows.push(['Total Liabilities', d.totalLiabilities.toFixed(2), '', 'Total Assets', d.totalAssetsSum.toFixed(2)]);
+  rows.push(['', '', '', 'Difference', d.diff.toFixed(2)]);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 35 }, { wch: 15 }, { wch: 3 }, { wch: 35 }, { wch: 15 }];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Balance Sheet');
+
+  XLSX.writeFile(wb, `Balance_Sheet_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Balance Sheet — PDF Export
+// ═══════════════════════════════════════════════════════════════
+function exportBalanceSheetPDF() {
+  if (typeof window.jspdf === 'undefined') { alert('PDF library not loaded'); return; }
+
+  const d = window.__lastBSRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const societyAddress = societySettings.society_address || '';
+  const societyPhone = societySettings.society_phone || '';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  // Header
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text(societyName, 105, 15, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(100);
+  if (societyAddress) doc.text(societyAddress, 105, 21, { align: 'center', maxWidth: 180 });
+  if (societyPhone)   doc.text(`Phone: ${societyPhone}`, 105, 26, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setDrawColor(200);
+  doc.line(14, 30, 196, 30);
+
+  // Title
+  doc.setFontSize(13);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(22, 101, 52);
+  doc.text('BALANCE SHEET', 105, 38, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.text(`As on: ${new Date().toLocaleDateString('en-IN')}`, 105, 44, { align: 'center' });
+
+  // Table
+  const body = [];
+  const maxRows = Math.max(d.liabilities.length, d.assets.length, 1);
+  for (let i = 0; i < maxRows; i++) {
+    const l = d.liabilities[i] || { label: '', amount: '' };
+    const a = d.assets[i]      || { label: '', amount: '' };
+    body.push([
+      l.label,
+      l.amount !== null && l.amount !== '' ? Number(l.amount).toFixed(2) : '',
+      a.label,
+      a.amount !== null && a.amount !== '' ? Number(a.amount).toFixed(2) : ''
+    ]);
+  }
+
+  body.push([
+    { content: 'Total Liabilities', styles: { fontStyle: 'bold' } },
+    { content: d.totalLiabilities.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [30, 64, 175] } },
+    { content: 'Total Assets', styles: { fontStyle: 'bold' } },
+    { content: d.totalAssetsSum.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [30, 64, 175] } }
+  ]);
+
+  const statusLabel = d.isBalanced ? 'Balanced ✓' : 'Difference';
+  const statusColor = d.isBalanced ? [22, 101, 52] : [185, 28, 28];
+
+  body.push([
+    { content: '', styles: {} },
+    { content: '', styles: {} },
+    { content: statusLabel + ' →', styles: { fontStyle: 'bold', halign: 'right' } },
+    { content: 'Rs. ' + Math.abs(d.diff).toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: statusColor } }
+  ]);
+
+  doc.autoTable({
+    startY: 50,
+    head: [['Liabilities', 'Amount (Rs.)', 'Assets', 'Amount (Rs.)']],
+    body: body,
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 2.5 },
+    headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { cellWidth: 70 },
+      1: { cellWidth: 30, halign: 'right' },
+      2: { cellWidth: 70 },
+      3: { cellWidth: 30, halign: 'right' }
+    }
+  });
+
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('This is a computer-generated report. No signature required.', 105, 285, { align: 'center' });
+  doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 105, 290, { align: 'center' });
+
+  doc.save(`Balance_Sheet_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Update Export Handlers — Balance Sheet add કરો
+// ═══════════════════════════════════════════════════════════════
+// NOTE: Ye existing exportCAReportExcel() and exportCAReportPDF()
+// ko replace nahi karta — extend karta hai.
+
+(function extendCAExportsForBS() {
+  const origExcel = window.exportCAReportExcel;
+  const origPDF   = window.exportCAReportPDF;
+
+  window.exportCAReportExcel = function(reportType) {
+    if (reportType === 'balance-sheet') return exportBalanceSheetExcel();
+    if (typeof origExcel === 'function') return origExcel(reportType);
+  };
+
+  window.exportCAReportPDF = function(reportType) {
+    if (reportType === 'balance-sheet') return exportBalanceSheetPDF();
+    if (typeof origPDF === 'function') return origPDF(reportType);
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// CA AUDIT — STEP 5: Registers
+// ═══════════════════════════════════════════════════════════════
+
+// ───── 5A: Member Register ─────
+function renderMemberRegister() {
+  const tbody = document.getElementById('ca-member-register-rows');
+  if (!tbody) return;
+
+  const list = (membersData || []).slice().sort((a, b) =>
+    String(a.flat_no || '').localeCompare(String(b.flat_no || ''), undefined, { numeric: true })
+  );
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">
+      <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i> No members found.
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(m => `
+    <tr>
+      <td><b>${m.flat_no || '-'}</b></td>
+      <td>${m.name || '-'}</td>
+      <td><span class="badge bg-${m.status === 'Tenant' ? 'warning text-dark' : 'success'}">${m.status || 'Owner'}</span></td>
+      <td>${m.phone ? `<a href="tel:${m.phone}">${m.phone}</a>` : '-'}</td>
+      <td class="text-end">${Number(m.monthly_rate || 0).toFixed(2)}</td>
+      <td class="text-end">${Number(m.opening_due || 0).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  // Store for export
+  window.__lastMRRender = { list };
+}
+
+// ───── 5B: Committee Register ─────
+function renderCommitteeRegister() {
+  const tbody = document.getElementById('ca-committee-register-rows');
+  if (!tbody) return;
+
+  const list = (teamData || []).filter(t => t.type === 'Committee' || t.type === 'Staff');
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">
+      <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i> No committee members found.
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(t => `
+    <tr>
+      <td>${t.name || '-'}</td>
+      <td>${t.role || '-'}</td>
+      <td>${t.mobile ? `<a href="tel:${t.mobile}">${t.mobile}</a>` : '-'}</td>
+      <td><span class="badge bg-${t.type === 'Committee' ? 'primary' : 'info text-dark'}">${t.type || 'Committee'}</span></td>
+    </tr>
+  `).join('');
+
+  window.__lastCRRender = { list };
+}
+
+// ───── 5C: Asset Register ─────
+function renderAssetRegister() {
+  const tbody = document.getElementById('ca-asset-register-rows');
+  if (!tbody) return;
+
+  const list = assetData || [];
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">
+      <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i> No assets found.
+    </td></tr>`;
+    return;
+  }
+
+  const today = new Date();
+  tbody.innerHTML = list.map(a => {
+    const cost = Number(a.cost || 0);
+    const rate = Number(a.depreciation_rate || 10);
+    const purchase = a.purchase_date ? new Date(a.purchase_date) : null;
+    let years = 0;
+    if (purchase && !isNaN(purchase.getTime())) {
+      years = (today - purchase) / (1000 * 60 * 60 * 24 * 365.25);
+    }
+    const dep = cost * (rate / 100) * Math.max(0, years);
+    const currentVal = Math.max(0, cost - dep);
+
+    return `
+      <tr>
+        <td><b>${a.asset_code || '-'}</b></td>
+        <td>${a.name || '-'}</td>
+        <td>${a.location || '-'}</td>
+        <td class="text-end">${cost.toFixed(2)}</td>
+        <td class="text-end">${rate}%</td>
+        <td class="text-end text-success fw-bold">${currentVal.toFixed(2)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  window.__lastARRender = { list };
+}
+
+// ───── 5D: FD Register ─────
+function renderFDRegister() {
+  const tbody = document.getElementById('ca-fd-register-rows');
+  if (!tbody) return;
+
+  const list = fdData || [];
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
+      <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i> No FDs found.
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(f => `
+    <tr>
+      <td><span class="badge bg-primary">${f.fund_type || 'Sinking Fund'}</span></td>
+      <td>${f.bank_name || '-'}</td>
+      <td>${f.account_number || '-'}</td>
+      <td class="text-end">${Number(f.principal_amount || 0).toFixed(2)}</td>
+      <td>${f.interest_rate || '-'}%</td>
+      <td>${f.maturity_date || '-'}</td>
+      <td class="text-end text-success fw-bold">${Number(f.maturity_amount || 0).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  window.__lastFDRRender = { list };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Registers — EXCEL Exports
+// ═══════════════════════════════════════════════════════════════
+
+function exportMemberRegisterExcel() {
+  if (typeof XLSX === 'undefined') return;
+  const d = window.__lastMRRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [[societyName], ['Member Register'], []];
+  rows.push(['Flat No', 'Name', 'Status', 'Phone', 'Monthly Rate', 'Opening Due']);
+  d.list.forEach(m => rows.push([
+    m.flat_no || '', m.name || '', m.status || '',
+    m.phone || '', Number(m.monthly_rate || 0), Number(m.opening_due || 0)
+  ]));
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Member Register');
+  XLSX.writeFile(wb, `Member_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+function exportCommitteeRegisterExcel() {
+  if (typeof XLSX === 'undefined') return;
+  const d = window.__lastCRRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [[societyName], ['Committee Register'], []];
+  rows.push(['Name', 'Role', 'Mobile', 'Type']);
+  d.list.forEach(t => rows.push([t.name || '', t.role || '', t.mobile || '', t.type || '']));
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Committee Register');
+  XLSX.writeFile(wb, `Committee_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+function exportAssetRegisterExcel() {
+  if (typeof XLSX === 'undefined') return;
+  const d = window.__lastARRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [[societyName], ['Asset Register'], []];
+  rows.push(['Code', 'Name', 'Location', 'Cost', 'Dep Rate (%)', 'Current Value']);
+
+  const today = new Date();
+  d.list.forEach(a => {
+    const cost = Number(a.cost || 0);
+    const rate = Number(a.depreciation_rate || 10);
+    const purchase = a.purchase_date ? new Date(a.purchase_date) : null;
+    let years = 0;
+    if (purchase && !isNaN(purchase.getTime())) years = (today - purchase) / (1000 * 60 * 60 * 24 * 365.25);
+    const currentVal = Math.max(0, cost - cost * (rate / 100) * Math.max(0, years));
+    rows.push([a.asset_code || '', a.name || '', a.location || '', cost, rate, Number(currentVal.toFixed(2))]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Asset Register');
+  XLSX.writeFile(wb, `Asset_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+function exportFDRegisterExcel() {
+  if (typeof XLSX === 'undefined') return;
+  const d = window.__lastFDRRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [[societyName], ['FD / Investment Register'], []];
+  rows.push(['Fund Type', 'Bank', 'Account No', 'Principal', 'Rate (%)', 'Maturity Date', 'Maturity Amount']);
+  d.list.forEach(f => rows.push([
+    f.fund_type || '', f.bank_name || '', f.account_number || '',
+    Number(f.principal_amount || 0), f.interest_rate || '',
+    f.maturity_date || '', Number(f.maturity_amount || 0)
+  ]));
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 15 }, { wch: 20 }, { wch: 18 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'FD Register');
+  XLSX.writeFile(wb, `FD_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Registers — PDF Exports (Generic Helper)
+// ═══════════════════════════════════════════════════════════════
+
+function __registerPDF({ title, head, body, filename, colWidths }) {
+  if (typeof window.jspdf === 'undefined') { alert('PDF library not loaded'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const societyAddress = societySettings.society_address || '';
+  const societyPhone = societySettings.society_phone || '';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'mm', 'a4');
+
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text(societyName, 105, 15, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(100);
+  if (societyAddress) doc.text(societyAddress, 105, 21, { align: 'center', maxWidth: 180 });
+  if (societyPhone) doc.text(`Phone: ${societyPhone}`, 105, 26, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setDrawColor(200);
+  doc.line(14, 30, 196, 30);
+
+  doc.setFontSize(13);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(22, 101, 52);
+  doc.text(title.toUpperCase(), 105, 38, { align: 'center' });
+  doc.setTextColor(0);
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 105, 44, { align: 'center' });
+
+  doc.autoTable({
+    startY: 50,
+    head: [head],
+    body: body,
+    theme: 'grid',
+    styles: { fontSize: 9, cellPadding: 2.5 },
+    headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
+    columnStyles: colWidths || {}
+  });
+
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('This is a computer-generated report. No signature required.', 105, 285, { align: 'center' });
+
+  doc.save(filename);
+}
+
+function exportMemberRegisterPDF() {
+  const d = window.__lastMRRender;
+  if (!d) { alert('Please view the report first.'); return; }
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const body = d.list.map(m => [
+    m.flat_no || '', m.name || '', m.status || '', m.phone || '',
+    Number(m.monthly_rate || 0).toFixed(2), Number(m.opening_due || 0).toFixed(2)
+  ]);
+  __registerPDF({
+    title: 'Member Register',
+    head: ['Flat No', 'Name', 'Status', 'Phone', 'Rate', 'Opening Due'],
+    body,
+    filename: `Member_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+    colWidths: { 0: { cellWidth: 20 }, 1: { cellWidth: 45 }, 2: { cellWidth: 22 }, 3: { cellWidth: 30 }, 4: { cellWidth: 22, halign: 'right' }, 5: { cellWidth: 25, halign: 'right' } }
+  });
+}
+
+function exportCommitteeRegisterPDF() {
+  const d = window.__lastCRRender;
+  if (!d) { alert('Please view the report first.'); return; }
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const body = d.list.map(t => [t.name || '', t.role || '', t.mobile || '', t.type || '']);
+  __registerPDF({
+    title: 'Committee Register',
+    head: ['Name', 'Role', 'Mobile', 'Type'],
+    body,
+    filename: `Committee_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+    colWidths: { 0: { cellWidth: 60 }, 1: { cellWidth: 50 }, 2: { cellWidth: 40 }, 3: { cellWidth: 30 } }
+  });
+}
+
+function exportAssetRegisterPDF() {
+  const d = window.__lastARRender;
+  if (!d) { alert('Please view the report first.'); return; }
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const today = new Date();
+  const body = d.list.map(a => {
+    const cost = Number(a.cost || 0);
+    const rate = Number(a.depreciation_rate || 10);
+    const purchase = a.purchase_date ? new Date(a.purchase_date) : null;
+    let years = 0;
+    if (purchase && !isNaN(purchase.getTime())) years = (today - purchase) / (1000 * 60 * 60 * 24 * 365.25);
+    const currentVal = Math.max(0, cost - cost * (rate / 100) * Math.max(0, years));
+    return [a.asset_code || '', a.name || '', a.location || '', cost.toFixed(2), rate + '%', currentVal.toFixed(2)];
+  });
+  __registerPDF({
+    title: 'Asset Register',
+    head: ['Code', 'Name', 'Location', 'Cost', 'Dep %', 'Current Value'],
+    body,
+    filename: `Asset_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+    colWidths: { 0: { cellWidth: 25 }, 1: { cellWidth: 50 }, 2: { cellWidth: 30 }, 3: { cellWidth: 25, halign: 'right' }, 4: { cellWidth: 18, halign: 'right' }, 5: { cellWidth: 28, halign: 'right' } }
+  });
+}
+
+function exportFDRegisterPDF() {
+  const d = window.__lastFDRRender;
+  if (!d) { alert('Please view the report first.'); return; }
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const body = d.list.map(f => [
+    f.fund_type || '', f.bank_name || '', f.account_number || '',
+    Number(f.principal_amount || 0).toFixed(2), f.interest_rate || '',
+    f.maturity_date || '', Number(f.maturity_amount || 0).toFixed(2)
+  ]);
+  __registerPDF({
+    title: 'FD / Investment Register',
+    head: ['Fund Type', 'Bank', 'Account No', 'Principal', 'Rate', 'Maturity', 'Maturity Amt'],
+    body,
+    filename: `FD_Register_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+    colWidths: { 0: { cellWidth: 25 }, 1: { cellWidth: 28 }, 2: { cellWidth: 28 }, 3: { cellWidth: 22, halign: 'right' }, 4: { cellWidth: 15, halign: 'right' }, 5: { cellWidth: 23 }, 6: { cellWidth: 25, halign: 'right' } }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Update Export Handlers — Registers add કરો
+// ═══════════════════════════════════════════════════════════════
+
+(function extendCAExportsForRegisters() {
+  const origExcel = window.exportCAReportExcel;
+  const origPDF   = window.exportCAReportPDF;
+
+  window.exportCAReportExcel = function(reportType) {
+    if (reportType === 'member-register')    return exportMemberRegisterExcel();
+    if (reportType === 'committee-register') return exportCommitteeRegisterExcel();
+    if (reportType === 'asset-register')     return exportAssetRegisterExcel();
+    if (reportType === 'fd-register')        return exportFDRegisterExcel();
+    if (typeof origExcel === 'function')     return origExcel(reportType);
+  };
+
+  window.exportCAReportPDF = function(reportType) {
+    if (reportType === 'member-register')    return exportMemberRegisterPDF();
+    if (reportType === 'committee-register') return exportCommitteeRegisterPDF();
+    if (reportType === 'asset-register')     return exportAssetRegisterPDF();
+    if (reportType === 'fd-register')        return exportFDRegisterPDF();
+    if (typeof origPDF === 'function')       return origPDF(reportType);
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// HOOK: Registers auto-render — showCASection() extend
+// ═══════════════════════════════════════════════════════════════
+(function extendShowCASectionForRegisters() {
+  const orig = window.showCASection;
+  window.showCASection = function(section) {
+    if (typeof orig === 'function') orig(section);
+
+    if (section === 'registers') {
+      try { renderMemberRegister(); }    catch (e) { console.warn('[Reg] Member error:', e); }
+      try { renderCommitteeRegister(); } catch (e) { console.warn('[Reg] Committee error:', e); }
+      try { renderAssetRegister(); }     catch (e) { console.warn('[Reg] Asset error:', e); }
+      try { renderFDRegister(); }        catch (e) { console.warn('[Reg] FD error:', e); }
+    }
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// CA AUDIT — STEP 6: Reports (Defaulter List + Bank Summary)
+// ═══════════════════════════════════════════════════════════════
+
+// ───── 6A: Outstanding / Defaulter List ─────
+function renderDefaulterList() {
+  const tbody = document.getElementById('ca-defaulter-rows');
+  if (!tbody) return;
+
+  if (!membersData || membersData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">
+      <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i> No members found.
+    </td></tr>`;
+    return;
+  }
+
+  const fyStartDateStr = getCurrentFYStartDate();
+  const monthsInFY = MONTHS_IN_FY_SO_FAR;
+
+  const list = membersData.map(m => {
+    const flatNo = (m.flat_no || '').trim().toUpperCase();
+    const rate = Number(m.monthly_rate || 0);
+    const openingDue = Number(m.opening_due || 0);
+
+    // Total due till date = opening + (rate × months elapsed)
+    const totalDue = openingDue + (rate * monthsInFY);
+
+    // Total paid = maintenance + net JV credit
+    const paid = maintenanceData
+      .filter(r => (r.flat_no || '').trim().toUpperCase() === flatNo && r.month_accounted !== 'VMC Water')
+      .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
+
+    const jvs = (journalVouchersData || []).filter(jv => (jv.flat_no || '').trim().toUpperCase() === flatNo);
+    const jvDebit = jvs.filter(j => j.type === 'Debit').reduce((s, j) => s + Number(j.amount || 0), 0);
+    const jvCredit = jvs.filter(j => j.type === 'Credit').reduce((s, j) => s + Number(j.amount || 0), 0);
+    const netJV = jvDebit - jvCredit;
+
+    const pending = Math.max(0, totalDue + netJV - paid);
+
+    // Late fee
+    let lateFee = 0;
+    if (pending > 0 && typeof calculateLateFee === 'function') {
+      lateFee = calculateLateFee(pending, rate);
+    }
+
+    const netPending = pending + lateFee;
+
+    return {
+      flat_no: flatNo,
+      name: m.name || '-',
+      phone: m.phone || '',
+      opening_due: openingDue,
+      total_due: totalDue,
+      total_paid: paid,
+      pending,
+      late_fee: lateFee,
+      net_pending: netPending
+    };
+  }).filter(x => x.net_pending > 0)  // Only defaulters
+    .sort((a, b) => b.net_pending - a.net_pending);
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-success py-4">
+      <i class="fa-solid fa-circle-check fa-2x d-block mb-2"></i>
+      🎉 No defaulters! All dues are clear.
+    </td></tr>`;
+    window.__lastDefRender = { list: [] };
+    return;
+  }
+
+  tbody.innerHTML = list.map(x => `
+    <tr>
+      <td><b>${x.flat_no}</b></td>
+      <td>${x.name}</td>
+      <td>${x.phone ? `<a href="tel:${x.phone}">${x.phone}</a>` : '-'}</td>
+      <td class="text-end">${x.opening_due.toFixed(2)}</td>
+      <td class="text-end">${x.total_due.toFixed(2)}</td>
+      <td class="text-end text-success">${x.total_paid.toFixed(2)}</td>
+      <td class="text-end text-danger">${x.pending.toFixed(2)}</td>
+      <td class="text-end text-warning fw-bold">${x.late_fee.toFixed(2)}</td>
+      <td class="text-end text-danger fw-bold">${x.net_pending.toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  window.__lastDefRender = { list };
+}
+
+// ───── 6B: Bank Summary (Month-wise) ─────
+function renderBankSummary() {
+  const tbody = document.getElementById('ca-bank-summary-rows');
+  if (!tbody) return;
+
+  const fyMonths = __getFYMonths();  // Apr to Mar
+  const openingBank = parseFloat(openingBalance) || 0;
+
+  let runningBalance = openingBank;
+  const rows = [];
+
+  fyMonths.forEach((ym, idx) => {
+    const monthOpen = runningBalance;
+
+    // Receipts: maintenance + manual deposits in this month
+    const maintIn = maintenanceData
+      .filter(r => String(r.payment_date || '').startsWith(ym))
+      .reduce((s, r) => s + Number(r.amount_paid || 0), 0);
+
+    const bankIn = (customBankEntries || [])
+      .filter(b => String(b.date || '').startsWith(ym) && Number(b.deposit || 0) > 0)
+      .reduce((s, b) => s + Number(b.deposit || 0), 0);
+
+    const totalIn = maintIn + bankIn;
+
+    // Payments: expenses + manual withdrawals in this month
+    const expOut = expenseData
+      .filter(e => String(e.expense_date || '').startsWith(ym))
+      .reduce((s, e) => s + Number(e.amount || 0), 0);
+
+    const bankOut = (customBankEntries || [])
+      .filter(b => String(b.date || '').startsWith(ym) && Number(b.withdraw || 0) > 0)
+      .reduce((s, b) => s + Number(b.withdraw || 0), 0);
+
+    const totalOut = expOut + bankOut;
+
+    const monthClose = monthOpen + totalIn - totalOut;
+    runningBalance = monthClose;
+
+    rows.push({
+      month: ym,
+      month_label: __formatMonthLabel(ym),
+      opening: monthOpen,
+      receipts: totalIn,
+      payments: totalOut,
+      closing: monthClose
+    });
+  });
+
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">
+      <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i> No data.
+    </td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><b>${r.month_label}</b></td>
+      <td class="text-end">${r.opening.toFixed(2)}</td>
+      <td class="text-end text-success">${r.receipts.toFixed(2)}</td>
+      <td class="text-end text-danger">${r.payments.toFixed(2)}</td>
+      <td class="text-end fw-bold ${r.closing >= 0 ? 'text-primary' : 'text-danger'}">${r.closing.toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  // Grand total row
+  const totalIn = rows.reduce((s, r) => s + r.receipts, 0);
+  const totalOut = rows.reduce((s, r) => s + r.payments, 0);
+  tbody.innerHTML += `
+    <tr class="table-secondary fw-bold border-top border-2">
+      <td>Grand Total (FY)</td>
+      <td class="text-end">${openingBank.toFixed(2)}</td>
+      <td class="text-end text-success">${totalIn.toFixed(2)}</td>
+      <td class="text-end text-danger">${totalOut.toFixed(2)}</td>
+      <td class="text-end text-primary">${runningBalance.toFixed(2)}</td>
+    </tr>
+  `;
+
+  window.__lastBankSumRender = { rows, openingBank, totalIn, totalOut, closing: runningBalance };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Reports — EXCEL Exports
+// ═══════════════════════════════════════════════════════════════
+
+function exportDefaulterListExcel() {
+  if (typeof XLSX === 'undefined') return;
+  const d = window.__lastDefRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [[societyName], ['Outstanding / Defaulter List'], []];
+  rows.push(['Flat No', 'Name', 'Phone', 'Opening Due', 'Total Due', 'Total Paid', 'Pending', 'Late Fee', 'Net Pending']);
+  d.list.forEach(x => rows.push([
+    x.flat_no, x.name, x.phone,
+    x.opening_due, x.total_due, x.total_paid,
+    x.pending, x.late_fee, x.net_pending
+  ]));
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 15 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Defaulter List');
+  XLSX.writeFile(wb, `Defaulter_List_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+function exportBankSummaryExcel() {
+  if (typeof XLSX === 'undefined') return;
+  const d = window.__lastBankSumRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [[societyName], ['Bank Summary (Month-wise)'], []];
+  rows.push(['Month', 'Opening Balance', 'Receipts', 'Payments', 'Closing Balance']);
+  d.rows.forEach(r => rows.push([
+    r.month_label,
+    Number(r.opening.toFixed(2)),
+    Number(r.receipts.toFixed(2)),
+    Number(r.payments.toFixed(2)),
+    Number(r.closing.toFixed(2))
+  ]));
+  rows.push([]);
+  rows.push(['Grand Total (FY)', d.openingBank, d.totalIn, d.totalOut, d.closing]);
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 18 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Bank Summary');
+  XLSX.writeFile(wb, `Bank_Summary_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Reports — PDF Exports
+// ═══════════════════════════════════════════════════════════════
+
+function exportDefaulterListPDF() {
+  const d = window.__lastDefRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const body = d.list.map(x => [
+    x.flat_no, x.name, x.phone || '-',
+    x.opening_due.toFixed(2), x.total_due.toFixed(2), x.total_paid.toFixed(2),
+    x.pending.toFixed(2), x.late_fee.toFixed(2), x.net_pending.toFixed(2)
+  ]);
+
+  if (body.length === 0) {
+    body.push(['-', 'No defaulters', '-', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00']);
+  }
+
+  __registerPDF({
+    title: 'Outstanding / Defaulter List',
+    head: ['Flat', 'Name', 'Phone', 'Opening', 'Total Due', 'Paid', 'Pending', 'Late Fee', 'Net Pending'],
+    body,
+    filename: `Defaulter_List_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+    colWidths: {
+      0: { cellWidth: 16 }, 1: { cellWidth: 30 }, 2: { cellWidth: 22 },
+      3: { cellWidth: 18, halign: 'right' }, 4: { cellWidth: 18, halign: 'right' },
+      5: { cellWidth: 18, halign: 'right' }, 6: { cellWidth: 18, halign: 'right' },
+      7: { cellWidth: 16, halign: 'right' }, 8: { cellWidth: 20, halign: 'right' }
+    }
+  });
+}
+
+function exportBankSummaryPDF() {
+  const d = window.__lastBankSumRender;
+  if (!d) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const body = d.rows.map(r => [
+    r.month_label,
+    r.opening.toFixed(2),
+    r.receipts.toFixed(2),
+    r.payments.toFixed(2),
+    r.closing.toFixed(2)
+  ]);
+  body.push([
+    { content: 'Grand Total (FY)', styles: { fontStyle: 'bold' } },
+    { content: d.openingBank.toFixed(2), styles: { fontStyle: 'bold', halign: 'right' } },
+    { content: d.totalIn.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [22, 163, 74] } },
+    { content: d.totalOut.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [220, 38, 38] } },
+    { content: d.closing.toFixed(2), styles: { fontStyle: 'bold', halign: 'right', textColor: [30, 64, 175] } }
+  ]);
+
+  __registerPDF({
+    title: 'Bank Summary (Month-wise)',
+    head: ['Month', 'Opening', 'Receipts', 'Payments', 'Closing'],
+    body,
+    filename: `Bank_Summary_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+    colWidths: {
+      0: { cellWidth: 30 },
+      1: { cellWidth: 35, halign: 'right' },
+      2: { cellWidth: 35, halign: 'right' },
+      3: { cellWidth: 35, halign: 'right' },
+      4: { cellWidth: 35, halign: 'right' }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Update Export Handlers — Reports add કરો
+// ═══════════════════════════════════════════════════════════════
+
+(function extendCAExportsForReports() {
+  const origExcel = window.exportCAReportExcel;
+  const origPDF   = window.exportCAReportPDF;
+
+  window.exportCAReportExcel = function(reportType) {
+    if (reportType === 'defaulter-list') return exportDefaulterListExcel();
+    if (reportType === 'bank-summary')   return exportBankSummaryExcel();
+    if (typeof origExcel === 'function') return origExcel(reportType);
+  };
+
+  window.exportCAReportPDF = function(reportType) {
+    if (reportType === 'defaulter-list') return exportDefaulterListPDF();
+    if (reportType === 'bank-summary')   return exportBankSummaryPDF();
+    if (typeof origPDF === 'function')   return origPDF(reportType);
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// HOOK: Reports auto-render — showCASection() extend
+// ═══════════════════════════════════════════════════════════════
+(function extendShowCASectionForReports() {
+  const orig = window.showCASection;
+  window.showCASection = function(section) {
+    if (typeof orig === 'function') orig(section);
+
+    if (section === 'reports') {
+      try { renderDefaulterList(); } catch (e) { console.warn('[Rep] Defaulter error:', e); }
+      try { renderBankSummary(); }   catch (e) { console.warn('[Rep] Bank Summary error:', e); }
+    }
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// CA AUDIT — STEP 7: Audit Trail (Activity Logs)
+// ═══════════════════════════════════════════════════════════════
+
+function renderCAAuditLogs() {
+  const tbody = document.getElementById('ca-audit-logs-rows');
+  if (!tbody) return;
+
+  const list = (activityLogs || []).slice(0, 100);  // Latest 100
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">
+      <i class="fa-solid fa-inbox fa-2x d-block mb-2 opacity-50"></i>
+      No activity logs recorded yet.
+    </td></tr>`;
+    window.__lastAuditLogsRender = { list: [] };
+    return;
+  }
+
+  tbody.innerHTML = list.map(log => {
+    const dt = log.created_at ? new Date(log.created_at).toLocaleString('en-IN') : '-';
+    return `
+      <tr>
+        <td><small class="text-muted">${dt}</small></td>
+        <td><b>${log.user_flat || '-'}</b></td>
+        <td><span class="badge bg-secondary">${log.user_role || '-'}</span></td>
+        <td><span class="badge bg-info text-dark">${log.action_type || '-'}</span></td>
+        <td>${log.details || '-'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  window.__lastAuditLogsRender = { list };
+}
+
+// ───── Fetch + Render combo ─────
+async function fetchAndRenderCAAuditLogs() {
+  try {
+    const { data, error } = await _supabase
+      .from('activity_logs')
+      .select('*')
+      .eq('society_name', currentSociety)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.warn('[CA Audit] Fetch error:', error.message);
+      activityLogs = [];
+    } else {
+      activityLogs = data || [];
+    }
+    renderCAAuditLogs();
+  } catch (e) {
+    console.warn('[CA Audit] Exception:', e);
+    renderCAAuditLogs();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Audit Logs — EXCEL Export
+// ═══════════════════════════════════════════════════════════════
+function exportCAAuditLogsExcel() {
+  if (typeof XLSX === 'undefined') return;
+  const d = window.__lastAuditLogsRender;
+  if (!d || d.list.length === 0) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const rows = [[societyName], ['Audit Trail & Activity Logs'], []];
+  rows.push(['Timestamp', 'User', 'Role', 'Action', 'Details']);
+
+  d.list.forEach(log => {
+    const dt = log.created_at ? new Date(log.created_at).toLocaleString('en-IN') : '-';
+    rows.push([dt, log.user_flat || '', log.user_role || '', log.action_type || '', log.details || '']);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{ wch: 22 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 60 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Audit Logs');
+  XLSX.writeFile(wb, `Audit_Logs_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Audit Logs — PDF Export
+// ═══════════════════════════════════════════════════════════════
+function exportCAAuditLogsPDF() {
+  const d = window.__lastAuditLogsRender;
+  if (!d || d.list.length === 0) { alert('Please view the report first.'); return; }
+
+  const societyName = societySettings.society_name || currentSociety || 'Society';
+  const body = d.list.map(log => {
+    const dt = log.created_at ? new Date(log.created_at).toLocaleString('en-IN') : '-';
+    return [dt, log.user_flat || '', log.user_role || '', log.action_type || '', log.details || ''];
+  });
+
+  __registerPDF({
+    title: 'Audit Trail & Activity Logs',
+    head: ['Timestamp', 'User', 'Role', 'Action', 'Details'],
+    body,
+    filename: `Audit_Logs_${societyName.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.pdf`,
+    colWidths: {
+      0: { cellWidth: 32 },
+      1: { cellWidth: 22 },
+      2: { cellWidth: 22 },
+      3: { cellWidth: 30 },
+      4: { cellWidth: 70 }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Update Export Handlers — Audit Logs add કરો
+// ═══════════════════════════════════════════════════════════════
+
+(function extendCAExportsForAuditLogs() {
+  const origExcel = window.exportCAReportExcel;
+  const origPDF   = window.exportCAReportPDF;
+
+  window.exportCAReportExcel = function(reportType) {
+    if (reportType === 'audit-logs') return exportCAAuditLogsExcel();
+    if (typeof origExcel === 'function') return origExcel(reportType);
+  };
+
+  window.exportCAReportPDF = function(reportType) {
+    if (reportType === 'audit-logs') return exportCAAuditLogsPDF();
+    if (typeof origPDF === 'function')   return origPDF(reportType);
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// HOOK: Audit Logs auto-render — showCASection() extend
+// ═══════════════════════════════════════════════════════════════
+(function extendShowCASectionForAuditLogs() {
+  const orig = window.showCASection;
+  window.showCASection = function(section) {
+    if (typeof orig === 'function') orig(section);
+
+    if (section === 'audit') {
+      try { fetchAndRenderCAAuditLogs(); } catch (e) { console.warn('[CA Audit] error:', e); }
+    }
+  };
+})();

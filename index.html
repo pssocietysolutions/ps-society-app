@@ -126,6 +126,38 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; 
   border: 1px solid rgba(234, 88, 12, 0.3);
 }
 
+/* ═══════════════════════════════════════════ */
+/* CA Audit Sub-Tabs Styling                    */
+/* ═══════════════════════════════════════════ */
+.ca-subtab-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.ca-subtab-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+.ca-subtab-btn.active {
+  background: linear-gradient(135deg, #ea580c, #f59e0b);
+  color: #fff;
+  border-color: #ea580c;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+}
+.ca-section {
+  animation: caFadeIn 0.3s ease;
+}
+@keyframes caFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* 🟢 MOBILE GRID OVERLAY – Background */
 #mobileMenuOverlay {
   background: rgba(15, 23, 42, 0.98) !important;
@@ -842,6 +874,32 @@ body.read-only-mode a[download] {
               <button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#memberModal">+ Add Member</button>
             </div>
           </div>
+  <!-- 🔍 Members Search Bar -->
+  <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-10">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0">
+            <i class="fa-solid fa-search text-muted"></i>
+          </span>
+          <input type="text" 
+                 id="members-search-input" 
+                 class="form-control border-start-0" 
+                 placeholder="Search by Flat No, Owner Name, or Phone..."
+                 oninput="filterMembersTable()"
+                 autocomplete="off">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" onclick="clearMembersSearch()">
+          <i class="fa-solid fa-times me-1"></i> Clear
+        </button>
+      </div>
+    </div>
+    <div id="members-search-count" class="small text-muted mt-2 d-none">
+      <i class="fa-solid fa-filter me-1"></i> <span id="members-search-count-text">0</span>
+    </div>
+  </div>
           <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0">
             <table class="table table-hover align-middle" id="members-table-data">
               <thead class="table-light">
@@ -943,6 +1001,32 @@ body.read-only-mode a[download] {
         <!-- TAB 4: EXPENSES -->
         <div id="tab-expenses" class="tab-content d-none">
           <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold">Expense Ledger</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('expenses-table-data', 'Expense_Ledger')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-primary role-restricted admin-only" onclick="openExpenseModal()"><i class="fa-solid fa-plus me-2"></i> Add Voucher</button></div></div>
+  <!-- 🔍 Expenses Search Bar -->
+  <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-white">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-10">
+        <div class="input-group">
+          <span class="input-group-text bg-light border-end-0">
+            <i class="fa-solid fa-search text-muted"></i>
+          </span>
+          <input type="text" 
+                 id="expenses-search-input" 
+                 class="form-control border-start-0" 
+                 placeholder="Search by Voucher No, Category, Paid To, Mode..."
+                 oninput="filterExpensesTable()"
+                 autocomplete="off">
+        </div>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-secondary w-100" onclick="clearExpensesSearch()">
+          <i class="fa-solid fa-times me-1"></i> Clear
+        </button>
+      </div>
+    </div>
+    <div id="expenses-search-count" class="small text-muted mt-2 d-none">
+      <i class="fa-solid fa-filter me-1"></i> <span id="expenses-search-count-text">0</span>
+    </div>
+  </div>
           <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="expenses-table-data"><thead class="table-light"><tr><th>Voucher No</th><th>Date</th><th>Category</th><th>Paid To</th><th>Payment Mode</th><th>Amount (₹)</th><th class="no-print">Action</th></tr></thead><tbody id="expense-list"></tbody></table></div>
         </div>
 
@@ -954,7 +1038,7 @@ body.read-only-mode a[download] {
 
         <!-- TAB 6: TALLY BANK -->
         <div id="tab-tally-bank" class="tab-content d-none">
-          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-building-columns text-primary me-2"></i> Tally Bank Passbook Register</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('tally-bank-table', 'Tally_Bank_Book')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-primary role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#bankModal">+ Add Bank Entry</button></div></div>
+          <div class="d-flex justify-content-between align-items-center mb-3"><h3 class="fw-bold"><i class="fa-solid fa-building-columns text-primary me-2"></i> Tally Bank Passbook Register</h3><div class="no-print"><button class="btn btn-outline-success me-2" onclick="exportTableToExcel('tally-bank-table', 'Tally_Bank_Book')"><i class="fa-solid fa-file-excel me-1"></i> Excel</button><button class="btn btn-warning role-restricted admin-only" data-bs-toggle="modal" data-bs-target="#bankModal" title="⚠️ Only for Internal Transfers (Cash↔Bank). For income use Maintenance Tab. For expense use Expenses Tab."><i class="fa-solid fa-right-left me-1"></i> Internal Transfer Only</button></div></div>
           <div class="row g-3 mb-4"><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Opening Bank Balance</h6><h4 class="text-dark" id="tally-opening-balance">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Total Money In (Debit)</h6><h4 class="text-success" id="tally-tot-in">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Total Money Out (Credit)</h6><h4 class="text-danger" id="tally-tot-out">₹0.00</h4></div></div><div class="col-md-3"><div class="card p-3 bg-white border-0 shadow-sm rounded-3"><h6>Closing Passbook Balance</h6><h4 class="text-primary" id="tally-calc-balance">₹0.00</h4></div></div></div>
           <div class="table-responsive bg-white p-3 shadow-sm rounded-4 border-0"><table class="table table-hover align-middle" id="tally-bank-table"><thead class="table-dark"><tr><th>Date</th><th>Ref No</th><th>Account Head</th><th>Type</th><th>Deposit</th><th>Withdrawal</th><th>Balance</th><th class="no-print admin-only">Actions</th></tr></thead><tbody id="tally-bank-entries"></tbody></table></div>
         </div>
@@ -1033,53 +1117,561 @@ body.read-only-mode a[download] {
   </div>
 </div>
 
-       <!-- TAB 7: CA AUDIT -->
-        <div id="tab-ca-audit" class="tab-content d-none">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="fw-bold"><i class="fa-solid fa-calculator text-success me-2"></i> CA Verification & Tax Compliance Engine</h3>
-            <div class="d-flex gap-2 no-print">
-              <button class="btn btn-outline-success btn-sm" onclick="exportCAAuditExcel()"><i class="fa-solid fa-file-excel me-1"></i> Export Excel</button>
-              <button class="btn btn-outline-danger btn-sm" onclick="exportCAAuditPDF()"><i class="fa-solid fa-file-pdf me-1"></i> Export PDF</button>
-              <button class="btn btn-outline-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print me-1"></i> Print Report</button>
-            </div>
-          </div>
+       <!-- ============================================ -->
+<!-- TAB 7: CA AUDIT — Expanded Structure         -->
+<!-- ============================================ -->
+<div id="tab-ca-audit" class="tab-content d-none">
 
-          <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
-            <div class="table-responsive">
-              <table class="table table-bordered align-middle" id="ca-main-audit-table">
-  <thead class="table-dark">
-                  <tr>
-                    <th>Account Group Head</th>
-                    <th>Ledger Class</th>
-                    <th>Debit Balance</th>
-                    <th>Credit Balance</th>
-                  </tr>
-                </thead>
-                <tbody id="ca-trial-balance-rows"></tbody>
-              </table>
-            </div>
-          </div>
+  <!-- ═══════ Header ═══════ -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h3 class="fw-bold mb-0">
+      <i class="fa-solid fa-calculator text-success me-2"></i> 
+      CA Verification & Tax Compliance Engine
+    </h3>
+    <div class="d-flex gap-2 no-print">
+      <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+        <i class="fa-solid fa-print me-1"></i> Print
+      </button>
+    </div>
+  </div>
 
-          <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i>GST & Tax Audit Summary (From Invoices)</h5>
-              <span class="badge bg-primary-subtle text-primary fw-semibold">CA Statutory Report</span>
-            </div>
-            <div class="table-responsive">
-              <table class="table table-bordered align-middle" id="ca-gst-summary-table">
-                <thead class="table-light">
-                  <tr>
-                    <th>Particulars / Tax Head</th>
-                    <th>Tax Rate (%)</th>
-                    <th>Total Taxable Amount (Base)</th>
-                    <th>Total Tax Amount (₹)</th>
-                  </tr>
-                </thead>
-                <tbody id="ca-gst-summary-rows"></tbody>
-              </table>
-            </div>
-          </div>
+  <!-- ═══════ Sub-Tab Navigation ═══════ -->
+  <div class="ca-subtabs-wrapper mb-3" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+    <div class="d-flex gap-2" style="min-width: max-content;">
+      <button class="btn btn-sm ca-subtab-btn active" data-ca-section="financial" onclick="showCASection('financial')">
+        <i class="fa-solid fa-file-invoice-dollar me-1"></i> Financial
+      </button>
+      <button class="btn btn-sm ca-subtab-btn" data-ca-section="registers" onclick="showCASection('registers')">
+        <i class="fa-solid fa-book me-1"></i> Registers
+      </button>
+      <button class="btn btn-sm ca-subtab-btn" data-ca-section="reports" onclick="showCASection('reports')">
+        <i class="fa-solid fa-chart-bar me-1"></i> Reports
+      </button>
+      <button class="btn btn-sm ca-subtab-btn" data-ca-section="gst" onclick="showCASection('gst')">
+        <i class="fa-solid fa-receipt me-1"></i> GST
+      </button>
+      <button class="btn btn-sm ca-subtab-btn" data-ca-section="audit" onclick="showCASection('audit')">
+        <i class="fa-solid fa-list-check me-1"></i> Audit
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 1: FINANCIAL                          -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="ca-section-financial" class="ca-section">
+
+        <!-- ───── 1A: Receipts & Payments Account ───── -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-arrow-right-arrow-left text-primary me-2"></i>
+            Receipts & Payments Account
+          </h5>
+          <small class="text-muted">Cash + Bank summary — CA standard format</small>
         </div>
+        <div class="d-flex gap-2 align-items-center no-print flex-wrap">
+          <input type="month" 
+                 id="ca-rp-month-picker" 
+                 class="form-control form-control-sm" 
+                 style="width: auto; max-width: 160px;"
+                 onchange="renderReceiptsPayments()">
+          <button class="btn btn-sm btn-outline-secondary" onclick="clearCARPMonthFilter()" title="Show All">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('receipts-payments')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('receipts-payments')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-receipts-payments-table">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 50%;">Receipts (Dr.)</th>
+              <th class="text-end" style="width: 20%;">Amount (₹)</th>
+              <th style="width: 10%;"></th>
+              <th style="width: 50%;">Payments (Cr.)</th>
+              <th class="text-end" style="width: 20%;">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="ca-receipts-payments-rows">
+            <tr><td colspan="5" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+            <!-- ───── 1B: Income & Expenditure Account ───── -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-scale-balanced text-success me-2"></i>
+            Income & Expenditure Account
+          </h5>
+          <small class="text-muted">Surplus / Deficit — Society Act standard</small>
+        </div>
+        <div class="d-flex gap-2 align-items-center no-print flex-wrap">
+          <input type="month" 
+                 id="ca-ie-month-picker" 
+                 class="form-control form-control-sm" 
+                 style="width: auto; max-width: 160px;"
+                 onchange="renderIncomeExpenditure()">
+          <button class="btn btn-sm btn-outline-secondary" onclick="clearCAIEMonthFilter()" title="Show All">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('income-expenditure')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('income-expenditure')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-income-expenditure-table">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 50%;">Expenditure (Dr.)</th>
+              <th class="text-end" style="width: 20%;">Amount (₹)</th>
+              <th style="width: 10%;"></th>
+              <th style="width: 50%;">Income (Cr.)</th>
+              <th class="text-end" style="width: 20%;">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="ca-income-expenditure-rows">
+            <tr><td colspan="5" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ───── 1C: Balance Sheet ───── -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-building-columns text-warning me-2"></i>
+            Balance Sheet
+          </h5>
+          <small class="text-muted">Assets = Liabilities — Year-end position</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('balance-sheet')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('balance-sheet')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-balance-sheet-table">
+          <thead class="table-dark">
+            <tr>
+              <th style="width: 50%;">Liabilities</th>
+              <th class="text-end" style="width: 20%;">Amount (₹)</th>
+              <th style="width: 10%;"></th>
+              <th style="width: 50%;">Assets</th>
+              <th class="text-end" style="width: 20%;">Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="ca-balance-sheet-rows">
+            <tr><td colspan="5" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ───── 1D: Trial Balance (EXISTING — untouched) ───── -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-list-ol text-info me-2"></i>
+            Trial Balance
+          </h5>
+          <small class="text-muted">Auto-computed financial position</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAAuditExcel()">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAAuditPDF()">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-main-audit-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Account Group Head</th>
+              <th>Ledger Class</th>
+              <th class="text-end">Debit Balance</th>
+              <th class="text-end">Credit Balance</th>
+            </tr>
+          </thead>
+          <tbody id="ca-trial-balance-rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <!-- ═══════ END: Financial Section ═══════ -->
+
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 2: REGISTERS                          -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="ca-section-registers" class="ca-section d-none">
+
+    <!-- 2A: Member Register -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-users text-primary me-2"></i>
+            Member Register
+          </h5>
+          <small class="text-muted">Flat-wise member details — CA standard</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('member-register')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('member-register')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-member-register-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Flat No</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Phone</th>
+              <th class="text-end">Monthly Rate</th>
+              <th class="text-end">Opening Due</th>
+            </tr>
+          </thead>
+          <tbody id="ca-member-register-rows">
+            <tr><td colspan="6" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2B: Committee Register -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-people-group text-info me-2"></i>
+            Committee Register
+          </h5>
+          <small class="text-muted">Management committee members</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('committee-register')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('committee-register')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-committee-register-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Mobile</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody id="ca-committee-register-rows">
+            <tr><td colspan="4" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2C: Asset Register -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-boxes-stacked text-warning me-2"></i>
+            Asset Register
+          </h5>
+          <small class="text-muted">Fixed assets with depreciation</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('asset-register')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('asset-register')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-asset-register-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Location</th>
+              <th class="text-end">Cost</th>
+              <th class="text-end">Dep. Rate</th>
+              <th class="text-end">Current Value</th>
+            </tr>
+          </thead>
+          <tbody id="ca-asset-register-rows">
+            <tr><td colspan="6" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2D: FD Register -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-piggy-bank text-success me-2"></i>
+            FD / Investment Register
+          </h5>
+          <small class="text-muted">Fixed deposits & reserves</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('fd-register')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('fd-register')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-fd-register-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Fund Type</th>
+              <th>Bank</th>
+              <th>Account No</th>
+              <th class="text-end">Principal</th>
+              <th>Rate</th>
+              <th>Maturity Date</th>
+              <th class="text-end">Maturity Amount</th>
+            </tr>
+          </thead>
+          <tbody id="ca-fd-register-rows">
+            <tr><td colspan="7" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <!-- ═══════ END: Registers Section ═══════ -->
+
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 3: REPORTS                            -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="ca-section-reports" class="ca-section d-none">
+
+    <!-- 3A: Outstanding / Defaulter List -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 mb-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>
+            Outstanding / Defaulter List
+          </h5>
+          <small class="text-muted">Flat-wise pending dues — CA standard</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('defaulter-list')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('defaulter-list')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-defaulter-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Flat No</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th class="text-end">Opening Due</th>
+              <th class="text-end">Total Due</th>
+              <th class="text-end">Total Paid</th>
+              <th class="text-end">Pending</th>
+              <th class="text-end">Late Fee</th>
+              <th class="text-end">Net Pending</th>
+            </tr>
+          </thead>
+          <tbody id="ca-defaulter-rows">
+            <tr><td colspan="9" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3B: Bank Summary -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-building-columns text-primary me-2"></i>
+            Bank Summary
+          </h5>
+          <small class="text-muted">Month-wise bank movement</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('bank-summary')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('bank-summary')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-bank-summary-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Month</th>
+              <th class="text-end">Opening Balance</th>
+              <th class="text-end">Receipts</th>
+              <th class="text-end">Payments</th>
+              <th class="text-end">Closing Balance</th>
+            </tr>
+          </thead>
+          <tbody id="ca-bank-summary-rows">
+            <tr><td colspan="5" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <!-- ═══════ END: Reports Section ═══════ -->
+
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 4: GST (EXISTING — untouched)         -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="ca-section-gst" class="ca-section d-none">
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-receipt text-primary me-2"></i>
+            GST & Tax Audit Summary
+          </h5>
+          <small class="text-muted">From invoices — CGST / SGST breakup</small>
+        </div>
+        <span class="badge bg-primary-subtle text-primary fw-semibold">CA Statutory Report</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-gst-summary-table">
+          <thead class="table-light">
+            <tr>
+              <th>Particulars / Tax Head</th>
+              <th>Tax Rate (%)</th>
+              <th>Total Taxable Amount (Base)</th>
+              <th>Total Tax Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="ca-gst-summary-rows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- ═══════ END: GST Section ═══════ -->
+
+
+  <!-- ══════════════════════════════════════════════ -->
+  <!-- SECTION 5: AUDIT                              -->
+  <!-- ══════════════════════════════════════════════ -->
+  <div id="ca-section-audit" class="ca-section d-none">
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold text-dark mb-1">
+            <i class="fa-solid fa-list-check text-info me-2"></i>
+            Audit Trail & Activity Logs
+          </h5>
+          <small class="text-muted">Complete activity history — CA verification</small>
+        </div>
+        <div class="d-flex gap-1 no-print">
+          <button class="btn btn-sm btn-outline-success" onclick="exportCAReportExcel('audit-logs')">
+            <i class="fa-solid fa-file-excel"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="exportCAReportPDF('audit-logs')">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle mb-0" id="ca-audit-logs-table">
+          <thead class="table-dark">
+            <tr>
+              <th>Timestamp</th>
+              <th>User</th>
+              <th>Role</th>
+              <th>Action</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="ca-audit-logs-rows">
+            <tr><td colspan="5" class="text-center text-muted py-4">
+              <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading...
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- ═══════ END: Audit Section ═══════ -->
+
+</div>
+<!-- ============================================ -->
+<!-- END: TAB 7: CA AUDIT — Expanded Structure    -->
+<!-- ============================================ -->
 
         <!-- TAB 8: CHAIRMAN REPORT -->
         <div id="tab-chairman-report" class="tab-content d-none">
@@ -1921,6 +2513,7 @@ body.read-only-mode a[download] {
                 <option value="Repairs & Maintenance">Repairs & Maintenance (मरम्मत और रख-रखाव)</option>
                 <option value="Staff & Salary">Staff & Salary (वेतन और स्टाफ)</option>
                 <option value="Statutory & Legal">Statutory & Legal (कानूनी और वैधानिक)</option>
+		<option value="VMC Water">💧 VMC Water Bill (નગરપાલિકા પાણી બિલ)</option>
                 <option value="Other Expenses">Other Expenses (अन्य खर्चे)</option>
               </select>
             </div>
@@ -2018,7 +2611,7 @@ body.read-only-mode a[download] {
 </div>
 
 <!-- Bank Modal -->
-<div class="modal fade" id="bankModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-primary text-white"><h5 class="modal-title fw-bold">Record Bank Entry</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitBankEntry(event)"><div class="mb-3"><label class="form-label fw-semibold">Date</label><input type="date" id="bank-form-date" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Head</label><input type="text" id="bank-form-head" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Ref No</label><input type="text" id="bank-form-ref" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Type</label><select id="bank-form-type" class="form-select"><option value="withdraw">Withdrawal</option><option value="deposit">Deposit</option></select></div><div class="mb-3"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="bank-form-amount" class="form-control" required></div><button type="submit" class="btn btn-primary w-100 fw-bold">Save</button></form></div></div></div></div>
+<div class="modal fade" id="bankModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content shadow-lg border-0"><div class="modal-header bg-warning text-dark"><h5 class="modal-title fw-bold"><i class="fa-solid fa-right-left me-2"></i>Internal Bank Transfer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><div class="alert alert-warning small mb-3" style="border-radius:10px;"><i class="fa-solid fa-triangle-exclamation me-2"></i><strong>કેવળ Internal Transfer માટે:</strong><br>• Cash → Bank Deposit<br>• Bank → Cash Withdrawal<br><br><strong>Income/Expense માટે આ button ન વાપરો:</strong><br>• Income → <b>Maintenance tab</b><br>• Expense (જેમ કે Bank Charges) → <b>Expenses tab</b></div><form onsubmit="submitBankEntry(event)"><div class="mb-3"><label class="form-label fw-semibold">Date</label><input type="date" id="bank-form-date" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Head</label><input type="text" id="bank-form-head" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Ref No</label><input type="text" id="bank-form-ref" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Type</label><select id="bank-form-type" class="form-select"><option value="withdraw">Withdrawal</option><option value="deposit">Deposit</option></select></div><div class="mb-3"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="bank-form-amount" class="form-control" required></div><button type="submit" class="btn btn-primary w-100 fw-bold">Save</button></form></div></div></div></div>
 
 <!-- Member Modal -->
 <div class="modal fade" id="memberModal" tabindex="-1">
