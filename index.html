@@ -2484,10 +2484,89 @@ body.read-only-mode a[download] {
 
 <!-- Maintenance Modal -->
 <div class="modal fade" id="maintenanceModal" tabindex="-1">
-  <div class="modal-dialog border-0 shadow-lg"><div class="modal-content border-0"><div class="modal-header bg-success text-white"><h5 class="modal-title fw-bold">Record Payment</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body p-4"><form onsubmit="submitMaintenance(event)"><div class="row g-3"><div class="col-md-6"><label class="form-label fw-semibold">Receipt No</label><input type="text" id="maint-form-ref" class="form-control" placeholder="DEMO011"></div><div class="col-md-6"><label class="form-label fw-semibold">Flat No</label><input type="text" id="maint-form-flat" class="form-control" placeholder="A-101" required 
-       style="text-transform: uppercase;"
-       oninput="this.value = this.value.toUpperCase().trim()"
-       maxlength="15"></div><div class="col-md-6"><label class="form-label fw-semibold">Date</label><input type="date" id="maint-form-date" class="form-control" required></div><div class="col-md-6"><label class="form-label fw-semibold">Amount (₹)</label><input type="number" id="maint-form-amount" class="form-control" value="600" required></div><div class="col-md-6"><label class="form-label fw-semibold">Mode</label><select id="maint-form-mode" class="form-select"><option value="UPI">UPI</option><option value="Cash">Cash</option></select></div><div class="col-md-6"><label class="form-label fw-semibold">Month</label><input type="text" id="maint-form-month" class="form-control" placeholder="July'26"></div><div class="col-12"><label class="form-label fw-semibold">Remarks</label><input type="text" id="maint-form-remarks" class="form-control"></div></div><button type="submit" class="btn btn-success w-100 fw-bold py-2.5 mt-4">Save</button></form></div></div></div>
+  <div class="modal-dialog border-0 shadow-lg">
+    <div class="modal-content border-0">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title fw-bold">Record Payment</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form onsubmit="submitMaintenance(event)">
+          <div class="row g-3">
+
+            <!-- Receipt No -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Receipt No</label>
+              <input type="text" id="maint-form-ref" class="form-control" placeholder="DEMO011">
+            </div>
+
+            <!-- Flat No -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Flat No</label>
+              <input type="text" id="maint-form-flat" class="form-control" placeholder="A-101" required
+                     style="text-transform: uppercase;"
+                     oninput="this.value = this.value.toUpperCase().trim()"
+                     maxlength="15">
+            </div>
+
+            <!-- Date -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Date</label>
+              <input type="date" id="maint-form-date" class="form-control" required>
+            </div>
+
+            <!-- Amount -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Amount (₹)</label>
+              <input type="number" id="maint-form-amount" class="form-control" value="600" required>
+            </div>
+
+            <!-- Mode -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Mode</label>
+              <select id="maint-form-mode" class="form-select">
+                <option value="UPI">UPI</option>
+                <option value="Cash">Cash</option>
+              </select>
+            </div>
+
+            <!-- 🆕 Category Dropdown (Month / VMC / Others) -->
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Category</label>
+              <select id="paymentCategory" class="form-select" onchange="handleCategoryChange()">
+                <option value="month">Month</option>
+                <option value="vmc">VMC</option>
+                <option value="others">Others</option>
+              </select>
+            </div>
+
+            <!-- 🆕 Month Dropdown (auto Jan'26 → Dec'26, year auto-change) -->
+            <div class="col-md-6" id="monthDropdownGroup">
+              <label class="form-label fw-semibold">Month</label>
+              <select id="monthDropdown" class="form-select"></select>
+            </div>
+
+            <!-- 🆕 Others Input (Category = Others હોય ત્યારે દેખાશે) -->
+            <div class="col-md-6" id="otherCategoryGroup" style="display:none;">
+              <label class="form-label fw-semibold">Other Category</label>
+              <input type="text" id="otherCategoryInput" class="form-control" placeholder="Enter category">
+            </div>
+
+            <!-- 🆕 Hidden field — final value DB માં જશે -->
+            <input type="hidden" id="maint-form-month" value="">
+
+            <!-- Remarks -->
+            <div class="col-12">
+              <label class="form-label fw-semibold">Remarks</label>
+              <input type="text" id="maint-form-remarks" class="form-control">
+            </div>
+
+          </div>
+          <button type="submit" class="btn btn-success w-100 fw-bold py-2.5 mt-4">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Expense Modal -->
@@ -3281,7 +3360,7 @@ body.read-only-mode a[download] {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 
 </body>
 </html>

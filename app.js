@@ -2162,16 +2162,31 @@ async function verifyProof(id, status) {
   if (!proof) return;
 
   try {
-    // ✅ STEP 1: Agar Verified, pehle maintenance payment insert karo
+        // ✅ STEP 1: Agar Verified, pehle maintenance payment insert karo
     if (status === 'Verified') {
       const paymentDate = new Date(proof.payment_date);
+
+      // 🆕 VMC Detection — Check notes/remarks/app for "vmc water"
+      const proofText = (
+        (proof.notes || '') + ' ' +
+        (proof.app || '') + ' ' +
+        (proof.remarks || '')
+      ).toLowerCase();
+
+      const isVMC = proofText.includes('vmc') ||
+                    proofText.includes('water') ||
+                    proofText.includes('corporation water');
+
       const newReceipt = {
         receipt_no: `AUTO-${Date.now()}`,
         flat_no: proof.flat_no,
         payment_date: proof.payment_date,
         amount_paid: Number(proof.amount),
         mode_of_payment: proof.mode || 'UPI',
-        month_accounted: paymentDate.toLocaleString('default', { month: 'short', year: 'numeric' }),
+        // 🆕 VMC હોય તો "VMC Water", નહીં તો month name
+        month_accounted: isVMC
+          ? 'VMC Water'
+          : paymentDate.toLocaleString('default', { month: 'short', year: 'numeric' }),
         remarks: `Auto-verified from UTR: ${proof.utr || 'N/A'}`,
         society_name: proof.society_name || currentSociety
       };
@@ -12040,3 +12055,142 @@ function exportCAAuditLogsPDF() {
     }
   };
 })();
+
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* 🆕 RECORD PAYMENT MODAL — Category + Auto Month Dropdown       */
+/* (Jan'26 → Dec'26, Year auto-change on next FY)                 */
+/* ═══════════════════════════════════════════════════════════════ */
+
+/**
+ * Populate Month dropdown with months from current month → Dec of next year.
+ * Auto-changes when year rolls over (e.g., 2027 → Oct'27 to Dec'28)
+ */
+function populateMonthDropdown() {
+  const monthSelect = document.getElementById('monthDropdown');
+  if (!monthSelect) return;
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+
+  monthSelect.innerHTML = '';
+
+  // 🆕 3 years: Previous + Current + Next (for past & future entries)
+  const yearsToShow = [currentYear - 1, currentYear, currentYear + 1];
+
+  yearsToShow.forEach(year => {
+    const yearStr = year.toString().slice(-2); // "25", "26", "27"
+
+    months.forEach(month => {
+      const option = document.createElement('option');
+      option.value = `${month}'${yearStr}`;       // e.g., "Apr'26"
+      option.textContent = `${month}'${yearStr}`; // e.g., "Apr'26"
+      monthSelect.appendChild(option);
+    });
+  });
+
+  // Default = current month
+  const defaultMonth = `${months[currentMonth]}'${currentYear.toString().slice(-2)}`;
+  monthSelect.value = defaultMonth;
+
+  // Hidden field update
+  const hiddenField = document.getElementById('maint-form-month');
+  if (hiddenField) hiddenField.value = monthSelect.value;
+}
+/**
+ * Category change → Month dropdown show/hide + hidden field update
+ */
+function handleCategoryChange() {
+  const category = document.getElementById('paymentCategory')?.value;
+  const monthGroup = document.getElementById('monthDropdownGroup');
+  const otherGroup = document.getElementById('otherCategoryGroup');
+  const hiddenField = document.getElementById('maint-form-month');
+  const monthDropdown = document.getElementById('monthDropdown');
+  const otherInput = document.getElementById('otherCategoryInput');
+
+  if (!category || !monthGroup || !otherGroup || !hiddenField) return;
+
+  if (category === 'month') {
+    monthGroup.style.display = 'block';
+    otherGroup.style.display = 'none';
+    hiddenField.value = monthDropdown?.value || '';
+
+  } else if (category === 'vmc') {
+    monthGroup.style.display = 'none';
+    otherGroup.style.display = 'none';
+    hiddenField.value = 'VMC Water';
+
+  } else if (category === 'others') {
+    monthGroup.style.display = 'none';
+    otherGroup.style.display = 'block';
+    hiddenField.value = (otherInput?.value || '').trim();
+  }
+}
+
+/**
+ * Reset the modal every time it opens
+ */
+function resetMaintenanceModal() {
+  // Reset dropdown to current month
+  populateMonthDropdown();
+
+  // Default category = Month
+  const catSelect = document.getElementById('paymentCategory');
+  if (catSelect) catSelect.value = 'month';
+
+  // Clear Others input
+  const otherInput = document.getElementById('otherCategoryInput');
+  if (otherInput) otherInput.value = '';
+
+  // Apply visibility
+  handleCategoryChange();
+}
+
+/**
+ * Init — wait for DOM + Bootstrap ready
+ */
+document.addEventListener('DOMContentLoaded', function () {
+  // Populate months
+  populateMonthDropdown();
+
+  // Attach change listeners
+  const monthDropdown = document.getElementById('monthDropdown');
+  if (monthDropdown) {
+    monthDropdown.addEventListener('change', function () {
+      const cat = document.getElementById('paymentCategory')?.value;
+      if (cat === 'month') {
+        const hiddenField = document.getElementById('maint-form-month');
+        if (hiddenField) hiddenField.value = this.value;
+      }
+    });
+  }
+
+  const otherInput = document.getElementById('otherCategoryInput');
+  if (otherInput) {
+    otherInput.addEventListener('input', function () {
+      const cat = document.getElementById('paymentCategory')?.value;
+      if (cat === 'others') {
+        const hiddenField = document.getElementById('maint-form-month');
+        if (hiddenField) hiddenField.value = this.value.trim();
+      }
+    });
+  }
+
+  // Listen for modal open → reset state
+  const maintModal = document.getElementById('maintenanceModal');
+  if (maintModal) {
+    maintModal.addEventListener('show.bs.modal', function () {
+      resetMaintenanceModal();
+    });
+  }
+
+  // Initial state
+  handleCategoryChange();
+});
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* END: Record Payment Category + Month Dropdown                   */
+/* ═══════════════════════════════════════════════════════════════ */
