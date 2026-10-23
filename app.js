@@ -1844,46 +1844,26 @@ messaging.onMessage((payload) => {
 
 async function requestNotificationPermission() {
   try {
-    alert("DEBUG 1: પરમિશન માંગી રહ્યા છીએ..."); // 1
-    
     const permission = await Notification.requestPermission();
-    alert("DEBUG 2: પરમિશન સ્ટેટસ = " + permission); // 2
-
     if (permission === 'granted') {
-      
-      alert("DEBUG 3: સર્વિસ વર્કર રજિસ્ટર કરી રહ્યા છીએ..."); // 3
       const registration = await navigator.serviceWorker.register(
         '/firebase-messaging-sw.js',
         { scope: '/' }
       );
       await navigator.serviceWorker.ready;
       
-      alert("DEBUG 4: ફાયરબેઝ પાસેથી ટોકન માંગી રહ્યા છીએ..."); // 4
       const token = await messaging.getToken({
         vapidKey: 'BAOek06eNgaVPYj-VTGIBss1MHzn-miGxVT6T_2l42P4cBIQdXbiGEZGMn1IEU421-udoBNNlD6GR_8GqoMKaa4',
         serviceWorkerRegistration: registration
       });
 
-      if (token) { 
-        alert("DEBUG 5: ટોકન મળી ગયું છે! હવે ડેટાબેઝમાં સેવ કરી રહ્યા છીએ..."); // 5
-        await saveFCMTokenToSupabase(token); 
-      } else {
-        alert("ERROR: ટોકન ખાલી આવ્યું છે (null)!"); 
-      }
-    } else {
-      alert("ERROR: પરમિશન 'Allow' નથી થઈ. (Status: " + permission + ")");
+      if (token) { await saveFCMTokenToSupabase(token); }
     }
-  } catch (err) { 
-    alert("FCM CATCH ERROR: " + err.message); // જો કોડમાં કોઈ એરર હશે તો આ દેખાશે
-    console.error('Error in notification setup:', err); 
-  }
+  } catch (err) { console.error('Error in notification setup:', err); }
 }
 
 async function saveFCMTokenToSupabase(token) {
-  if (!currentUser || !currentSociety) {
-    alert("❌ Supabase Error: currentUser or currentSociety is empty!");
-    return;
-  }
+  if (!currentUser || !currentSociety) return;
   try {
     const payload = { 
       society_name: currentSociety, 
@@ -1892,18 +1872,10 @@ async function saveFCMTokenToSupabase(token) {
       token: token,
       updated_at: new Date().toISOString()
     };
-    
-    const { data, error } = await _supabase.from('fcm_tokens').upsert([payload], { onConflict: 'token' });
-    
-    if (error) {
-      alert("❌ Supabase Save Error: " + error.message); // જો ડેટાબેઝમાં સેવ ના થાય તો આ દેખાશે
-      console.error(error);
-    } else {
-      alert("✅ ડેટાબેઝમાં ટોકન સેવ થઈ ગયું છે!");
-      console.log('✅ FCM Token saved for:', currentUser, currentRole);
-    }
+    await _supabase.from('fcm_tokens').upsert([payload], { onConflict: 'token' });
+    console.log('✅ FCM Token saved for:', currentUser, currentRole);
   } catch (err) { 
-    alert("❌ Catch Error: " + err.message);
+    console.error('Error saving FCM token:', err); 
   }
 }
 
