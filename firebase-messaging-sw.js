@@ -5,7 +5,7 @@ importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compa
 console.log("🔥 Service Worker Loaded Successfully!");
 
 // ✅ GitHub Pages Base Path
-const APP_BASE = '/ps-society-app/';
+const APP_BASE = '/';
 
 firebase.initializeApp({
   apiKey: "AIzaSyAEDLQQIhlkCGupdvjp8IQiEqv6miVlRVk",

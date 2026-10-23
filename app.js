@@ -1847,9 +1847,9 @@ async function requestNotificationPermission() {
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       const registration = await navigator.serviceWorker.register(
-        '/ps-society-app/firebase-messaging-sw.js',
-        { scope: '/ps-society-app/' }
-      );
+  '/firebase-messaging-sw.js',
+  { scope: '/' }
+);
       await navigator.serviceWorker.ready;
       
       const token = await messaging.getToken({
@@ -2428,11 +2428,11 @@ function setupRealtimeSubscriptions() {
               navigator.serviceWorker.ready.then(reg => {
                 reg.showNotification('💰 New Payment Proof Submitted', {
                   body: `Flat ${payload.new.flat_no} — ₹${payload.new.amount}`,
-                  icon: '/ps-society-app/icon-192.png',
-                  badge: '/ps-society-app/icon-192.png',
-                  tag: `proof-${payload.new.id}`,
-                  renotify: true,
-                  data: { url: '/ps-society-app/?tab=proofs' }
+                  icon: '/icon-192.png',
+badge: '/icon-192.png',
+tag: `proof-${payload.new.id}`,
+renotify: true,
+data: { url: '/?tab=proofs' }
                 });
               });
             }
@@ -10188,11 +10188,11 @@ function setupUserMgmtRealtime() {
               navigator.serviceWorker.ready.then(reg => {
                 reg.showNotification('🔐 Password Reset Request', {
                   body: `${newReq.flat_no} (${newReq.society_name}) needs password reset`,
-                  icon: '/ps-society-app/icon-192.png',
-                  badge: '/ps-society-app/icon-192.png',
-                  tag: `reset-${newReq.id}`,
-                  renotify: true,
-                  data: { url: '/ps-society-app/?tab=user-management' }
+                  icon: '/icon-192.png',
+badge: '/icon-192.png',
+tag: `reset-${newReq.id}`,
+renotify: true,
+data: { url: '/?tab=user-management' }
                 });
               });
             } catch (e) { console.log('Notify error:', e); }
